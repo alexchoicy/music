@@ -1,0 +1,42 @@
+{
+    "name": "@music/api",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "./dist/**"
+    ],
+    "scripts": {
+        "dev": "pnpm build --watch",
+        "build": "tsc -b -v"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "require": "./dist/index.js"
+        },
+        "./*": {
+            "import": "./dist/*.js",
+            "require": "./dist/*.js"
+        }
+    },
+    "typesVersions": {
+        "*": {
+            "*": [
+                "src/*"
+            ]
+        }
+    },
+    "dependencies": {
+        "zod": "^4.0.17"
+    },
+    "devDependencies": {
+        "@music/typescript-config": "workspace:*",
+        "typescript": "5.5.4"
+    }
+}
