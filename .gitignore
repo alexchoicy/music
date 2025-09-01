@@ -57,3 +57,13 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # turbo
 .turbo
+
+# apps
+appConfig.yaml
+bin
+
+# mikro-orm
+apps/backend/temp
+
+# vscode
+.vscode

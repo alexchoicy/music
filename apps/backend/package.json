@@ -21,17 +21,25 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@mikro-orm/core": "^6.5.1",
+    "@mikro-orm/migrations": "^6.5.1",
+    "@mikro-orm/nestjs": "^6.1.1",
+    "@mikro-orm/postgresql": "^6.5.1",
+    "@mikro-orm/reflection": "^6.5.1",
+    "@mikro-orm/seeder": "^6.5.1",
+    "@music/api": "workspace:*",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
-    "@music/api": "workspace:*",
+    "dotenv": "^17.2.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "@music/typescript-config": "workspace:*",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
+    "@mikro-orm/cli": "^6.5.1",
+    "@music/typescript-config": "workspace:*",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
@@ -53,6 +61,14 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
+  },
+  "imports": {
+    "#config/*": [
+      "./dist/lib/config/*"
+    ],
+    "#database/*": [
+      "./dist/database/*"
+    ]
   },
   "jest": {
     "moduleFileExtensions": [

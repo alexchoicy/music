@@ -1,0 +1,22 @@
+app:
+  init: false
+  maintain: false
+  library:
+    import_mode: copy # copy or symlink for music in old library
+
+storage:
+  old_library_dir: '' # your old library directory
+  library_dir: '' # A directory that used for the services
+  cache_dir: ''
+
+# location you install ffmpeg & ffprobe
+# nochange if set system enviroment path
+ffmpeg:
+  ffmpeg_path: ffmpeg
+  ffprobe_path: ffprobe
+
+# not implemented yet tehe
+backup:
+  directory: ''
+  frequency: 'daily'
+  retention: '5d'
