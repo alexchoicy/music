@@ -67,3 +67,11 @@ apps/backend/temp
 
 # vscode
 .vscode
+
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
