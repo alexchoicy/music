@@ -14,6 +14,12 @@ export default defineNuxtConfig({
     plugins: [
       tailwindcss(),
     ],
+    // Enable better HMR for development
+    server: {
+      hmr: {
+        overlay: true
+      }
+    }
   },
   modules: ['shadcn-nuxt', '@nuxtjs/color-mode'],
   shadcn: {
@@ -23,5 +29,13 @@ export default defineNuxtConfig({
   colorMode: {
     classSuffix: '',
     preference: 'dark'
-  }
+  },
+  // Configure component auto-import for the layer
+  components: [
+    {
+      path: join(currentDir, './components'),
+      pathPrefix: false,
+      global: true
+    }
+  ]
 })

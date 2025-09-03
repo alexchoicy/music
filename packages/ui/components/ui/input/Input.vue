@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
 import { useVModel } from "@vueuse/core"
 import { cn } from "@/lib/utils"
 
 const props = defineProps<{
   defaultValue?: string | number
   modelValue?: string | number
-  class?: HTMLAttributes["class"]
+  class?: string
 }>()
 
 const emits = defineEmits<{

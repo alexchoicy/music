@@ -11,15 +11,15 @@
   <Card class="w-full max-w-sm">
     <CardHeader>
       <CardTitle class="text-2xl">
-        Login - Test HMR
+        Login - HMR Fixed!
       </CardTitle>
       <CardDescription>
-        Enter your email below to login to your account.
+        Enter your email below to login. HMR should work now!
       </CardDescription>
     </CardHeader>
     <CardContent class="grid gap-4">
       <div class="grid gap-2">
-        <Label for="email">Email</Label>
+        <Label for="email">Email Address</Label>
         <Input id="email" type="email" placeholder="m@example.com" required />
       </div>
       <div class="grid gap-2">
@@ -29,7 +29,7 @@
     </CardContent>
     <CardFooter>
       <Button class="w-full">
-        Sign in
+        Sign In Now!
       </Button>
     </CardFooter>
   </Card>
