@@ -11,7 +11,7 @@
   <Card class="w-full max-w-sm">
     <CardHeader>
       <CardTitle class="text-2xl">
-        Login
+        Login - Test HMR
       </CardTitle>
       <CardDescription>
         Enter your email below to login to your account.
