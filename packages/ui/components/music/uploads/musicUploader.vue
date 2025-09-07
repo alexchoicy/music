@@ -20,6 +20,10 @@ const props = defineProps({
         default: false,
         required: true,
     },
+    fileObjects: {
+        type: Object as () => Map<string, File>,
+        required: true,
+    }
 });
 
 const dropZoneRef = ref<HTMLDivElement>();
@@ -66,6 +70,8 @@ async function handleFiles(files: File[]) {
 
         const metadata = await parseBlob(file);
         const musicObj = covertToMusicObject(metadata, hash, file.name);
+
+        props.fileObjects.set(hash, file);
         musicObjects.push(musicObj);
     }
 

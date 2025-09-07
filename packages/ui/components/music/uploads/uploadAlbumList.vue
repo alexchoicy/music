@@ -14,6 +14,10 @@ const props = defineProps({
         default: false,
         required: true,
     },
+    fileObjects: {
+        type: Object as () => Map<string, File>,
+        required: true,
+    },
     reSortAlbums: {
         type: Function,
         required: true,
@@ -69,7 +73,7 @@ function trackRemover(albumHash: string, trackHash: string) {
             break;
         }
     }
-
+    props.fileObjects.delete(trackHash);
     if (album.disc.length === 0) {
         const albumIndex = props.albums.findIndex(a => a.hash === albumHash);
         if (albumIndex !== -1) {

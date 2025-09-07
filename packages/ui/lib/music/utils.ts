@@ -100,6 +100,11 @@ export function covertToMusicObject(
       no: metadata.common.disk.no || 0,
       of: metadata.common.disk.of || 0,
     },
+    format: {
+      codec: metadata.format.codec || "unknown",
+      container: metadata.format.container || "unknown",
+      lossless: metadata.format.lossless || false,
+    },
     picture: picture,
     isInstrumental: checkIfInstrumental(metadata.common.title || "", filename),
   };

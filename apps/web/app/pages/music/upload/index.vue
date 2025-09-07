@@ -4,10 +4,12 @@ import { albumsSorter, flattenAlbums } from '@/lib/music/sorter';
 import { type Album } from '@music/api/type/music'
 
 const albums = ref<Album[]>([])
+const fileObjects = ref<Map<string, File>>(new Map())
 const blockUpload = ref(false)
 
 function uploadAlbums() {
     console.log(JSON.parse(JSON.stringify(albums.value)));
+    console.log(fileObjects.value);
 }
 
 async function reSortAlbums() {
@@ -25,11 +27,11 @@ async function reSortAlbums() {
         <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
             <div class="xl:col-span-3 space-y-6">
                 <ClientOnly>
-                    <MusicUploadsMusicUploader :albums="albums" :blockUpload="blockUpload"
+                    <MusicUploadsMusicUploader :albums="albums" :blockUpload="blockUpload" :fileObjects="fileObjects"
                         @update:blockUpload="blockUpload = $event" @update:albums="albums = $event" />
                 </ClientOnly>
 
-                <UploadAlbumList :albums="albums" class="mt-6" :blockUpload="blockUpload"
+                <UploadAlbumList :albums="albums" class="mt-6" :blockUpload="blockUpload" :fileObjects="fileObjects"
                     @update:blockUpload="blockUpload = $event" :reSortAlbums="reSortAlbums" />
             </div>
             <div>
