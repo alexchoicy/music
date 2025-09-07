@@ -1,5 +1,10 @@
+<script setup lang="ts">
+import AuthLogin from '@/components/auth/Login.vue' // adjust the path to the real file
+</script>
+
+
 <template>
-  <div class=" w-full h-screen flex items-center justify-center px-4 ">
-    <AuthLogin></AuthLogin>
-  </div>
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
 </template>

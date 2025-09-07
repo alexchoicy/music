@@ -10,9 +10,10 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@music/api": "workspace:*",
+    "@music/ui": "workspace:*",
     "nuxt": "^4.0.3",
     "vue": "^3.5.20",
-    "vue-router": "^4.5.1",
-    "@music/ui": "workspace:*"
+    "vue-router": "^4.5.1"
   }
 }
