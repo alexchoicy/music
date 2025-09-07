@@ -1,20 +1,20 @@
 import {
-  Collection,
-  Entity,
-  OneToMany,
-  PrimaryKey,
-  Property,
+	Collection,
+	Entity,
+	OneToMany,
+	PrimaryKey,
+	Property,
 } from '@mikro-orm/core';
 import { TrackTags } from './trackTags.js';
 
 @Entity()
 export class Tags {
-  @PrimaryKey({ autoincrement: true })
-  id!: bigint;
+	@PrimaryKey({ autoincrement: true })
+	id!: bigint;
 
-  @Property({ type: 'text', unique: 'tags_name_key' })
-  name!: string;
+	@Property({ type: 'text', unique: 'tags_name_key' })
+	name!: string;
 
-  @OneToMany({ entity: () => TrackTags, mappedBy: 'tag' })
-  trackTagsCollection = new Collection<TrackTags>(this);
+	@OneToMany({ entity: () => TrackTags, mappedBy: 'tag' })
+	trackTagsCollection = new Collection<TrackTags>(this);
 }

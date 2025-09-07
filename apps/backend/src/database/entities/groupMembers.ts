@@ -4,9 +4,9 @@ import { Artists } from './artists.js';
 
 @Entity()
 export class GroupMembers {
-  @ManyToOne({ entity: () => ArtistGroups, primary: true })
-  group!: Rel<ArtistGroups>;
+	@ManyToOne({ entity: () => ArtistGroups, primary: true })
+	group!: Rel<ArtistGroups>;
 
-  @ManyToOne({ entity: () => Artists, primary: true })
-  artist!: Rel<Artists>;
+	@ManyToOne({ entity: () => Artists, primary: true })
+	artist!: Rel<Artists>;
 }

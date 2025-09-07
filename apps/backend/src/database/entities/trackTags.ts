@@ -4,9 +4,9 @@ import { Tracks } from './tracks.js';
 
 @Entity()
 export class TrackTags {
-  @ManyToOne({ entity: () => Tracks, primary: true })
-  track!: Rel<Tracks>;
+	@ManyToOne({ entity: () => Tracks, primary: true })
+	track!: Rel<Tracks>;
 
-  @ManyToOne({ entity: () => Tags, primary: true })
-  tag!: Rel<Tags>;
+	@ManyToOne({ entity: () => Tags, primary: true })
+	tag!: Rel<Tags>;
 }
