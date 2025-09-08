@@ -8,6 +8,7 @@ import config, { EnvSchema } from './utils/config.js';
 import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { BaseController } from './modules/base.controller.js';
+import { AlbumsModule } from './modules/albums/albums.module.js';
 
 @Module({
 	imports: [
@@ -27,6 +28,7 @@ import { BaseController } from './modules/base.controller.js';
 		}),
 		MikroOrmModule.forRoot(dbConfig),
 		UploadsModule,
+		AlbumsModule,
 	],
 	controllers: [BaseController],
 	providers: [

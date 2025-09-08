@@ -3,6 +3,14 @@ import { AppModule } from './app.module.js';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { NestExpressApplication } from '@nestjs/platform-express';
+
+// BigInt JSON serialization
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+(BigInt.prototype as any).toJSON = function () {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+	return this.toString();
+};
+
 async function bootstrap() {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
 		bodyParser: true,
