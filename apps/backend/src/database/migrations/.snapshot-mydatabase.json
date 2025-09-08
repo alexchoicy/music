@@ -8,24 +8,15 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
-          "unsigned": false,
-          "autoincrement": true,
-          "primary": true,
-          "nullable": false,
-          "mappedType": "bigint"
-        },
-        "entity_type": {
-          "name": "entity_type",
-          "type": "text",
+          "type": "uuid",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "mappedType": "text"
+          "mappedType": "uuid"
         },
-        "path": {
-          "name": "path",
+        "entity_type": {
+          "name": "entity_type",
           "type": "text",
           "unsigned": false,
           "autoincrement": false,
@@ -40,15 +31,6 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "mappedType": "text"
-        },
-        "label": {
-          "name": "label",
-          "type": "text",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
           "mappedType": "text"
         },
         "created_at": {
@@ -390,25 +372,6 @@
           "nullable": false,
           "mappedType": "text"
         },
-        "total_discs": {
-          "name": "total_discs",
-          "type": "int",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "default": "1",
-          "mappedType": "integer"
-        },
-        "total_tracks": {
-          "name": "total_tracks",
-          "type": "int",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "integer"
-        },
         "year": {
           "name": "year",
           "type": "int",
@@ -443,10 +406,9 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "default": "'LP'",
+          "default": "'Album'",
           "enumItems": [
-            "LP",
-            "EP",
+            "Album",
             "Single",
             "Compilation",
             "Soundtrack",
@@ -467,12 +429,12 @@
         },
         "cover_attachment_id": {
           "name": "cover_attachment_id",
-          "type": "bigint",
+          "type": "uuid",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
-          "mappedType": "bigint"
+          "mappedType": "uuid"
         },
         "created_at": {
           "name": "created_at",
@@ -636,6 +598,15 @@
           "nullable": false,
           "mappedType": "text"
         },
+        "upload_hash_check": {
+          "name": "upload_hash_check",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
         "duration_ms": {
           "name": "duration_ms",
           "type": "int",
@@ -645,8 +616,8 @@
           "nullable": false,
           "mappedType": "integer"
         },
-        "path": {
-          "name": "path",
+        "file_codec": {
+          "name": "file_codec",
           "type": "text",
           "unsigned": false,
           "autoincrement": false,
@@ -654,14 +625,24 @@
           "nullable": false,
           "mappedType": "text"
         },
-        "file_type": {
-          "name": "file_type",
+        "file_container": {
+          "name": "file_container",
           "type": "text",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
           "mappedType": "text"
+        },
+        "lossless": {
+          "name": "lossless",
+          "type": "boolean",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "false",
+          "mappedType": "boolean"
         },
         "is_instrumental": {
           "name": "is_instrumental",
@@ -708,6 +689,15 @@
           "primary": false,
           "nullable": true,
           "mappedType": "uuid"
+        },
+        "upload_status": {
+          "name": "upload_status",
+          "type": "smallint",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "enum"
         },
         "created_at": {
           "name": "created_at",

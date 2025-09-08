@@ -4,14 +4,21 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
-      "#config/*": [
-        "./src/lib/config/*"
+      "#types/*": [
+        "./src/types/*"
       ],
       "#database/*": [
         "./src/database/*"
+      ],
+      "#utils/*": [
+        "./src/utils/*"
       ]
     }
   },
+  "exclude": [
+    "node_modules",
+    "dist",
+  ],
   "ts-node": {
     "esm": true,
     "transpileOnly": true

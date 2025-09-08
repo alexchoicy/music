@@ -2,7 +2,8 @@ import z4 from "zod/v4";
 
 export const MusicSchema = z4.object({
   filename: z4.string(),
-  hash: z4.string(),
+  uploadHashCheck: z4.string(), // md5 but s3 only support md5 for etag
+  hash: z4.string(), // blake3, i heard that is fast
   album: z4.string(),
   albumArtist: z4.string(),
   rawArtist: z4.string(),
@@ -17,6 +18,11 @@ export const MusicSchema = z4.object({
   }),
   disc: z4.object({
     no: z4.number(),
+  }),
+  format: z4.object({
+    codec: z4.string(),
+    container: z4.string(),
+    lossless: z4.boolean(),
   }),
   picture: z4
     .array(

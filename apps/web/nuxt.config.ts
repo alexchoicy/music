@@ -1,12 +1,17 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: "2025-07-15",
   devtools: {
     enabled: true,
 
     timeline: {
-      enabled: true
-    }
+      enabled: true,
+    },
   },
-  extends: ["@music/ui"]
-})
+  runtimeConfig: {
+    public: {
+      apiBase: "",
+    },
+  },
+  extends: ["@music/ui"],
+});

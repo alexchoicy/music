@@ -15,7 +15,7 @@ const props = defineProps({
         required: true,
     },
     fileObjects: {
-        type: Object as () => Map<string, File>,
+        type: Object as () => Map<string, { file: File, uploadHash: string }>,
         required: true,
     },
     reSortAlbums: {
@@ -179,7 +179,7 @@ function onTrackEditOpen(albumHash: string, trackHash: string) {
                                 </div>
                                 <div class="w-20 text-center">
                                     <span class="text-sm text-gray-400">{{ getSecondToMinuteString(track.duration)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <div class="w-20 flex text-center justify-end gap-1 ">
                                     <Button variant="ghost" class="h-9 w-9 p-0" :disabled="props.blockUpload"

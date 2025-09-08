@@ -7,7 +7,7 @@ import { Upload } from "lucide-vue-next";
 import { useDropZone } from '@vueuse/core';
 
 import { parseBlob, type IAudioMetadata } from "music-metadata";
-import { hashFileStream, covertToMusicObject, getNextFreeTrackNo, getAlbumHash, checkIfSoundtrack } from '@/lib/music/utils';
+import { hashFileStream, covertToMusicObject, getNextFreeTrackNo, getAlbumHash, checkIfSoundtrack, hashFileStreamMd5 } from '@/lib/music/utils';
 import { albumsSorter, flattenAlbums } from '@/lib/music/sorter';
 
 const props = defineProps({
@@ -21,7 +21,7 @@ const props = defineProps({
         required: true,
     },
     fileObjects: {
-        type: Object as () => Map<string, File>,
+        type: Object as () => Map<string, { file: File, uploadHash: string }>,
         required: true,
     }
 });
@@ -69,9 +69,11 @@ async function handleFiles(files: File[]) {
         }
 
         const metadata = await parseBlob(file);
-        const musicObj = covertToMusicObject(metadata, hash, file.name);
+        const uploadHash = await hashFileStreamMd5(file)
 
-        props.fileObjects.set(hash, file);
+        const musicObj = covertToMusicObject(metadata, hash, uploadHash, file.name);
+
+        props.fileObjects.set(hash, { file, uploadHash });
         musicObjects.push(musicObj);
     }
 

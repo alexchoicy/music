@@ -1,5 +1,5 @@
 import type { Album, Music, Disc } from "@music/api/type/music";
-import { createBLAKE3 } from "hash-wasm";
+import { createBLAKE3, createMD5 } from "hash-wasm";
 import { parseBlob, type IAudioMetadata } from "music-metadata";
 import { uint8ArrayToBase64 } from "uint8array-extras";
 
@@ -66,9 +66,22 @@ export function getNextFreeTrackNo(dics: Disc, preferred: number) {
   return preferred;
 }
 
+export async function hashFileStreamMd5(file: File) {
+  const hasher = await createMD5();
+  const reader = file.stream().getReader();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    hasher.update(value);
+  }
+
+  return hasher.digest("hex");
+}
+
 export function covertToMusicObject(
   metadata: IAudioMetadata,
   hash: string,
+  uploadHashCheck: string,
   filename: string
 ): Music {
   const artists = Array.from(
@@ -82,6 +95,7 @@ export function covertToMusicObject(
 
   return {
     hash: hash,
+    uploadHashCheck,
     filename: filename,
     album: metadata.common.album || "Unknown Album",
     albumArtist: metadata.common.albumartist || "Unknown Album Artist",

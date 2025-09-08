@@ -4,9 +4,11 @@ import { uploadInitResponseSchema } from "./upload.dto.js";
 
 export const UploadMusicInitSchema = z4.array(AlbumSchema);
 
-export const UploadMusicInitResponseSchema = z4.array(uploadInitResponseSchema.and(
-    z4.object({
-        trackHash: z4.string().min(1),
-        storedTrackID: z4.string().min(1),
-    })
-));
+export const uploadMusicInitItemSchema = uploadInitResponseSchema.extend({
+  trackHash: z4.string().min(1),
+  storedTrackID: z4.string().min(1),
+});
+
+export type UploadMusicInitResponse = z4.infer<
+  typeof uploadMusicInitItemSchema
+>;

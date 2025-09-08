@@ -1,15 +1,41 @@
 <script setup lang="ts">
 import UploadAlbumList from '@/components/music/uploads/uploadAlbumList.vue';
 import { albumsSorter, flattenAlbums } from '@/lib/music/sorter';
+import type { UploadMusicInitResponse } from '@music/api/dto/music.dto';
 import { type Album } from '@music/api/type/music'
 
 const albums = ref<Album[]>([])
-const fileObjects = ref<Map<string, File>>(new Map())
+const fileObjects = ref<Map<string, { file: File, uploadHash: string }>>(new Map())
 const blockUpload = ref(false)
 
-function uploadAlbums() {
-    console.log(JSON.parse(JSON.stringify(albums.value)));
-    console.log(fileObjects.value);
+async function uploadAlbums() {
+    blockUpload.value = true;
+    const apiBase = useRuntimeConfig().public.apiBase;
+    if (albums.value.length === 0) return;
+    const response = await $fetch<UploadMusicInitResponse[]>(useRuntimeConfig().public.apiBase + '/uploads/musics/init', {
+        method: 'POST',
+        body: albums.value
+    })
+
+    if (!response) return;
+    console.log(response)
+    for (const uploadUrl of response) {
+        const file = fileObjects.value.get(uploadUrl.trackHash);
+        if (!file) continue;
+
+        await fetch(uploadUrl.uploadUrl, {
+            method: 'PUT',
+            body: file.file,
+            headers: {
+                'Content-Type': 'audio/*',
+                'content-md5': file.uploadHash
+            }
+        });
+    }
+
+    albums.value = [];
+    fileObjects.value = new Map();
+    blockUpload.value = false;
 }
 
 async function reSortAlbums() {

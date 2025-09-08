@@ -28,13 +28,22 @@ export class Tracks {
 	name!: string;
 
 	@Property({ type: 'text', unique: true })
-	hash!: string;
+	hash: string;
+
+	@Property({ type: 'text' })
+	uploadHashCheck: string;
 
 	@Property()
 	durationMs!: number;
 
 	@Property({ type: 'text' })
-	fileType!: string;
+	fileCodec: string;
+
+	@Property({ type: 'text' })
+	fileContainer: string;
+
+	@Property({ type: 'boolean' })
+	lossless: boolean & Opt = false;
 
 	@Property({ type: 'boolean' })
 	isInstrumental: boolean & Opt = false;
