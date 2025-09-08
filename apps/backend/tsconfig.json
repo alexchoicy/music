@@ -2,6 +2,25 @@
   "extends": "@music/typescript-config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "baseUrl": "./"
+    "baseUrl": "./",
+    "paths": {
+      "#types/*": [
+        "./src/types/*"
+      ],
+      "#database/*": [
+        "./src/database/*"
+      ],
+      "#utils/*": [
+        "./src/utils/*"
+      ]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+  ],
+  "ts-node": {
+    "esm": true,
+    "transpileOnly": true
   }
 }

@@ -21,22 +21,39 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@nestjs/common": "^11.0.1",
-    "@nestjs/core": "^11.0.1",
-    "@nestjs/platform-express": "^11.0.1",
+    "@mikro-orm/core": "^6.5.1",
+    "@mikro-orm/migrations": "^6.5.1",
+    "@mikro-orm/nestjs": "^6.1.1",
+    "@mikro-orm/postgresql": "^6.5.1",
+    "@mikro-orm/reflection": "^6.5.1",
+    "@mikro-orm/seeder": "^6.5.1",
     "@music/api": "workspace:*",
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/mapped-types": "*",
+    "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/swagger": "^11.2.0",
+    "@noble/hashes": "^2.0.0",
+    "dotenv": "^17.2.1",
+    "js-yaml": "^4.1.0",
+    "nestjs-zod": "^5.0.1",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "uuid": "^12.0.0",
+    "zod": "^4.0.17"
   },
   "devDependencies": {
-    "@music/typescript-config": "workspace:*",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
+    "@mikro-orm/cli": "^6.5.1",
+    "@music/typescript-config": "workspace:*",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
@@ -53,6 +70,17 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
+  },
+  "imports": {
+    "#types/*": [
+      "./dist/types/*"
+    ],
+    "#database/*": [
+      "./dist/database/*"
+    ],
+    "#utils/*": [
+      "./dist/utils/*"
+    ]
   },
   "jest": {
     "moduleFileExtensions": [

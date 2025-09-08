@@ -2,6 +2,7 @@
 dist
 node_modules
 build
+*.tsbuildinfo
 
 # Logs
 logs
@@ -57,3 +58,21 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # turbo
 .turbo
+
+# apps
+appConfig.yaml
+bin
+
+# mikro-orm
+apps/backend/temp
+
+# vscode
+.vscode
+
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
