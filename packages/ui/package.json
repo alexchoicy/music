@@ -8,6 +8,7 @@
     "license": "ISC",
     "dependencies": {
         "@music/api": "workspace:*",
+        "@pinia/nuxt": "0.11.2",
         "@tailwindcss/vite": "^4.1.12",
         "@vee-validate/zod": "^4.15.1",
         "@vueuse/core": "^13.9.0",
@@ -17,6 +18,7 @@
         "lucide-vue-next": "^0.542.0",
         "music-metadata": "^11.8.3",
         "nuxt": "^4.0.3",
+        "pinia": "^3.0.3",
         "reka-ui": "^2.5.0",
         "shadcn-nuxt": "2.2.0",
         "tailwind-merge": "^3.3.1",
