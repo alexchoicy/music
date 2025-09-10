@@ -1,14 +1,12 @@
 import { AlbumSchema } from "../type/music.js";
-import z4 from "zod";
+import { z } from "zod/v4";
 import { uploadInitResponseSchema } from "./upload.dto.js";
 
-export const UploadMusicInitSchema = z4.array(AlbumSchema);
+export const UploadMusicInitSchema = z.array(AlbumSchema);
 
 export const uploadMusicInitItemSchema = uploadInitResponseSchema.extend({
-  trackHash: z4.string().min(1),
-  storedTrackID: z4.string().min(1),
+  trackHash: z.string().min(1),
+  storedTrackID: z.string().min(1),
 });
 
-export type UploadMusicInitResponse = z4.infer<
-  typeof uploadMusicInitItemSchema
->;
+export type UploadMusicInitResponse = z.infer<typeof uploadMusicInitItemSchema>;

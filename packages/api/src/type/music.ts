@@ -1,46 +1,46 @@
-import z4 from "zod/v4";
+import { z } from "zod/v4";
 
-export const MusicSchema = z4.object({
-  filename: z4.string(),
-  uploadHashCheck: z4.string(), // md5 but s3 only support md5 for etag
-  hash: z4.string(), // blake3, i heard that is fast
-  album: z4.string(),
-  albumArtist: z4.string(),
-  rawArtist: z4.string(),
-  artists: z4.array(z4.string()),
-  title: z4.string(),
-  year: z4.number(),
-  duration: z4.number(),
-  bitsPerSample: z4.number().optional(),
-  sampleRate: z4.number().optional(),
-  track: z4.object({
-    no: z4.number(),
+export const MusicSchema = z.object({
+  filename: z.string(),
+  uploadHashCheck: z.string(), // md5 but s3 only support md5 for etag
+  hash: z.string(), // blake3, i heard that is fast
+  album: z.string(),
+  albumArtist: z.string(),
+  rawArtist: z.string(),
+  artists: z.array(z.string()),
+  title: z.string(),
+  year: z.number(),
+  duration: z.number(),
+  bitsPerSample: z.number().optional(),
+  sampleRate: z.number().optional(),
+  track: z.object({
+    no: z.number(),
   }),
-  disc: z4.object({
-    no: z4.number(),
+  disc: z.object({
+    no: z.number(),
   }),
-  format: z4.object({
-    codec: z4.string(),
-    container: z4.string(),
-    lossless: z4.boolean(),
+  format: z.object({
+    codec: z.string(),
+    container: z.string(),
+    lossless: z.boolean(),
   }),
-  picture: z4
+  picture: z
     .array(
-      z4.object({
-        format: z4.string(),
-        data: z4.string(),
+      z.object({
+        format: z.string(),
+        data: z.string(),
       })
     )
     .optional(),
-  isInstrumental: z4.boolean().optional(),
+  isInstrumental: z.boolean().optional(),
 });
 
-export const DiscSchema = z4.object({
-  no: z4.number(),
-  musics: z4.array(MusicSchema),
+export const DiscSchema = z.object({
+  no: z.number(),
+  musics: z.array(MusicSchema),
 });
 
-export const AlbumsAlbumTypeEnum = z4.enum([
+export const AlbumsAlbumTypeEnum = z.enum([
   "Album",
   "Single",
   "Compilation",
@@ -50,17 +50,17 @@ export const AlbumsAlbumTypeEnum = z4.enum([
   "Other",
 ]);
 
-export const AlbumSchema = z4.object({
-  hash: z4.string(),
-  name: z4.string(),
-  albumArtist: z4.string(),
-  NoOfDiscs: z4.number(),
-  NoOfTracks: z4.number(),
+export const AlbumSchema = z.object({
+  hash: z.string(),
+  name: z.string(),
+  albumArtist: z.string(),
+  NoOfDiscs: z.number(),
+  NoOfTracks: z.number(),
   albumType: AlbumsAlbumTypeEnum,
-  disc: z4.array(DiscSchema),
+  disc: z.array(DiscSchema),
 });
 
-export type Album = z4.infer<typeof AlbumSchema>;
-export type Music = z4.infer<typeof MusicSchema>;
-export type Disc = z4.infer<typeof DiscSchema>;
-export type AlbumsAlbumType = z4.infer<typeof AlbumsAlbumTypeEnum>;
+export type Album = z.infer<typeof AlbumSchema>;
+export type Music = z.infer<typeof MusicSchema>;
+export type Disc = z.infer<typeof DiscSchema>;
+export type AlbumsAlbumType = z.infer<typeof AlbumsAlbumTypeEnum>;
