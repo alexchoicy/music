@@ -3,7 +3,7 @@ import { AlbumTracks } from '#database/entities/albumTracks.js';
 import { Artists, ArtistsArtistType } from '#database/entities/artists.js';
 import { Attachments } from '#database/entities/attachments.js';
 import { TrackArtists } from '#database/entities/trackArtists.js';
-import { FileUploadStatus, Tracks } from '#database/entities/tracks.js';
+import { Tracks } from '#database/entities/tracks.js';
 import { UploadMusicInitDTO } from '#types/dto/music.dto.js';
 import { saveCoverImage } from '#utils/upload/local.js';
 import { EntityManager, MikroORM } from '@mikro-orm/postgresql';
@@ -12,6 +12,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import path from 'path';
 import { StorageService } from '../storageServices/storageServiceAbstract.js';
+import { FileUploadStatus, TrackQuality } from '#database/entities/trackQuality.js';
 
 @Injectable()
 export class MusicService {
@@ -20,7 +21,7 @@ export class MusicService {
 		private readonly em: EntityManager,
 		private readonly storageService: StorageService,
 		private readonly config: ConfigService,
-	) {}
+	) { }
 
 	async uploadMusicInit(
 		AlbumMetadatas: UploadMusicInitDTO,
@@ -84,27 +85,34 @@ export class MusicService {
 
 				for (const disc of albumMetadata.disc) {
 					for (const music of disc.musics) {
-						let track = await tem.findOne(Tracks, {
+						let existingTrack = await tem.findOne(TrackQuality, {
 							hash: music.hash,
-						});
-						if (track) {
+						}, { populate: ['track'] });
+						if (existingTrack) {
 							continue;
 						}
 
-						track = tem.create(Tracks, {
+						const track = tem.create(Tracks, {
 							name: music.title,
-							hash: music.hash,
-							uploadHashCheck: music.uploadHashCheck,
 							durationMs: music.duration,
-							fileContainer: music.format.container.toLowerCase(),
-							fileCodec: music.format.codec.toLowerCase(),
 							isInstrumental: music.isInstrumental,
-							bitrate: music.bitsPerSample,
-							sampleRate: music.sampleRate,
-							lossless: music.format.lossless,
-							uploadStatus: FileUploadStatus.PENDING,
 						});
 						await tem.persistAndFlush(track);
+
+
+						const quality = tem.create(TrackQuality, {
+							hash: music.hash,
+							bitrate: music.bitsPerSample,
+							sampleRate: music.sampleRate,
+							fileContainer: music.format.container.toLowerCase(),
+							fileCodec: music.format.codec.toLowerCase(),
+							islossless: music.format.lossless,
+							type: 'original',
+							track: track,
+							uploadStatus: FileUploadStatus.PENDING,
+							uploadHashCheck: music.uploadHashCheck,
+						});
+						await tem.persistAndFlush(quality);
 
 						const albumTrack = tem.create(AlbumTracks, {
 							album: album,

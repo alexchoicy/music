@@ -1,5 +1,5 @@
-import { FileUploadStatus, Tracks } from '#database/entities/tracks.js';
-import { getMusicExt, getStorePath } from '#utils/upload/utils.js';
+import { Tracks } from '#database/entities/tracks.js';
+import { getMusicExt, getMusicStorePath } from '#utils/upload/utils.js';
 import { EntityManager, MikroORM } from '@mikro-orm/postgresql';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -9,6 +9,7 @@ import { Transform } from 'stream';
 import { pipeline } from 'stream/promises';
 import type { Request } from 'express';
 import fs from 'fs';
+import { FileUploadStatus, TrackQuality } from '#database/entities/trackQuality.js';
 @Injectable()
 export class LocalService {
 	constructor(
@@ -29,10 +30,10 @@ export class LocalService {
 		file: Request,
 		uploadHash: string,
 	) {
-		const track = await this.em.findOne(Tracks, {
-			id: BigInt(trackId),
-			albumTracksCollection: { album: BigInt(albumId) },
-			uploadHashCheck: uploadHash,
+		const track = await this.em.findOne(TrackQuality, {
+			track: { id: trackId, albumTracksCollection: { album: albumId } },
+		}, {
+			populate: ['track']
 		});
 
 		if (!track) {
@@ -45,7 +46,7 @@ export class LocalService {
 
 		const libraryDir = this.config.get<string>('app.storage.library_dir')!;
 
-		const trackPath = getStorePath(track.hash);
+		const trackPath = getMusicStorePath(track.hash);
 
 		const ext = getMusicExt(track.fileContainer, track.fileCodec);
 		if (!ext) {
@@ -54,7 +55,7 @@ export class LocalService {
 
 		const fullPath = path.join(
 			libraryDir,
-			'original',
+			track.type,
 			trackPath,
 			track.hash + ext,
 		);

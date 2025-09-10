@@ -589,24 +589,6 @@
           "nullable": false,
           "mappedType": "text"
         },
-        "hash": {
-          "name": "hash",
-          "type": "text",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "text"
-        },
-        "upload_hash_check": {
-          "name": "upload_hash_check",
-          "type": "text",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "text"
-        },
         "duration_ms": {
           "name": "duration_ms",
           "type": "int",
@@ -615,34 +597,6 @@
           "primary": false,
           "nullable": false,
           "mappedType": "integer"
-        },
-        "file_codec": {
-          "name": "file_codec",
-          "type": "text",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "text"
-        },
-        "file_container": {
-          "name": "file_container",
-          "type": "text",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "text"
-        },
-        "lossless": {
-          "name": "lossless",
-          "type": "boolean",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "default": "false",
-          "mappedType": "boolean"
         },
         "is_instrumental": {
           "name": "is_instrumental",
@@ -663,6 +617,146 @@
           "nullable": true,
           "mappedType": "bigint"
         },
+        "musicbrainz_track_id": {
+          "name": "musicbrainz_track_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "uuid"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "now()",
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "now()",
+          "mappedType": "datetime"
+        }
+      },
+      "name": "tracks",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "tracks_pkey",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "tracks_language_id_foreign": {
+          "constraintName": "tracks_language_id_foreign",
+          "columnNames": [
+            "language_id"
+          ],
+          "localTableName": "public.tracks",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.languages",
+          "createForeignKeyConstraint": true,
+          "deleteRule": "set null",
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "uuid"
+        },
+        "track_id": {
+          "name": "track_id",
+          "type": "bigint",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "bigint"
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "hash": {
+          "name": "hash",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "upload_hash_check": {
+          "name": "upload_hash_check",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "file_codec": {
+          "name": "file_codec",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "file_container": {
+          "name": "file_container",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "islossless": {
+          "name": "islossless",
+          "type": "boolean",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "false",
+          "mappedType": "boolean"
+        },
         "bitrate": {
           "name": "bitrate",
           "type": "int",
@@ -680,15 +774,6 @@
           "primary": false,
           "nullable": true,
           "mappedType": "integer"
-        },
-        "musicbrainz_track_id": {
-          "name": "musicbrainz_track_id",
-          "type": "uuid",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "mappedType": "uuid"
         },
         "upload_status": {
           "name": "upload_status",
@@ -722,7 +807,7 @@
           "mappedType": "datetime"
         }
       },
-      "name": "tracks",
+      "name": "track_quality",
       "schema": "public",
       "indexes": [
         {
@@ -730,13 +815,13 @@
             "hash"
           ],
           "composite": false,
-          "keyName": "tracks_hash_unique",
+          "keyName": "track_quality_hash_unique",
           "constraint": true,
           "primary": false,
           "unique": true
         },
         {
-          "keyName": "tracks_pkey",
+          "keyName": "track_quality_pkey",
           "columnNames": [
             "id"
           ],
@@ -748,18 +833,17 @@
       ],
       "checks": [],
       "foreignKeys": {
-        "tracks_language_id_foreign": {
-          "constraintName": "tracks_language_id_foreign",
+        "track_quality_track_id_foreign": {
+          "constraintName": "track_quality_track_id_foreign",
           "columnNames": [
-            "language_id"
+            "track_id"
           ],
-          "localTableName": "public.tracks",
+          "localTableName": "public.track_quality",
           "referencedColumnNames": [
             "id"
           ],
-          "referencedTableName": "public.languages",
+          "referencedTableName": "public.tracks",
           "createForeignKeyConstraint": true,
-          "deleteRule": "set null",
           "updateRule": "cascade"
         }
       },
