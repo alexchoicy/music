@@ -9,6 +9,7 @@ import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { BaseController } from './modules/base.controller.js';
 import { AlbumsModule } from './modules/albums/albums.module.js';
+import { MediaModule } from './modules/media/media.module.js';
 
 @Module({
 	imports: [
@@ -29,6 +30,7 @@ import { AlbumsModule } from './modules/albums/albums.module.js';
 		MikroOrmModule.forRoot(dbConfig),
 		UploadsModule,
 		AlbumsModule,
+		MediaModule,
 	],
 	controllers: [BaseController],
 	providers: [
@@ -43,7 +45,7 @@ import { AlbumsModule } from './modules/albums/albums.module.js';
 	],
 })
 export class AppModule implements OnModuleInit {
-	constructor(private readonly orm: MikroORM) {}
+	constructor(private readonly orm: MikroORM) { }
 
 	async onModuleInit() {
 		await this.orm.getMigrator().up();

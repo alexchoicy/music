@@ -51,9 +51,20 @@ const storageConfig = z4
 		}
 	});
 
-const AppConfigSchema = z4.object({
-	public_base_api_url: z4.url().optional(),
-});
+const AppConfigSchema = z4
+	.object({
+		public_base_api_url: z4.url().optional(),
+		public_data_url: z4.url().optional(),
+	})
+	.superRefine((data, ctx) => {
+		if (!data.public_data_url) {
+			ctx.addIssue({
+				code: 'custom',
+				message:
+					'public_data_url is required. It is used to generate URLs for accessing media images.',
+			});
+		}
+	});
 
 const ConfigSchema = z4.object({
 	app: AppConfigSchema,
