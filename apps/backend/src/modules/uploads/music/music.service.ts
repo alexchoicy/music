@@ -1,6 +1,6 @@
 import { Albums } from '#database/entities/albums.js';
 import { AlbumTracks } from '#database/entities/albumTracks.js';
-import { Artists, ArtistsArtistType } from '#database/entities/artists.js';
+import { Artists } from '#database/entities/artists.js';
 import { Attachments } from '#database/entities/attachments.js';
 import { TrackArtists } from '#database/entities/trackArtists.js';
 import { Tracks } from '#database/entities/tracks.js';
@@ -38,7 +38,7 @@ export class MusicService {
 				if (!albumArtist) {
 					const newArtist = tem.create(Artists, {
 						name: albumMetadata.albumArtist,
-						artistType: ArtistsArtistType.PERSON,
+						artistType: 'person',
 					});
 					await this.em.persistAndFlush(newArtist);
 					albumArtist = newArtist;
@@ -135,7 +135,7 @@ export class MusicService {
 							if (!trackArtist) {
 								const newArtist = tem.create(Artists, {
 									name: artist,
-									artistType: ArtistsArtistType.PERSON,
+									artistType: 'person',
 								});
 								await tem.persistAndFlush(newArtist);
 								trackArtist = newArtist;

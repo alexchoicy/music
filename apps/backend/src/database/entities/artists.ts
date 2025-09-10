@@ -15,6 +15,7 @@ import { ArtistGroups } from './artistGroups.js';
 import { GroupMembers } from './groupMembers.js';
 import { Languages } from './languages.js';
 import { TrackArtists } from './trackArtists.js';
+import { ArtistsArtistType, type ArtistType } from '@music/api/dto/album.dto';
 
 @Entity()
 export class Artists {
@@ -28,7 +29,7 @@ export class Artists {
 	language?: Rel<Languages>;
 
 	@Enum({ items: () => ArtistsArtistType })
-	artistType!: ArtistsArtistType;
+	artistType!: ArtistType;
 
 	@Property({
 		type: 'datetime',
@@ -55,10 +56,4 @@ export class Artists {
 
 	@OneToMany({ entity: () => TrackArtists, mappedBy: 'artist' })
 	trackArtistsCollection = new Collection<TrackArtists>(this);
-}
-
-export enum ArtistsArtistType {
-	PERSON = 'person',
-	GROUP = 'group',
-	PROJECT = 'project',
 }

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { EntityManager, MikroORM, t } from '@mikro-orm/postgresql';
+import { EntityManager, MikroORM } from '@mikro-orm/postgresql';
 import { Albums } from '#database/entities/albums.js';
 import { StorageService } from '../uploads/storageServices/storageServiceAbstract.js';
 import { AlbumDetailDTO } from '#types/dto/music.dto.js';
@@ -81,7 +81,7 @@ export class AlbumsService {
 						id: trackArtist.artist.id.toString(),
 						name: trackArtist.artist.name,
 						language: null,
-						artistType: trackArtist.artist.artistType,
+						artistType: trackArtist.artist.artistType as string,
 						createdAt: trackArtist.artist.createdAt.toISOString(),
 						updatedAt: trackArtist.artist.updatedAt.toISOString(),
 					}),
@@ -115,7 +115,7 @@ export class AlbumsService {
 			id: album.mainArtist?.id.toString(),
 			name: album.mainArtist?.name,
 			language: null,
-			artistType: album.mainArtist?.artistType,
+			artistType: album.mainArtist?.artistType as string,
 			createdAt: album.mainArtist?.createdAt.toISOString(),
 			updatedAt: album.mainArtist?.updatedAt.toISOString(),
 		});
