@@ -45,7 +45,7 @@ import { MediaModule } from './modules/media/media.module.js';
 	],
 })
 export class AppModule implements OnModuleInit {
-	constructor(private readonly orm: MikroORM) { }
+	constructor(private readonly orm: MikroORM) {}
 
 	async onModuleInit() {
 		await this.orm.getMigrator().up();

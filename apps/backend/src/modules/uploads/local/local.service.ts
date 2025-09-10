@@ -9,7 +9,10 @@ import { Transform } from 'stream';
 import { pipeline } from 'stream/promises';
 import type { Request } from 'express';
 import fs from 'fs';
-import { FileUploadStatus, TrackQuality } from '#database/entities/trackQuality.js';
+import {
+	FileUploadStatus,
+	TrackQuality,
+} from '#database/entities/trackQuality.js';
 @Injectable()
 export class LocalService {
 	constructor(
@@ -30,11 +33,18 @@ export class LocalService {
 		file: Request,
 		uploadHash: string,
 	) {
-		const track = await this.em.findOne(TrackQuality, {
-			track: { id: trackId, albumTracksCollection: { album: albumId } },
-		}, {
-			populate: ['track']
-		});
+		const track = await this.em.findOne(
+			TrackQuality,
+			{
+				track: {
+					id: trackId,
+					albumTracksCollection: { album: albumId },
+				},
+			},
+			{
+				populate: ['track'],
+			},
+		);
 
 		if (!track) {
 			throw new BadRequestException('Track not found');

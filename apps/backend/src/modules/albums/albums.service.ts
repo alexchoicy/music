@@ -13,8 +13,7 @@ export class AlbumsService {
 		private readonly orm: MikroORM,
 		private readonly em: EntityManager,
 		private readonly storageService: StorageService,
-
-	) { }
+	) {}
 
 	async getAlbums(cursor: string | null) {
 		const albums = await this.em.findByCursor(
@@ -77,14 +76,16 @@ export class AlbumsService {
 			});
 
 			for (const trackArtist of albumTrack.track.trackArtistsCollection) {
-				track.artists.push(Artist.parse({
-					id: trackArtist.artist.id.toString(),
-					name: trackArtist.artist.name,
-					language: null,
-					artistType: trackArtist.artist.artistType,
-					createdAt: trackArtist.artist.createdAt.toISOString(),
-					updatedAt: trackArtist.artist.updatedAt.toISOString(),
-				}));
+				track.artists.push(
+					Artist.parse({
+						id: trackArtist.artist.id.toString(),
+						name: trackArtist.artist.name,
+						language: null,
+						artistType: trackArtist.artist.artistType,
+						createdAt: trackArtist.artist.createdAt.toISOString(),
+						updatedAt: trackArtist.artist.updatedAt.toISOString(),
+					}),
+				);
 			}
 
 			for (const quality of albumTrack.track.trackQualityCollection) {
@@ -92,7 +93,8 @@ export class AlbumsService {
 					url: await this.storageService.getMusicDataUrl(
 						quality.hash,
 						quality.type,
-						getMusicExt(quality.fileContainer, quality.fileCodec) || ''
+						getMusicExt(quality.fileContainer, quality.fileCodec) ||
+							'',
 					),
 					type: quality.type,
 					fileCodec: quality.fileCodec,
@@ -102,7 +104,7 @@ export class AlbumsService {
 					islossless: quality.islossless,
 					createdAt: quality.createdAt.toISOString(),
 					updatedAt: quality.updatedAt.toISOString(),
-				}
+				};
 				track.quality.push(parsedQuality);
 			}
 
@@ -125,20 +127,24 @@ export class AlbumsService {
 			language: null,
 			albumType: album.albumType,
 			musicbrainzId: album.musicbrainzAlbumId || null,
-			cover: album.coverAttachment && album.coverAttachment.fileType
-				? await this.storageService.getAlbumCoverDataUrl(
-					album.coverAttachment.id,
-					mime.getExtension(album.coverAttachment.fileType) ?? ''
-				)
-				: null,
-			Disc: Array.from(discMap.entries()).map(([discNo, tracks]) => ({
-				discNo,
-				tracks,
-			})).sort((a, b) => a.discNo - b.discNo),
+			cover:
+				album.coverAttachment && album.coverAttachment.fileType
+					? await this.storageService.getAlbumCoverDataUrl(
+							album.coverAttachment.id,
+							mime.getExtension(album.coverAttachment.fileType) ??
+								'',
+						)
+					: null,
+			Disc: Array.from(discMap.entries())
+				.map(([discNo, tracks]) => ({
+					discNo,
+					tracks,
+				}))
+				.sort((a, b) => a.discNo - b.discNo),
 			createdAt: album.createdAt.toISOString(),
 			updatedAt: album.updatedAt.toISOString(),
-			mainArtist: mainArtist
-		})
+			mainArtist: mainArtist,
+		});
 
 		return result;
 	}

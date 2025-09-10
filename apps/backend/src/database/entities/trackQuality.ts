@@ -1,59 +1,66 @@
-import { Entity, Enum, ManyToOne, PrimaryKey, Property, type Opt, type Rel } from "@mikro-orm/core";
+import {
+	Entity,
+	Enum,
+	ManyToOne,
+	PrimaryKey,
+	Property,
+	type Opt,
+	type Rel,
+} from '@mikro-orm/core';
 import { v4 as uuid } from 'uuid';
-import { Tracks } from "./tracks.js";
-
+import { Tracks } from './tracks.js';
 
 export enum FileUploadStatus {
-    'PENDING',
-    'COMPLETED',
+	'PENDING',
+	'COMPLETED',
 }
 
 @Entity()
 export class TrackQuality {
-    @PrimaryKey({ type: 'uuid ' })
-    id: string = uuid();
+	@PrimaryKey({ type: 'uuid ' })
+	id: string = uuid();
 
-    @ManyToOne({ entity: () => Tracks })
-    track!: Rel<Tracks>;
+	@ManyToOne({ entity: () => Tracks })
+	track!: Rel<Tracks>;
 
-    @Property({ type: 'text' })
-    type!: 'original' | 'compressed';
+	@Property({ type: 'text' })
+	type!: 'original' | 'compressed';
 
-    @Property({ type: 'text', unique: true })
-    hash: string;
+	@Property({ type: 'text', unique: true })
+	hash: string;
 
-    @Property({ type: 'text' })
-    uploadHashCheck: string;
+	@Property({ type: 'text' })
+	uploadHashCheck: string;
 
-    @Property({ type: 'text' })
-    fileCodec: string;
+	@Property({ type: 'text' })
+	fileCodec: string;
 
-    @Property({ type: 'text' })
-    fileContainer: string;
+	@Property({ type: 'text' })
+	fileContainer: string;
 
-    @Property({ type: 'boolean' })
-    islossless: boolean & Opt = false;
+	@Property({ type: 'boolean' })
+	islossless: boolean & Opt = false;
 
-    @Property({ nullable: true })
-    bitrate?: number;
+	@Property({ nullable: true })
+	bitrate?: number;
 
-    @Property({ nullable: true })
-    sampleRate?: number;
+	@Property({ nullable: true })
+	sampleRate?: number;
 
-    @Enum({ items: () => FileUploadStatus })
-    uploadStatus: FileUploadStatus;
+	@Enum({ items: () => FileUploadStatus })
+	uploadStatus: FileUploadStatus;
 
-    @Property({
-        type: 'datetime',
-        columnType: 'timestamp(6)',
-        defaultRaw: `now()`,
-    })
-    createdAt!: Date & Opt;
-    @Property({
-        type: 'datetime',
-        columnType: 'timestamp(6)',
-        defaultRaw: `now()`,
-        onUpdate: () => new Date(),
-    })
-    updatedAt!: Date & Opt;
+	@Property({
+		type: 'datetime',
+		columnType: 'timestamp(6)',
+		defaultRaw: `now()`,
+	})
+	createdAt!: Date & Opt;
+	@Property({
+		type: 'datetime',
+		columnType: 'timestamp(6)',
+		defaultRaw: `now()`,
+		onUpdate: () => new Date(),
+	})
+	updatedAt!: Date & Opt;
 }

@@ -17,6 +17,7 @@ async function uploadAlbums() {
         body: albums.value
     })
 
+
     if (!response) return;
     console.log(response)
     for (const uploadUrl of response) {

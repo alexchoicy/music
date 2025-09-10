@@ -12,7 +12,10 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import path from 'path';
 import { StorageService } from '../storageServices/storageServiceAbstract.js';
-import { FileUploadStatus, TrackQuality } from '#database/entities/trackQuality.js';
+import {
+	FileUploadStatus,
+	TrackQuality,
+} from '#database/entities/trackQuality.js';
 
 @Injectable()
 export class MusicService {
@@ -21,7 +24,7 @@ export class MusicService {
 		private readonly em: EntityManager,
 		private readonly storageService: StorageService,
 		private readonly config: ConfigService,
-	) { }
+	) {}
 
 	async uploadMusicInit(
 		AlbumMetadatas: UploadMusicInitDTO,
@@ -85,9 +88,13 @@ export class MusicService {
 
 				for (const disc of albumMetadata.disc) {
 					for (const music of disc.musics) {
-						let existingTrack = await tem.findOne(TrackQuality, {
-							hash: music.hash,
-						}, { populate: ['track'] });
+						const existingTrack = await tem.findOne(
+							TrackQuality,
+							{
+								hash: music.hash,
+							},
+							{ populate: ['track'] },
+						);
 						if (existingTrack) {
 							continue;
 						}
@@ -98,7 +105,6 @@ export class MusicService {
 							isInstrumental: music.isInstrumental,
 						});
 						await tem.persistAndFlush(track);
-
 
 						const quality = tem.create(TrackQuality, {
 							hash: music.hash,

@@ -7,7 +7,8 @@ import { LocalStorageService } from '../uploads/storageServices/LocalStorageServ
 
 @Module({
 	controllers: [AlbumsController],
-	providers: [AlbumsService,
+	providers: [
+		AlbumsService,
 		{
 			provide: StorageService,
 			useFactory: (config: ConfigService) => {
@@ -29,4 +30,4 @@ import { LocalStorageService } from '../uploads/storageServices/LocalStorageServ
 		},
 	],
 })
-export class AlbumsModule { }
+export class AlbumsModule {}
