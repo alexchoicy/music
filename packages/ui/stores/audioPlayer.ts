@@ -1,6 +1,10 @@
-import type { TrackQualityType } from "@music/api/dto/album.dto"
+import type { TrackQualityType } from "@music/api/dto/album.dto";
 import { defineStore } from "pinia";
-import { RepeatMode, type Playlist } from "~/types/playlist";
+import {
+  RepeatMode,
+  type PlayableTrack,
+  type Playlist,
+} from "../types/playlist";
 
 interface AudioPlayerList {
   playlistRef: string;
@@ -17,25 +21,41 @@ export const useAudioPlayerStore = defineStore("audioPlayer", {
     repeat: RepeatMode.Off,
     shuffle: false,
     currentTime: 0,
-    preferredQuality: 'original' as TrackQualityType,
+    preferredQuality: "original" as TrackQualityType,
   }),
   getters: {
+    hasQueue: (s) => s.queue.length > 0,
     currentItem: (s) => s.queue[s.cursor] || null,
     hasNext: (s) => s.cursor + 1 < s.queue.length,
     hasPrev: (s) => s.cursor > 0,
-    currentTrack(state) {
+    currentTrack(state): PlayableTrack | null {
       const entity = useAudioEntity();
       if (!entity.playList) return null;
       const current = state.queue[state.cursor];
-      return entity.playList.find(list => list.playListRef === current?.playlistRef)?.tracks.find(track => track.id === current?.trackid) || null;
-    }
+      return (
+        entity.playList
+          .find((list) => list.playListRef === current?.playlistRef)
+          ?.tracks.find((track) => track.id === current?.trackid) || null
+      );
+    },
+    currentQuality(state) {
+      const track = useAudioPlayerStore().currentTrack;
+      if (!track) return null;
+      return (
+        track.quality.find((q) => q.type === state.preferredQuality) || null
+      );
+    },
   },
   actions: {
     setPlayList(list: AudioPlayerList[]) {
       this.queue.push(...list);
     },
     setPlaying(p: boolean) {
+      if (this.queue.length === 0) return;
       this.playing = p;
+    },
+    setCurrentTime(t: number) {
+      this.currentTime = t;
     },
     next() {
       if (this.hasNext) this.cursor += 1;
@@ -47,7 +67,6 @@ export const useAudioPlayerStore = defineStore("audioPlayer", {
   },
 });
 
-
 export const useAudioEntity = defineStore("audioEntity", {
   state: () => ({
     playList: shallowRef<Playlist[]>([]),
@@ -58,6 +77,6 @@ export const useAudioEntity = defineStore("audioEntity", {
     },
     clear() {
       this.playList = [];
-    }
-  }
+    },
+  },
 });

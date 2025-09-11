@@ -4,25 +4,28 @@ import AudioPlayer from '@/components/music/audioPlayer.vue';
 </script>
 
 <template>
-    <SidebarProvider>
-        <Sidebar>
-            <SidebarContent>
-                <SidebarGroup>
-                    <SidebarMenu>
-                        DATA
-                    </SidebarMenu>
-                </SidebarGroup>
-            </SidebarContent>
-        </Sidebar>
-        <SidebarInset>
-            <div class="flex flex-col h-full">
-                <Navbar class="sticky top-0 z-10 bg-background" />
-                <Separator />
-                <div class="flex-1">
-                    <slot class="overflow-y-auto" />
+    <TooltipProvider>
+        <SidebarProvider>
+            <Sidebar>
+                <SidebarContent>
+                    <SidebarGroup>
+                        <SidebarMenu>
+                            DATA
+                        </SidebarMenu>
+                    </SidebarGroup>
+                </SidebarContent>
+            </Sidebar>
+            <SidebarInset>
+                <div class="flex flex-col h-full">
+                    <Navbar class="sticky top-0 z-10 bg-background" />
+                    <Separator />
+                    <div class="flex-1">
+                        <slot class="overflow-y-auto" />
+                    </div>
+                    <AudioPlayer />
                 </div>
-                <AudioPlayer />
-            </div>
-        </SidebarInset>
-    </SidebarProvider>
+            </SidebarInset>
+        </SidebarProvider>
+    </TooltipProvider>
+
 </template>

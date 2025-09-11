@@ -16,7 +16,7 @@ const click = () => {
         id: t.id,
         name: t.name,
         artists: t.artists,
-        durationMs: t.durationMs,
+        durationMs: t.durationMs * 1000,
         album: {
             id: test_data.id,
             name: test_data.name,
@@ -67,6 +67,7 @@ const nextCursor = () => {
 <template>
     <div>
         {{ config.public.apiBase }}
+        {{ player.playing }}
         <Button @click="click">Play</Button>
         <Button @click="nextCursor">Next</Button>
     </div>
