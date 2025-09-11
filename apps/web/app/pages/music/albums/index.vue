@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AlbumDetailResponse, AlbumResponse } from '@music/api/dto/album.dto';
-import type { Pagination } from '@music/api/type/Pagination';
+import type { Pagination } from '@music/api/type/pagination';
 
 const { $backend } = useNuxtApp();
 

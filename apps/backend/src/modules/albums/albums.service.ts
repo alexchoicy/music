@@ -12,7 +12,7 @@ import {
 } from '@music/api/dto/album.dto';
 import mime from 'mime';
 import { getMusicExt } from '#utils/upload/utils.js';
-import { Pagination } from '@music/api/type/Pagination';
+import { Pagination } from '@music/api/type/pagination';
 import { AlbumTracks } from '#database/entities/albumTracks.js';
 
 @Injectable()
