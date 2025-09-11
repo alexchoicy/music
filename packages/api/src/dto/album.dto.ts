@@ -94,3 +94,5 @@ export type TrackQualityType = z.infer<typeof TrackQualityType>;
 export type AlbumDetailResponse = z.infer<typeof AlbumDetailResponseSchema>;
 
 export type ArtistType = z.infer<typeof ArtistsArtistType>;
+
+export type ArtistSchema = z.infer<typeof Artist>;

@@ -16,10 +16,10 @@ import AudioPlayer from '@/components/music/audioPlayer.vue';
         </Sidebar>
         <SidebarInset>
             <div class="flex flex-col h-full">
-                <Navbar />
-                <Separator />\
+                <Navbar class="sticky top-0 z-10 bg-background" />
+                <Separator />
                 <div class="flex-1">
-                    <slot />
+                    <slot class="overflow-y-auto" />
                 </div>
                 <AudioPlayer />
             </div>
