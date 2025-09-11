@@ -39,7 +39,7 @@ function getMMSSFromMS(ms: number) {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
-function setCurrentTrackSrc() {
+function getCurrentTrackUrl() {
     if (!player.currentTrack) return '';
     const url = player.currentTrack.quality.find(q => q.type === player.preferredQuality)?.url || player.currentTrack.quality[0]?.url || '';
     if (!url) {
@@ -49,27 +49,39 @@ function setCurrentTrackSrc() {
     return url + '/stream';
 }
 
-watch(() => player.playing, (newVal) => {
+watch(() => player.playing, async (newVal) => {
     if (!audioElement.value) return;
-    if (newVal) {
-        if (player.currentTime === 0) {
-            const src = setCurrentTrackSrc();
-            if (!src) return;
-            audioElement.value.src = src;
+    try {
+        if (newVal) {
+            if (!audioElement.value.src) return;
+            await audioElement.value.play();
+        } else {
+            audioElement.value.pause();
         }
-        audioElement.value.play();
-    } else {
-        audioElement.value.pause();
+    } catch (err: any) {
+        if (err?.name !== 'AbortError') console.warn(err);
     }
 });
 
-watch([() => player.currentTrack, () => player.preferredQuality], () => {
+watch([() => player.currentTrack, () => player.preferredQuality], async () => {
     if (!audioElement.value) return;
-    const src = setCurrentTrackSrc();
+    const src = getCurrentTrackUrl();
     if (!src) return;
-    if (player.playing) {
-        audioElement.value.src = src;
-        audioElement.value.play();
+
+    const el = audioElement.value;
+    const wasPlaying = player.playing;
+
+    if (el.src !== src) {
+        try {
+            el.pause();
+            el.src = src;
+
+            if (wasPlaying) {
+                await el.play();
+            }
+        } catch (err: any) {
+            if (err?.name !== 'AbortError') console.warn(err);
+        }
     }
 });
 

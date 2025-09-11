@@ -3,9 +3,17 @@ import { EntityManager, MikroORM } from '@mikro-orm/postgresql';
 import { Albums } from '#database/entities/albums.js';
 import { StorageService } from '../uploads/storageServices/storageServiceAbstract.js';
 import { AlbumDetailDTO } from '#types/dto/music.dto.js';
-import { Artist, Track, TrackSchema } from '@music/api/dto/album.dto';
+import {
+	AlbumResponse,
+	AlbumResponseSchema,
+	Artist,
+	Track,
+	TrackSchema,
+} from '@music/api/dto/album.dto';
 import mime from 'mime';
 import { getMusicExt } from '#utils/upload/utils.js';
+import { Pagination } from '@music/api/type/Pagination';
+import { AlbumTracks } from '#database/entities/albumTracks.js';
 
 @Injectable()
 export class AlbumsService {
@@ -15,20 +23,67 @@ export class AlbumsService {
 		private readonly storageService: StorageService,
 	) {}
 
-	async getAlbums(cursor: string | null) {
+	async getAlbums(cursor: string | null): Promise<Pagination<AlbumResponse>> {
 		const albums = await this.em.findByCursor(
 			Albums,
 			{},
 			{
-				first: 2,
+				populate: ['mainArtist', 'coverAttachment'],
+				first: 10,
 				after: cursor || undefined,
 				orderBy: { id: 'DESC', createdAt: 'DESC' },
 			},
 		);
+		const formatted = [];
+		for (const album of albums.items) {
+			const total = await this.em
+				.createQueryBuilder(AlbumTracks, 'at')
+				.leftJoin('at.track', 't')
+				.where({ album: album.id })
+				.andWhere({ 't.isInstrumental': false })
+				.getCount();
+			formatted.push(
+				AlbumResponseSchema.parse({
+					id: album.id.toString(),
+					name: album.name,
+					year: album.year,
+					language: null,
+					albumType: album.albumType,
+					totalTracks: total,
+					hasInstrumental:
+						total < (await album.albumTracksCollection.loadCount()),
+					cover:
+						album.coverAttachment && album.coverAttachment.fileType
+							? await this.storageService.getAlbumCoverDataUrl(
+									album.coverAttachment.id,
+									mime.getExtension(
+										album.coverAttachment.fileType,
+									) || '',
+								)
+							: null,
+					mainArtist: Artist.parse({
+						id: album.mainArtist?.id.toString(),
+						name: album.mainArtist?.name,
+						language: null,
+						artistType: album.mainArtist?.artistType as string,
+						createdAt: album.mainArtist?.createdAt.toISOString(),
+						updatedAt: album.mainArtist?.updatedAt.toISOString(),
+					}),
+					createdAt: album.createdAt.toISOString(),
+					updatedAt: album.updatedAt.toISOString(),
+				}),
+			);
+		}
 
-		console.log(albums.endCursor);
+		console.log(albums);
 
-		return albums;
+		return {
+			total: albums.totalCount,
+			hasPrev: albums.hasPrevPage,
+			hasNext: albums.hasNextPage,
+			cursor: albums.hasNextPage ? albums.endCursor || null : null,
+			items: formatted,
+		};
 	}
 
 	async getAlbum(id: string) {

@@ -82,6 +82,9 @@ export const AlbumResponseSchema = z.object({
   language: z.object().nullable(),
   albumType: AlbumsAlbumTypeEnum,
   cover: z.url().nullable(),
+  totalTracks: z.number(),
+  hasInstrumental: z.boolean(),
+  mainArtist: Artist,
 
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -96,3 +99,5 @@ export type AlbumDetailResponse = z.infer<typeof AlbumDetailResponseSchema>;
 export type ArtistType = z.infer<typeof ArtistsArtistType>;
 
 export type ArtistSchema = z.infer<typeof Artist>;
+
+export type AlbumResponse = z.infer<typeof AlbumResponseSchema>;

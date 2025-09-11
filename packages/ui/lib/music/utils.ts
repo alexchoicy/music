@@ -108,11 +108,9 @@ export function covertToMusicObject(
     sampleRate: metadata.format.sampleRate || 0,
     track: {
       no: metadata.common.track.no || 0,
-      of: metadata.common.track.of || 0,
     },
     disc: {
       no: metadata.common.disk.no || 0,
-      of: metadata.common.disk.of || 0,
     },
     format: {
       codec: metadata.format.codec || "unknown",

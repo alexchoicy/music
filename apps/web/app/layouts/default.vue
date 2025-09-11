@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSidebar from '@/components/layouts/appSidebar.vue';
 import Navbar from '@/components/layouts/navbar.vue';
 import AudioPlayer from '@/components/music/audioPlayer.vue';
 </script>
@@ -6,15 +7,7 @@ import AudioPlayer from '@/components/music/audioPlayer.vue';
 <template>
     <TooltipProvider>
         <SidebarProvider>
-            <Sidebar>
-                <SidebarContent>
-                    <SidebarGroup>
-                        <SidebarMenu>
-                            DATA
-                        </SidebarMenu>
-                    </SidebarGroup>
-                </SidebarContent>
-            </Sidebar>
+            <AppSidebar />
             <SidebarInset>
                 <div class="flex flex-col h-full">
                     <Navbar class="sticky top-0 z-10 bg-background" />
@@ -27,5 +20,4 @@ import AudioPlayer from '@/components/music/audioPlayer.vue';
             </SidebarInset>
         </SidebarProvider>
     </TooltipProvider>
-
 </template>

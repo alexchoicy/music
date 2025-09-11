@@ -6,7 +6,7 @@ import {
   type Playlist,
 } from "../types/playlist";
 
-interface AudioPlayerList {
+export interface AudioPlayerList {
   playlistRef: string;
   trackid: string;
 }
@@ -63,6 +63,15 @@ export const useAudioPlayerStore = defineStore("audioPlayer", {
     },
     prev() {
       if (this.hasPrev) this.cursor -= 1;
+    },
+    clear() {
+      this.playing = false;
+      this.queue = [];
+      this.cursor = 0;
+      this.currentTime = 0;
+
+      const entity = useAudioEntity();
+      entity.clear();
     },
   },
 });
