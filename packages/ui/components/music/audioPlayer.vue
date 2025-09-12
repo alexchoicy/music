@@ -5,6 +5,7 @@ import { useAudioEntity, useAudioPlayerStore } from '~/stores/audioPlayer';
 import { Slider } from '@/components/ui/slider';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { computed, onMounted, ref, watch } from 'vue';
 
 const player = useAudioPlayerStore();
 const audioEntity = useAudioEntity();

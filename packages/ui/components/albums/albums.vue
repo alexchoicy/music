@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue'
 import AlbumCard from './albumCard.vue'
 import type { AlbumDetailResponse, AlbumResponse } from '@music/api/dto/album.dto'
 

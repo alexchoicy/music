@@ -2,6 +2,12 @@
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
 
+  vite: {
+    ssr: { noExternal: ["vue"] },
+  },
+  nitro: {
+    externals: { inline: ["vue"] },
+  },
   devtools: {
     enabled: true,
 

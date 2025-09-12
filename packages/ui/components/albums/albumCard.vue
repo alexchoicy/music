@@ -6,6 +6,7 @@ import { Play } from 'lucide-vue-next';
 import type { AlbumDetailResponse, AlbumResponse } from '@music/api/dto/album.dto';
 import { useAudioEntity, useAudioPlayerStore } from '../../stores/audioPlayer';
 import { parsePlayerPlayListFromAlbumDetail, parsePlaylistFromAlbumDetail } from '../../lib/music/parse';
+import type { PropType } from 'vue';
 
 const player = useAudioPlayerStore();
 const audioEntity = useAudioEntity();
@@ -42,7 +43,7 @@ const clickPlay = async (albumID: string) => {
     <Card v-if="props.album" @click="console.log('click album')"
         class="group hover:bg-muted transition-all duration-300 hover:scale-105 hover:shadow-2xl border-0 rounded-lg overflow-hidden cursor-pointer">
         <div class="aspect-square relative overflow-hidden">
-            <img v-if="props.album.cover" :src="props.album.cover" alt="">
+            <img v-if="props.album.cover" :src="props.album.cover" alt="" class="w-full h-full object-cover" />
             <div v-else>
 
             </div>

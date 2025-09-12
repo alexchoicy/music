@@ -3,6 +3,7 @@ import type { Album, Disc, Music } from '@music/api/type/music';
 import AlbumEditDialog from '../albumEditDialog.vue';
 import { Disc3, X } from 'lucide-vue-next';
 import MusicEditDialog from '../musicEditDialog.vue';
+import { ref } from 'vue';
 
 const props = defineProps({
     albums: {
@@ -106,8 +107,8 @@ function onTrackEditOpen(albumHash: string, trackHash: string) {
             <div class="p-4 border-b w-full">
                 <div class="flex items-center gap-4 w-full">
                     <div class="w-16 h-16 rounded-lg flex flex-row item-center justify-center shrink-0">
-                        <img v-if="album.disc[0].musics?.[0]?.picture?.[0]?.data"
-                            v-bind:src="`data:${album.disc[0].musics?.[0]?.picture?.[0]?.format};base64,${album.disc[0].musics?.[0]?.picture?.[0]?.data}`"
+                        <img v-if="album.disc[0]!.musics?.[0]?.picture?.[0]?.data"
+                            v-bind:src="`data:${album.disc[0]!.musics?.[0]?.picture?.[0]?.format};base64,${album.disc[0]!.musics?.[0]?.picture?.[0]?.data}`"
                             alt="Album Art" class="w-full h-full object-cover rounded-lg" />
                         <div v-else class="w-full h-full bg-gray-700 flex items-center justify-center rounded-lg">
                             <Disc3 class="h-8 w-8 text-gray-400" />
@@ -179,7 +180,7 @@ function onTrackEditOpen(albumHash: string, trackHash: string) {
                                 </div>
                                 <div class="w-20 text-center">
                                     <span class="text-sm text-gray-400">{{ getSecondToMinuteString(track.duration)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div class="w-20 flex text-center justify-end gap-1 ">
                                     <Button variant="ghost" class="h-9 w-9 p-0" :disabled="props.blockUpload"

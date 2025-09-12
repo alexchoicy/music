@@ -12,7 +12,7 @@ async function uploadAlbums() {
     blockUpload.value = true;
     const apiBase = useRuntimeConfig().public.apiBase;
     if (albums.value.length === 0) return;
-    const response = await $fetch<UploadMusicInitResponse[]>(useRuntimeConfig().public.apiBase + '/uploads/musics/init', {
+    const response = await $fetch<UploadMusicInitResponse[]>(apiBase + '/uploads/musics/init', {
         method: 'POST',
         body: albums.value
     })

@@ -6,6 +6,7 @@ import { useForm } from "vee-validate";
 import { useDropZone } from '@vueuse/core';
 import { Disc3, X } from 'lucide-vue-next';
 import { getAlbumHash, getBase64FromFile } from '@/lib/music/utils';
+import { nextTick, ref, watch } from 'vue';
 
 const props = defineProps({
     isOpen: {
@@ -36,8 +37,8 @@ watch(() => [props.currentAlbum, props.isOpen], async ([currentAlbum, isOpen]) =
             albumArtist: props.currentAlbum.albumArtist === "Unknown Album Artist" ? "" : props.currentAlbum.albumArtist,
             albumType: props.currentAlbum.albumType || 'Album',
             picture: {
-                data: props.currentAlbum?.disc[0].musics?.[0]?.picture?.[0]?.data as any || undefined,
-                format: props.currentAlbum?.disc[0].musics?.[0]?.picture?.[0]?.format as ("image/jpeg" | "image/png") || undefined,
+                data: props.currentAlbum?.disc[0]!.musics?.[0]?.picture?.[0]?.data as any || undefined,
+                format: props.currentAlbum?.disc[0]!.musics?.[0]?.picture?.[0]?.format as ("image/jpeg" | "image/png") || undefined,
             },
         }
     })
@@ -142,7 +143,7 @@ const albumTypeOptions: { value: AlbumsAlbumType; label: string }[] =
                                             <X class="h-3 w-3 text-white" />
                                         </button>
                                     </div>
-                                    <img v-else-if="currentAlbum?.disc[0].musics[0] && currentAlbum?.disc[0].musics?.[0]?.picture?.[0]"
+                                    <img v-else-if="currentAlbum?.disc[0]!.musics[0] && currentAlbum?.disc[0].musics?.[0]?.picture?.[0]"
                                         v-bind:src="`data:${currentAlbum?.disc[0].musics?.[0]?.picture?.[0]?.format};base64,${currentAlbum?.disc[0].musics?.[0]?.picture?.[0]?.data}`"
                                         class="w-full h-full object-cover rounded-lg" />
                                     <div v-else
