@@ -16,6 +16,7 @@ import { GroupMembers } from './groupMembers.js';
 import { Languages } from './languages.js';
 import { TrackArtists } from './trackArtists.js';
 import { ArtistsArtistType, type ArtistType } from '@music/api/dto/album.dto';
+import { Attachments } from './attachments.js';
 
 @Entity()
 export class Artists {
@@ -28,8 +29,11 @@ export class Artists {
 	@ManyToOne({ entity: () => Languages, nullable: true })
 	language?: Rel<Languages>;
 
-	@Enum({ items: () => ArtistsArtistType })
+	@Enum({ items: () => ArtistsArtistType.options })
 	artistType!: ArtistType;
+
+	@ManyToOne({ entity: () => Attachments, nullable: true })
+	profilePic?: Rel<Attachments>;
 
 	@Property({
 		type: 'datetime',

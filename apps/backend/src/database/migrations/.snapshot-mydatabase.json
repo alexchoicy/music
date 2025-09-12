@@ -166,6 +166,15 @@
           ],
           "mappedType": "enum"
         },
+        "profile_pic_id": {
+          "name": "profile_pic_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "uuid"
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp(6)",
@@ -215,6 +224,20 @@
             "id"
           ],
           "referencedTableName": "public.languages",
+          "createForeignKeyConstraint": true,
+          "deleteRule": "set null",
+          "updateRule": "cascade"
+        },
+        "artists_profile_pic_id_foreign": {
+          "constraintName": "artists_profile_pic_id_foreign",
+          "columnNames": [
+            "profile_pic_id"
+          ],
+          "localTableName": "public.artists",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.attachments",
           "createForeignKeyConstraint": true,
           "deleteRule": "set null",
           "updateRule": "cascade"
