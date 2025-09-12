@@ -7,6 +7,7 @@ import {
 	AlbumResponse,
 	AlbumResponseSchema,
 	Artist,
+	ArtistSchema,
 	Track,
 	TrackSchema,
 } from '@music/api/dto/album.dto';
@@ -64,6 +65,7 @@ export class AlbumsService {
 					mainArtist: Artist.parse({
 						id: album.mainArtist?.id.toString(),
 						name: album.mainArtist?.name,
+						image: null,
 						language: null,
 						artistType: album.mainArtist?.artistType as string,
 						createdAt: album.mainArtist?.createdAt.toISOString(),
@@ -106,6 +108,10 @@ export class AlbumsService {
 			throw new NotFoundException('Album not found');
 		}
 
+		let totalDurationMs = 0;
+
+		const artistsMap = new Map<string, ArtistSchema>();
+
 		const discMap = new Map<number, TrackSchema[]>();
 		for (const albumTrack of album.albumTracksCollection) {
 			if (!discMap.has(albumTrack.discNo)) {
@@ -113,7 +119,7 @@ export class AlbumsService {
 			}
 
 			const disc = discMap.get(albumTrack.discNo)!;
-
+			totalDurationMs += albumTrack.track.durationMs;
 			const track = Track.parse({
 				id: albumTrack.track.id.toString(),
 				name: albumTrack.track.name,
@@ -131,16 +137,19 @@ export class AlbumsService {
 			});
 
 			for (const trackArtist of albumTrack.track.trackArtistsCollection) {
-				track.artists.push(
-					Artist.parse({
-						id: trackArtist.artist.id.toString(),
-						name: trackArtist.artist.name,
-						language: null,
-						artistType: trackArtist.artist.artistType as string,
-						createdAt: trackArtist.artist.createdAt.toISOString(),
-						updatedAt: trackArtist.artist.updatedAt.toISOString(),
-					}),
-				);
+				const artistInfo = Artist.parse({
+					id: trackArtist.artist.id.toString(),
+					name: trackArtist.artist.name,
+					language: null,
+					image: null,
+					artistType: trackArtist.artist.artistType as string,
+					createdAt: trackArtist.artist.createdAt.toISOString(),
+					updatedAt: trackArtist.artist.updatedAt.toISOString(),
+				});
+				if (!artistsMap.has(artistInfo.id)) {
+					artistsMap.set(artistInfo.id, artistInfo);
+				}
+				track.artists.push(artistInfo);
 			}
 
 			for (const quality of albumTrack.track.trackQualityCollection) {
@@ -170,6 +179,7 @@ export class AlbumsService {
 			id: album.mainArtist?.id.toString(),
 			name: album.mainArtist?.name,
 			language: null,
+			image: null,
 			artistType: album.mainArtist?.artistType as string,
 			createdAt: album.mainArtist?.createdAt.toISOString(),
 			updatedAt: album.mainArtist?.updatedAt.toISOString(),
@@ -181,6 +191,8 @@ export class AlbumsService {
 			year: album.year,
 			language: null,
 			albumType: album.albumType,
+			artists: Array.from(artistsMap.values()),
+			totalDurationMs,
 			musicbrainzId: album.musicbrainzAlbumId || null,
 			cover:
 				album.coverAttachment && album.coverAttachment.fileType

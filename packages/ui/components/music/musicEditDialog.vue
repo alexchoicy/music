@@ -160,7 +160,7 @@ const onTrackFormSubmit = trackForm.handleSubmit(async (values) => {
                 <Button variant="ghost"
                     class="w-full h-8 text-gray-400 hover:text-white hover:bg-gray-800 border border-dashed border-gray-700 hover:border-gray-600"
                     @click="onAddArtist" type="button">
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus class="h-4 w-4 mr-2" />
                     Add Artist
                 </Button>
                 <FormField v-slot="{ componentField }" name="album">

@@ -101,7 +101,7 @@ export class MusicService {
 
 						const track = tem.create(Tracks, {
 							name: music.title,
-							durationMs: music.duration,
+							durationMs: music.duration * 1000,
 							isInstrumental: music.isInstrumental,
 						});
 						await tem.persistAndFlush(track);

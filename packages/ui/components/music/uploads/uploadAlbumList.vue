@@ -141,10 +141,10 @@ function onTrackEditOpen(albumHash: string, trackHash: string) {
             <div class="bg-card/20">
                 <div class="px-4 py-2 border-b bg-card/50">
                     <div class="flex items-center text-xs gap-4 text-gray-400 font-medium">
-                        <div className="w-8 text-center">#</div>
-                        <div className="flex-1">Title</div>
-                        <div className="w-20 text-center">Duration</div>
-                        <div className="w-20"></div>
+                        <div class="w-8 text-center">#</div>
+                        <div class="flex-1">Title</div>
+                        <div class="w-20 text-center">Duration</div>
+                        <div class="w-20"></div>
                     </div>
                 </div>
                 <div v-for="disc in album.disc" :key="`${album.hash}-${disc.no}`"

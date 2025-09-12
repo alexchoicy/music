@@ -1,4 +1,4 @@
-import type { AlbumDetailResponse } from "@music/api/dto/album.dto";
+import { type AlbumDetailResponse } from "@music/api/dto/album.dto";
 import type { AudioPlayerList } from "../../stores/audioPlayer";
 import type { Playlist } from "../../types/playlist";
 
@@ -10,7 +10,7 @@ export function parsePlaylistFromAlbumDetail(albumDetail: AlbumDetailResponse) {
       id: t.id,
       name: t.name,
       artists: t.artists,
-      durationMs: t.durationMs * 1000,
+      durationMs: t.durationMs,
       album: {
         id: albumDetail.id,
         name: albumDetail.name,
@@ -32,7 +32,7 @@ export function parsePlaylistFromAlbumDetail(albumDetail: AlbumDetailResponse) {
     name: albumDetail.name,
     playlistURL: "",
     trackCount: tracks.length,
-    durationMs: 0,
+    durationMs: albumDetail.totalDurationMs,
     type: "album",
     tracks: tracks,
   };
