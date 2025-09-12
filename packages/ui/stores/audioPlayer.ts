@@ -5,6 +5,8 @@ import {
   type PlayableTrack,
   type Playlist,
 } from "../types/playlist";
+import { shallowRef } from "vue";
+import { parsePlayerPlayListFromAlbumDetail } from "@/lib/music/parse";
 
 export interface AudioPlayerList {
   playlistRef: string;
@@ -47,19 +49,27 @@ export const useAudioPlayerStore = defineStore("audioPlayer", {
     },
   },
   actions: {
+    stopPlaying() {
+      this.playing = false;
+    },
     setPlayList(list: AudioPlayerList[]) {
       this.queue.push(...list);
     },
-    setPlaying(p: boolean) {
+    setPlaying() {
       if (this.queue.length === 0) return;
-      this.playing = p;
+      this.playing = !this.playing;
+    },
+    setPlayIndex(i: number) {
+      if (i < 0 || i >= this.queue.length) return;
+      this.cursor = i;
+      this.currentTime = 0;
     },
     setCurrentTime(t: number) {
       this.currentTime = t;
     },
     next() {
       if (this.hasNext) this.cursor += 1;
-      else this.setPlaying(false);
+      else this.playing = false;
     },
     prev() {
       if (this.hasPrev) this.cursor -= 1;
@@ -72,6 +82,25 @@ export const useAudioPlayerStore = defineStore("audioPlayer", {
 
       const entity = useAudioEntity();
       entity.clear();
+    },
+    playWithList(playList: Playlist) {
+      this.clear();
+
+      const entity = useAudioEntity();
+      entity.upsert(playList);
+
+      this.setPlayList(parsePlayerPlayListFromAlbumDetail(playList));
+      this.playing = true;
+    },
+    playWithListAndIndex(playList: Playlist, index: number) {
+      this.clear();
+
+      const entity = useAudioEntity();
+      entity.upsert(playList);
+
+      this.setPlayList(parsePlayerPlayListFromAlbumDetail(playList));
+      this.setPlayIndex(index);
+      this.playing = true;
     },
   },
 });

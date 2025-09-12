@@ -6,7 +6,8 @@ import { Slider } from '@/components/ui/slider';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { computed, onMounted, ref, watch } from 'vue';
-
+import { getMMSSFromMS } from '@/lib/music/utils';
+import { usePlayerHotkeys } from '~/composables/hotkey';
 const player = useAudioPlayerStore();
 const audioEntity = useAudioEntity();
 
@@ -18,7 +19,7 @@ onMounted(() => {
             player.next();
             return;
         }
-        player.setPlaying(false);
+        player.stopPlaying();
     });
 
     audioElement.value?.addEventListener('timeupdate', () => {
@@ -26,19 +27,6 @@ onMounted(() => {
         player.setCurrentTime(audioElement.value.currentTime * 1000);
     });
 })
-
-
-function togglePlay() {
-    player.setPlaying(!player.playing);
-}
-
-function getMMSSFromMS(ms: number) {
-    if (!ms || ms <= 0) return '00:00';
-    const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
 
 function getCurrentTrackUrl() {
     if (!player.currentTrack) return '';
@@ -140,13 +128,15 @@ const sliderVolume = computed({
     }
 });
 
+usePlayerHotkeys();
+
 </script>
 
 <template>
     <div v-show="player.currentTrack"
         class="p-4 flex flex-row items-center gap-4 border-t sticky bottom-0 bg-background">
         <div class="flex flex-row">
-            <Button @click="togglePlay" variant="ghost" :disabled="!player.hasQueue">
+            <Button @click="player.setPlaying()" variant="ghost" :disabled="!player.hasQueue">
                 <Play v-if="!player.playing" />
                 <Pause v-else />
             </Button>
