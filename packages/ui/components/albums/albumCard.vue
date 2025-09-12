@@ -7,9 +7,10 @@ import type { AlbumDetailResponse, AlbumResponse } from '@music/api/dto/album.dt
 import { useAudioEntity, useAudioPlayerStore } from '../../stores/audioPlayer';
 import { parsePlayerPlayListFromAlbumDetail, parsePlaylistFromAlbumDetail } from '../../lib/music/parse';
 import type { PropType } from 'vue';
+import { navigateTo } from 'nuxt/app';
 
 const player = useAudioPlayerStore();
-const audioEntity = useAudioEntity();
+
 const props = defineProps({
     album: {
         type: Object as () => AlbumResponse,
@@ -22,25 +23,22 @@ const props = defineProps({
 });
 
 const clickPlay = async (albumID: string) => {
-    console.log('click play album', albumID);
-    player.clear();
     const albumInfo = await props.getAlbumInfo(albumID);
     const playList = parsePlaylistFromAlbumDetail(albumInfo);
+    player.playWithList(playList);
+}
 
-    audioEntity.upsert(playList);
-
-    player.setPlayList(
-        parsePlayerPlayListFromAlbumDetail(playList)
-    );
-
-    player.setPlaying(true);
+function handleAlbumClick(id: string) {
+    return navigateTo({
+        path: `albums/${id}`,
+    })
 }
 
 </script>
 
 
 <template>
-    <Card v-if="props.album" @click="console.log('click album')"
+    <Card v-if="props.album" @click="handleAlbumClick(props.album.id)"
         class="group hover:bg-muted transition-all duration-300 hover:scale-105 hover:shadow-2xl border-0 rounded-lg overflow-hidden cursor-pointer">
         <div class="aspect-square relative overflow-hidden">
             <img v-if="props.album.cover" :src="props.album.cover" alt="" class="w-full h-full object-cover" />
