@@ -4,6 +4,7 @@ import { Artists } from '#database/entities/artists.js';
 import { StorageService } from '../uploads/storageServices/storageServiceAbstract.js';
 import mime from 'mime';
 import { ArtistDetailDTO } from '#types/dto/music.dto.js';
+import { AlbumTracks } from '#database/entities/albumTracks.js';
 
 @Injectable()
 export class ArtistsService {
@@ -46,9 +47,17 @@ export class ArtistsService {
 		const albums = [];
 
 		for (const album of artist.albumsCollection) {
+			const total = await this.em
+				.createQueryBuilder(AlbumTracks, 'at')
+				.innerJoin('at.track', 't')
+				.where({ album: album.id })
+				.andWhere({ 't.isInstrumental': false })
+				.getCount();
 			albums.push({
 				id: album.id.toString(),
 				name: album.name,
+				year: album.year,
+				language: null,
 				albumType: album.albumType,
 				cover:
 					album.coverAttachment && album.coverAttachment.fileType
@@ -59,15 +68,25 @@ export class ArtistsService {
 								) ?? '',
 							)
 						: null,
-				year: album.year,
-				language: null,
+				totalTracks: total,
+				hasInstrumental:
+					total < (await album.albumTracksCollection.loadCount()),
+				mainArtist: {
+					id: artist.id.toString(),
+					name: artist.name,
+					language: null,
+					image: null,
+					artistType: artist.artistType as string,
+					createdAt: artist.createdAt.toISOString(),
+					updatedAt: artist.updatedAt.toISOString(),
+				},
 				createdAt: album.createdAt.toISOString(),
 				updatedAt: album.updatedAt.toISOString(),
 			});
 		}
 
 		const groupMembers = [];
-		if (artist.artistType === 'group') {
+		if (artist.artistType === 'group' || artist.artistType === 'project') {
 			const members = artist.artistGroups?.groupMembersCollection;
 			if (members) {
 				for (const member of members) {

@@ -71,6 +71,8 @@ export const AlbumDetailResponseSchema = z.object({
   albumType: AlbumsAlbumTypeEnum,
   musicbrainzId: z.string().nullable(),
   cover: z.url().nullable(),
+  hasInstrumental: z.boolean(),
+  totalTracks: z.number(),
 
   Disc: z.array(Disc),
 

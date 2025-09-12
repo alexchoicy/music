@@ -39,7 +39,7 @@ export class AlbumsService {
 		for (const album of albums.items) {
 			const total = await this.em
 				.createQueryBuilder(AlbumTracks, 'at')
-				.leftJoin('at.track', 't')
+				.innerJoin('at.track', 't')
 				.where({ album: album.id })
 				.andWhere({ 't.isInstrumental': false })
 				.getCount();
@@ -113,9 +113,16 @@ export class AlbumsService {
 		const artistsMap = new Map<string, ArtistSchema>();
 
 		const discMap = new Map<number, TrackSchema[]>();
+
+		let count = 0;
+
 		for (const albumTrack of album.albumTracksCollection) {
 			if (!discMap.has(albumTrack.discNo)) {
 				discMap.set(albumTrack.discNo, []);
+			}
+
+			if (albumTrack.track.isInstrumental) {
+				count += 1;
 			}
 
 			const disc = discMap.get(albumTrack.discNo)!;
@@ -194,6 +201,9 @@ export class AlbumsService {
 			artists: Array.from(artistsMap.values()),
 			totalDurationMs,
 			musicbrainzId: album.musicbrainzAlbumId || null,
+			hasInstrumental:
+				count < (await album.albumTracksCollection.loadCount()),
+			totalTracks: count,
 			cover:
 				album.coverAttachment && album.coverAttachment.fileType
 					? await this.storageService.getAlbumCoverDataUrl(
