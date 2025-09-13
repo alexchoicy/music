@@ -61,7 +61,7 @@ const AppConfigSchema = z4
 			ctx.addIssue({
 				code: 'custom',
 				message:
-					'public_data_url is required. It is used to generate URLs for accessing media images.',
+					'public_data_url is required. It is used to generate URLs for accessing media.',
 			});
 		}
 	});

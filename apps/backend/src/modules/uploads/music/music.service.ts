@@ -5,13 +5,11 @@ import { Attachments } from '#database/entities/attachments.js';
 import { TrackArtists } from '#database/entities/trackArtists.js';
 import { Tracks } from '#database/entities/tracks.js';
 import { UploadMusicInitDTO } from '#types/dto/music.dto.js';
-import { saveCoverImage } from '#utils/upload/local.js';
 import { EntityManager, MikroORM } from '@mikro-orm/postgresql';
 import { UploadMusicInitResponse } from '@music/api/dto/music.dto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import path from 'path';
-import { StorageService } from '../storageServices/storageServiceAbstract.js';
+import { StorageService } from '../../storageServices/storageServiceAbstract.js';
 import {
 	FileUploadStatus,
 	TrackQuality,
@@ -60,16 +58,10 @@ export class MusicService {
 
 						const buffer = Buffer.from(coverImage.data, 'base64');
 
-						//the format only image/jpeg or image/png
-						saveCoverImage(
-							path.join(
-								this.config.get('app.storage.library_dir')!,
-								'attachments',
-								'coverImages',
-							),
-							newAttachment.id,
+						this.storageService.saveCoverImage(
+							newAttachment.id.toString(),
 							buffer,
-							coverImage.format === 'image/jpeg' ? 'jpg' : 'png',
+							coverImage.format,
 						);
 
 						await tem.persistAndFlush(newAttachment);

@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ArtistsService } from './artists.service.js';
 import { ArtistsController } from './artists.controller.js';
-import { StorageService } from '../uploads/storageServices/storageServiceAbstract.js';
+import { StorageService } from '../storageServices/storageServiceAbstract.js';
 import { ConfigService } from '@nestjs/config';
-import { LocalStorageService } from '../uploads/storageServices/LocalStorageService.js';
+import { LocalStorageService } from '../storageServices/LocalStorageService.js';
 
 @Module({
 	controllers: [ArtistsController],

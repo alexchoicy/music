@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { EntityManager, MikroORM } from '@mikro-orm/postgresql';
 import { Albums } from '#database/entities/albums.js';
-import { StorageService } from '../uploads/storageServices/storageServiceAbstract.js';
+import { StorageService } from '../storageServices/storageServiceAbstract.js';
 import { AlbumDetailDTO } from '#types/dto/music.dto.js';
 import {
 	AlbumResponse,

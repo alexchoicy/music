@@ -14,4 +14,10 @@ export abstract class StorageService {
 		attachmentID: string,
 		ext: string,
 	): string | Promise<string>;
+
+	abstract saveCoverImage(
+		attachmentID: string,
+		imageBuffer: Buffer,
+		ext: string,
+	): string;
 }
