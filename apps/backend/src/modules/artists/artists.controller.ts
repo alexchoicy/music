@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ArtistsService } from './artists.service.js';
 
 @Controller('artists')
@@ -11,7 +11,7 @@ export class ArtistsController {
 	}
 
 	@Get('/:id')
-	async getArtist(@Query('id') id: string) {
+	async getArtist(@Param('id') id: string) {
 		return await this.artistsService.getArtist(id);
 	}
 }

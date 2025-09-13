@@ -24,7 +24,13 @@ export class ArtistsService {
 			},
 		);
 
-		return artists;
+		return {
+			total: artists.totalCount,
+			hasPrev: artists.hasPrevPage,
+			hasNext: artists.hasNextPage,
+			cursor: artists.hasNextPage ? artists.endCursor || null : null,
+			items: artists.items,
+		};
 	}
 
 	async getArtist(id: string) {

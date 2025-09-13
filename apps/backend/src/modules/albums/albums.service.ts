@@ -76,9 +76,6 @@ export class AlbumsService {
 				}),
 			);
 		}
-
-		console.log(albums);
-
 		return {
 			total: albums.totalCount,
 			hasPrev: albums.hasPrevPage,
