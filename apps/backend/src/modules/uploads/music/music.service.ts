@@ -1,17 +1,19 @@
 import { Albums } from '#database/entities/albums.js';
 import { AlbumTracks } from '#database/entities/albumTracks.js';
-import { Artists, ArtistsArtistType } from '#database/entities/artists.js';
+import { Artists } from '#database/entities/artists.js';
 import { Attachments } from '#database/entities/attachments.js';
 import { TrackArtists } from '#database/entities/trackArtists.js';
-import { FileUploadStatus, Tracks } from '#database/entities/tracks.js';
+import { Tracks } from '#database/entities/tracks.js';
 import { UploadMusicInitDTO } from '#types/dto/music.dto.js';
-import { saveCoverImage } from '#utils/upload/local.js';
 import { EntityManager, MikroORM } from '@mikro-orm/postgresql';
 import { UploadMusicInitResponse } from '@music/api/dto/music.dto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import path from 'path';
-import { StorageService } from '../storageServices/storageServiceAbstract.js';
+import { StorageService } from '../../storageServices/storageServiceAbstract.js';
+import {
+	FileUploadStatus,
+	TrackQuality,
+} from '#database/entities/trackQuality.js';
 
 @Injectable()
 export class MusicService {
@@ -34,7 +36,7 @@ export class MusicService {
 				if (!albumArtist) {
 					const newArtist = tem.create(Artists, {
 						name: albumMetadata.albumArtist,
-						artistType: ArtistsArtistType.PERSON,
+						artistType: 'person',
 					});
 					await this.em.persistAndFlush(newArtist);
 					albumArtist = newArtist;
@@ -56,16 +58,10 @@ export class MusicService {
 
 						const buffer = Buffer.from(coverImage.data, 'base64');
 
-						//the format only image/jpeg or image/png
-						saveCoverImage(
-							path.join(
-								this.config.get('app.storage.library_dir')!,
-								'attachments',
-								'coverImages',
-							),
-							newAttachment.id,
+						this.storageService.saveCoverImage(
+							newAttachment.id.toString(),
 							buffer,
-							coverImage.format === 'image/jpeg' ? 'jpg' : 'png',
+							coverImage.format,
 						);
 
 						await tem.persistAndFlush(newAttachment);
@@ -84,27 +80,37 @@ export class MusicService {
 
 				for (const disc of albumMetadata.disc) {
 					for (const music of disc.musics) {
-						let track = await tem.findOne(Tracks, {
-							hash: music.hash,
-						});
-						if (track) {
+						const existingTrack = await tem.findOne(
+							TrackQuality,
+							{
+								hash: music.hash,
+							},
+							{ populate: ['track'] },
+						);
+						if (existingTrack) {
 							continue;
 						}
 
-						track = tem.create(Tracks, {
+						const track = tem.create(Tracks, {
 							name: music.title,
-							hash: music.hash,
-							uploadHashCheck: music.uploadHashCheck,
-							durationMs: music.duration,
-							fileContainer: music.format.container.toLowerCase(),
-							fileCodec: music.format.codec.toLowerCase(),
+							durationMs: music.duration * 1000,
 							isInstrumental: music.isInstrumental,
-							bitrate: music.bitsPerSample,
-							sampleRate: music.sampleRate,
-							lossless: music.format.lossless,
-							uploadStatus: FileUploadStatus.PENDING,
 						});
 						await tem.persistAndFlush(track);
+
+						const quality = tem.create(TrackQuality, {
+							hash: music.hash,
+							bitrate: music.bitsPerSample,
+							sampleRate: music.sampleRate,
+							fileContainer: music.format.container.toLowerCase(),
+							fileCodec: music.format.codec.toLowerCase(),
+							islossless: music.format.lossless,
+							type: 'original',
+							track: track,
+							uploadStatus: FileUploadStatus.PENDING,
+							uploadHashCheck: music.uploadHashCheck,
+						});
+						await tem.persistAndFlush(quality);
 
 						const albumTrack = tem.create(AlbumTracks, {
 							album: album,
@@ -121,7 +127,7 @@ export class MusicService {
 							if (!trackArtist) {
 								const newArtist = tem.create(Artists, {
 									name: artist,
-									artistType: ArtistsArtistType.PERSON,
+									artistType: 'person',
 								});
 								await tem.persistAndFlush(newArtist);
 								trackArtist = newArtist;

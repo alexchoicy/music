@@ -18,7 +18,7 @@ export class Attachments {
 	entityType!: string;
 
 	@Property({ type: 'text' })
-	fileType!: string;
+	fileType: string;
 
 	@Property({
 		type: 'datetime',

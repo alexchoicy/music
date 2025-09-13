@@ -1,7 +1,6 @@
 import {
 	Collection,
 	Entity,
-	Enum,
 	ManyToOne,
 	OneToMany,
 	type Opt,
@@ -13,11 +12,7 @@ import { AlbumTracks } from './albumTracks.js';
 import { Languages } from './languages.js';
 import { TrackArtists } from './trackArtists.js';
 import { TrackTags } from './trackTags.js';
-
-export enum FileUploadStatus {
-	'PENDING',
-	'COMPLETED',
-}
+import { TrackQuality } from './trackQuality.js';
 
 @Entity()
 export class Tracks {
@@ -27,23 +22,8 @@ export class Tracks {
 	@Property({ type: 'text' })
 	name!: string;
 
-	@Property({ type: 'text', unique: true })
-	hash: string;
-
-	@Property({ type: 'text' })
-	uploadHashCheck: string;
-
 	@Property()
 	durationMs!: number;
-
-	@Property({ type: 'text' })
-	fileCodec: string;
-
-	@Property({ type: 'text' })
-	fileContainer: string;
-
-	@Property({ type: 'boolean' })
-	lossless: boolean & Opt = false;
 
 	@Property({ type: 'boolean' })
 	isInstrumental: boolean & Opt = false;
@@ -51,17 +31,8 @@ export class Tracks {
 	@ManyToOne({ entity: () => Languages, nullable: true })
 	language?: Rel<Languages>;
 
-	@Property({ nullable: true })
-	bitrate?: number;
-
-	@Property({ nullable: true })
-	sampleRate?: number;
-
 	@Property({ type: 'uuid', nullable: true })
 	musicbrainzTrackId?: string;
-
-	@Enum({ items: () => FileUploadStatus })
-	uploadStatus: FileUploadStatus;
 
 	@Property({
 		type: 'datetime',
@@ -85,4 +56,7 @@ export class Tracks {
 
 	@OneToMany({ entity: () => TrackTags, mappedBy: 'track' })
 	trackTagsCollection = new Collection<TrackTags>(this);
+
+	@OneToMany({ entity: () => TrackQuality, mappedBy: 'track' })
+	trackQualityCollection = new Collection<TrackQuality>(this);
 }

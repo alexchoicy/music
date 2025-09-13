@@ -5,6 +5,7 @@ import { useFieldArray, useForm } from 'vee-validate';
 import { Plus, X } from 'lucide-vue-next';
 
 import { type Music } from '@music/api/type/music';
+import { nextTick, watch } from 'vue';
 
 const props = defineProps({
     isOpen: {
@@ -27,18 +28,20 @@ watch(() => [props.currentTrack, props.isOpen], async ([currentTrack, isOpen]) =
     console.log("currentTrack changed", currentTrack, isOpen);
     if (!isOpen || !currentTrack) return;
     await nextTick();
-    trackForm.resetForm({
-        values: {
-            title: currentTrack.title === "Unknown Title" ? '' : currentTrack.title,
-            albumArtist: currentTrack.albumArtist === "Unknown Album Artist" ? '' : currentTrack.albumArtist,
-            artists: currentTrack.artists.length > 0 ? [...currentTrack.artists] : [''],
-            album: currentTrack.album === "Unknown Album" ? '' : currentTrack.album,
-            year: currentTrack.year > 1900 ? currentTrack.year : undefined,
-            trackNo: currentTrack.track.no > 0 ? currentTrack.track.no : undefined,
-            discNo: currentTrack.disc.no > 0 ? currentTrack.disc.no : undefined,
-            isInstrumental: currentTrack.isInstrumental || false,
-        }
-    });
+    if (typeof currentTrack === 'object' && currentTrack !== null) {
+        trackForm.resetForm({
+            values: {
+                title: currentTrack.title === "Unknown Title" ? '' : currentTrack.title,
+                albumArtist: currentTrack.albumArtist === "Unknown Album Artist" ? '' : currentTrack.albumArtist,
+                artists: currentTrack.artists.length > 0 ? [...currentTrack.artists] : [''],
+                album: currentTrack.album === "Unknown Album" ? '' : currentTrack.album,
+                year: currentTrack.year > 1900 ? currentTrack.year : undefined,
+                trackNo: currentTrack.track.no > 0 ? currentTrack.track.no : undefined,
+                discNo: currentTrack.disc.no > 0 ? currentTrack.disc.no : undefined,
+                isInstrumental: currentTrack.isInstrumental || false,
+            }
+        });
+    }
 }, { immediate: true })
 
 const trackEditFormSchema = toTypedSchema(z.object({
@@ -157,7 +160,7 @@ const onTrackFormSubmit = trackForm.handleSubmit(async (values) => {
                 <Button variant="ghost"
                     class="w-full h-8 text-gray-400 hover:text-white hover:bg-gray-800 border border-dashed border-gray-700 hover:border-gray-600"
                     @click="onAddArtist" type="button">
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus class="h-4 w-4 mr-2" />
                     Add Artist
                 </Button>
                 <FormField v-slot="{ componentField }" name="album">

@@ -1,6 +1,6 @@
-import z4 from "zod/v4";
+import { z } from "zod/v4";
 
-export const uploadInitResponseSchema = z4.object({
-  uploadUrl: z4.url(),
-  error: z4.string().optional(),
+export const uploadInitResponseSchema = z.object({
+  uploadUrl: z.url(),
+  error: z.string().optional(),
 });

@@ -9,6 +9,7 @@ import { useDropZone } from '@vueuse/core';
 import { parseBlob, type IAudioMetadata } from "music-metadata";
 import { hashFileStream, covertToMusicObject, getNextFreeTrackNo, getAlbumHash, checkIfSoundtrack, hashFileStreamMd5 } from '@/lib/music/utils';
 import { albumsSorter, flattenAlbums } from '@/lib/music/sorter';
+import { ref } from 'vue';
 
 const props = defineProps({
     albums: {

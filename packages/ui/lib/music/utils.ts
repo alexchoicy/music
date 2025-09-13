@@ -108,11 +108,9 @@ export function covertToMusicObject(
     sampleRate: metadata.format.sampleRate || 0,
     track: {
       no: metadata.common.track.no || 0,
-      of: metadata.common.track.of || 0,
     },
     disc: {
       no: metadata.common.disk.no || 0,
-      of: metadata.common.disk.of || 0,
     },
     format: {
       codec: metadata.format.codec || "unknown",
@@ -139,4 +137,27 @@ export function getBase64FromFile(file: File): Promise<string> {
     reader.onerror = (err) => reject(err);
     reader.readAsDataURL(file);
   });
+}
+
+export function getMMSSFromMS(ms: number) {
+  if (!ms || ms <= 0) return "00:00";
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+    2,
+    "0"
+  )}`;
+}
+
+export function getHHMMFromMs(ms: number) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+  if (hours > 0) {
+    return `${hours} hr ${minutes} min`;
+  } else {
+    return `${minutes} min`;
+  }
 }

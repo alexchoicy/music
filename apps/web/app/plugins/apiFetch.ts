@@ -1,6 +1,7 @@
 export default defineNuxtPlugin((nuxtApp) => {
+  const config = useRuntimeConfig();
   const backend = $fetch.create({
-    baseURL: nuxtApp.$config.public.apiBase,
+    baseURL: config.public.apiBase,
   });
 
   return {

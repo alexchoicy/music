@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { MusicService } from './music.service.js';
 import { MusicController } from './music.controller.js';
 import { ConfigService } from '@nestjs/config';
-import { LocalStorageService } from '../storageServices/LocalStorageService.js';
-import { StorageService } from '../storageServices/storageServiceAbstract.js';
+import { LocalStorageService } from '../../storageServices/LocalStorageService.js';
+import { StorageService } from '../../storageServices/storageServiceAbstract.js';
 
 @Module({
 	controllers: [MusicController],

@@ -15,7 +15,7 @@ export default defineNuxtConfig({
       tailwindcss(),
     ],
   },
-  modules: ['shadcn-nuxt', '@nuxtjs/color-mode'],
+  modules: ['shadcn-nuxt', '@nuxtjs/color-mode', '@pinia/nuxt'],
   shadcn: {
     prefix: '',
     componentDir: join(currentDir, './components/ui')

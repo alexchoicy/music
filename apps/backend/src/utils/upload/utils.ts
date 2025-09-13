@@ -1,6 +1,6 @@
 import path from 'path';
 
-export function getStorePath(hash: string) {
+export function getMusicStorePath(hash: string) {
 	const firstSubPath = hash.slice(0, 2);
 	const secondSubPath = hash.slice(2, 4);
 	return path.join(firstSubPath, secondSubPath);
