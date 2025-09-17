@@ -11,11 +11,13 @@ const apiBase = useRuntimeConfig().public.apiBase;
 async function getAlbumInfo(albumID: string): Promise<AlbumDetailResponse> {
     return await $fetch<AlbumDetailResponse>(`${apiBase}/albums/${albumID}`, {
         method: 'GET',
+        credentials: 'include',
     })
 }
 
 const { data: album } = await useFetch<Artist>(`artists/${id}`, {
-    $fetch: $backend
+    $fetch: $backend,
+    credentials: 'include',
 });
 
 </script>
