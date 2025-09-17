@@ -12,6 +12,15 @@
       ],
       "#utils/*": [
         "./src/utils/*"
+      ],
+      "#decorators/*": [
+        "./src/decorators/*"
+      ],
+      "#guards/*": [
+        "./src/guards/*"
+      ],
+      "#modules/*": [
+        "./src/modules/*"
       ]
     }
   },

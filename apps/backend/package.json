@@ -33,7 +33,11 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.0",
     "@noble/hashes": "^2.0.0",
+    "@simplewebauthn/server": "^13.2.0",
+    "argon2": "^0.44.0",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.1",
+    "jose": "^6.1.0",
     "js-yaml": "^4.1.0",
     "mime": "^4.0.7",
     "nestjs-zod": "^5.0.1",
@@ -43,15 +47,16 @@
     "zod": "^4.0.17"
   },
   "devDependencies": {
-    "@mikro-orm/seeder": "^6.5.1",
-    "@mikro-orm/migrations": "^6.5.1",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@mikro-orm/cli": "^6.5.1",
+    "@mikro-orm/migrations": "^6.5.1",
+    "@mikro-orm/seeder": "^6.5.1",
     "@music/typescript-config": "workspace:*",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
+    "@types/cookie-parser": "^1.4.9",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
@@ -81,6 +86,15 @@
     ],
     "#utils/*": [
       "./dist/utils/*"
+    ],
+    "#decorators/*": [
+      "./dist/decorators/*"
+    ],
+    "#guards/*": [
+      "./dist/guards/*"
+    ],
+    "#modules/*": [
+      "./dist/modules/*"
     ]
   },
   "jest": {

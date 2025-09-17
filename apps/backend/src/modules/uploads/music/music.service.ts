@@ -14,6 +14,7 @@ import {
 	FileUploadStatus,
 	TrackQuality,
 } from '#database/entities/trackQuality.js';
+import mime from 'mime';
 
 @Injectable()
 export class MusicService {
@@ -61,7 +62,7 @@ export class MusicService {
 						this.storageService.saveCoverImage(
 							newAttachment.id.toString(),
 							buffer,
-							coverImage.format,
+							mime.getExtension(coverImage.format) || 'jpg',
 						);
 
 						await tem.persistAndFlush(newAttachment);

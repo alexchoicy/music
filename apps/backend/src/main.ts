@@ -3,6 +3,7 @@ import { AppModule } from './app.module.js';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import cookieParser from 'cookie-parser';
 
 // BigInt JSON serialization
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -15,11 +16,15 @@ async function bootstrap() {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
 		bodyParser: true,
 		cors: {
-			origin: '*',
+			origin: ['http://localhost:3000'],
+			credentials: true,
 		},
 	});
 
+	app.use(cookieParser());
+
 	app.useBodyParser('json', { limit: '1gb' });
+
 	const openApiDoc = SwaggerModule.createDocument(
 		app,
 		new DocumentBuilder()

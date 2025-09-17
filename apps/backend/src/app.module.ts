@@ -5,12 +5,16 @@ import { MikroORM } from '@mikro-orm/postgresql';
 import { UploadsModule } from './modules/uploads/uploads.module.js';
 import { ConfigModule } from '@nestjs/config';
 import config, { EnvSchema } from './utils/config.js';
-import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { BaseController } from './modules/base.controller.js';
 import { AlbumsModule } from './modules/albums/albums.module.js';
 import { MediaModule } from './modules/media/media.module.js';
 import { ArtistsModule } from './modules/artists/artists.module.js';
+import { AuthModule } from './modules/auth/auth.module.js';
+import { DatabaseSeeder } from '#database/seeders/DatabaseSeeder.js';
+import { JwtAuthGuard } from './guards/auth.guard.js';
+import { JWKSProvider } from '#modules/auth/issuer/jwks.provider.js';
 
 @Module({
 	imports: [
@@ -33,9 +37,11 @@ import { ArtistsModule } from './modules/artists/artists.module.js';
 		AlbumsModule,
 		MediaModule,
 		ArtistsModule,
+		AuthModule,
 	],
 	controllers: [BaseController],
 	providers: [
+		JWKSProvider,
 		{
 			provide: APP_PIPE,
 			useClass: ZodValidationPipe,
@@ -44,6 +50,10 @@ import { ArtistsModule } from './modules/artists/artists.module.js';
 			provide: APP_INTERCEPTOR,
 			useClass: ZodSerializerInterceptor,
 		},
+		{
+			provide: APP_GUARD,
+			useClass: JwtAuthGuard,
+		},
 	],
 })
 export class AppModule implements OnModuleInit {
@@ -51,5 +61,7 @@ export class AppModule implements OnModuleInit {
 
 	async onModuleInit() {
 		await this.orm.getMigrator().up();
+
+		await this.orm.getSeeder().seed(DatabaseSeeder);
 	}
 }
