@@ -1,10 +1,11 @@
 import { Body, Controller, Post, Res } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
-import { JWKSProvider, JWTPayload } from './issuer/jwks.provider.js';
+import { JWKSProvider } from './issuer/jwks.provider.js';
 import { LoginRequestDTO } from '#types/dto/auth.dto.js';
 import { clearAuthCookies, setAuthCookies } from '#utils/auth/cookies.js';
 import type { Response } from 'express';
 import { Public } from '#decorators/public.decorator.js';
+import { JWTCustomPayload } from '@music/api/dto/auth.dto';
 
 @Public()
 @Controller('auth')
@@ -24,7 +25,7 @@ export class AuthController {
 			loginDTO.password,
 		);
 
-		const payload: JWTPayload = {
+		const payload: JWTCustomPayload = {
 			uid: user.id.toString(),
 			type: 'access',
 			role: user.role,

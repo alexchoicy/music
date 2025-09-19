@@ -1,7 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config/dist/index.js';
 import { JWKSProvider } from './jwks.provider.js';
+import { Public } from '#decorators/public.decorator.js';
 
+@Public()
 @Controller('.well-known')
 export class JwksController {
 	constructor(

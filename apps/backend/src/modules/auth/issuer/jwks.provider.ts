@@ -1,12 +1,6 @@
-import { UserRole } from '@music/api/dto/auth.dto';
+import { JWTCustomPayload } from '@music/api/dto/auth.dto';
 import { Injectable } from '@nestjs/common';
 import * as jose from 'jose';
-
-export interface JWTPayload {
-	uid: string;
-	type: 'access' | 'refresh' | 'api';
-	role?: UserRole;
-}
 
 @Injectable()
 export class JWKSProvider {
@@ -14,7 +8,7 @@ export class JWKSProvider {
 	private publicJwk!: jose.JWK;
 	private kid!: string;
 
-	private Issuer = 'cool-music-app';
+	private Issuer = 'http://localhost:3100/';
 	private Audience = 'music-web';
 
 	async onModuleInit() {
@@ -45,7 +39,7 @@ export class JWKSProvider {
 		return { keys: [this.publicJwk] };
 	}
 
-	async signAccessToken(payload: JWTPayload, expiresIn = '15m') {
+	async signAccessToken(payload: JWTCustomPayload, expiresIn = '15m') {
 		return await new jose.SignJWT(payload as any)
 			.setProtectedHeader({ alg: 'RS256', kid: this.kid })
 			.setIssuedAt()
