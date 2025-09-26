@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { AlbumDetailResponse } from '@music/api/dto/album.dto';
-import { getHHMMFromMs } from '@/lib/music/utils';
+import { getHHMMFromMs, getMusicExt } from '@/lib/music/utils';
 import { Button } from '@/components/ui/button';
-import { Play, User, Users } from 'lucide-vue-next';
+import { Play, User, Users, Download, FolderDown } from 'lucide-vue-next';
 import { Badge } from '@/components/ui/badge';
 import { ref } from 'vue';
 import { useAudioEntity, useAudioPlayerStore } from '../../stores/audioPlayer';
@@ -25,6 +25,40 @@ const clickTrackPlay = (index: number) => {
     player.playWithListAndIndex(playList, index);
 };
 
+const downloadAlbum = () => {
+    if (!props.album) return;
+    for (const disc of props.album.Disc) {
+        for (const track of disc.tracks) {
+            for (const quality of track.quality) {
+                if (!quality.islossless) {
+                    continue;
+                }
+                downloadFile(quality.url, `${disc.discNo}-${track.trackNo} ${track.name}. ${getMusicExt(quality.fileContainer, quality.fileCodec)}`);
+                break;
+            }
+        }
+    }
+}
+
+const downloadFile = async (url: string, filename: string) => {
+    const response = await fetch(url, {
+        credentials: "include",
+    });
+
+    if (!response.ok) throw new Error("Failed to download file");
+
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(blobUrl);
+};
 </script>
 
 <template>
@@ -53,6 +87,10 @@ const clickTrackPlay = (index: number) => {
                         <Button variant="ghost" @click="clickPlayAll"
                             class="mr-4 rounded-full w-16 h-16 flex items-center justify-center">
                             <Play class="size-fit" />
+                        </Button>
+                        <Button variant="ghost" @click="downloadAlbum"
+                            class="mr-4 rounded-full w-16 h-16 flex items-center justify-center">
+                            <FolderDown class="size-fit" />
                         </Button>
                     </div>
                 </div>
@@ -103,10 +141,14 @@ const clickTrackPlay = (index: number) => {
                                     </div>
                                     <div class="w-20 text-center">
                                         <span class="text-sm text-gray-400">{{ getHHMMFromMs(track.durationMs)
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                     <div class="w-20 flex text-center justify-end gap-1 ">
-
+                                        <Button variant="ghost" size="sm" class="px-2" v-if="track.quality.length > 0"
+                                            @click="downloadFile(track.quality[0].url, `${disc.discNo}-${track.trackNo} ${track.name}. ${getMusicExt(track.quality[0].fileContainer, track.quality[0].fileCodec)}`)">
+                                            <!-- Bro is lazy -->
+                                            <Download />
+                                        </Button>
                                     </div>
                                 </div>
                             </div>
