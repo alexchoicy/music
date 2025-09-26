@@ -31,6 +31,7 @@ async function loadMore() {
     try {
         const next = await $fetch<Pagination<ArtistSchema>>(`${apiBase}/artists`, {
             method: 'GET',
+            credentials: 'include',
             params: {
                 cursor: cursor.value ?? undefined,
             },

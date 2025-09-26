@@ -1,6 +1,6 @@
 import { Migration } from '@mikro-orm/migrations';
 
-export class Migration20250912143900 extends Migration {
+export class Migration20250916114219 extends Migration {
 
   override async up(): Promise<void> {
     this.addSql(`create table "attachments" ("id" uuid not null, "entity_type" text not null, "file_type" text not null, "created_at" timestamp(6) not null default now(), "updated_at" timestamp(6) not null default now(), constraint "attachments_pkey" primary key ("id"));`);
@@ -31,6 +31,10 @@ export class Migration20250912143900 extends Migration {
 
     this.addSql(`create table "track_tags" ("track_id" bigint not null, "tag_id" bigint not null, constraint "track_tags_pkey" primary key ("track_id", "tag_id"));`);
 
+    this.addSql(`create table "users" ("id" bigserial primary key, "username" text not null, "displayname" text not null, "password" varchar(255) not null, "role" text check ("role" in ('user', 'admin')) not null default 'user', "created_at" timestamp(6) not null default now(), "updated_at" timestamp(6) not null default now(), "last_login_at" timestamp(6) not null default now());`);
+
+    this.addSql(`create table "web_auth" ("id" varchar(255) not null, "user_id" bigint not null, "public_key" bytea not null, "web_auth_user_id" text not null, "counter" bigint not null, "device_type" text check ("device_type" in ('singleDevice', 'multiDevice')) not null, "backed_up" boolean not null, "transports" jsonb null, "created_at" timestamp(6) not null default now(), "last_used_at" timestamp(6) not null default now(), constraint "web_auth_pkey" primary key ("id"));`);
+
     this.addSql(`alter table "artists" add constraint "artists_language_id_foreign" foreign key ("language_id") references "languages" ("id") on update cascade on delete set null;`);
     this.addSql(`alter table "artists" add constraint "artists_profile_pic_id_foreign" foreign key ("profile_pic_id") references "attachments" ("id") on update cascade on delete set null;`);
 
@@ -55,6 +59,8 @@ export class Migration20250912143900 extends Migration {
 
     this.addSql(`alter table "track_tags" add constraint "track_tags_track_id_foreign" foreign key ("track_id") references "tracks" ("id") on update cascade;`);
     this.addSql(`alter table "track_tags" add constraint "track_tags_tag_id_foreign" foreign key ("tag_id") references "tags" ("id") on update cascade;`);
+
+    this.addSql(`alter table "web_auth" add constraint "web_auth_user_id_foreign" foreign key ("user_id") references "users" ("id") on update cascade;`);
   }
 
   override async down(): Promise<void> {
@@ -90,6 +96,8 @@ export class Migration20250912143900 extends Migration {
 
     this.addSql(`alter table "track_tags" drop constraint "track_tags_track_id_foreign";`);
 
+    this.addSql(`alter table "web_auth" drop constraint "web_auth_user_id_foreign";`);
+
     this.addSql(`drop table if exists "attachments" cascade;`);
 
     this.addSql(`drop table if exists "languages" cascade;`);
@@ -113,6 +121,10 @@ export class Migration20250912143900 extends Migration {
     this.addSql(`drop table if exists "album_tracks" cascade;`);
 
     this.addSql(`drop table if exists "track_tags" cascade;`);
+
+    this.addSql(`drop table if exists "users" cascade;`);
+
+    this.addSql(`drop table if exists "web_auth" cascade;`);
   }
 
 }

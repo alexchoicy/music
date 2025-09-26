@@ -55,7 +55,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="w-full min-h-screen p-6 pb-10">
+    <div class="w-full h-full p-6 pb-10">
         <header class="mb-8">
             <h1 class="text-4xl font-bold text-foreground mb-2">Albums</h1>
             <p class="text-muted-foreground text-lg">Discover new albums</p>
