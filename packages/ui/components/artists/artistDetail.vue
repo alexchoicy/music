@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { User } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import { Artist } from '@music/api/dto/artist.dto';
 import { AlbumDetailResponse } from '@music/api/dto/album.dto';
 import ArtistAlbum from './artistAlbum.vue';
@@ -23,6 +23,9 @@ const currentTab = ref('overview');
 
 const selectTab = (tabId: string) => {
     currentTab.value = tabId;
+    nextTick(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 };
 
 const albumOnly = props.data.albums.filter(album => album.albumType === 'Album');
@@ -31,7 +34,7 @@ const singleOnly = props.data.albums.filter(album => album.albumType === 'Single
 </script>
 
 <template>
-    <div class="w-full h-screen">
+    <div class="w-full h-full">
         <div class="relative h-80">
             <div class="absolute inset-0 bg-cover bg-center opacity-30"
                 :style="`background-image: url('${data.albums[0].cover}')`" />
@@ -52,7 +55,7 @@ const singleOnly = props.data.albums.filter(album => album.albumType === 'Single
             </div>
         </div>
 
-        <div class="sticky top-0 z-2 bg-background h-15">
+        <div class="sticky top-16 z-2 bg-background h-15">
             <div class="flex gap-8 border-b h-full px-2">
                 <Button @click="selectTab(tabItem.id)"
                     class=" text-sm font-medium transition-colors relative rounded-none h-full cursor-pointer"
