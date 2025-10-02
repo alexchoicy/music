@@ -3,8 +3,13 @@ import { EntityManager, MikroORM } from '@mikro-orm/postgresql';
 import { Artists } from '#database/entities/artists.js';
 import { StorageService } from '../storageServices/storageServiceAbstract.js';
 import mime from 'mime';
-import { ArtistDetailDTO } from '#types/dto/music.dto.js';
+import {
+	ArtistDetailDTO,
+	ArtistRelationshipDTO,
+} from '#types/dto/music.dto.js';
 import { AlbumTracks } from '#database/entities/albumTracks.js';
+import { ArtistGroups } from '#database/entities/artistGroups.js';
+import { GroupMembers } from '#database/entities/groupMembers.js';
 
 @Injectable()
 export class ArtistsService {
@@ -116,5 +121,51 @@ export class ArtistsService {
 		});
 
 		return result;
+	}
+
+	async setArtistRelationship(
+		artistID: string,
+		artistRelaationshipDTO: ArtistRelationshipDTO,
+	) {
+		const artist = await this.em.findOne(Artists, { id: artistID });
+		if (!artist) {
+			throw new NotFoundException();
+		}
+		let group;
+		if (artist.artistType === 'group') {
+			group = await this.em.findOne(ArtistGroups, { artist });
+
+			const artistGrouped = await this.em.find(GroupMembers, { group });
+			await this.em.remove(artistGrouped).flush();
+
+			if (artistRelaationshipDTO.artists.length === 0) {
+				artist.artistType = 'person';
+				if (group) {
+					await this.em.removeAndFlush(group);
+				}
+				return;
+			}
+		}
+
+		if (!group) {
+			artist.artistType = 'group';
+			const newGroup = this.em.create(ArtistGroups, {
+				artist,
+			});
+			await this.em.persistAndFlush(newGroup);
+
+			group = newGroup;
+		}
+
+		for (const memberID of artistRelaationshipDTO.artists) {
+			const member = await this.em.findOne(Artists, { id: memberID });
+			if (member) {
+				const gm = this.em.create(GroupMembers, {
+					artist: member,
+					group,
+				});
+				await this.em.persistAndFlush(gm);
+			}
+		}
 	}
 }

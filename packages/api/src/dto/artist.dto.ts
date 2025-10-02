@@ -20,3 +20,7 @@ export const artistSchema = z.object({
 export type SubArtist = z.infer<typeof subArtist>;
 
 export type Artist = z.infer<typeof artistSchema>;
+
+export const ArtistRelationshipSchema = z.object({
+  artists: z.array(z.number()),
+});
