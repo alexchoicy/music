@@ -1,29 +1,26 @@
 <script setup lang="ts">
-import Login from "@music/ui/components/auth/Login.vue";
+import Login from "@/components/Auth/Login.vue";
 
 definePageMeta({
-    public: true,
-    layout: false
-})
-
-
+  public: true,
+  layout: false,
+});
 
 async function login(username: string, password: string) {
-    const apiBase = useRuntimeConfig().public.apiBase;
-    await $fetch(apiBase + '/auth/login', {
-        method: 'POST',
-        body: {
-            username,
-            password
-        },
-        credentials: 'include',
-    });
+  const apiBase = useRuntimeConfig().public.apiBase;
+  await $fetch(apiBase + "/auth/login", {
+    method: "POST",
+    body: {
+      username,
+      password,
+    },
+    credentials: "include",
+  });
 
-    await navigateTo('/');
-
+  await navigateTo("/");
 }
 </script>
 
 <template>
-    <Login :onLogin="login" />
+  <Login :onLogin="login" />
 </template>
