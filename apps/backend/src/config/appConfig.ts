@@ -71,6 +71,9 @@ const SecurityConfigSchema = z.object({
 		issuer: z.string().url().default('http://localhost:3100'),
 		audience: z.string().default('music-app'),
 	}),
+	cookies: z.object({
+		domain: z.string().default('localhost'),
+	}),
 	cors: z.object({
 		origin: z
 			.array(z.string())

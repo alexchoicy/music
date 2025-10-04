@@ -10,8 +10,15 @@ const form = useForm({
 });
 
 const onFormSubmit = form.handleSubmit(async (values) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log(values);
+    await useNuxtApp().$backend("/auth/login", {
+        method: "POST",
+        body: {
+            username: values.username,
+            password: values.password,
+        },
+    });
+
+    await navigateTo("/");
 })
 </script>
 

@@ -1,15 +1,19 @@
 import { JWTCustomPayload } from '@music/api/dto/auth.dto';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config/dist/index.js';
 import * as jose from 'jose';
 
 @Injectable()
 export class JWKSProvider {
 	private privateKey!: CryptoKey;
+	private publicKey!: CryptoKey;
 	private publicJwk!: jose.JWK;
 	private kid!: string;
 
-	private Issuer = 'http://localhost:3100/';
-	private Audience = 'music-web';
+	constructor(private readonly configService: ConfigService) {}
+
+	private Issuer: string;
+	private Audience: string;
 
 	async onModuleInit() {
 		const privatePem = process.env.PRIVATE_KEY
@@ -24,8 +28,8 @@ export class JWKSProvider {
 		}
 
 		this.privateKey = await jose.importPKCS8(privatePem, 'RS256');
-		const publicPemRaw = await jose.importSPKI(publicPem, 'RS256');
-		this.publicJwk = await jose.exportJWK(publicPemRaw);
+		this.publicKey = await jose.importSPKI(publicPem, 'RS256');
+		this.publicJwk = await jose.exportJWK(this.publicKey);
 
 		const kid = await jose.calculateJwkThumbprint(this.publicJwk, 'sha256');
 
@@ -33,24 +37,32 @@ export class JWKSProvider {
 		this.publicJwk.alg = 'RS256';
 		this.publicJwk.use = 'sig';
 		this.kid = kid;
+
+		this.Issuer = this.configService.get<string>(
+			'appConfig.security.issuer',
+		)!;
+		this.Audience = this.configService.get<string>(
+			'appConfig.security.audience',
+		)!;
 	}
 
 	getJwks() {
 		return { keys: [this.publicJwk] };
 	}
 
-	async signAccessToken(payload: JWTCustomPayload, expiresIn = '15m') {
+	async signAccessToken(payload: JWTCustomPayload) {
 		return await new jose.SignJWT(payload as any)
 			.setProtectedHeader({ alg: 'RS256', kid: this.kid })
 			.setIssuedAt()
-			// .setExpirationTime(expiresIn)
 			.setIssuer(this.Issuer)
 			.setAudience(this.Audience)
 			.sign(this.privateKey);
 	}
 
-	async verifyToken(token: string) {
-		return await jose.jwtVerify(token, this.publicJwk, {
+	async verifyToken(
+		token: string,
+	): Promise<jose.JWTVerifyResult<JWTCustomPayload>> {
+		return await jose.jwtVerify(token, this.publicKey, {
 			issuer: this.Issuer,
 			audience: this.Audience,
 		});

@@ -14,6 +14,9 @@ import dbConfig from './mikro-orm.config.js';
 import { BaseController } from './modules/base.controller.js';
 
 import { JWKSProvider } from '#modules/auth/issuer/jwks.provider.js';
+import { JwtAuthGuard } from '#guards/auth.guard.js';
+
+import { AuthModule } from '#modules/auth/auth.module.js';
 
 @Module({
 	imports: [
@@ -31,6 +34,7 @@ import { JWKSProvider } from '#modules/auth/issuer/jwks.provider.js';
 			load: [appConfig],
 		}),
 		MikroOrmModule.forRoot(dbConfig),
+		AuthModule,
 	],
 	controllers: [BaseController],
 	providers: [
@@ -42,6 +46,10 @@ import { JWKSProvider } from '#modules/auth/issuer/jwks.provider.js';
 		{
 			provide: APP_INTERCEPTOR,
 			useClass: ZodSerializerInterceptor,
+		},
+		{
+			provide: APP_GUARD,
+			useClass: JwtAuthGuard,
 		},
 	],
 })

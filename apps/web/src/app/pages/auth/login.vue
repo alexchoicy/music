@@ -1,4 +1,17 @@
 <script setup lang="ts">
+definePageMeta({
+    public: true,
+    layout: false,
+});
+
+import { useAuthUser } from "#imports";
+
+const authUser = useAuthUser();
+
+if (authUser.value) {
+    await navigateTo("/");
+}
+
 
 </script>
 
