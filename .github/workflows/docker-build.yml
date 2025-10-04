@@ -48,7 +48,7 @@ jobs:
       # backend
       - name: Docker metadata for backend
         id: meta-backend
-        if: steps.changes.outputs.backend == 'true'
+        if: steps.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend
@@ -59,7 +59,7 @@ jobs:
 
       - name: Build and push Docker image (backend)
         id: push-backend
-        if: steps.changes.outputs.backend == 'true'
+        if: steps.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
           context: .
@@ -72,7 +72,7 @@ jobs:
 
       - name: Generate artifact attestation (backend)
         uses: actions/attest-build-provenance@v3
-        if: steps.changes.outputs.backend == 'true'
+        if: steps.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}-backend
           subject-digest: ${{ steps.push-backend.outputs.digest }}
@@ -80,7 +80,7 @@ jobs:
         # web
       - name: Docker metadata for web
         id: meta-web
-        if: steps.changes.outputs.web == 'true'
+        if: steps.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch'
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web
@@ -91,7 +91,7 @@ jobs:
 
       - name: Build and push Docker image (web)
         id: push-web
-        if: steps.changes.outputs.web == 'true'
+        if: steps.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch'
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
           context: .
@@ -104,7 +104,7 @@ jobs:
 
       - name: Generate artifact attestation (web)
         uses: actions/attest-build-provenance@v3
-        if: steps.changes.outputs.web == 'true'
+        if: steps.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch'
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}-web
           subject-digest: ${{ steps.push-web.outputs.digest }}
