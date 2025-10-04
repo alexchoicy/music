@@ -4,6 +4,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
+import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface.js';
+import { ConfigService } from '@nestjs/config';
 
 // BigInt JSON serialization
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -15,11 +17,16 @@ import cookieParser from 'cookie-parser';
 async function bootstrap() {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
 		bodyParser: true,
-		cors: {
-			origin: ['http://localhost:3000'],
-			credentials: true,
-		},
 	});
+
+	const configService = app.get(ConfigService);
+
+	const corsOptions: CorsOptions = {
+		origin: configService.get('appConfig.security.cors.origin'),
+		credentials: configService.get('appConfig.security.cors.credentials'),
+	};
+
+	app.enableCors(corsOptions);
 
 	app.use(cookieParser());
 

@@ -8,4 +8,4 @@ import { JwksController } from './issuer/well-known.controller.js';
 	controllers: [AuthController, JwksController],
 	providers: [AuthService, JWKSProvider],
 })
-export class AuthModule { }
+export class AuthModule {}

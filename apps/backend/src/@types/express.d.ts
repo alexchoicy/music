@@ -1,9 +1,9 @@
-import { JWTPayload } from '#modules/auth/issuer/jwks.provider.js';
+import { JWTCustomPayload } from '@music/api/dto/auth.dto';
 
 declare global {
 	export namespace Express {
 		export interface Request {
-			info: JWTPayload;
+			user: JWTCustomPayload;
 		}
 	}
 }

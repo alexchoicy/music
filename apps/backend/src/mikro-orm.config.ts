@@ -23,5 +23,5 @@ export default defineConfig({
 		emit: 'ts',
 		fileName: (className: string) => className,
 	},
-	debug: true,
+	debug: process.env.NODE_ENV !== 'production',
 });

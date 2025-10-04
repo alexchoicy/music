@@ -9,7 +9,6 @@ import { IS_PUBLIC_KEY } from '#decorators/public.decorator.js';
 import { Request } from 'express';
 import { getAuthTokenFromCookies } from '#utils/auth/cookies.js';
 import { JWKSProvider } from '#modules/auth/issuer/jwks.provider.js';
-import { UserRole } from '@music/api/dto/auth.dto';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -39,14 +38,12 @@ export class JwtAuthGuard implements CanActivate {
 				}
 				try {
 					const valid = await this.jwksProvider.verifyToken(token);
-
-					request.info = {
-						uid: valid.payload.uid as string,
-						type: valid.payload.type as
-							| 'access'
-							| 'refresh'
-							| 'api',
-						role: valid.payload.role as UserRole,
+					request.user = {
+						type: valid.payload.type,
+						info: {
+							uid: valid.payload.info.uid,
+							role: valid.payload.info.role,
+						},
 					};
 
 					return true;
