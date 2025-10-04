@@ -3,6 +3,9 @@ name: Build & Publish (GHCR)
 on:
   push:
     branches: ["master"]
+    paths:
+      - "apps/**"
+      - "packages/**"
     tags:
       - "v*.*.*"
   workflow_dispatch:
