@@ -10,7 +10,7 @@ export function setAuthCookies(
 	res.cookie(AUTH_COOKIE_NAME, token, {
 		httpOnly: true,
 		secure: true,
-		sameSite: 'none',
+		sameSite: 'lax',
 		domain: cookieDomains,
 		path: '/',
 	});
@@ -26,7 +26,7 @@ export function clearAuthCookies(res: Response) {
 	res.clearCookie(AUTH_COOKIE_NAME, {
 		httpOnly: true,
 		secure: true,
-		sameSite: 'none',
+		sameSite: 'lax',
 		path: '/',
 	});
 }
