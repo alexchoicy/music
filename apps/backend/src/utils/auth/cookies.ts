@@ -22,11 +22,12 @@ export function getAuthTokenFromCookies(req: {
 	return req.cookies[AUTH_COOKIE_NAME];
 }
 
-export function clearAuthCookies(res: Response) {
+export function clearAuthCookies(res: Response, cookieDomains: string) {
 	res.clearCookie(AUTH_COOKIE_NAME, {
 		httpOnly: true,
 		secure: true,
 		sameSite: 'lax',
 		path: '/',
+		domain: cookieDomains,
 	});
 }
