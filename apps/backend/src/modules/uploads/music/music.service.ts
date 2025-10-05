@@ -35,7 +35,7 @@ export class MusicService {
 				name: name,
 				artistType: 'person',
 			});
-			await this.em.persistAndFlush(newArtist);
+			await tem.persistAndFlush(newArtist);
 			albumArtist = newArtist;
 		}
 		return albumArtist;
@@ -46,7 +46,7 @@ export class MusicService {
 		albumArtist: Artists,
 		albumMetadata: UploadAlbum,
 	) {
-		let album = await this.em.findOne(Albums, {
+		let album = await tem.findOne(Albums, {
 			name: albumMetadata.name,
 			mainArtist: albumArtist,
 		});
@@ -179,17 +179,17 @@ export class MusicService {
 							);
 
 							await tem.persistAndFlush(newTrackArtistLink);
-
-							results.push({
-								trackHash: music.hash,
-								storedTrackID: track.id.toString(),
-								uploadUrl:
-									await this.storageService.createPresignedMusicUploadUrl(
-										album.id.toString(),
-										track.id.toString(),
-									),
-							});
 						}
+
+						results.push({
+							trackHash: music.hash,
+							storedTrackID: track.id.toString(),
+							uploadUrl:
+								await this.storageService.createPresignedMusicUploadUrl(
+									album.id.toString(),
+									track.id.toString(),
+								),
+						});
 					}
 				}
 			});
