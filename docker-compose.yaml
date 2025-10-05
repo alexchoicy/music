@@ -9,7 +9,7 @@ services:
       - PORT=3001
     volumes:
       - ./docker/appConfig.yaml:/app/apps/config/appConfig.yaml
-      - ./docker/data:/app/data/library/data
+      - ./docker/data/library:/app/data/library/data
       - ./docker/cache:/app/data/library/cache
     ports:
       - "5001:3001"
