@@ -21,10 +21,13 @@ export class MediaService {
 	}
 
 	pathCheck(filePath: string) {
-		if (!filePath.startsWith(this.libraryDir + path.sep)) {
-			throw new BadRequestException(
-				'Invalid path/path traversal detected',
-			);
+		try {
+			const realPath = fs.realpathSync(filePath);
+			if (!realPath.startsWith(this.libraryDir)) {
+				throw new BadRequestException('Invalid file path');
+			}
+		} catch {
+			throw new BadRequestException('File does not exist');
 		}
 	}
 
