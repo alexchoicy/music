@@ -4,7 +4,7 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { useFieldArray, useForm } from 'vee-validate';
 import { Plus, X } from 'lucide-vue-next';
 
-import { type Music } from '@music/api/type/music';
+import { type UploadMusic } from '@music/api/type/music';
 import { nextTick, watch } from 'vue';
 
 const props = defineProps({
@@ -13,7 +13,7 @@ const props = defineProps({
         required: true,
     },
     currentTrack: {
-        type: Object as () => Music,
+        type: Object as () => UploadMusic,
         required: true,
     },
     reSortAlbums: {

@@ -5,6 +5,13 @@ export default defineNuxtPlugin((nuxtApp) => {
     baseURL: config.public.apiBase,
     credentials: "include",
     headers,
+
+    onResponseError({ response }) {
+      throw createError({
+        statusCode: response.status,
+        statusMessage: response._data.message,
+      });
+    },
   });
 
   return {

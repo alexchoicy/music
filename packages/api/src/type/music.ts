@@ -60,7 +60,7 @@ export const AlbumSchema = z.object({
   disc: z.array(DiscSchema),
 });
 
-export type Album = z.infer<typeof AlbumSchema>;
-export type Music = z.infer<typeof MusicSchema>;
-export type Disc = z.infer<typeof DiscSchema>;
+export type UploadAlbum = z.infer<typeof AlbumSchema>;
+export type UploadMusic = z.infer<typeof MusicSchema>;
+export type UploadDisc = z.infer<typeof DiscSchema>;
 export type AlbumsAlbumType = z.infer<typeof AlbumsAlbumTypeEnum>;

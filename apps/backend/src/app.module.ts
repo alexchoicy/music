@@ -17,6 +17,7 @@ import { JWKSProvider } from '#modules/auth/issuer/jwks.provider.js';
 import { JwtAuthGuard } from '#guards/auth.guard.js';
 
 import { AuthModule } from '#modules/auth/auth.module.js';
+import { UploadsModule } from '#modules/uploads/uploads.module.js';
 
 @Module({
 	imports: [
@@ -35,6 +36,7 @@ import { AuthModule } from '#modules/auth/auth.module.js';
 		}),
 		MikroOrmModule.forRoot(dbConfig),
 		AuthModule,
+		UploadsModule,
 	],
 	controllers: [BaseController],
 	providers: [

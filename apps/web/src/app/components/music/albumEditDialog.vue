@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AlbumsAlbumTypeEnum, type Album, type AlbumsAlbumType } from '@music/api/type/music';
+import { AlbumsAlbumTypeEnum, type UploadAlbum, type AlbumsAlbumType } from '@music/api/type/music';
 import { z } from 'zod/v4'
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
@@ -14,7 +14,7 @@ const props = defineProps({
         required: true,
     },
     currentAlbum: {
-        type: Object as () => Album,
+        type: Object as () => UploadAlbum,
         required: true,
     }
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Album, type Disc, type Music } from '@music/api/type/music'
+import type { UploadAlbum, UploadDisc, UploadMusic } from '@music/api/type/music'
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,7 @@ import Skeleton from '~/components/ui/skeleton/Skeleton.vue';
 
 const props = defineProps({
     albums: {
-        type: Array as () => Album[],
+        type: Array as () => UploadAlbum[],
         required: true,
     },
     blockUpload: {
@@ -50,7 +50,7 @@ async function handleFiles(files: File[]) {
         emit('update:blockUpload', false);
         return;
     }
-    const musicObjects: Music[] = [];
+    const musicObjects: UploadMusic[] = [];
 
     for (const file of files) {
         if (!file.type.startsWith('audio/')) {
@@ -60,7 +60,7 @@ async function handleFiles(files: File[]) {
         const hash = await hashFileStream(file);
 
         const duplicate = props.albums.some(album =>
-            album.disc.some((disc: Disc) => disc.musics.some((m: Music) => m.hash === hash))
+            album.disc.some((disc: UploadDisc) => disc.musics.some((m: UploadMusic) => m.hash === hash))
         );
         if (duplicate) {
             console.log(`Duplicate file detected: ${file.name}, skipping...`);

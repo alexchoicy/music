@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { Album, Disc, Music } from '@music/api/type/music';
+import type { UploadAlbum, UploadDisc, UploadMusic } from '@music/api/type/music'
 import { Disc3, X } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps({
     albums: {
-        type: Array as () => Album[],
+        type: Array as () => UploadAlbum[],
         required: true,
     },
     blockUpload: {
@@ -25,10 +25,10 @@ const props = defineProps({
 
 const emit = defineEmits(['update:blockUpload']);
 
-const currentTrack = ref<Music | null>(null)
+const currentTrack = ref<UploadMusic | null>(null)
 const isTrackEditDialogOpen = ref(false)
 
-const currentAlbum = ref<Album | null>(null)
+const currentAlbum = ref<UploadAlbum | null>(null)
 const isAlbumEditDialogOpen = ref(false)
 
 function getSecondToMinuteString(seconds: number) {
@@ -42,7 +42,7 @@ function getCurrentTrackInfo(albumHash: string, trackHash: string) {
     if (!album) return null;
 
     for (const disc of album.disc) {
-        const track = disc.musics.find((t: Music) => t.hash === trackHash);
+        const track = disc.musics.find((t: UploadMusic) => t.hash === trackHash);
         if (track) {
             return {
                 track
@@ -58,12 +58,12 @@ function trackRemover(albumHash: string, trackHash: string) {
     if (!album) return;
 
     for (const disc of album.disc) {
-        const trackIndex = disc.musics.findIndex((t: Music) => t.hash === trackHash);
+        const trackIndex = disc.musics.findIndex((t: UploadMusic) => t.hash === trackHash);
         if (trackIndex !== -1) {
             disc.musics.splice(trackIndex, 1);
             album.NoOfTracks -= 1;
             if (disc.musics.length === 0) {
-                const discIndex = album.disc.findIndex((d: Disc) => d.no === disc.no);
+                const discIndex = album.disc.findIndex((d: UploadDisc) => d.no === disc.no);
                 if (discIndex !== -1) {
                     album.disc.splice(discIndex, 1);
                     album.NoOfDiscs -= 1;
