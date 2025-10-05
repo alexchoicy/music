@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 
 export const MusicSchema = z.object({
   filename: z.string(),
-  uploadHashCheck: z.string(), // md5 but s3 only support md5 for etag
+  uploadHashCheck: z.string(), // md5, b2 s3 only support md5 for verify
   hash: z.string(), // blake3, i heard that is fast
   album: z.string(),
   albumArtist: z.string(),
