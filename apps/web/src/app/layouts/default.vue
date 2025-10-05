@@ -9,9 +9,13 @@ import Sidebar from '~/components/layouts/sidebar.vue';
         <Sidebar />
         <SidebarInset>
             <div class="flex flex-col h-full">
-                <LayoutsNavbar />
-                <Separator />
-                <slot class="overflow-y-auto" />
+                <div class="sticky top-0 z-10 bg-background">
+                    <LayoutsNavbar />
+                    <Separator />
+                </div>
+                <div class="p-6 overflow-y-auto">
+                    <slot />
+                </div>
             </div>
         </SidebarInset>
     </SidebarProvider>
