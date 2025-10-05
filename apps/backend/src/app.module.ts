@@ -18,6 +18,8 @@ import { JwtAuthGuard } from '#guards/auth.guard.js';
 
 import { AuthModule } from '#modules/auth/auth.module.js';
 import { UploadsModule } from '#modules/uploads/uploads.module.js';
+import { AlbumsModule } from '#modules/albums/albums.module.js';
+import { MediaModule } from '#modules/media/media.module.js';
 
 @Module({
 	imports: [
@@ -37,6 +39,8 @@ import { UploadsModule } from '#modules/uploads/uploads.module.js';
 		MikroOrmModule.forRoot(dbConfig),
 		AuthModule,
 		UploadsModule,
+		AlbumsModule,
+		MediaModule,
 	],
 	controllers: [BaseController],
 	providers: [
