@@ -20,7 +20,7 @@
     "jose": "^6.1.0",
     "lucide-vue-next": "^0.542.0",
     "music-metadata": "^11.9.0",
-    "nuxt": "^4.0.3",
+    "nuxt": "^4.1.2",
     "reka-ui": "^2.5.0",
     "shadcn-nuxt": "2.2.0",
     "tailwind-merge": "^3.3.1",
