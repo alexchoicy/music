@@ -177,7 +177,7 @@ function onTrackEditOpen(albumHash: string, trackHash: string) {
                                 </div>
                                 <div class="w-20 text-center">
                                     <span class="text-sm text-gray-400">{{ getSecondToMinuteString(track.duration)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <div class="w-20 flex text-center justify-end gap-1 ">
                                     <Button variant="ghost" class="h-9 w-9 p-0" :disabled="props.blockUpload"
@@ -195,10 +195,10 @@ function onTrackEditOpen(albumHash: string, trackHash: string) {
                 </div>
             </div>
         </div>
-        <MusicAlbumEditDialog v-if="currentAlbum" :isOpen="isAlbumEditDialogOpen" :currentAlbum="currentAlbum"
+        <MusicUploadAlbumEditDialog v-if="currentAlbum" :isOpen="isAlbumEditDialogOpen" :currentAlbum="currentAlbum"
             @update:isOpen="isAlbumEditDialogOpen = $event" @update:currentAlbum="currentAlbum = $event" />
 
-        <MusicEditDialog v-if="currentTrack" :isOpen="isTrackEditDialogOpen" :currentTrack="currentTrack"
+        <MusicUploadMusicEditDialog v-if="currentTrack" :isOpen="isTrackEditDialogOpen" :currentTrack="currentTrack"
             :albums="props.albums" :reSortAlbums="async () => {
                 emit('update:blockUpload', true);
                 await props.reSortAlbums();

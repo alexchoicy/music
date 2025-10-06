@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { DiscAlbum, Play } from 'lucide-vue-next';
-import type { AlbumResponse } from '@music/api/dto/album.dto'
+import type { AlbumDetailResponse, AlbumResponse } from '@music/api/dto/album.dto'
+import { parsePlaylistFromAlbumDetail } from '~/lib/music/playerUtils';
 
 const props = defineProps({
     album: {
@@ -9,12 +10,27 @@ const props = defineProps({
     }
 })
 
+const audioPlayer = useAudioPlayer();
+
 function handleAlbumClick() {
     return navigateTo({
         path: `/music/albums/${props.album.id}`,
     })
 }
 
+async function getAlbumInfo(albumID: string): Promise<AlbumDetailResponse> {
+    return await useNuxtApp().$backend<AlbumDetailResponse>(`albums/${albumID}`, {
+        method: 'GET',
+    })
+}
+
+
+function handlePlayClick() {
+    getAlbumInfo(props.album.id).then((albumDetail) => {
+        const playlist = parsePlaylistFromAlbumDetail(albumDetail);
+        audioPlayer.playWithList(playlist);
+    })
+}
 </script>
 
 <template>
@@ -28,7 +44,7 @@ function handleAlbumClick() {
                     class="absolute top-2 right-2 bg-black/60 text-white border-0 backdrop-blur-sm">
                     {{ album.albumType }}
                 </Badge>
-                <Button size="icon"
+                <Button size="icon" @click.stop="handlePlayClick"
                     class="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-primary shadow-lg opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 cursor-pointer">
                     <Play
                         class="w-5 h-5 fill-primary-foreground text-primary-foreground ml-0.5 hover:fill-primary-foreground/20" />

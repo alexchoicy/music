@@ -10,6 +10,10 @@ const props = defineProps({
     album: {
         type: Object as () => AlbumDetailResponse,
         required: true
+    },
+    onclickPlayTrack: {
+        type: Function,
+        required: true
     }
 })
 </script>
@@ -35,7 +39,8 @@ const props = defineProps({
                         <div class="w-8 text-center group-hover:hidden">
                             <span class="text-sm">{{ track.trackNo }}</span>
                         </div>
-                        <Button variant="ghost" class="w-8 hidden group-hover:inline-flex">
+                        <Button variant="ghost" class="w-8 hidden group-hover:inline-flex"
+                            @click="props.onclickPlayTrack(index)">
                             <Play class="size-fit" />
                         </Button>
                         <div class="flex-1 min-w-0">
