@@ -47,13 +47,13 @@ export const useAudioPlayer = defineStore("audioPlayer", {
     volume: 1,
     muted: false,
     repeat: RepeatMode.Off,
-    shuffle: false,
+    isShuffling: false,
+    shuffle: [] as number[],
     currentTime: 0,
     preferredQuality: "original" as TrackQualityType,
     currentQuality: null as TrackQualityType | null,
   }),
   getters: {
-    isPlaying: (state) => state.playing,
     hasQueue: (state) => state.queue.length > 0,
     currentItem: (state) => state.queue[state.cursor] || null,
     hasNext: (state) => state.cursor < state.queue.length - 1,
@@ -128,23 +128,41 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       this.muted = !this.muted;
       setAudioPlayerLocalStorage({ muted: this.muted });
     },
+    toggleShuffle() {
+      this.isShuffling = !this.isShuffling;
+      if (this.isShuffling) {
+        this.shuffle = [];
+        this.makeShuffle();
+      } else {
+        this.shuffle = [];
+      }
+    },
+    makeShuffle() {
+      this.shuffle = this.queue.map((_, i) => i);
+      this.shuffle = this.shuffle.sort(() => Math.random() - 0.5);
+    },
+    shufflePlay() {
+      if (this.shuffle.length === 0) this.makeShuffle();
+      this.cursor = this.shuffle[0] || 0;
+      this.currentTime = 0;
+      this.shuffle = this.shuffle.slice(1);
+    },
     next() {
       switch (this.repeat) {
         case RepeatMode.One:
           this.currentTime = 0;
           break;
         case RepeatMode.All:
-          if (this.hasNext) {
-            this.cursor++;
-            this.currentTime = 0;
-          } else {
+          if (!this.hasNext) {
             this.cursor = 0;
             this.currentTime = 0;
+            break;
           }
-          break;
         case RepeatMode.Off:
         default:
-          if (this.hasNext) {
+          if (this.isShuffling) {
+            this.shufflePlay();
+          } else if (this.hasNext) {
             this.cursor++;
             this.currentTime = 0;
           } else {
@@ -153,6 +171,10 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       }
     },
     manualNext() {
+      if (this.isShuffling) {
+        this.shufflePlay();
+        return;
+      }
       if (this.hasNext) {
         this.cursor++;
         this.currentTime = 0;
@@ -161,6 +183,10 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       }
     },
     manualPrevious() {
+      if (this.isShuffling) {
+        this.shufflePlay();
+        return;
+      }
       if (this.hasPrevious) {
         this.cursor--;
         this.currentTime = 0;
@@ -173,6 +199,7 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       this.queue = [];
       this.cursor = 0;
       this.currentTime = 0;
+      this.shuffle = [];
 
       const audioEntity = useAudioEntity();
       audioEntity.clear();

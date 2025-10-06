@@ -26,7 +26,7 @@ onMounted(() => {
     });
 })
 
-watch(() => audioPlayer.isPlaying, (newVal) => {
+watch(() => audioPlayer.playing, (newVal) => {
     if (!audioElement.value) return;
     if (newVal) {
         audioElement.value.play().catch(() => {
@@ -49,7 +49,7 @@ const runPlay = async () => {
         audioElement.value.pause();
         audioElement.value.src = src;
 
-        if (audioPlayer.isPlaying) {
+        if (audioPlayer.playing) {
             await audioElement.value.play();
         }
     } catch (err: any) {
@@ -118,7 +118,7 @@ const sliderVolume = computed({
     <div class="sticky bottom-0 z-20 bg-background flex flex-row py-4 border-t border-border">
         <div class="flex flex-row item-center justify-center m-auto">
             <Button variant="ghost" :disabled="!audioPlayer.hasQueue" @click="audioPlayer.togglePlay">
-                <Pause v-if="audioPlayer.isPlaying" />
+                <Pause v-if="audioPlayer.playing" />
                 <Play v-else />
             </Button>
             <Button variant="ghost" :disabled="!audioPlayer.hasPrevious" @click="audioPlayer.manualPrevious">
@@ -127,7 +127,8 @@ const sliderVolume = computed({
             <Button variant="ghost" :disabled="!audioPlayer.hasNext" @click="audioPlayer.manualNext">
                 <SkipForward />
             </Button>
-            <Button variant="ghost">
+            <Button variant="ghost" :class="audioPlayer.isShuffling ? 'text-primary' : 'text-muted-foreground'"
+                @click="audioPlayer.toggleShuffle">
                 <Shuffle />
             </Button>
             <Button variant="ghost" @click="audioPlayer.toggleRepeat">
