@@ -189,7 +189,7 @@ export class AlbumsService {
 			createdAt: album.mainArtist?.createdAt.toISOString(),
 			updatedAt: album.mainArtist?.updatedAt.toISOString(),
 		});
-		console.log(discMap);
+
 		const result = AlbumDetailDTO.create({
 			id: album.id.toString(),
 			name: album.name,
