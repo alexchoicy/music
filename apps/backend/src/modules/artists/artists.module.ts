@@ -20,7 +20,7 @@ import { LocalStorageService } from '../storageServices/LocalStorageService.js';
 					default:
 						throw new Error(
 							`Unsupported storage type: ${config.get(
-								'app.storage.type',
+								'appConfig.storage.type',
 							)}`,
 						);
 				}

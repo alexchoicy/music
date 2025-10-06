@@ -39,10 +39,10 @@ export class JWKSProvider {
 		this.kid = kid;
 
 		this.Issuer = this.configService.get<string>(
-			'appConfig.security.issuer',
+			'appConfig.security.token.issuer',
 		)!;
 		this.Audience = this.configService.get<string>(
-			'appConfig.security.audience',
+			'appConfig.security.token.audience',
 		)!;
 	}
 
