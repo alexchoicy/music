@@ -34,7 +34,6 @@ export const getAudioPlayerLocalStorage = (): AudioPlayerLocalStorage => {
 export const setAudioPlayerLocalStorage = (
   info: Partial<AudioPlayerLocalStorage>
 ) => {
-  console.log("Setting audio player local storage", info);
   const current = getAudioPlayerLocalStorage();
   const updated = { ...current, ...info };
   localStorage.setItem("audioPlayer", JSON.stringify(updated));
@@ -208,12 +207,23 @@ export const useAudioPlayer = defineStore("audioPlayer", {
     subscribeLocalStorage() {
       if (typeof window === "undefined") return;
 
+      let last = {
+        volume: this.volume,
+        muted: this.muted,
+        repeat: this.repeat,
+      };
+
       this.$subscribe((mutation, state) => {
-        setAudioPlayerLocalStorage({
-          volume: state.volume,
-          muted: state.muted,
-          repeat: state.repeat,
-        });
+        const { volume, muted, repeat } = state;
+        if (
+          volume === last.volume &&
+          muted === last.muted &&
+          repeat === last.repeat
+        ) {
+          return;
+        }
+        last = { volume, muted, repeat };
+        setAudioPlayerLocalStorage({ volume, muted, repeat });
       });
     },
   },

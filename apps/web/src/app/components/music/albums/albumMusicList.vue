@@ -34,13 +34,13 @@ const props = defineProps({
                     <div class="h-px flex-1 bg-border" />
                 </div>
                 <div class="space-y-1">
-                    <div v-for="(track, index) in disc.tracks" :key="track.id"
+                    <div v-for="track in disc.tracks" :key="track.id"
                         class="group flex items-center gap-4 py-2 rounded-md hover:bg-accent/50 transition-colors">
                         <div class="w-8 text-center group-hover:hidden">
                             <span class="text-sm">{{ track.trackNo }}</span>
                         </div>
                         <Button variant="ghost" class="w-8 hidden group-hover:inline-flex"
-                            @click="props.onclickPlayTrack(index)">
+                            @click="props.onclickPlayTrack(track.index)">
                             <Play class="size-fit" />
                         </Button>
                         <div class="flex-1 min-w-0">
