@@ -10,7 +10,7 @@ import {
 import { AlbumTracks } from '#database/entities/albumTracks.js';
 import { ArtistGroups } from '#database/entities/artistGroups.js';
 import { GroupMembers } from '#database/entities/groupMembers.js';
-import { Artist } from '@music/api/dto/album.dto';
+import { Artist, type ArtistInfo } from '@music/api/dto/album.dto';
 
 @Injectable()
 export class ArtistsService {
@@ -21,7 +21,47 @@ export class ArtistsService {
 	) {}
 
 	async getArtists() {
-		const artists = await this.em.findAll(Artists);
+		const rawArtists = await this.em.findAll(Artists, {
+			populate: ['albumsCollection.coverAttachment', 'profilePic'],
+		});
+
+		const artists: ArtistInfo[] = [];
+
+		for (const artist of rawArtists) {
+			const albums = [];
+
+			for (const album of artist.albumsCollection) {
+				albums.push({
+					id: album.id.toString(),
+					name: album.name,
+					year: album.year,
+					language: null,
+					albumType: album.albumType,
+					cover:
+						album.coverAttachment && album.coverAttachment.fileType
+							? await this.storageService.getAlbumCoverDataUrl(
+									album.coverAttachment.id,
+									mime.getExtension(
+										album.coverAttachment.fileType,
+									) || '',
+								)
+							: null,
+					createdAt: album.createdAt.toISOString(),
+					updatedAt: album.updatedAt.toISOString(),
+				});
+			}
+			if (albums.length === 0) continue;
+			artists.push({
+				id: artist.id.toString(),
+				name: artist.name,
+				image: null,
+				language: null,
+				artistType: artist.artistType,
+				createdAt: artist.createdAt.toISOString(),
+				updatedAt: artist.updatedAt.toISOString(),
+				albums,
+			});
+		}
 
 		return artists;
 	}

@@ -106,3 +106,20 @@ export type ArtistType = z.infer<typeof ArtistsArtistType>;
 export type ArtistSchema = z.infer<typeof Artist>;
 
 export type AlbumResponse = z.infer<typeof AlbumResponseSchema>;
+
+export const ArtistInfoSchema = Artist.extend({
+  albums: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      year: z.number(),
+      language: z.object().nullable(),
+      albumType: AlbumsAlbumTypeEnum,
+      cover: z.url().nullable(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+    })
+    .array(),
+});
+
+export type ArtistInfo = z.infer<typeof ArtistInfoSchema>;

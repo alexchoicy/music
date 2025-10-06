@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { ArtistSchema } from '@music/api/dto/album.dto';
+import type { ArtistInfo } from '@music/api/dto/album.dto';
 import ArtistCard from '~/components/music/artists/artistCard.vue';
 
-const artists = ref<ArtistSchema[]>([]);
+const artists = ref<ArtistInfo[]>([]);
 const pending = ref(true);
 
 onMounted(async () => {
-    const data = await useNuxtApp().$backend<ArtistSchema[]>('artists');
+    const data = await useNuxtApp().$backend<ArtistInfo[]>('artists');
 
     if (data) {
         artists.value.push(...data);

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { ArtistSchema } from '@music/api/dto/album.dto';
+import type { ArtistInfo } from '@music/api/dto/album.dto';
 import { User } from 'lucide-vue-next';
 
 
 const props = defineProps({
     artist: {
-        type: Object as () => ArtistSchema,
+        type: Object as () => ArtistInfo,
         required: true
     }
 })
@@ -21,6 +21,8 @@ const clickCard = (id: string) => {
         <CardContent>
             <div class="aspect-square relative overflow-hidden rounded-full">
                 <img v-if="artist.image" :src="artist.image" alt="Artist Image" class="w-full h-full object-cover" />
+                <img v-if="artist.albums[0]?.cover" :src="artist.albums[0]?.cover" alt="Album Cover"
+                    class="w-full h-full object-cover" />
                 <User v-else class="w-full h-full text-muted-foreground" />
             </div>
             <div class="space-y-1 text-center">
