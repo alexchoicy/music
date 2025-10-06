@@ -24,6 +24,10 @@ function handleAlbumClick() {
             <div class="aspect-square relative overflow-hidden">
                 <img v-if="album.cover" :src="album.cover" class="w-full h-full object-cover" />
                 <DiscAlbum v-else class="w-full h-full text-muted-foreground" />
+                <Badge variant="secondary"
+                    class="absolute top-2 right-2 bg-black/60 text-white border-0 backdrop-blur-sm">
+                    {{ album.albumType }}
+                </Badge>
                 <Button size="icon"
                     class="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-primary shadow-lg opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 cursor-pointer">
                     <Play
@@ -33,6 +37,11 @@ function handleAlbumClick() {
             <div class="p-4 space-y-1">
                 <h3 class="text-lg font-semibold text-foreground truncate">{{ album.name }}</h3>
                 <p class="text-sm text-muted-foreground">{{ album.mainArtist.name }}</p>
+                <div className="flex gap-1 flex-wrap">
+                    <Badge v-if="album.hasInstrumental" variant="outline" class="opacity-60">
+                        Instrumental
+                    </Badge>
+                </div>
                 <p class="text-sm text-muted-foreground"><span v-if="album.year != 0">{{ album.year }}
                         •</span>
                     {{ album.totalTracks }} songs</p>

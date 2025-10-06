@@ -25,7 +25,6 @@ const props = defineProps({
 const emit = defineEmits(['update:isOpen', 'update:currentTrack']);
 
 watch(() => [props.currentTrack, props.isOpen], async ([currentTrack, isOpen]) => {
-    console.log("currentTrack changed", currentTrack, isOpen);
     if (!isOpen || !currentTrack) return;
     await nextTick();
     if (typeof currentTrack === 'object' && currentTrack !== null) {
