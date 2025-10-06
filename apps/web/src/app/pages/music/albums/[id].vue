@@ -20,11 +20,14 @@ const { data: album } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
             </div>
             <div class="flex-1 flex flex-col gap-4">
                 <div class="space-y-2">
+                    <Badge variant="secondary" class="px-3 py-1">
+                        {{ album.albumType }}
+                    </Badge>
                     <h1 class="text-5xl font-bold">{{ album.name }}</h1>
-                    <div class="flex items-center gap-2 text-muted-foreground flex-wrap">
+                    <div class="flex items-center gap-2 text-muted-foreground flex-wrap pt-3">
                         <span>{{ album.mainArtist.name }}</span>
                         <span v-if="album.year">•</span>
-                        <span>{{ album.year }}</span>
+                        <span v-if="album.year">{{ album.year }}</span>
                         <span>•</span>
                         <span>{{ album.totalTracks }} songs</span>
                         <span>•</span>

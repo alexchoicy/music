@@ -34,12 +34,19 @@ export class AlbumsService {
 		);
 		const formatted: AlbumResponse[] = [];
 		for (const album of albums) {
-			const total = await this.em
+			const nonInstrumentalTracksPromise = this.em
 				.createQueryBuilder(AlbumTracks, 'at')
 				.innerJoin('at.track', 't')
 				.where({ album: album.id })
 				.andWhere({ 't.isInstrumental': false })
 				.getCount();
+
+			const totalTracksPromise = album.albumTracksCollection.loadCount();
+
+			const [nonInstrumentalTracks, totalTracks] = await Promise.all([
+				nonInstrumentalTracksPromise,
+				totalTracksPromise,
+			]);
 			formatted.push(
 				AlbumResponseSchema.parse({
 					id: album.id.toString(),
@@ -47,9 +54,8 @@ export class AlbumsService {
 					year: album.year,
 					language: null,
 					albumType: album.albumType,
-					totalTracks: total,
-					hasInstrumental:
-						total < (await album.albumTracksCollection.loadCount()),
+					totalTracks: nonInstrumentalTracks,
+					hasInstrumental: nonInstrumentalTracks < totalTracks,
 					cover:
 						album.coverAttachment && album.coverAttachment.fileType
 							? await this.storageService.getAlbumCoverDataUrl(
@@ -89,6 +95,7 @@ export class AlbumsService {
 					'coverAttachment',
 					'albumTracksCollection.track.trackQualityCollection',
 				],
+				orderBy: { albumTracksCollection: { trackNo: 'ASC' } },
 			},
 		);
 
@@ -102,15 +109,16 @@ export class AlbumsService {
 
 		const discMap = new Map<number, TrackSchema[]>();
 
-		let count = 0;
+		let totalTrackCount = 0;
+		let nonInstrumentalTrackCount = 0;
 
 		for (const albumTrack of album.albumTracksCollection) {
 			if (!discMap.has(albumTrack.discNo)) {
 				discMap.set(albumTrack.discNo, []);
 			}
-
-			if (albumTrack.track.isInstrumental) {
-				count += 1;
+			totalTrackCount += 1;
+			if (!albumTrack.track.isInstrumental) {
+				nonInstrumentalTrackCount += 1;
 			}
 
 			const disc = discMap.get(albumTrack.discNo)!;
@@ -189,9 +197,8 @@ export class AlbumsService {
 			artists: Array.from(artistsMap.values()),
 			totalDurationMs,
 			musicbrainzId: album.musicbrainzAlbumId || null,
-			hasInstrumental:
-				count < (await album.albumTracksCollection.loadCount()),
-			totalTracks: count,
+			hasInstrumental: totalTrackCount > nonInstrumentalTrackCount,
+			totalTracks: nonInstrumentalTrackCount,
 			cover:
 				album.coverAttachment && album.coverAttachment.fileType
 					? await this.storageService.getAlbumCoverDataUrl(

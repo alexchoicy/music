@@ -89,7 +89,6 @@ function removeNewImage() {
 }
 
 const onAlbumEditSubmit = albumEditForm.handleSubmit(async (values) => {
-    console.log(values);
     const updateImage = newImage.value.data && newImage.value.format;
 
     for (const disc of props.currentAlbum.disc) {

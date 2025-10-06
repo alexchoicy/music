@@ -39,7 +39,12 @@ const props = defineProps({
                             <Play class="size-fit" />
                         </Button>
                         <div class="flex-1 min-w-0">
-                            <div class="truncate">{{ track.name }}</div>
+                            <div class="truncate">{{ track.name }} <Badge variant="secondary"
+                                    v-if="track.isInstrumental"
+                                    class="dark:border-purple-500/50 dark:text-purple-300 border-purple-700/50 text-purple-500 text-xs px-1 py-0">
+                                    Instrumental
+                                </Badge>
+                            </div>
                             <div class="text-muted-foreground truncate">
                                 {{track.artists.map(artist => artist.name).join(', ')}}
                             </div>
