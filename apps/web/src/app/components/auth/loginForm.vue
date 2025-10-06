@@ -38,23 +38,26 @@ const onFormSubmit = form.handleSubmit(async (values) => {
             </CardHeader>
             <CardContent class="grid gap-4 p-6">
                 <FormField v-slot="{ componentField }" name="username">
-                    <div class="grid gap-2">
-                        <FormLabel for="username">Username</FormLabel>
-                        <FormControl>
-                            <Input id="username" type="text" placeholder="Enter your username" v-bind="componentField"
-                                required />
-                        </FormControl>
-                    </div>
-                    <FormMessage class="mt-1" />
+                    <FormItem>
+                        <div class="grid gap-2">
+                            <FormLabel>Username</FormLabel>
+                            <FormControl>
+                                <Input type="text" placeholder="Enter your username" v-bind="componentField" required />
+                            </FormControl>
+                        </div>
+                        <FormMessage class="mt-1" />
+                    </FormItem>
                 </FormField>
                 <FormField v-slot="{ componentField }" name="password">
-                    <div class="grid gap-2">
-                        <FormLabel for="password">Password</FormLabel>
-                        <FormControl>
-                            <Input id="password" type="password" v-bind="componentField" required />
-                        </FormControl>
-                    </div>
-                    <FormMessage class="mt-1" />
+                    <FormItem>
+                        <div class="grid gap-2">
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                                <Input type="password" v-bind="componentField" required />
+                            </FormControl>
+                        </div>
+                        <FormMessage class="mt-1" />
+                    </FormItem>
                 </FormField>
                 <CardFooter v-if="errorMessage" class="">
                     <p class="text-destructive text-sm mb-2">
