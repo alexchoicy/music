@@ -7,6 +7,10 @@ const id = useRoute().params.id as string;
 const { data: album } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
     method: 'GET',
 });
+
+const onClickArtist = (artistId: string) => {
+    useRouter().push(`/music/artists/${artistId}`);
+};
 </script>
 
 <template>
@@ -47,7 +51,7 @@ const { data: album } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
         </div>
         <div class="gap-4 grid grid-cols-1 lg:grid-cols-3">
             <MusicAlbumsAlbumMusicList v-if="album" :album="album" class="lg:col-span-2" />
-            <Card>
+            <Card class="h-fit">
                 <CardHeader>
                     <CardTitle>
                         Artists
@@ -55,8 +59,8 @@ const { data: album } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
                 </CardHeader>
                 <CardHeader>
                     <div v-for="artist in album.artists" :key="artist.id" class="space-y-2">
-                        <div
-                            class="flex items-center gap-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer p-2">
+                        <div class="flex items-center gap-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer p-2"
+                            @click="onClickArtist(artist.id)">
                             <Avatar>
                                 <AvatarImage v-if="artist.image" :src="artist.image" />
                                 <AvatarFallback>

@@ -1,12 +1,5 @@
 import { z } from "zod/v4";
-import { AlbumResponseSchema, ArtistsArtistType } from "./album.dto.js";
-
-export const subArtist = z.object({
-  id: z.string(),
-  name: z.string(),
-  image: z.url().nullable(),
-  artistType: ArtistsArtistType,
-});
+import { AlbumResponseSchema, Artist, ArtistsArtistType } from "./album.dto.js";
 
 export const artistSchema = z.object({
   id: z.string(),
@@ -14,10 +7,8 @@ export const artistSchema = z.object({
   image: z.url().nullable(),
   artistType: ArtistsArtistType,
   albums: z.array(AlbumResponseSchema),
-  groupMembers: z.array(subArtist).nullable(),
+  groupMembers: z.array(Artist).nullable(),
 });
-
-export type SubArtist = z.infer<typeof subArtist>;
 
 export type Artist = z.infer<typeof artistSchema>;
 
