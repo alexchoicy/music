@@ -104,7 +104,7 @@ export class MusicService {
 			fileContainer: music.format.container.toLowerCase(),
 			fileCodec: music.format.codec.toLowerCase(),
 			islossless: music.format.lossless,
-			type: 'original',
+			type: music.format.lossless ? 'original' : 'transcoded',
 			track: track,
 			uploadStatus: FileUploadStatus.PENDING,
 			uploadHashCheck: music.uploadHashCheck,

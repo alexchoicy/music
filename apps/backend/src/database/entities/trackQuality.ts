@@ -9,6 +9,7 @@ import {
 } from '@mikro-orm/core';
 import { v4 as uuid } from 'uuid';
 import { Tracks } from './tracks.js';
+import type { TrackQualityType } from '@music/api/dto/album.dto';
 
 export enum FileUploadStatus {
 	'PENDING',
@@ -24,7 +25,7 @@ export class TrackQuality {
 	track!: Rel<Tracks>;
 
 	@Property({ type: 'text' })
-	type!: 'original' | 'compressed';
+	type!: TrackQualityType;
 
 	@Property({ type: 'text', unique: true })
 	hash: string;

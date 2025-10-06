@@ -3,7 +3,7 @@ import { z } from "zod/v4";
 
 export const AttachmentType = z.enum(["coverImage"]);
 
-const TrackQualityType = z.enum(["original", "compressed"]);
+export const TrackQualityOptions = z.enum(["original", "transcoded"]);
 
 export const ArtistsArtistType = z.enum(["person", "group", "project"]);
 
@@ -27,7 +27,7 @@ export const Artist = z.object({
 });
 
 export const TrackQuality = z.object({
-  type: TrackQualityType,
+  type: TrackQualityOptions,
   url: z.url(),
   fileCodec: z.string(),
   fileContainer: z.string(),
@@ -97,7 +97,7 @@ export const AlbumResponseSchema = z.object({
 
 export type TrackSchema = z.infer<typeof Track>;
 
-export type TrackQualityType = z.infer<typeof TrackQualityType>;
+export type TrackQualityType = z.infer<typeof TrackQualityOptions>;
 
 export type AlbumDetailResponse = z.infer<typeof AlbumDetailResponseSchema>;
 

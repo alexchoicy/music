@@ -11,7 +11,7 @@ import { MediaService } from './media.service.js';
 import type { Request, Response } from 'express';
 import fs, { createReadStream } from 'fs';
 import { pipeline } from 'stream';
-
+import { TrackQualityOptions } from '@music/api/dto/album.dto';
 @Controller('media')
 export class MediaController {
 	constructor(private readonly mediaService: MediaService) {}
@@ -21,13 +21,14 @@ export class MediaController {
 		@Param('type') type: string,
 		@Param('trackHash') trackHash: string,
 	) {
-		if (type !== 'original' && type !== 'transcoded') {
+		const typeCheck = TrackQualityOptions.safeParse(type);
+		if (!typeCheck.success) {
 			throw new BadRequestException('Invalid type');
 		}
 
 		const { filePath, contentType } = this.mediaService.getMusicFileInfo(
 			trackHash,
-			type,
+			typeCheck.data,
 		);
 
 		const file = createReadStream(filePath);
@@ -44,12 +45,14 @@ export class MediaController {
 		@Req() req: Request,
 		@Res() res: Response,
 	) {
-		if (type !== 'original' && type !== 'transcoded') {
+		const typeCheck = TrackQualityOptions.safeParse(type);
+		if (!typeCheck.success) {
 			res.status(400).send('Invalid type');
 			return;
 		}
+
 		const { filePath, stat, contentType } =
-			this.mediaService.getMusicFileInfo(trackHash, type);
+			this.mediaService.getMusicFileInfo(trackHash, typeCheck.data);
 
 		let range = req.headers.range;
 

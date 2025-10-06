@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import mime from 'mime';
 import { getMusicStorePath } from '@music/api/lib/musicUtil';
+import type { TrackQualityType } from '@music/api/dto/album.dto';
 
 @Injectable()
 export class MediaService {
@@ -31,7 +32,7 @@ export class MediaService {
 		}
 	}
 
-	getMusicFileInfo(trackHash: string, type: 'original' | 'transcoded') {
+	getMusicFileInfo(trackHash: string, type: TrackQualityType) {
 		const filePath = path.join(
 			this.libraryDir,
 			type,
