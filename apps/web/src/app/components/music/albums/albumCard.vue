@@ -37,7 +37,7 @@ function handleAlbumClick() {
             <div class="p-4 space-y-1">
                 <h3 class="text-lg font-semibold text-foreground truncate">{{ album.name }}</h3>
                 <p class="text-sm text-muted-foreground">{{ album.mainArtist.name }}</p>
-                <div className="flex gap-1 flex-wrap">
+                <div class="flex gap-1 flex-wrap">
                     <Badge v-if="album.hasInstrumental" variant="outline" class="opacity-60">
                         Instrumental
                     </Badge>

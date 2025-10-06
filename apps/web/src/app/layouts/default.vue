@@ -13,7 +13,7 @@ import Sidebar from '~/components/layouts/sidebar.vue';
                     <LayoutsNavbar />
                     <Separator />
                 </div>
-                <div class="p-6 overflow-y-auto">
+                <div class="p-6 overflow-y-auto h-full">
                     <slot />
                 </div>
             </div>
