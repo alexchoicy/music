@@ -75,7 +75,8 @@ export const useAudioPlayer = defineStore("audioPlayer", {
 
       const url =
         track.quality.find((q) => q.type === quality)?.url ||
-        track.quality.find((q) => q.islossless)?.url;
+        track.quality.find((q) => q.islossless)?.url ||
+        track.quality[0]?.url;
 
       if (!url) {
         console.warn("No URL found for current track");
