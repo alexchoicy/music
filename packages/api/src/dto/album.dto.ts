@@ -40,6 +40,7 @@ export const TrackQuality = z.object({
 
 export const Track = z.object({
   id: z.string(),
+  index: z.number(),
   trackNo: z.number(),
 
   name: z.string(),

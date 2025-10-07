@@ -2,7 +2,10 @@
 import type { AlbumDetailResponse } from '@music/api/dto/album.dto';
 import { getHHMMFromMs } from '~/lib/music/display';
 import { Play, FolderDown, User, Users, DiscAlbum } from 'lucide-vue-next';
+import { parsePlaylistFromAlbumDetail } from '~/lib/music/playerUtils';
 const id = useRoute().params.id as string;
+
+const audioPlayer = useAudioPlayer();
 
 const { data: album } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
     method: 'GET',
@@ -10,6 +13,16 @@ const { data: album } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
 
 const onClickArtist = (artistId: string) => {
     useRouter().push(`/music/artists/${artistId}`);
+};
+
+const onClickPlayTrack = (index: number) => {
+    const playlist = parsePlaylistFromAlbumDetail(album.value!, true);
+    audioPlayer.playWithListIndex(playlist, index);
+};
+
+const onClickPlayAlbum = () => {
+    const playlist = parsePlaylistFromAlbumDetail(album.value!);
+    audioPlayer.playWithList(playlist);
 };
 </script>
 
@@ -39,7 +52,7 @@ const onClickArtist = (artistId: string) => {
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <Button size="lg" class="rounded-full px-8">
+                    <Button size="lg" class="rounded-full px-8" @click="onClickPlayAlbum">
                         <Play class="w-5 h-5 mr-2" fill="currentColor" />
                         Play
                     </Button>
@@ -50,7 +63,8 @@ const onClickArtist = (artistId: string) => {
             </div>
         </div>
         <div class="gap-4 grid grid-cols-1 lg:grid-cols-3">
-            <MusicAlbumsAlbumMusicList v-if="album" :album="album" class="lg:col-span-2" />
+            <MusicAlbumsAlbumMusicList v-if="album" :album="album" class="lg:col-span-2"
+                :onclickPlayTrack="onClickPlayTrack" />
             <Card class="h-fit">
                 <CardHeader>
                     <CardTitle>

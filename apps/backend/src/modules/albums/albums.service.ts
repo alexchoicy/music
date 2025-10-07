@@ -95,7 +95,9 @@ export class AlbumsService {
 					'coverAttachment',
 					'albumTracksCollection.track.trackQualityCollection',
 				],
-				orderBy: { albumTracksCollection: { trackNo: 'ASC' } },
+				orderBy: {
+					albumTracksCollection: { discNo: 'ASC', trackNo: 'ASC' },
+				},
 			},
 		);
 
@@ -116,7 +118,6 @@ export class AlbumsService {
 			if (!discMap.has(albumTrack.discNo)) {
 				discMap.set(albumTrack.discNo, []);
 			}
-			totalTrackCount += 1;
 			if (!albumTrack.track.isInstrumental) {
 				nonInstrumentalTrackCount += 1;
 			}
@@ -125,6 +126,7 @@ export class AlbumsService {
 			totalDurationMs += albumTrack.track.durationMs;
 			const track = Track.parse({
 				id: albumTrack.track.id.toString(),
+				index: totalTrackCount,
 				name: albumTrack.track.name,
 				trackNo: albumTrack.trackNo,
 				durationMs: albumTrack.track.durationMs,
@@ -174,7 +176,7 @@ export class AlbumsService {
 				};
 				track.quality.push(parsedQuality);
 			}
-
+			totalTrackCount += 1;
 			disc.push(track);
 		}
 
@@ -207,12 +209,10 @@ export class AlbumsService {
 								'',
 						)
 					: null,
-			Disc: Array.from(discMap.entries())
-				.map(([discNo, tracks]) => ({
-					discNo,
-					tracks,
-				}))
-				.sort((a, b) => a.discNo - b.discNo),
+			Disc: Array.from(discMap.entries()).map(([discNo, tracks]) => ({
+				discNo,
+				tracks,
+			})),
 			createdAt: album.createdAt.toISOString(),
 			updatedAt: album.updatedAt.toISOString(),
 			mainArtist: mainArtist,
