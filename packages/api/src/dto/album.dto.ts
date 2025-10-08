@@ -45,7 +45,10 @@ export const Track = z.object({
 
   name: z.string(),
   durationMs: z.number(),
+
   isInstrumental: z.boolean(),
+  isMC: z.boolean(),
+
   language: z.object().nullable(),
   musicBrainzId: z.string().nullable(),
   quality: z.array(TrackQuality),

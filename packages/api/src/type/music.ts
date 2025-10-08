@@ -32,7 +32,9 @@ export const MusicSchema = z.object({
       })
     )
     .optional(),
+
   isInstrumental: z.boolean().optional(),
+  isMC: z.boolean().optional(),
 });
 
 export const DiscSchema = z.object({

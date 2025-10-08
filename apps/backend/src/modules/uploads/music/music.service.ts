@@ -94,6 +94,7 @@ export class MusicService {
 			name: music.title,
 			durationMs: music.duration * 1000,
 			isInstrumental: music.isInstrumental,
+			isMC: music.isMC,
 		});
 		await tem.persistAndFlush(track);
 

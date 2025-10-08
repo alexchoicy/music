@@ -28,6 +28,9 @@ export class Tracks {
 	@Property({ type: 'boolean' })
 	isInstrumental: boolean & Opt = false;
 
+	@Property({ type: 'boolean' })
+	isMC: boolean & Opt = false;
+
 	@ManyToOne({ entity: () => Languages, nullable: true })
 	language?: Rel<Languages>;
 

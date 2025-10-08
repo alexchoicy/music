@@ -14,18 +14,16 @@ export function parsePlayerPlayListFromPlaylist(
 export function parsePlaylistFromAlbumDetail(
   albumDetail: AlbumDetailResponse,
   directlyPlay = false,
-  ignoreInstrumental = true
+  ignoreInstrumental = true,
+  ignoreMC = true
 ): Playlist {
   const refKey = `${albumDetail.id}-${Date.now()}`;
   const tracks = albumDetail.Disc.map((d) => d.tracks)
     .flat()
     .filter((t) => {
-      if (directlyPlay) {
-        return true;
-      }
-      if (ignoreInstrumental) {
-        return !t.isInstrumental;
-      }
+      if (directlyPlay) return true;
+      if (ignoreInstrumental && t.isInstrumental) return false;
+      if (ignoreMC && t.isMC) return false;
       return true;
     })
     .map((t) => ({

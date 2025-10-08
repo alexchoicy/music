@@ -49,6 +49,10 @@ const props = defineProps({
                                     class="dark:border-purple-500/50 dark:text-purple-300 border-purple-700/50 text-purple-500 text-xs px-1 py-0">
                                     Instrumental
                                 </Badge>
+                                <Badge variant="secondary" v-if="track.isMC"
+                                    class="dark:border-purple-500/50 dark:text-purple-300 border-purple-700/50 text-purple-500 text-xs px-1 py-0">
+                                    MC
+                                </Badge>
                             </div>
                             <div class="text-muted-foreground truncate">
                                 {{track.artists.map(artist => artist.name).join(', ')}}

@@ -38,6 +38,7 @@ watch(() => [props.currentTrack, props.isOpen], async ([currentTrack, isOpen]) =
                 trackNo: currentTrack.track.no > 0 ? currentTrack.track.no : undefined,
                 discNo: currentTrack.disc.no > 0 ? currentTrack.disc.no : undefined,
                 isInstrumental: currentTrack.isInstrumental || false,
+                isMC: currentTrack.isMC || false,
             }
         });
     }
@@ -53,6 +54,7 @@ const trackEditFormSchema = toTypedSchema(z.object({
     discNo: z.number().min(1).optional(),
     // genre: z.string().optional(),
     isInstrumental: z.boolean().optional(),
+    isMC: z.boolean().optional(),
 }));
 
 const trackForm = useForm({
@@ -101,6 +103,7 @@ const onTrackFormSubmit = trackForm.handleSubmit(async (values) => {
     props.currentTrack.track.no = values.trackNo || 0;
     props.currentTrack.disc.no = values.discNo || 0;
     props.currentTrack.isInstrumental = values.isInstrumental || false;
+    props.currentTrack.isMC = values.isMC || false;
 
     await props.reSortAlbums();
 
@@ -208,6 +211,20 @@ const onTrackFormSubmit = trackForm.handleSubmit(async (values) => {
                             <FormLabel>Is Instrumental</FormLabel>
                             <FormDescription>
                                 Don't apply if it is part of a compilation album.
+                            </FormDescription>
+                            <FormMessage />
+                        </div>
+                    </FormItem>
+                </FormField>
+                <FormField v-slot="{ value, handleChange }" type="checkbox" name="isMC">
+                    <FormItem class="flex flex-row items-start gap-x-3 space-y-0 rounded-md border p-4 shadow">
+                        <FormControl>
+                            <Checkbox :model-value="value" @update:model-value="handleChange" />
+                        </FormControl>
+                        <div class="space-y-1 leading-none">
+                            <FormLabel>Is MC</FormLabel>
+                            <FormDescription>
+                                Check this if the track is a MC (Master of Ceremony) part.
                             </FormDescription>
                             <FormMessage />
                         </div>

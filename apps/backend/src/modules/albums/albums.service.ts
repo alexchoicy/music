@@ -131,6 +131,7 @@ export class AlbumsService {
 				trackNo: albumTrack.trackNo,
 				durationMs: albumTrack.track.durationMs,
 				isInstrumental: albumTrack.track.isInstrumental,
+				isMC: albumTrack.track.isMC,
 				language: null,
 				musicBrainzId: albumTrack.track.musicbrainzTrackId || null,
 				quality: [],

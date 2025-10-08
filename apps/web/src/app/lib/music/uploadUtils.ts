@@ -1,4 +1,4 @@
-import type { Music, Disc } from "@music/api/type/music";
+import type { UploadMusic, UploadDisc } from "@music/api/type/music";
 import { createBLAKE3, createMD5 } from "hash-wasm";
 import { type IAudioMetadata } from "music-metadata";
 import { uint8ArrayToBase64 } from "uint8array-extras";
@@ -79,11 +79,33 @@ function checkIfInstrumental(title: string, filename: string): boolean {
   );
 }
 
-export function getNextFreeTrackNo(dics: Disc, preferred: number) {
+export function checkIfMC(title: string, filename: string): boolean {
+  const mcIndicators = ["mc", "m.c.", "m.c", "ＭＣ"];
+  const lowerTitle = title.toLowerCase();
+  const lowerFilename = filename.toLowerCase();
+  return mcIndicators.some(
+    (indicator) =>
+      lowerTitle.includes(indicator) || lowerFilename.includes(indicator)
+  );
+}
+
+export function checkIfUnsolvedFeat(artist: string[], title: string): boolean {
+  const unsolvedFeatIndicators = ["feat", "featuring", "ft"];
+  const lowerArtist = artist.map((a) => a.toLowerCase()).join(" ");
+  const lowerTitle = title.toLowerCase();
+
+  console.log(artist, title, lowerArtist, lowerTitle);
+  return unsolvedFeatIndicators.some(
+    (indicator) =>
+      lowerArtist.includes(indicator) || lowerTitle.includes(indicator)
+  );
+}
+
+export function getNextFreeTrackNo(dics: UploadDisc, preferred: number) {
   if (preferred <= 0) {
     return dics.musics.length + 1;
   }
-  const trackNos = new Set(dics.musics.map((m: Music) => m.track.no));
+  const trackNos = new Set(dics.musics.map((m: UploadMusic) => m.track.no));
   if (trackNos.has(preferred)) {
     let nextNo = 1;
     while (trackNos.has(nextNo)) {
@@ -100,7 +122,7 @@ export function covertToMusicObject(
   hash: string,
   uploadHashCheck: string,
   filename: string
-): Music {
+): UploadMusic {
   const artists = Array.from(
     new Set(metadata.common.artists ?? ["Unknown Artist"])
   );
@@ -136,5 +158,6 @@ export function covertToMusicObject(
     },
     picture: picture,
     isInstrumental: checkIfInstrumental(metadata.common.title || "", filename),
+    isMC: checkIfMC(metadata.common.title || "", filename),
   };
 }
