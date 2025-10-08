@@ -17,6 +17,8 @@ import {
 } from '@music/api/dto/album.dto';
 import { Albums } from '#database/entities/albums.js';
 
+import pLimit from 'p-limit';
+
 @Injectable()
 export class ArtistsService {
 	constructor(
@@ -68,26 +70,31 @@ export class ArtistsService {
 	async getArtistAlbumsToDTO(
 		albums: Albums[],
 	): Promise<ArtistInfo['albums'] | null> {
-		const albumDTOs = [];
+		const limit = pLimit(10);
 
-		for (const album of albums) {
-			albumDTOs.push({
-				id: album.id.toString(),
-				name: album.name,
-				year: album.year,
-				language: null,
-				albumType: album.albumType,
-				cover:
+		const albumDTOs = albums.map((album) =>
+			limit(async () => {
+				const cover =
 					(await this.getCoverDataUrl(
 						album.coverAttachment?.id || '',
 						album.coverAttachment?.fileType,
-					)) || null,
-				createdAt: album.createdAt.toISOString(),
-				updatedAt: album.updatedAt.toISOString(),
-			});
-		}
-		if (albumDTOs.length === 0) return null;
-		return albumDTOs;
+					)) || null;
+				return {
+					id: album.id.toString(),
+					name: album.name,
+					year: album.year,
+					language: null,
+					albumType: album.albumType,
+					cover,
+					createdAt: album.createdAt.toISOString(),
+					updatedAt: album.updatedAt.toISOString(),
+				};
+			}),
+		);
+
+		const result = await Promise.all(albumDTOs);
+
+		return result.filter((r) => r !== null);
 	}
 
 	async getAlbumInfo(album: Albums): Promise<AlbumResponse | null> {
@@ -127,16 +134,16 @@ export class ArtistsService {
 		const rawArtists = await this.em.findAll(Artists, {
 			populate: ['albumsCollection.coverAttachment', 'profilePic'],
 		});
+		const limit = pLimit(10);
 
-		const artists: ArtistInfo[] = [];
+		const promises = rawArtists.map((artist) =>
+			limit(async () => {
+				return this.getArtistInfo(artist);
+			}),
+		);
 
-		for (const artist of rawArtists) {
-			const info = await this.getArtistInfo(artist);
-			if (!info) continue;
-			artists.push(info);
-		}
-
-		return artists;
+		const result = await Promise.all(promises);
+		return result.filter((r) => r !== null);
 	}
 
 	async getArtist(id: string) {
@@ -144,7 +151,6 @@ export class ArtistsService {
 			Artists,
 			{ id },
 			{
-				// Keep population tight and relevant.
 				populate: [
 					// Own albums (with cover + main artist so DTO can be built)
 					'albumsCollection',

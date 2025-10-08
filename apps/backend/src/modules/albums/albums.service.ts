@@ -13,6 +13,7 @@ import {
 import mime from 'mime';
 import { AlbumTracks } from '#database/entities/albumTracks.js';
 import { getMusicExt } from '@music/api/lib/musicUtil';
+import pLimit from 'p-limit';
 
 @Injectable()
 export class AlbumsService {
@@ -83,12 +84,14 @@ export class AlbumsService {
 				orderBy: { id: 'DESC', createdAt: 'DESC' },
 			},
 		);
-		const formatted: AlbumResponse[] = [];
-		for (const album of albums) {
-			const albumInfo = await this.getAlbumInfo(album);
-			if (albumInfo) formatted.push(albumInfo);
-		}
-		return formatted;
+		const limit = pLimit(10);
+
+		const promises = albums.map((album) =>
+			limit(() => this.getAlbumInfo(album)),
+		);
+
+		const results = await Promise.all(promises);
+		return results.filter((r): r is AlbumResponse => r !== null);
 	}
 
 	async getAlbum(id: string) {
