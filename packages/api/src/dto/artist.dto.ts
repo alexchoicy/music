@@ -1,10 +1,7 @@
 import { z } from "zod/v4";
-import {
-  AlbumResponseSchema,
-  Artist,
-  ArtistInfoSchema,
-  ArtistsArtistType,
-} from "./album.dto.js";
+import { AlbumResponseSchema, Artist, ArtistInfoSchema } from "./album.dto.js";
+
+import { ArtistsArtistType } from "../type/music.js";
 
 export const artistSchema = z.object({
   id: z.string(),

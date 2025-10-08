@@ -1,16 +1,20 @@
-import type { Album, Music, Disc } from "@music/api/type/music";
+import type {
+  UploadAlbum,
+  UploadMusic,
+  UploadDisc,
+} from "@music/api/type/music";
 import {
   checkIfSoundtrack,
   getAlbumHash,
   getNextFreeTrackNo,
 } from "./uploadUtils";
 
-export function albumMusicSorter(a: Music, b: Music) {
+export function albumMusicSorter(a: UploadMusic, b: UploadMusic) {
   return a.disc.no - b.disc.no || a.track.no - b.track.no;
 }
 
-export async function flattenAlbums(albums: Album[]) {
-  const allMusics: Music[] = [];
+export async function flattenAlbums(albums: UploadAlbum[]) {
+  const allMusics: UploadMusic[] = [];
   for (const alb of albums) {
     for (const d of alb.disc) {
       for (const m of d.musics) {
@@ -21,8 +25,8 @@ export async function flattenAlbums(albums: Album[]) {
   return allMusics;
 }
 
-export async function albumsSorter(allMusics: Music[]) {
-  const albumMap = new Map<string, Album>();
+export async function albumsSorter(allMusics: UploadMusic[]) {
+  const albumMap = new Map<string, UploadAlbum>();
   for (const music of allMusics) {
     const albumHash = await getAlbumHash(music.album + music.albumArtist);
     if (!albumMap.has(albumHash)) {
@@ -40,7 +44,7 @@ export async function albumsSorter(allMusics: Music[]) {
 
     const tempDiscNo = music.disc.no === 0 ? 1 : music.disc.no;
 
-    let disc = album.disc.find((d: Disc) => d.no === tempDiscNo);
+    let disc = album.disc.find((d: UploadDisc) => d.no === tempDiscNo);
 
     if (!disc) {
       disc = {
@@ -63,8 +67,8 @@ export async function albumsSorter(allMusics: Music[]) {
   for (const sortedAlbum of sortedAlbums) {
     if (sortedAlbum.albumArtist === "Unknown Album Artist") {
       const artistCount: Record<string, number> = {};
-      sortedAlbum.disc.forEach((disc: Disc) => {
-        disc.musics.forEach((music: Music) => {
+      sortedAlbum.disc.forEach((disc: UploadDisc) => {
+        disc.musics.forEach((music: UploadMusic) => {
           music.artists.forEach((artist: string) => {
             artistCount[artist] = (artistCount[artist] || 0) + 1;
           });
@@ -76,8 +80,8 @@ export async function albumsSorter(allMusics: Music[]) {
 
       if (mostFrequentArtist) {
         sortedAlbum.albumArtist = mostFrequentArtist;
-        sortedAlbum.disc.forEach((disc: Disc) => {
-          disc.musics.forEach((music: Music) => {
+        sortedAlbum.disc.forEach((disc: UploadDisc) => {
+          disc.musics.forEach((music: UploadMusic) => {
             music.albumArtist = sortedAlbum.albumArtist;
           });
         });
@@ -96,8 +100,8 @@ export async function albumsSorter(allMusics: Music[]) {
       sortedAlbum.albumType = "Album";
     }
 
-    sortedAlbum.disc.sort((a: Disc, b: Disc) => a.no - b.no);
-    sortedAlbum.disc.forEach((disc: Disc) =>
+    sortedAlbum.disc.sort((a: UploadDisc, b: UploadDisc) => a.no - b.no);
+    sortedAlbum.disc.forEach((disc: UploadDisc) =>
       disc.musics.sort(albumMusicSorter)
     );
   }

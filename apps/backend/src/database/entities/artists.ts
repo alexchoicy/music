@@ -15,8 +15,8 @@ import { ArtistGroups } from './artistGroups.js';
 import { GroupMembers } from './groupMembers.js';
 import { Languages } from './languages.js';
 import { TrackArtists } from './trackArtists.js';
-import { ArtistsArtistType, type ArtistType } from '@music/api/dto/album.dto';
 import { Attachments } from './attachments.js';
+import { ArtistsArtistType, type ArtistType } from '@music/api/type/music';
 
 @Entity()
 export class Artists {

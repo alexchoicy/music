@@ -1,5 +1,7 @@
 import { z } from "zod/v4";
 
+export const ArtistsArtistType = z.enum(["person", "group", "project"]);
+
 export const MusicSchema = z.object({
   filename: z.string(),
   uploadHashCheck: z.string(), // md5, b2 s3 only support md5 for verify
@@ -56,6 +58,7 @@ export const AlbumSchema = z.object({
   hash: z.string(),
   name: z.string(),
   albumArtist: z.string(),
+  artistsType: ArtistsArtistType,
   NoOfDiscs: z.number(),
   NoOfTracks: z.number(),
   albumType: AlbumsAlbumTypeEnum,
@@ -66,3 +69,4 @@ export type UploadAlbum = z.infer<typeof AlbumSchema>;
 export type UploadMusic = z.infer<typeof MusicSchema>;
 export type UploadDisc = z.infer<typeof DiscSchema>;
 export type AlbumsAlbumType = z.infer<typeof AlbumsAlbumTypeEnum>;
+export type ArtistType = z.infer<typeof ArtistsArtistType>;
