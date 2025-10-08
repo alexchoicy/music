@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AlbumsAlbumTypeEnum, type UploadAlbum, type AlbumsAlbumType } from '@music/api/type/music';
+import { AlbumsAlbumTypeEnum, type UploadAlbum, type AlbumsAlbumType, ArtistsArtistType, type ArtistType } from '@music/api/type/music';
 import { z } from 'zod/v4'
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
@@ -50,8 +50,9 @@ const albumEditSchema = toTypedSchema(z.object({
         format: z.enum(['image/jpeg', 'image/png']).optional(),
     }).optional(),
     name: z.string().optional(),
-    albumArtist: z.string().optional(),
     albumType: AlbumsAlbumTypeEnum,
+    albumArtist: z.string().optional(),
+    artistType: ArtistsArtistType
 }));
 
 const albumEditForm = useForm({
@@ -60,6 +61,7 @@ const albumEditForm = useForm({
         name: '',
         albumArtist: '',
         albumType: 'Album',
+        artistType: 'person',
         picture: undefined,
     },
 });
@@ -109,6 +111,7 @@ const onAlbumEditSubmit = albumEditForm.handleSubmit(async (values) => {
     props.currentAlbum.albumArtist = values.albumArtist || "Unknown Album Artist";
     props.currentAlbum.albumType = values.albumType;
     props.currentAlbum.hash = await getAlbumHash(props.currentAlbum.name + props.currentAlbum.albumArtist);
+    props.currentAlbum.artistsType = values.artistType;
 
     emit('update:isOpen', false);
     emit('update:currentAlbum', null);
@@ -117,6 +120,9 @@ const onAlbumEditSubmit = albumEditForm.handleSubmit(async (values) => {
 
 const albumTypeOptions: { value: AlbumsAlbumType; label: string }[] =
     AlbumsAlbumTypeEnum.options.map(v => ({ value: v, label: v }))
+
+const artistTypeOptions: { value: ArtistType; label: string }[] =
+    ArtistsArtistType.options.map(v => ({ value: v, label: v }))
 
 </script>
 
@@ -182,14 +188,6 @@ const albumTypeOptions: { value: AlbumsAlbumType; label: string }[] =
                         </FormControl>
                     </FormItem>
                 </FormField>
-                <FormField v-slot="{ field }" name="albumArtist">
-                    <FormItem>
-                        <FormLabel>Album Artist</FormLabel>
-                        <FormControl>
-                            <Input v-bind="field" placeholder="Album Artist" />
-                        </FormControl>
-                    </FormItem>
-                </FormField>
                 <div class="grid grid-cols-3">
                     <FormField v-slot="{ componentField }" name="albumType">
                         <FormItem>
@@ -203,6 +201,36 @@ const albumTypeOptions: { value: AlbumsAlbumType; label: string }[] =
                                 <SelectContent>
                                     <SelectGroup>
                                         <SelectItem v-for="option in albumTypeOptions" :key="option.value"
+                                            :value="option.value">
+                                            {{ option.label }}
+                                        </SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                        </FormItem>
+                    </FormField>
+                </div>
+                <FormField v-slot="{ field }" name="albumArtist">
+                    <FormItem>
+                        <FormLabel>Album Artist</FormLabel>
+                        <FormControl>
+                            <Input v-bind="field" placeholder="Album Artist" />
+                        </FormControl>
+                    </FormItem>
+                </FormField>
+                <div class="grid grid-cols-3">
+                    <FormField v-slot="{ componentField }" name="artistType">
+                        <FormItem>
+                            <FormLabel>Artist Type</FormLabel>
+                            <Select v-bind="componentField" :default-value="currentAlbum?.artistsType || 'person'">
+                                <FormControl>
+                                    <SelectTrigger class="w-full">
+                                        <SelectValue placeholder="Select Artist Type" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectItem v-for="option in artistTypeOptions" :key="option.value"
                                             :value="option.value">
                                             {{ option.label }}
                                         </SelectItem>

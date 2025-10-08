@@ -112,7 +112,7 @@ const downloadFile = async (url: string, filename: string) => {
                 <CardHeader>
                     <div v-for="artist in album.artists" :key="artist.id" class="space-y-2">
                         <div class="flex items-center gap-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer p-2"
-                            @click="onClickArtist(artist.id)">
+                            v-if="artist.artistType !== 'project'" @click="onClickArtist(artist.id)">
                             <Avatar>
                                 <AvatarImage v-if="artist.image" :src="artist.image" />
                                 <AvatarFallback>

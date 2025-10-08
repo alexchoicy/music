@@ -38,6 +38,7 @@ export async function albumsSorter(allMusics: UploadMusic[]) {
         NoOfTracks: 0,
         disc: [],
         albumType: "Album",
+        artistsType: "person",
       });
     }
     const album = albumMap.get(albumHash)!;
@@ -95,6 +96,7 @@ export async function albumsSorter(allMusics: UploadMusic[]) {
     if (checkIfSoundtrack(sortedAlbum.name, "")) {
       sortedAlbum.albumType = "Soundtrack";
     } else if (sortedAlbum.NoOfTracks < 2) {
+      //haha this is weird as fuck
       sortedAlbum.albumType = "Single";
     } else {
       sortedAlbum.albumType = "Album";
