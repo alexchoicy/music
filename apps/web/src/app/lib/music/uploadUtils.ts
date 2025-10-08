@@ -94,7 +94,6 @@ export function checkIfUnsolvedFeat(artist: string[], title: string): boolean {
   const lowerArtist = artist.map((a) => a.toLowerCase()).join(" ");
   const lowerTitle = title.toLowerCase();
 
-  console.log(artist, title, lowerArtist, lowerTitle);
   return unsolvedFeatIndicators.some(
     (indicator) =>
       lowerArtist.includes(indicator) || lowerTitle.includes(indicator)
