@@ -79,7 +79,8 @@ const downloadFile = async (url: string, filename: string) => {
                     </Badge>
                     <h1 class="text-5xl font-bold">{{ album.name }}</h1>
                     <div class="flex items-center gap-2 text-muted-foreground flex-wrap pt-3">
-                        <span>{{ album.mainArtist.name }}</span>
+                        <span @click="onClickArtist(album.mainArtist.id)" class="cursor-pointer">{{
+                            album.mainArtist.name }}</span>
                         <span v-if="album.year">•</span>
                         <span v-if="album.year">{{ album.year }}</span>
                         <span>•</span>
