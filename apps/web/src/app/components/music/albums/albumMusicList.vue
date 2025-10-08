@@ -3,7 +3,8 @@ import type { AlbumDetailResponse } from '@music/api/dto/album.dto';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
 import { getMMSSFromMs } from '~/lib/music/display';
-import { EllipsisVertical, Play, Clock } from 'lucide-vue-next';
+import { EllipsisVertical, Play, Clock, Download } from 'lucide-vue-next';
+import { getMusicExt } from "@music/api/lib/musicUtil";
 
 
 const props = defineProps({
@@ -12,6 +13,10 @@ const props = defineProps({
         required: true
     },
     onclickPlayTrack: {
+        type: Function,
+        required: true
+    },
+    onClickDownloadTrack: {
         type: Function,
         required: true
     }
@@ -59,9 +64,12 @@ const props = defineProps({
                             </div>
                         </div>
                         <div class="text-muted-foreground">{{ getMMSSFromMs(track.durationMs) }}</div>
-                        <Button variant="ghost" size="icon"
-                            class="opacity-0 group-hover:opacity-100 transition-opacity">
-                            <EllipsisVertical class="size-fit" />
+                        <Button variant="ghost" size="icon" class="opacity-0 group-hover:opacity-100 transition-opacity"
+                            v-if="track.quality.length > 0"
+                            @click="props.onClickDownloadTrack(track.quality[0]!.url, `${disc.discNo}-${track.trackNo} ${track.name}. ${getMusicExt(track.quality[0]!.fileContainer, track.quality[0]!.fileCodec)}`)">
+                            <!-- <EllipsisVertical class="size-fit" /> -->
+                            <!-- temp -->
+                            <Download class="size-fit" />
                         </Button>
                     </div>
                 </div>
