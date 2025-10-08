@@ -116,6 +116,12 @@ export function getNextFreeTrackNo(dics: UploadDisc, preferred: number) {
   return preferred;
 }
 
+export function checkIfVariousArtists(artist: string): boolean {
+  const variousIndicators = ["various artists", "va"];
+  const lowerArtist = artist.toLowerCase();
+  return variousIndicators.some((indicator) => lowerArtist.includes(indicator));
+}
+
 export function covertToMusicObject(
   metadata: IAudioMetadata,
   hash: string,

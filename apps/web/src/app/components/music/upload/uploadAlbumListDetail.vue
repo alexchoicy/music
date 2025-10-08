@@ -3,7 +3,7 @@ import { Disc3 } from 'lucide-vue-next';
 
 import type { UploadAlbum } from "@music/api/type/music";
 import { computed } from "vue";
-import { checkIfUnsolvedFeat } from '~/lib/music/uploadUtils';
+import { checkIfUnsolvedFeat, checkIfVariousArtists } from '~/lib/music/uploadUtils';
 
 const props = defineProps({
     album: {
@@ -25,6 +25,9 @@ const isFeatUndetected = computed(() => {
     return checkIfUnsolvedFeat([props.album.albumArtist], props.album.name);
 })
 
+const isVariousArtists = computed(() => {
+    return checkIfVariousArtists(props.album.albumArtist);
+})
 </script>
 
 
@@ -56,6 +59,17 @@ const isFeatUndetected = computed(() => {
                     <TooltipContent side="top" class="max-w-xs">
                         <p>It seems that this track might contain a featured artist, but it was not solved. Please
                             adding the featured artist to the using track editor and remove the ft</p>
+                    </TooltipContent>
+                </Tooltip>
+                <Tooltip v-if="isVariousArtists">
+                    <TooltipTrigger as-child>
+                        <Badge v-if="isVariousArtists" class="text-xs px-1 py-0 mx-1" variant="destructive">
+                            Various Artists detected
+                        </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" class="max-w-xs">
+                        <p>I suggest to not store the albums as Various Artists, change the main Artist name to this
+                            albums's project name and mark it to "project".</p>
                     </TooltipContent>
                 </Tooltip>
             </p>

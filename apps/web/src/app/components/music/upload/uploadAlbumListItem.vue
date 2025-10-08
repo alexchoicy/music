@@ -74,7 +74,7 @@ const isFeatUndetected = computed(() => {
             </div>
             <div class="w-20 text-center">
                 <span class="text-sm text-gray-400">{{ getSecondToMinuteString(track.duration)
-                    }}</span>
+                }}</span>
             </div>
             <div class="w-20 flex text-center justify-end gap-1 ">
                 <Button variant="ghost" class="h-9 w-9 p-0" :disabled="props.blockUpload"
