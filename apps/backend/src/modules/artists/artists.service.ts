@@ -28,7 +28,7 @@ export class ArtistsService {
 	private async getCoverDataUrl(id: string, fileType?: string | null) {
 		if (!fileType) return null;
 		const ext = mime.getExtension(fileType) || '';
-		return this.storageService.getAlbumCoverDataUrl(id, ext);
+		return this.storageService.staticContent.getAlbumCoverDataUrl(id, ext);
 	}
 
 	private async getAlbumStats(album: Albums) {

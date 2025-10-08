@@ -1,8 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { StorageService } from './storageServiceAbstract.js';
+import {
+	AudioStorageInterface,
+	StaticStorageInterface,
+} from './storageServiceAbstract.js';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class S3StorageService extends StorageService {
+export class S3StorageService
+	implements AudioStorageInterface, StaticStorageInterface
+{
+	constructor(private readonly config: ConfigService) {}
+
 	saveCoverImage(
 		attachmentID: string,
 		imageBuffer: Buffer,

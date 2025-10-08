@@ -9,7 +9,8 @@
 			"#utils/*": ["./src/utils/*"],
 			"#decorators/*": ["./src/decorators/*"],
 			"#guards/*": ["./src/guards/*"],
-			"#modules/*": ["./src/modules/*"]
+			"#modules/*": ["./src/modules/*"],
+			"#config/*": ["./src/config/*"]
 		}
 	},
 	"exclude": ["node_modules", "dist"],

@@ -4,9 +4,21 @@ import path from 'path';
 import { registerAs } from '@nestjs/config';
 import yaml from 'js-yaml';
 
-const storageConfig = z
+export enum StorageOptions {
+	Local = 'local',
+	S3 = 's3',
+}
+
+const storageProvider = z.object({
+	provider: z.enum(StorageOptions).default(StorageOptions.Local),
+});
+
+export const storageConfig = z
 	.object({
-		type: z.enum(['local', 's3']).default('local'),
+		type: z.object({
+			audio: storageProvider,
+			static: storageProvider,
+		}),
 		library_dir: z.string().optional(),
 		s3: z
 			.object({
@@ -16,7 +28,10 @@ const storageConfig = z
 			.optional(),
 	})
 	.superRefine((data, ctx) => {
-		if (data.type === 'local') {
+		if (
+			data.type.audio.provider === StorageOptions.Local ||
+			data.type.static.provider === StorageOptions.Local
+		) {
 			if (!data.library_dir) {
 				ctx.addIssue({
 					code: 'custom',
@@ -32,7 +47,10 @@ const storageConfig = z
 				});
 			}
 		}
-		if (data.type === 's3') {
+		if (
+			data.type.audio.provider === StorageOptions.S3 ||
+			data.type.static.provider === StorageOptions.S3
+		) {
 			if (!data.s3?.endpoint || !data.s3?.region) {
 				ctx.addIssue({
 					code: 'custom',
@@ -104,7 +122,11 @@ function loadConfig() {
 
 	const config = parsed.data;
 
-	if (config.storage.type === 'local' && config.storage.library_dir) {
+	if (
+		(config.storage.type.audio.provider === StorageOptions.Local ||
+			config.storage.type.static.provider === StorageOptions.Local) &&
+		config.storage.library_dir
+	) {
 		if (!config.app.public_base_api_url) {
 			throw new Error(
 				'public_base_api_url is required when storage type is local',
