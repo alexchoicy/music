@@ -21,7 +21,7 @@ const clickCard = (id: string) => {
         <CardContent>
             <div class="aspect-square relative overflow-hidden rounded-full">
                 <img v-if="artist.image" :src="artist.image" alt="Artist Image" class="w-full h-full object-cover" />
-                <img v-if="artist.albums[0]?.cover" :src="artist.albums[0]?.cover" alt="Album Cover"
+                <img v-else-if="artist.albums[0]?.cover" :src="artist.albums[0]?.cover" alt="Album Cover"
                     class="w-full h-full object-cover" />
                 <User v-else class="w-full h-full text-muted-foreground" />
             </div>
