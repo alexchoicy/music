@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { EntityManager, MikroORM } from '@mikro-orm/postgresql';
+import { EntityManager } from '@mikro-orm/postgresql';
 import { Artists } from '#database/entities/artists.js';
 import { StorageService } from '../storageServices/storageServiceAbstract.js';
 import mime from 'mime';
@@ -10,15 +10,118 @@ import {
 import { AlbumTracks } from '#database/entities/albumTracks.js';
 import { ArtistGroups } from '#database/entities/artistGroups.js';
 import { GroupMembers } from '#database/entities/groupMembers.js';
-import { Artist, type ArtistInfo } from '@music/api/dto/album.dto';
+import {
+	AlbumResponse,
+	Artist,
+	type ArtistInfo,
+} from '@music/api/dto/album.dto';
+import { Albums } from '#database/entities/albums.js';
 
 @Injectable()
 export class ArtistsService {
 	constructor(
-		private readonly orm: MikroORM,
 		private readonly em: EntityManager,
 		private readonly storageService: StorageService,
 	) {}
+	private async getCoverDataUrl(id: string, fileType?: string | null) {
+		if (!fileType) return null;
+		const ext = mime.getExtension(fileType) || '';
+		return this.storageService.getAlbumCoverDataUrl(id, ext);
+	}
+
+	private async getAlbumStats(album: Albums) {
+		const [nonInstrumentalTracks, totalTracks] = await Promise.all([
+			this.em.count(AlbumTracks, {
+				album: album.id,
+				track: { isInstrumental: false },
+			}),
+			this.em.count(AlbumTracks, { album: album.id }),
+		]);
+		return {
+			totalTracks: nonInstrumentalTracks,
+			hasInstrumental: nonInstrumentalTracks < totalTracks,
+		};
+	}
+
+	async getArtistInfo(artist: Artists): Promise<ArtistInfo | null> {
+		const albumsArr = artist.albumsCollection.isInitialized()
+			? artist.albumsCollection.getItems()
+			: await artist.albumsCollection.loadItems({
+					populate: ['coverAttachment', 'mainArtist'],
+				});
+
+		if (!albumsArr) return null;
+		const albums = await this.getArtistAlbumsToDTO(albumsArr);
+		if (!albums) return null;
+		return {
+			id: artist.id.toString(),
+			name: artist.name,
+			image: null,
+			language: null,
+			artistType: artist.artistType,
+			createdAt: artist.createdAt.toISOString(),
+			updatedAt: artist.updatedAt.toISOString(),
+			albums,
+		};
+	}
+
+	async getArtistAlbumsToDTO(
+		albums: Albums[],
+	): Promise<ArtistInfo['albums'] | null> {
+		const albumDTOs = [];
+
+		for (const album of albums) {
+			albumDTOs.push({
+				id: album.id.toString(),
+				name: album.name,
+				year: album.year,
+				language: null,
+				albumType: album.albumType,
+				cover:
+					(await this.getCoverDataUrl(
+						album.coverAttachment?.id || '',
+						album.coverAttachment?.fileType,
+					)) || null,
+				createdAt: album.createdAt.toISOString(),
+				updatedAt: album.updatedAt.toISOString(),
+			});
+		}
+		if (albumDTOs.length === 0) return null;
+		return albumDTOs;
+	}
+
+	async getAlbumInfo(album: Albums): Promise<AlbumResponse | null> {
+		const [cover, stats] = await Promise.all([
+			album.coverAttachment
+				? this.getCoverDataUrl(
+						album.coverAttachment.id,
+						album.coverAttachment.fileType,
+					)
+				: Promise.resolve(null),
+			this.getAlbumStats(album),
+		]);
+		return {
+			id: album.id.toString(),
+			name: album.name,
+			year: album.year,
+			language: null,
+			albumType: album.albumType,
+			totalTracks: stats.totalTracks,
+			hasInstrumental: stats.hasInstrumental,
+			cover,
+			mainArtist: Artist.parse({
+				id: album.mainArtist?.id?.toString(),
+				name: album.mainArtist?.name,
+				image: null,
+				language: null,
+				artistType: (album.mainArtist?.artistType ?? '') as string,
+				createdAt: album.mainArtist?.createdAt?.toISOString(),
+				updatedAt: album.mainArtist?.updatedAt?.toISOString(),
+			}),
+			createdAt: album.createdAt.toISOString(),
+			updatedAt: album.updatedAt.toISOString(),
+		};
+	}
 
 	async getArtists() {
 		const rawArtists = await this.em.findAll(Artists, {
@@ -28,39 +131,9 @@ export class ArtistsService {
 		const artists: ArtistInfo[] = [];
 
 		for (const artist of rawArtists) {
-			const albums = [];
-
-			for (const album of artist.albumsCollection) {
-				albums.push({
-					id: album.id.toString(),
-					name: album.name,
-					year: album.year,
-					language: null,
-					albumType: album.albumType,
-					cover:
-						album.coverAttachment && album.coverAttachment.fileType
-							? await this.storageService.getAlbumCoverDataUrl(
-									album.coverAttachment.id,
-									mime.getExtension(
-										album.coverAttachment.fileType,
-									) || '',
-								)
-							: null,
-					createdAt: album.createdAt.toISOString(),
-					updatedAt: album.updatedAt.toISOString(),
-				});
-			}
-			if (albums.length === 0) continue;
-			artists.push({
-				id: artist.id.toString(),
-				name: artist.name,
-				image: null,
-				language: null,
-				artistType: artist.artistType,
-				createdAt: artist.createdAt.toISOString(),
-				updatedAt: artist.updatedAt.toISOString(),
-				albums,
-			});
+			const info = await this.getArtistInfo(artist);
+			if (!info) continue;
+			artists.push(info);
 		}
 
 		return artists;
@@ -71,10 +144,31 @@ export class ArtistsService {
 			Artists,
 			{ id },
 			{
+				// Keep population tight and relevant.
 				populate: [
+					// Own albums (with cover + main artist so DTO can be built)
 					'albumsCollection',
-					'artistGroups.groupMembersCollection.artist',
 					'albumsCollection.coverAttachment',
+					'albumsCollection.mainArtist',
+
+					// Tracks this artist appears on -> their album + cover + main artist
+					'trackArtistsCollection',
+					'trackArtistsCollection.track',
+					'trackArtistsCollection.track.albumTracksCollection',
+					'trackArtistsCollection.track.albumTracksCollection.album',
+					'trackArtistsCollection.track.albumTracksCollection.album.coverAttachment',
+					'trackArtistsCollection.track.albumTracksCollection.album.mainArtist',
+
+					// Group relationships (for group members / related groups)
+					'artistGroups',
+					'artistGroups.groupMembersCollection',
+					'artistGroups.groupMembersCollection.artist',
+					'groupMembersCollection',
+					'groupMembersCollection.group',
+					'groupMembersCollection.group.artist',
+					'groupMembersCollection.group.artist.albumsCollection',
+					'groupMembersCollection.group.artist.albumsCollection.coverAttachment',
+					'groupMembersCollection.group.artist.albumsCollection.mainArtist',
 				],
 			},
 		);
@@ -83,69 +177,66 @@ export class ArtistsService {
 			throw new NotFoundException('Artist not found');
 		}
 
-		const albums = [];
+		const albums = await Promise.all(
+			artist.albumsCollection.map(async (album) => {
+				return this.getAlbumInfo(album);
+			}),
+		);
 
-		for (const album of artist.albumsCollection) {
-			const nonInstrumentalTracksPromise = this.em
-				.createQueryBuilder(AlbumTracks, 'at')
-				.innerJoin('at.track', 't')
-				.where({ album: album.id })
-				.andWhere({ 't.isInstrumental': false })
-				.getCount();
+		const featuredAlbumSet = new Map<string, Albums>();
 
-			const totalTracksPromise = album.albumTracksCollection.loadCount();
-
-			const [nonInstrumentalTracks, totalTracks] = await Promise.all([
-				nonInstrumentalTracksPromise,
-				totalTracksPromise,
-			]);
-
-			albums.push({
-				id: album.id.toString(),
-				name: album.name,
-				year: album.year,
-				language: null,
-				albumType: album.albumType,
-				totalTracks: nonInstrumentalTracks,
-				hasInstrumental: nonInstrumentalTracks < totalTracks,
-				cover:
-					album.coverAttachment && album.coverAttachment.fileType
-						? await this.storageService.getAlbumCoverDataUrl(
-								album.coverAttachment.id,
-								mime.getExtension(
-									album.coverAttachment.fileType,
-								) || '',
-							)
-						: null,
-				mainArtist: Artist.parse({
-					id: album.mainArtist?.id.toString(),
-					name: album.mainArtist?.name,
-					image: null,
-					language: null,
-					artistType: album.mainArtist?.artistType as string,
-					createdAt: album.mainArtist?.createdAt.toISOString(),
-					updatedAt: album.mainArtist?.updatedAt.toISOString(),
-				}),
-				createdAt: album.createdAt.toISOString(),
-				updatedAt: album.updatedAt.toISOString(),
-			});
+		for (const ta of artist.trackArtistsCollection ?? []) {
+			const albumTracks = ta.track?.albumTracksCollection ?? [];
+			for (const at of albumTracks) {
+				const album = at.album;
+				if (!album) continue;
+				if (album.mainArtist?.id === artist.id) continue;
+				featuredAlbumSet.set(album.id.toString(), album);
+			}
 		}
 
-		const groupMembers = [];
+		const featuredIn: AlbumResponse[] = (
+			await Promise.all(
+				Array.from(featuredAlbumSet.values()).map((album) =>
+					this.getAlbumInfo(album),
+				),
+			)
+		).filter((album): album is AlbumResponse => album !== null);
+
+		const groupMembers: ArtistInfo[] = [];
 		if (artist.artistType === 'group' || artist.artistType === 'project') {
 			const members = artist.artistGroups?.groupMembersCollection;
 			if (members) {
 				for (const member of members) {
-					groupMembers.push({
-						id: member.artist.id.toString(),
-						name: member.artist.name,
-						image: null,
-						language: null,
-						artistType: member.artist.artistType as string,
-						createdAt: member.artist.createdAt.toISOString(),
-						updatedAt: member.artist.updatedAt.toISOString(),
-					});
+					const info = await this.getArtistInfo(member.artist);
+					if (info) groupMembers.push(info);
 				}
+			}
+		}
+
+		const relatedGroups: ArtistInfo[] = [];
+		if (artist.groupMembersCollection) {
+			for (const membership of artist.groupMembersCollection) {
+				const groupInfo = await this.em.findOne(ArtistGroups, {
+					id: membership.group.id,
+				});
+				if (!groupInfo?.artist?.id) continue;
+
+				const groupArtist = await this.em.findOne(
+					Artists,
+					{ id: groupInfo.artist.id },
+					{
+						populate: [
+							'albumsCollection',
+							'albumsCollection.coverAttachment',
+							'albumsCollection.mainArtist',
+						],
+					},
+				);
+				if (!groupArtist) continue;
+
+				const info = await this.getArtistInfo(groupArtist);
+				if (info) relatedGroups.push(info);
 			}
 		}
 
@@ -155,7 +246,9 @@ export class ArtistsService {
 			artistType: artist.artistType as string,
 			image: null,
 			albums,
+			featuredIn,
 			groupMembers,
+			relatedGroups,
 		});
 
 		return result;
@@ -165,45 +258,36 @@ export class ArtistsService {
 		artistID: string,
 		artistRelaationshipDTO: ArtistRelationshipDTO,
 	) {
-		const artist = await this.em.findOne(Artists, { id: artistID });
-		if (!artist) {
-			throw new NotFoundException();
-		}
-		let group;
-		if (artist.artistType === 'group') {
-			group = await this.em.findOne(ArtistGroups, { artist });
+		await this.em.transactional(async (tem) => {
+			const artist = await tem.findOne(Artists, { id: artistID });
+			if (!artist) throw new NotFoundException();
 
-			const artistGrouped = await this.em.find(GroupMembers, { group });
-			await this.em.remove(artistGrouped).flush();
+			let group =
+				artist.artistType === 'group'
+					? await tem.findOne(ArtistGroups, { artist })
+					: null;
 
-			if (artistRelaationshipDTO.artists.length === 0) {
-				artist.artistType = 'person';
-				if (group) {
-					await this.em.removeAndFlush(group);
+			if (group) {
+				const existing = await tem.find(GroupMembers, { group });
+				tem.remove(existing);
+				if (artistRelaationshipDTO.artists.length === 0) {
+					artist.artistType = 'person';
+					tem.remove(group);
+					return;
 				}
-				return;
+			} else {
+				artist.artistType = 'group';
+				group = tem.create(ArtistGroups, { artist });
+				tem.persist(group);
 			}
-		}
 
-		if (!group) {
-			artist.artistType = 'group';
-			const newGroup = this.em.create(ArtistGroups, {
-				artist,
+			const members = await tem.find(Artists, {
+				id: { $in: artistRelaationshipDTO.artists },
 			});
-			await this.em.persistAndFlush(newGroup);
-
-			group = newGroup;
-		}
-
-		for (const memberID of artistRelaationshipDTO.artists) {
-			const member = await this.em.findOne(Artists, { id: memberID });
-			if (member) {
-				const gm = this.em.create(GroupMembers, {
-					artist: member,
-					group,
-				});
-				await this.em.persistAndFlush(gm);
-			}
-		}
+			const gm = members.map((m) =>
+				tem.create(GroupMembers, { artist: m, group }),
+			);
+			tem.persist(gm);
+		});
 	}
 }
