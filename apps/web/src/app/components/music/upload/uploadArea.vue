@@ -12,6 +12,8 @@ import { hashFileStream, hashFileStreamMd5, covertToMusicObject } from '~/lib/mu
 import { flattenAlbums, albumsSorter } from '~/lib/music/sortUtils';
 import Skeleton from '~/components/ui/skeleton/Skeleton.vue';
 
+import pLimit from 'p-limit';
+
 const props = defineProps({
     albums: {
         type: Array as () => UploadAlbum[],
@@ -26,7 +28,7 @@ const props = defineProps({
         required: true,
     }
 });
-const emit = defineEmits(['update:blockUpload', 'update:albums']);
+const emit = defineEmits(['update:blockUpload', 'update:albums', 'update:total', 'update:uploaded']);
 
 const dropZoneRef = ref<HTMLDivElement>();
 
@@ -46,46 +48,61 @@ useDropZone(dropZoneRef, {
 async function handleFiles(files: File[]) {
     if (props.blockUpload) return;
     emit('update:blockUpload', true);
-    if (files.length === 0) {
-        emit('update:blockUpload', false);
-        return;
-    }
-    const musicObjects: UploadMusic[] = [];
-
-    for (const file of files) {
-        if (!file.type.startsWith('audio/')) {
-            console.log(`Skipping non-audio file: ${file.name}`);
-            continue;
-        }
-        const hash = await hashFileStream(file);
-
-        const duplicate = props.albums.some(album =>
-            album.disc.some((disc: UploadDisc) => disc.musics.some((m: UploadMusic) => m.hash === hash))
-        );
-        if (duplicate) {
-            console.log(`Duplicate file detected: ${file.name}, skipping...`);
-            continue;
+    try {
+        const audioFiles = files.filter(f => f.type?.startsWith('audio/'));
+        if (audioFiles.length === 0) {
+            emit('update:total', 0);
+            emit('update:uploaded', 0);
+            return;
         }
 
-        const metadata = await parseBlob(file);
-        const uploadHash = await hashFileStreamMd5(file)
+        emit('update:total', audioFiles.length);
+        emit('update:uploaded', 0);
 
-        const musicObj = covertToMusicObject(metadata, hash, uploadHash, file.name);
+        const limit = pLimit(3);
+        let processed = 0;
+        const seenInBatch = new Set<string>();
 
-        props.fileObjects.set(hash, { file, uploadHash });
-        musicObjects.push(musicObj);
-    }
+        const tasks = audioFiles.map(file => limit(async () => {
+            try {
+                const hash = await hashFileStream(file);
+                if (seenInBatch.has(hash)) {
+                    return null;
+                }
+                seenInBatch.add(hash);
 
-    if (musicObjects.length === 0) {
+                const isDupInLibrary = props.albums.some(album =>
+                    album.disc.some((disc: UploadDisc) =>
+                        disc.musics.some((m: UploadMusic) => m.hash === hash)
+                    )
+                );
+                if (isDupInLibrary) {
+                    return null;
+                }
+                //maybe only load Image once later?
+                const metadata = await parseBlob(file);
+                const uploadHash = await hashFileStreamMd5(file);
+                const musicObj = covertToMusicObject(metadata, hash, uploadHash, file.name);
+
+                props.fileObjects.set(hash, { file, uploadHash });
+                return musicObj;
+            } finally {
+                processed += 1;
+                emit('update:uploaded', processed);
+            }
+        }));
+
+        const results = await Promise.all(tasks);
+        const musicObjects = results.filter((x): x is UploadMusic => x != null);
+
+        if (musicObjects.length > 0) {
+            const allMusics = (await flattenAlbums(props.albums)).concat(musicObjects);
+            const sortedAlbums = await albumsSorter(allMusics);
+            emit('update:albums', sortedAlbums);
+        }
+    } finally {
         emit('update:blockUpload', false);
-        return;
     }
-
-    const allMusics = (await flattenAlbums(props.albums)).concat(musicObjects);
-    const sortedAlbums = await albumsSorter(allMusics);
-    emit('update:albums', sortedAlbums);
-
-    emit('update:blockUpload', false);
 }
 
 </script>

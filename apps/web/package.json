@@ -22,6 +22,7 @@
     "lucide-vue-next": "^0.542.0",
     "music-metadata": "^11.9.0",
     "nuxt": "^4.1.2",
+    "p-limit": "^7.1.1",
     "pinia": "^3.0.3",
     "reka-ui": "^2.5.1",
     "shadcn-nuxt": "https://pkg.pr.new/shadcn-nuxt@1418",

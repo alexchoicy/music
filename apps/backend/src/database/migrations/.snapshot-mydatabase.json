@@ -631,6 +631,16 @@
           "default": "false",
           "mappedType": "boolean"
         },
+        "is_mc": {
+          "name": "is_mc",
+          "type": "boolean",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "false",
+          "mappedType": "boolean"
+        },
         "language_id": {
           "name": "language_id",
           "type": "bigint",

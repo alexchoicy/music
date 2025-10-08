@@ -1,5 +1,5 @@
 import { createZodDto } from 'nestjs-zod';
-import { UploadMusicInitSchema } from '@music/api/dto/music.dto';
+import { UploadMusicInitSchema } from '@music/api/dto/upload.dto';
 import { AlbumDetailResponseSchema } from '@music/api/dto/album.dto';
 import {
 	artistSchema,

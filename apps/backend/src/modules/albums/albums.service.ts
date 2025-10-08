@@ -1,11 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { EntityManager, MikroORM } from '@mikro-orm/postgresql';
+import { EntityManager } from '@mikro-orm/postgresql';
 import { Albums } from '#database/entities/albums.js';
 import { StorageService } from '../storageServices/storageServiceAbstract.js';
 import { AlbumDetailDTO } from '#types/dto/music.dto.js';
 import {
 	AlbumResponse,
-	AlbumResponseSchema,
 	Artist,
 	ArtistSchema,
 	Track,
@@ -14,14 +13,67 @@ import {
 import mime from 'mime';
 import { AlbumTracks } from '#database/entities/albumTracks.js';
 import { getMusicExt } from '@music/api/lib/musicUtil';
+import pLimit from 'p-limit';
 
 @Injectable()
 export class AlbumsService {
 	constructor(
-		private readonly orm: MikroORM,
 		private readonly em: EntityManager,
 		private readonly storageService: StorageService,
 	) {}
+
+	private async getCoverDataUrl(id: string, fileType?: string | null) {
+		if (!fileType) return null;
+		const ext = mime.getExtension(fileType) || '';
+		return this.storageService.getAlbumCoverDataUrl(id, ext);
+	}
+
+	private async getAlbumStats(album: Albums) {
+		const [nonInstrumentalTracks, totalTracks] = await Promise.all([
+			this.em.count(AlbumTracks, {
+				album: album.id,
+				track: { isInstrumental: false },
+			}),
+			this.em.count(AlbumTracks, { album: album.id }),
+		]);
+		return {
+			totalTracks: nonInstrumentalTracks,
+			hasInstrumental: nonInstrumentalTracks < totalTracks,
+		};
+	}
+
+	async getAlbumInfo(album: Albums): Promise<AlbumResponse | null> {
+		const [cover, stats] = await Promise.all([
+			album.coverAttachment
+				? this.getCoverDataUrl(
+						album.coverAttachment.id,
+						album.coverAttachment.fileType,
+					)
+				: Promise.resolve(null),
+			this.getAlbumStats(album),
+		]);
+		return {
+			id: album.id.toString(),
+			name: album.name,
+			year: album.year,
+			language: null,
+			albumType: album.albumType,
+			totalTracks: stats.totalTracks,
+			hasInstrumental: stats.hasInstrumental,
+			cover,
+			mainArtist: Artist.parse({
+				id: album.mainArtist?.id?.toString(),
+				name: album.mainArtist?.name,
+				image: null,
+				language: null,
+				artistType: (album.mainArtist?.artistType ?? '') as string,
+				createdAt: album.mainArtist?.createdAt?.toISOString(),
+				updatedAt: album.mainArtist?.updatedAt?.toISOString(),
+			}),
+			createdAt: album.createdAt.toISOString(),
+			updatedAt: album.updatedAt.toISOString(),
+		};
+	}
 
 	async getAlbums(): Promise<AlbumResponse[]> {
 		const albums = await this.em.find(
@@ -32,54 +84,14 @@ export class AlbumsService {
 				orderBy: { id: 'DESC', createdAt: 'DESC' },
 			},
 		);
-		const formatted: AlbumResponse[] = [];
-		for (const album of albums) {
-			const nonInstrumentalTracksPromise = this.em
-				.createQueryBuilder(AlbumTracks, 'at')
-				.innerJoin('at.track', 't')
-				.where({ album: album.id })
-				.andWhere({ 't.isInstrumental': false })
-				.getCount();
+		const limit = pLimit(10);
 
-			const totalTracksPromise = album.albumTracksCollection.loadCount();
+		const promises = albums.map((album) =>
+			limit(() => this.getAlbumInfo(album)),
+		);
 
-			const [nonInstrumentalTracks, totalTracks] = await Promise.all([
-				nonInstrumentalTracksPromise,
-				totalTracksPromise,
-			]);
-			formatted.push(
-				AlbumResponseSchema.parse({
-					id: album.id.toString(),
-					name: album.name,
-					year: album.year,
-					language: null,
-					albumType: album.albumType,
-					totalTracks: nonInstrumentalTracks,
-					hasInstrumental: nonInstrumentalTracks < totalTracks,
-					cover:
-						album.coverAttachment && album.coverAttachment.fileType
-							? await this.storageService.getAlbumCoverDataUrl(
-									album.coverAttachment.id,
-									mime.getExtension(
-										album.coverAttachment.fileType,
-									) || '',
-								)
-							: null,
-					mainArtist: Artist.parse({
-						id: album.mainArtist?.id.toString(),
-						name: album.mainArtist?.name,
-						image: null,
-						language: null,
-						artistType: album.mainArtist?.artistType as string,
-						createdAt: album.mainArtist?.createdAt.toISOString(),
-						updatedAt: album.mainArtist?.updatedAt.toISOString(),
-					}),
-					createdAt: album.createdAt.toISOString(),
-					updatedAt: album.updatedAt.toISOString(),
-				}),
-			);
-		}
-		return formatted;
+		const results = await Promise.all(promises);
+		return results.filter((r): r is AlbumResponse => r !== null);
 	}
 
 	async getAlbum(id: string) {
@@ -112,14 +124,20 @@ export class AlbumsService {
 		const discMap = new Map<number, TrackSchema[]>();
 
 		let totalTrackCount = 0;
-		let nonInstrumentalTrackCount = 0;
+
+		const [cover, stats] = await Promise.all([
+			album.coverAttachment
+				? this.getCoverDataUrl(
+						album.coverAttachment.id,
+						album.coverAttachment.fileType,
+					)
+				: Promise.resolve(null),
+			this.getAlbumStats(album),
+		]);
 
 		for (const albumTrack of album.albumTracksCollection) {
 			if (!discMap.has(albumTrack.discNo)) {
 				discMap.set(albumTrack.discNo, []);
-			}
-			if (!albumTrack.track.isInstrumental) {
-				nonInstrumentalTrackCount += 1;
 			}
 
 			const disc = discMap.get(albumTrack.discNo)!;
@@ -131,6 +149,7 @@ export class AlbumsService {
 				trackNo: albumTrack.trackNo,
 				durationMs: albumTrack.track.durationMs,
 				isInstrumental: albumTrack.track.isInstrumental,
+				isMC: albumTrack.track.isMC,
 				language: null,
 				musicBrainzId: albumTrack.track.musicbrainzTrackId || null,
 				quality: [],
@@ -199,16 +218,9 @@ export class AlbumsService {
 			artists: Array.from(artistsMap.values()),
 			totalDurationMs,
 			musicbrainzId: album.musicbrainzAlbumId || null,
-			hasInstrumental: totalTrackCount > nonInstrumentalTrackCount,
-			totalTracks: nonInstrumentalTrackCount,
-			cover:
-				album.coverAttachment && album.coverAttachment.fileType
-					? await this.storageService.getAlbumCoverDataUrl(
-							album.coverAttachment.id,
-							mime.getExtension(album.coverAttachment.fileType) ??
-								'',
-						)
-					: null,
+			hasInstrumental: stats.hasInstrumental,
+			totalTracks: stats.totalTracks,
+			cover: cover,
 			Disc: Array.from(discMap.entries()).map(([discNo, tracks]) => ({
 				discNo,
 				tracks,

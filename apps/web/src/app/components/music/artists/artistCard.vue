@@ -21,12 +21,17 @@ const clickCard = (id: string) => {
         <CardContent>
             <div class="aspect-square relative overflow-hidden rounded-full">
                 <img v-if="artist.image" :src="artist.image" alt="Artist Image" class="w-full h-full object-cover" />
-                <img v-if="artist.albums[0]?.cover" :src="artist.albums[0]?.cover" alt="Album Cover"
+                <img v-else-if="artist.albums[0]?.cover" :src="artist.albums[0]?.cover" alt="Album Cover"
                     class="w-full h-full object-cover" />
                 <User v-else class="w-full h-full text-muted-foreground" />
             </div>
-            <div class="space-y-1 text-center">
+            <div class="space-y-1 text-center pt-2">
                 <h3 class="truncate">{{ artist.name }}</h3>
+            </div>
+            <div class="text-center mt-2">
+                <Badge variant="secondary" class="bg-black/60 text-white border-0 backdrop-blur-sm">
+                    {{ artist.artistType }}
+                </Badge>
             </div>
         </CardContent>
     </Card>

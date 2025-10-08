@@ -12,6 +12,7 @@ const tab = [
     { name: "Overview", id: "overview" },
     { name: "Albums", id: "albums" },
     { name: "Single", id: "single" },
+    { name: "Featured In", id: "featuredIn" }
 ];
 
 const currentTab = ref("overview");
@@ -28,6 +29,9 @@ const albumOnly = computed(() =>
 );
 const singleOnly = computed(() =>
     (data.value?.albums?.filter((album) => album.albumType === "Single") ?? [])
+);
+const featuredInOnly = computed(() =>
+    (data.value?.featuredIn ?? [])
 );
 </script>
 
@@ -67,9 +71,11 @@ const singleOnly = computed(() =>
         </div>
         <div>
             <MusicArtistsTabsOverview v-if="currentTab === 'overview'" :album-only="albumOnly" :single-only="singleOnly"
-                :group-member="data.groupMembers" :select-tab="selectTab" />
+                :featured-in-only="featuredInOnly" :group-member="data.groupMembers!" :select-tab="selectTab"
+                :related-groups="data.relatedGroups!" />
             <MusicArtistsTabsAlbums v-if="currentTab === 'albums'" :albums="albumOnly" />
             <MusicArtistsTabsAlbums v-if="currentTab === 'single'" :albums="singleOnly" />
+            <MusicArtistsTabsAlbums v-if="currentTab === 'featuredIn'" :albums="featuredInOnly" />
         </div>
     </div>
 </template>

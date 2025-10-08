@@ -16,6 +16,7 @@ import {
 } from '#database/entities/trackQuality.js';
 import mime from 'mime';
 import { UploadAlbum, UploadDisc, UploadMusic } from '@music/api/type/music';
+import type { ArtistType } from '@music/api/type/music';
 
 @Injectable()
 export class MusicService {
@@ -26,14 +27,19 @@ export class MusicService {
 		private readonly config: ConfigService,
 	) {}
 
-	async getOrCreateArtistByname(tem: EntityManager, name: string) {
+	async getOrCreateArtistByname(
+		tem: EntityManager,
+		name: string,
+		uploadMusicInit: UploadAlbum,
+	) {
 		let albumArtist = await tem.findOne(Artists, {
 			name: name,
 		});
 		if (!albumArtist) {
 			const newArtist = tem.create(Artists, {
 				name: name,
-				artistType: 'person',
+				artistType:
+					(uploadMusicInit.artistsType as ArtistType) || 'person',
 			});
 			await tem.persistAndFlush(newArtist);
 			albumArtist = newArtist;
@@ -94,6 +100,7 @@ export class MusicService {
 			name: music.title,
 			durationMs: music.duration * 1000,
 			isInstrumental: music.isInstrumental,
+			isMC: music.isMC,
 		});
 		await tem.persistAndFlush(track);
 
@@ -122,6 +129,7 @@ export class MusicService {
 				const albumArtist = await this.getOrCreateArtistByname(
 					tem,
 					albumMetadata.albumArtist,
+					albumMetadata,
 				);
 
 				const album = await this.getOrCreateAlbum(

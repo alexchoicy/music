@@ -3,6 +3,8 @@ import type { AlbumDetailResponse } from '@music/api/dto/album.dto';
 import { getHHMMFromMs } from '~/lib/music/display';
 import { Play, FolderDown, User, Users, DiscAlbum } from 'lucide-vue-next';
 import { parsePlaylistFromAlbumDetail } from '~/lib/music/playerUtils';
+import { getMusicExt } from "@music/api/lib/musicUtil";
+
 const id = useRoute().params.id as string;
 
 const audioPlayer = useAudioPlayer();
@@ -24,6 +26,41 @@ const onClickPlayAlbum = () => {
     const playlist = parsePlaylistFromAlbumDetail(album.value!);
     audioPlayer.playWithList(playlist);
 };
+
+const downloadAlbum = () => {
+    if (!album.value) return;
+    for (const disc of album.value.Disc) {
+        for (const track of disc.tracks) {
+            for (const quality of track.quality) {
+                if (!quality.islossless) {
+                    continue;
+                }
+                downloadFile(quality.url, `${disc.discNo}-${track.trackNo} ${track.name}. ${getMusicExt(quality.fileContainer, quality.fileCodec)}`);
+                break;
+            }
+        }
+    }
+}
+
+const downloadFile = async (url: string, filename: string) => {
+    const response = await fetch(url, {
+        credentials: "include",
+    });
+
+    if (!response.ok) throw new Error("Failed to download file");
+
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(blobUrl);
+};
 </script>
 
 <template>
@@ -42,7 +79,8 @@ const onClickPlayAlbum = () => {
                     </Badge>
                     <h1 class="text-5xl font-bold">{{ album.name }}</h1>
                     <div class="flex items-center gap-2 text-muted-foreground flex-wrap pt-3">
-                        <span>{{ album.mainArtist.name }}</span>
+                        <span @click="onClickArtist(album.mainArtist.id)" class="cursor-pointer">{{
+                            album.mainArtist.name }}</span>
                         <span v-if="album.year">•</span>
                         <span v-if="album.year">{{ album.year }}</span>
                         <span>•</span>
@@ -56,7 +94,8 @@ const onClickPlayAlbum = () => {
                         <Play class="w-5 h-5 mr-2" fill="currentColor" />
                         Play
                     </Button>
-                    <Button size="lg" variant="ghost" class="rounded-full">
+                    <!-- Download button download defualt for now -->
+                    <Button size="lg" variant="ghost" class="rounded-full" @click="downloadAlbum">
                         <FolderDown class="size-fit" />
                     </Button>
                 </div>
@@ -64,7 +103,7 @@ const onClickPlayAlbum = () => {
         </div>
         <div class="gap-4 grid grid-cols-1 lg:grid-cols-3">
             <MusicAlbumsAlbumMusicList v-if="album" :album="album" class="lg:col-span-2"
-                :onclickPlayTrack="onClickPlayTrack" />
+                :onclickPlayTrack="onClickPlayTrack" :onClickDownloadTrack="downloadFile" />
             <Card class="h-fit">
                 <CardHeader>
                     <CardTitle>
@@ -74,7 +113,7 @@ const onClickPlayAlbum = () => {
                 <CardHeader>
                     <div v-for="artist in album.artists" :key="artist.id" class="space-y-2">
                         <div class="flex items-center gap-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer p-2"
-                            @click="onClickArtist(artist.id)">
+                            v-if="artist.artistType !== 'project'" @click="onClickArtist(artist.id)">
                             <Avatar>
                                 <AvatarImage v-if="artist.image" :src="artist.image" />
                                 <AvatarFallback>

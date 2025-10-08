@@ -1,11 +1,9 @@
-import { AlbumsAlbumTypeEnum } from "../type/music.js";
+import { AlbumsAlbumTypeEnum, ArtistsArtistType } from "../type/music.js";
 import { z } from "zod/v4";
 
 export const AttachmentType = z.enum(["coverImage"]);
 
 export const TrackQualityOptions = z.enum(["original", "transcoded"]);
-
-export const ArtistsArtistType = z.enum(["person", "group", "project"]);
 
 export const Attachment = z.object({
   url: z.url(),
@@ -45,7 +43,10 @@ export const Track = z.object({
 
   name: z.string(),
   durationMs: z.number(),
+
   isInstrumental: z.boolean(),
+  isMC: z.boolean(),
+
   language: z.object().nullable(),
   musicBrainzId: z.string().nullable(),
   quality: z.array(TrackQuality),
@@ -101,8 +102,6 @@ export type TrackSchema = z.infer<typeof Track>;
 export type TrackQualityType = z.infer<typeof TrackQualityOptions>;
 
 export type AlbumDetailResponse = z.infer<typeof AlbumDetailResponseSchema>;
-
-export type ArtistType = z.infer<typeof ArtistsArtistType>;
 
 export type ArtistSchema = z.infer<typeof Artist>;
 
