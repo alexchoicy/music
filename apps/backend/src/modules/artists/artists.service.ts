@@ -45,16 +45,18 @@ export class ArtistsService {
 		};
 	}
 
-	async getArtistInfo(artist: Artists): Promise<ArtistInfo | null> {
+	async getArtistInfo(
+		artist: Artists,
+		ignoreNoAlbum = false,
+	): Promise<ArtistInfo | null> {
 		const albumsArr = artist.albumsCollection.isInitialized()
 			? artist.albumsCollection.getItems()
 			: await artist.albumsCollection.loadItems({
 					populate: ['coverAttachment', 'mainArtist'],
 				});
-
-		if (!albumsArr) return null;
+		if (ignoreNoAlbum && albumsArr.length < 1) return null;
 		const albums = await this.getArtistAlbumsToDTO(albumsArr);
-		if (!albums) return null;
+		if (!albums || (ignoreNoAlbum && albums.length < 1)) return null;
 		return {
 			id: artist.id.toString(),
 			name: artist.name,
@@ -135,10 +137,9 @@ export class ArtistsService {
 			populate: ['albumsCollection.coverAttachment', 'profilePic'],
 		});
 		const limit = pLimit(10);
-
 		const promises = rawArtists.map((artist) =>
 			limit(async () => {
-				return this.getArtistInfo(artist);
+				return this.getArtistInfo(artist, true);
 			}),
 		);
 
