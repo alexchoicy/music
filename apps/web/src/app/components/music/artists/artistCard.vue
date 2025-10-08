@@ -25,8 +25,13 @@ const clickCard = (id: string) => {
                     class="w-full h-full object-cover" />
                 <User v-else class="w-full h-full text-muted-foreground" />
             </div>
-            <div class="space-y-1 text-center">
+            <div class="space-y-1 text-center pt-2">
                 <h3 class="truncate">{{ artist.name }}</h3>
+            </div>
+            <div class="text-center mt-2">
+                <Badge variant="secondary" class="bg-black/60 text-white border-0 backdrop-blur-sm">
+                    {{ artist.artistType }}
+                </Badge>
             </div>
         </CardContent>
     </Card>
