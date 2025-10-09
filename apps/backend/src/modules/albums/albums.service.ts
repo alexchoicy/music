@@ -25,7 +25,7 @@ export class AlbumsService {
 	private async getCoverDataUrl(id: string, fileType?: string | null) {
 		if (!fileType) return null;
 		const ext = mime.getExtension(fileType) || '';
-		return this.storageService.getAlbumCoverDataUrl(id, ext);
+		return this.storageService.staticContent.getAlbumCoverDataUrl(id, ext);
 	}
 
 	private async getAlbumStats(album: Albums) {
@@ -178,7 +178,7 @@ export class AlbumsService {
 
 			for (const quality of albumTrack.track.trackQualityCollection) {
 				const parsedQuality = {
-					url: await this.storageService.getMusicDataUrl(
+					url: await this.storageService.audio.getMusicDataUrl(
 						quality.hash,
 						quality.type,
 						getMusicExt(quality.fileContainer, quality.fileCodec) ||

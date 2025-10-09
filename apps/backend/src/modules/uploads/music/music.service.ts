@@ -16,7 +16,6 @@ import {
 } from '#database/entities/trackQuality.js';
 import mime from 'mime';
 import { UploadAlbum, UploadDisc, UploadMusic } from '@music/api/type/music';
-import type { ArtistType } from '@music/api/type/music';
 
 @Injectable()
 export class MusicService {
@@ -38,8 +37,7 @@ export class MusicService {
 		if (!albumArtist) {
 			const newArtist = tem.create(Artists, {
 				name: name,
-				artistType:
-					(uploadMusicInit.artistsType as ArtistType) || 'person',
+				artistType: uploadMusicInit.artistsType || 'person',
 			});
 			await tem.persistAndFlush(newArtist);
 			albumArtist = newArtist;
@@ -69,7 +67,7 @@ export class MusicService {
 
 				const buffer = Buffer.from(coverImage.data, 'base64');
 
-				this.storageService.saveCoverImage(
+				this.storageService.staticContent.saveCoverImage(
 					newAttachment.id.toString(),
 					buffer,
 					mime.getExtension(coverImage.format) || 'jpg',
@@ -193,7 +191,7 @@ export class MusicService {
 							trackHash: music.hash,
 							storedTrackID: track.id.toString(),
 							uploadUrl:
-								await this.storageService.createPresignedMusicUploadUrl(
+								await this.storageService.audio.createPresignedMusicUploadUrl(
 									album.id.toString(),
 									track.id.toString(),
 								),

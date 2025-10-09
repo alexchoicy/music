@@ -11,7 +11,10 @@ export class MediaService {
 	private readonly libraryDir: string;
 
 	constructor(private readonly config: ConfigService) {
-		if (config.get('appConfig.storage.type') !== 'local') {
+		if (
+			config.get('appConfig.storage.type.audio.provider') !== 'local' &&
+			config.get('appConfig.storage.type.static.provider') !== 'local'
+		) {
 			throw new BadRequestException(
 				'LocalService can only be used with local storage',
 			);

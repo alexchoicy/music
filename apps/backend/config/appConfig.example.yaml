@@ -1,22 +1,41 @@
 app:
-  init: false
-  maintain: false
-  library:
-    import_mode: copy # copy or symlink for music in old library
+    init: true
+    maintain: false
+    public_base_api_url: # when local applied
+    public_data_url: # when s3 applied, used generate urls for accessing media
 
 storage:
-  old_library_dir: '' # your old library directory
-  library_dir: '' # A directory that used for the services
-  cache_dir: ''
+    type:
+        audio:
+            provider: local # local | s3
+            bucket: ''
+        static:
+            provider: s3 # local | s3
+            bucket: ''
+    library_dir: # for local storage
+    cache_dir: # for local storage for cache storage. deleted later
+    #s3 sdk
+    s3: # used for generate presigned urls
+        region: 'auto'
+        endpoint: ''
 
-# location you install ffmpeg & ffprobe
-# nochange if set system enviroment path
+# not used yet
 ffmpeg:
-  ffmpeg_path: ffmpeg
-  ffprobe_path: ffprobe
+    ffmpeg_path: ffmpeg
+    ffprobe_path: ffprobe
 
-# not implemented yet tehe
-backup:
-  directory: ''
-  frequency: 'daily'
-  retention: '5d'
+security:
+    token:
+        # change to your domain
+        issuer: 'http://localhost'
+        audience: 'music-app'
+    cookies:
+        # change to your domain
+        domain: 'localhost'
+    cors:
+        enabled: true
+        # add your domain
+        origin:
+            - http://localhost:3000
+            - http://localhost:3100
+            - http://localhost:5000
