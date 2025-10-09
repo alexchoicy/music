@@ -20,7 +20,7 @@ export class LocalService {
 		private readonly config: ConfigService,
 	) {
 		if (
-			config.get('appConfig.storage.type.audio.provider') !== 'local' ||
+			config.get('appConfig.storage.type.audio.provider') !== 'local' &&
 			config.get('appConfig.storage.type.static.provider') !== 'local'
 		) {
 			throw new BadRequestException(

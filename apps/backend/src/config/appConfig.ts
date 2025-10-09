@@ -11,6 +11,7 @@ export enum StorageOptions {
 
 const storageProvider = z.object({
 	provider: z.enum(StorageOptions).default(StorageOptions.Local),
+	bucket: z.string().optional(),
 });
 
 export const storageConfig = z
@@ -51,6 +52,26 @@ export const storageConfig = z
 			data.type.audio.provider === StorageOptions.S3 ||
 			data.type.static.provider === StorageOptions.S3
 		) {
+			if (
+				data.type.audio.provider === StorageOptions.S3 &&
+				!data.type.audio.bucket
+			) {
+				ctx.addIssue({
+					code: 'custom',
+					message: 'bucket is needed',
+				});
+			}
+
+			if (
+				data.type.static.provider === StorageOptions.S3 &&
+				!data.type.static.bucket
+			) {
+				ctx.addIssue({
+					code: 'custom',
+					message: 'bucket is needed',
+				});
+			}
+
 			if (!data.s3?.endpoint || !data.s3?.region) {
 				ctx.addIssue({
 					code: 'custom',
@@ -58,12 +79,12 @@ export const storageConfig = z
 						's3.endpoint and s3.region are required when storage type is s3',
 				});
 			}
-			const { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = process.env;
-			if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+			const { S3_ACCESS_KEY, S3_SECRET_ACCESS_KEY } = process.env;
+			if (!S3_ACCESS_KEY || !S3_SECRET_ACCESS_KEY) {
 				ctx.addIssue({
 					code: 'custom',
 					message:
-						'AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required when storage type is s3',
+						'S3_SECRET_ACCESS_KEY and S3_ACCESS_KEY are required when storage type is s3',
 				});
 			}
 		}

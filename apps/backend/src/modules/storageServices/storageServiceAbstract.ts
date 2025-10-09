@@ -27,7 +27,7 @@ export interface StaticStorageInterface {
 		attachmentID: string,
 		imageBuffer: Buffer,
 		ext: string,
-	): string;
+	): string | Promise<string>;
 }
 
 export abstract class StorageService {
@@ -53,6 +53,14 @@ export function getServices(config: ConfigService) {
 			audioStorageService = new LocalStorageService(config);
 			break;
 		case StorageOptions.S3:
+			if (
+				!process.env.S3_ACCESS_KEY ||
+				!process.env.S3_SECRET_ACCESS_KEY
+			) {
+				throw new Error(
+					's3 options need to setup S3_ACCESS_KEY and S3_SECRET_ACCESS_KEY in .env',
+				);
+			}
 			audioStorageService = new S3StorageService(config);
 			break;
 		default:
@@ -68,6 +76,14 @@ export function getServices(config: ConfigService) {
 			imageStorageService = new LocalStorageService(config);
 			break;
 		case StorageOptions.S3:
+			if (
+				!process.env.S3_ACCESS_KEY ||
+				!process.env.S3_SECRET_ACCESS_KEY
+			) {
+				throw new Error(
+					's3 options need to setup S3_ACCESS_KEY and S3_SECRET_ACCESS_KEY in .env',
+				);
+			}
 			imageStorageService = new S3StorageService(config);
 			break;
 		default:
