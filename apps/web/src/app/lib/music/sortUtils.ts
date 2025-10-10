@@ -68,7 +68,7 @@ export async function albumMapper(albums: UploadMusic[]) {
 
 export async function albumsSorter(allMusics: UploadMusic[]) {
   const albumMap = await albumMapper(allMusics);
-
+  let hasAlbumArtistDetected = false;
   const sortedAlbums = Array.from(albumMap.values());
 
   for (const sortedAlbum of sortedAlbums) {
@@ -86,6 +86,7 @@ export async function albumsSorter(allMusics: UploadMusic[]) {
       )[0]?.[0];
 
       if (mostFrequentArtist) {
+        hasAlbumArtistDetected = true;
         sortedAlbum.albumArtist = mostFrequentArtist;
         sortedAlbum.disc.forEach((disc: UploadDisc) => {
           disc.musics.forEach((music: UploadMusic) => {
@@ -113,8 +114,11 @@ export async function albumsSorter(allMusics: UploadMusic[]) {
       disc.musics.sort(albumMusicSorter)
     );
   }
-
-  return albumMapper(
-    sortedAlbums.flatMap((a) => a.disc.flatMap((d) => d.musics))
-  ).then((map) => Array.from(map.values()));
+  if (hasAlbumArtistDetected) {
+    return albumMapper(
+      sortedAlbums.flatMap((a) => a.disc.flatMap((d) => d.musics))
+    ).then((map) => Array.from(map.values()));
+  } else {
+    return sortedAlbums;
+  }
 }
