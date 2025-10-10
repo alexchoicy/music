@@ -10,6 +10,8 @@ const form = useForm({
     validationSchema: formSchema,
 });
 
+const ws = useWs();
+
 const errorMessage = ref<NuxtError | null>(null);
 
 const onFormSubmit = form.handleSubmit(async (values) => {
@@ -21,6 +23,7 @@ const onFormSubmit = form.handleSubmit(async (values) => {
                 password: values.password,
             },
         });
+        ws.open();
         await navigateTo("/");
     } catch (error: any) {
         errorMessage.value = error;

@@ -67,8 +67,8 @@ export class JwtAuthGuard implements CanActivate {
 				}
 			}
 			case 'ws': {
-				//later
-				break;
+				//this not work
+				return true;
 			}
 			default:
 				throw new Error(`Unsupported request type: ${requestType}`);

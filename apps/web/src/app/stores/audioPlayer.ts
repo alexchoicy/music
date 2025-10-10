@@ -4,6 +4,11 @@ import { parsePlayerPlayListFromPlaylist } from "~/lib/music/playerUtils";
 import type { AudioPlayerLocalStorage } from "~/types/audioPlayer";
 import { RepeatMode, type Playlist } from "~/types/playlist";
 
+import {
+  type WSMusicMessageClientPayloadType,
+  WSMusicAction,
+} from "@music/api/type/ws";
+
 export interface AudioPlayerList {
   playlistRef: string;
   trackid: string;
@@ -91,11 +96,22 @@ export const useAudioPlayer = defineStore("audioPlayer", {
     },
   },
   actions: {
+    sendWs(action: (typeof WSMusicAction)[number]) {
+      const ws = useWs();
+      const playload: WSMusicMessageClientPayloadType = {
+        action,
+        positionMs: this.currentTime,
+        trackID: this.currentTrack?.id,
+      };
+      ws.send(JSON.stringify({ event: "music", data: playload }));
+    },
     stopPlaying() {
       this.playing = false;
     },
     togglePlay() {
       this.playing = !this.playing;
+
+      this.sendWs(this.playing ? "play" : "pause");
     },
     upsert(list: AudioPlayerList[]) {
       this.queue.push(...list);
@@ -107,6 +123,10 @@ export const useAudioPlayer = defineStore("audioPlayer", {
     },
     setCurrentTime(time: number) {
       this.currentTime = time;
+    },
+    manualSetCurrentTime(time: number) {
+      this.currentTime = time;
+      this.sendWs("changeTime");
     },
     setVolume(volume: number) {
       this.volume = volume;
@@ -170,10 +190,12 @@ export const useAudioPlayer = defineStore("audioPlayer", {
             this.playing = false;
           }
       }
+      this.sendWs("change");
     },
     manualNext() {
       if (this.isShuffling) {
         this.shufflePlay();
+        this.sendWs("change");
         return;
       }
       if (this.hasNext) {
@@ -182,6 +204,8 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       } else {
         this.playing = false;
       }
+
+      this.sendWs("change");
     },
     manualPrevious() {
       if (this.isShuffling) {
@@ -194,6 +218,7 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       } else {
         this.playing = false;
       }
+      this.sendWs("change");
     },
     clear() {
       this.playing = false;
@@ -213,6 +238,7 @@ export const useAudioPlayer = defineStore("audioPlayer", {
 
       this.upsert(parsePlayerPlayListFromPlaylist(playlist));
       this.playing = true;
+      this.sendWs("play");
     },
     playWithListIndex(playlist: Playlist, index: number, clear = true) {
       if (clear) this.clear();
@@ -223,6 +249,7 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       this.upsert(parsePlayerPlayListFromPlaylist(playlist));
       this.setPlayIndex(index);
       this.playing = true;
+      this.sendWs("play");
     },
     initFromLocalStorage() {
       if (typeof window === "undefined") return;

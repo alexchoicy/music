@@ -41,7 +41,7 @@ const runPlay = async () => {
     if (!audioElement.value) return;
     const src = audioPlayer.getPlayUrl;
     if (!src) {
-        audioPlayer.manualNext();
+        audioPlayer.next();
         return;
     }
 
@@ -90,7 +90,7 @@ const sliderDuration = computed({
         if (!duration || !val || val[0] == null) return;
         const percent = Math.min(100, Math.max(0, val[0]));
         const newTimeMs = duration * (percent / 100);
-        audioPlayer.setCurrentTime(newTimeMs);
+        audioPlayer.manualSetCurrentTime(newTimeMs);
         if (audioElement.value) {
             audioElement.value.currentTime = newTimeMs / 1000;
         }
