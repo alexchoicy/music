@@ -5,12 +5,39 @@ import { Play, FolderDown, User, Users, DiscAlbum } from 'lucide-vue-next';
 import { parsePlaylistFromAlbumDetail } from '~/lib/music/playerUtils';
 import { getMusicExt } from "@music/api/lib/musicUtil";
 
+definePageMeta({
+    bot: true,
+});
+
 const id = useRoute().params.id as string;
 
 const audioPlayer = useAudioPlayer();
 
-const { data: album } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
-    method: 'GET',
+const bot = useIsBot();
+
+const { data: album } = await useAsyncData<AlbumDetailResponse>(
+    `albums-${id}`,
+    async () => {
+        if (import.meta.server && bot) {
+            return await $fetch<AlbumDetailResponse>(`/api/music/albums/${id}`, {
+                method: 'GET',
+            })
+        } else {
+            const { data } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
+                method: 'GET',
+            });
+            return data.value as AlbumDetailResponse;
+        }
+    },
+    { server: true }
+)
+
+useSeoMeta({
+    title: album.value?.name || 'Album',
+    description: `${album.value?.name} by ${album.value?.mainArtist.name}`,
+    ogTitle: album.value?.name || 'Album',
+    ogDescription: `${album.value?.name} by ${album.value?.mainArtist.name}`,
+    ogImage: album.value?.cover || undefined,
 });
 
 const onClickArtist = (artistId: string) => {
@@ -64,8 +91,10 @@ const downloadFile = async (url: string, filename: string) => {
 </script>
 
 <template>
-    <div v-if="album">
-        <div class="flex gap-8 mb-8 justify-center">
+    <NuxtLayout v-if="bot">
+    </NuxtLayout>
+    <div v-if="album && !bot">
+        <div class=" flex gap-8 mb-8 justify-center">
             <div class="flex-shrink-0">
                 <div class="w-64 h-64 rounded-xl overflow-hidden">
                     <img v-if="album.cover" :src="album.cover" class="w-full h-full object-cover" />

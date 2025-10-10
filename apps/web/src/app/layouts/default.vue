@@ -2,10 +2,18 @@
 import Sidebar from '~/components/layouts/sidebar.vue';
 import AudioPlayer from '~/components/music/audioPlayer.vue';
 
+const isBot = useIsBot();
+
 </script>
 
 <template>
-    <TooltipProvider>
+    <div v-if="isBot">
+        <slot />
+        <div>
+            <p>You are a bot</p>
+        </div>
+    </div>
+    <TooltipProvider v-else>
         <SidebarProvider>
             <Sidebar />
             <SidebarInset>

@@ -6,6 +6,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     JWKS_URL: process.env.NUXT_JWKS_URL,
+    //used for openGraph or things
+    BACKEND_TOKEN: process.env.BACKEND_TOKEN,
     public: {
       apiBase: "",
     },

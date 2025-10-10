@@ -1,11 +1,37 @@
 <script setup lang="ts">
 import type { Artist } from "@music/api/dto/artist.dto";
 import { User } from "lucide-vue-next";
-
 const id = useRoute().params.id as string;
 
-const { data } = await useAPI<Artist>(`/artists/${id}`, {
-    method: 'GET',
+definePageMeta({
+    bot: true,
+});
+
+const bot = useIsBot();
+
+const { data } = await useAsyncData<Artist>(
+    `artist-${id}`,
+    async () => {
+        if (import.meta.server) {
+            return await $fetch<Artist>(`/api/music/artists/${id}`, {
+                method: 'GET',
+            });
+        } else {
+            const { data } = await useAPI<Artist>(`/artists/${id}`, {
+                method: 'GET',
+            });
+            return data.value as Artist;
+        }
+    },
+    { server: true }
+)
+
+useSeoMeta({
+    title: data.value?.name || 'Artist',
+    description: data.value?.name,
+    ogTitle: data.value?.name || 'Artist',
+    ogDescription: data.value?.name,
+    ogImage: data.value?.image || data.value?.albums[0]?.cover || undefined,
 });
 
 const tab = [
@@ -36,7 +62,9 @@ const featuredInOnly = computed(() =>
 </script>
 
 <template>
-    <div v-if="data">
+    <NuxtLayout v-if="bot">
+    </NuxtLayout>
+    <div v-if="data && !bot">
         <div class="relative h-[400px] w-full overflow-hidden bg-gradient-to-b from-purple-700 to-background">
             <div class="absolute inset-0">
                 <img v-if="data.albums[0]?.cover" :src="data.albums[0].cover" alt="Artist Image"
