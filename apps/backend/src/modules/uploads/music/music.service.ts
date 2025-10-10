@@ -67,7 +67,7 @@ export class MusicService {
 
 				const buffer = Buffer.from(coverImage.data, 'base64');
 
-				this.storageService.staticContent.saveCoverImage(
+				await this.storageService.staticContent.saveCoverImage(
 					newAttachment.id.toString(),
 					buffer,
 					mime.getExtension(coverImage.format) || 'jpg',
