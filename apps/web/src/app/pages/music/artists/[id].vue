@@ -7,31 +7,24 @@ definePageMeta({
     bot: true,
 });
 
+const { data: meta } = await useAPI<{ artist: string; cover: string | null }>(`/artists/${id}/meta`, {
+    server: true,
+})
+
 const bot = useIsBot();
 
-const { data } = await useAsyncData<Artist>(
-    `artist-${id}`,
-    async () => {
-        if (import.meta.server) {
-            return await $fetch<Artist>(`/api/music/artists/${id}`, {
-                method: 'GET',
-            });
-        } else {
-            const { data } = await useAPI<Artist>(`/artists/${id}`, {
-                method: 'GET',
-            });
-            return data.value as Artist;
-        }
-    },
-    { server: true }
-)
 
 useSeoMeta({
-    title: data.value?.name || 'Artist',
-    description: data.value?.name,
-    ogTitle: data.value?.name || 'Artist',
-    ogDescription: data.value?.name,
-    ogImage: data.value?.image || data.value?.albums[0]?.cover || undefined,
+    title: meta.value?.artist || 'Artist',
+    description: meta.value?.artist || 'Artist',
+    ogTitle: meta.value?.artist || 'Artist',
+    ogDescription: meta.value?.artist || 'Artist',
+    ogImage: meta.value?.cover || undefined,
+});
+
+const { data } = await useAPI<Artist>(`/artists/${id}`, {
+    method: 'GET',
+    server: false,
 });
 
 const tab = [

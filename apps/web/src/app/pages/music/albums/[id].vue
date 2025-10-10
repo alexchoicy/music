@@ -15,29 +15,23 @@ const audioPlayer = useAudioPlayer();
 
 const bot = useIsBot();
 
-const { data: album } = await useAsyncData<AlbumDetailResponse>(
-    `albums-${id}`,
-    async () => {
-        if (import.meta.server && bot) {
-            return await $fetch<AlbumDetailResponse>(`/api/music/albums/${id}`, {
-                method: 'GET',
-            })
-        } else {
-            const { data } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
-                method: 'GET',
-            });
-            return data.value as AlbumDetailResponse;
-        }
-    },
-    { server: true }
-)
+const { data: meta } = await useAPI<{ artist: string; cover: string | null, name: string }>(`/albums/${id}/meta`, {
+    server: true,
+})
 
 useSeoMeta({
-    title: album.value?.name || 'Album',
-    description: `${album.value?.name} by ${album.value?.mainArtist.name}`,
-    ogTitle: album.value?.name || 'Album',
-    ogDescription: `${album.value?.name} by ${album.value?.mainArtist.name}`,
-    ogImage: album.value?.cover || undefined,
+    title: meta.value?.name || 'Album',
+    description: `${meta.value?.name} by ${meta.value?.artist}`,
+    ogTitle: meta.value?.name || 'Album',
+    ogDescription: `${meta.value?.name} by ${meta.value?.artist}`,
+    ogImage: meta.value?.cover || undefined,
+});
+
+
+
+const { data: album } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
+    method: 'GET',
+    server: false,
 });
 
 const onClickArtist = (artistId: string) => {
