@@ -9,6 +9,7 @@ import { IS_PUBLIC_KEY } from '#decorators/public.decorator.js';
 import { Request } from 'express';
 import { getAuthTokenFromCookies } from '#utils/auth/cookies.js';
 import { JWKSProvider } from '#modules/auth/issuer/jwks.provider.js';
+import { IS_ADMIN_KEY } from '#decorators/admin.decorator.js';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -38,6 +39,20 @@ export class JwtAuthGuard implements CanActivate {
 				}
 				try {
 					const valid = await this.jwksProvider.verifyToken(token);
+
+					const isAdminOnlyPath =
+						this.reflector.getAllAndOverride<boolean>(
+							IS_ADMIN_KEY,
+							[context.getHandler(), context.getClass()],
+						);
+
+					if (
+						isAdminOnlyPath &&
+						valid.payload.info.role !== 'admin'
+					) {
+						throw new UnauthorizedException('Admin role required');
+					}
+
 					request.user = {
 						type: valid.payload.type,
 						info: {

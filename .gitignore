@@ -81,3 +81,7 @@ dist
 docker/data/library/*
 !docker/data/library/.gitkeep
 !docker/data/cache/.gitignore
+
+# Docker Dir
+docker/.env.backend
+docker/.env.web
