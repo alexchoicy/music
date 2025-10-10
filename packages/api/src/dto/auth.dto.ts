@@ -12,7 +12,7 @@ export type UserRole = z.infer<typeof UserRolesSchema>;
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
 
 export interface JWTCustomPayload {
-  type: "access" | "refresh" | "api";
+  type: "access" | "refresh" | "machine";
   info: JWTCustomPayloadUserInfo;
 }
 

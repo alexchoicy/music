@@ -5,12 +5,33 @@ import { Play, FolderDown, User, Users, DiscAlbum } from 'lucide-vue-next';
 import { parsePlaylistFromAlbumDetail } from '~/lib/music/playerUtils';
 import { getMusicExt } from "@music/api/lib/musicUtil";
 
+definePageMeta({
+    bot: true,
+});
+
 const id = useRoute().params.id as string;
 
 const audioPlayer = useAudioPlayer();
 
+const bot = useIsBot();
+
+const { data: meta } = await useAPI<{ artist: string; cover: string | null, name: string }>(`/albums/${id}/meta`, {
+    server: true,
+})
+
+useSeoMeta({
+    title: meta.value?.name || 'Album',
+    description: `${meta.value?.name} by ${meta.value?.artist}`,
+    ogTitle: meta.value?.name || 'Album',
+    ogDescription: `${meta.value?.name} by ${meta.value?.artist}`,
+    ogImage: meta.value?.cover || undefined,
+});
+
+
+
 const { data: album } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
     method: 'GET',
+    server: false,
 });
 
 const onClickArtist = (artistId: string) => {
@@ -64,8 +85,10 @@ const downloadFile = async (url: string, filename: string) => {
 </script>
 
 <template>
-    <div v-if="album">
-        <div class="flex gap-8 mb-8 justify-center">
+    <NuxtLayout v-if="bot">
+    </NuxtLayout>
+    <div v-if="album && !bot">
+        <div class=" flex gap-8 mb-8 justify-center">
             <div class="flex-shrink-0">
                 <div class="w-64 h-64 rounded-xl overflow-hidden">
                     <img v-if="album.cover" :src="album.cover" class="w-full h-full object-cover" />

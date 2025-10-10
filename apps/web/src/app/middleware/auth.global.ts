@@ -9,17 +9,34 @@ function isPublicRoute(to: ReturnType<typeof useRoute>) {
     authUser.value = user;
   }
 
-  if (to.meta.public === true) return true;
-  return false;
+  return to.meta.public === true;
+}
+
+function isBotAgent(userAgent: string) {
+  const botUserAgents = ["Discordbot"];
+  return botUserAgents.some((botAgent) => userAgent.includes(botAgent));
 }
 
 export default defineNuxtRouteMiddleware(async (to) => {
   if (isPublicRoute(to)) return;
+  const event = useRequestEvent();
+
+  const userAgent =
+    event?.headers.get("user-agent") ||
+    event?.node.req.headers["user-agent"] ||
+    "";
+  console.log("User-Agent:", userAgent);
+
+  const isBot = useIsBot();
+
+  if (isBotAgent(userAgent) && to.meta.bot === true) {
+    isBot.value = true;
+    return;
+  }
 
   const authUser = useAuthUser();
 
   if (import.meta.server) {
-    const event = useRequestEvent();
     const user = event?.context?.user ?? null;
     authUser.value = user;
     if (!user) {

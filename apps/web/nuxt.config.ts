@@ -6,6 +6,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     JWKS_URL: process.env.NUXT_JWKS_URL,
+    //used for openGraph or things
     public: {
       apiBase: "",
     },

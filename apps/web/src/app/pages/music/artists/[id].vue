@@ -1,11 +1,30 @@
 <script setup lang="ts">
 import type { Artist } from "@music/api/dto/artist.dto";
 import { User } from "lucide-vue-next";
-
 const id = useRoute().params.id as string;
+
+definePageMeta({
+    bot: true,
+});
+
+const { data: meta } = await useAPI<{ artist: string; cover: string | null }>(`/artists/${id}/meta`, {
+    server: true,
+})
+
+const bot = useIsBot();
+
+
+useSeoMeta({
+    title: meta.value?.artist || 'Artist',
+    description: meta.value?.artist || 'Artist',
+    ogTitle: meta.value?.artist || 'Artist',
+    ogDescription: meta.value?.artist || 'Artist',
+    ogImage: meta.value?.cover || undefined,
+});
 
 const { data } = await useAPI<Artist>(`/artists/${id}`, {
     method: 'GET',
+    server: false,
 });
 
 const tab = [
@@ -36,7 +55,9 @@ const featuredInOnly = computed(() =>
 </script>
 
 <template>
-    <div v-if="data">
+    <NuxtLayout v-if="bot">
+    </NuxtLayout>
+    <div v-if="data && !bot">
         <div class="relative h-[400px] w-full overflow-hidden bg-gradient-to-b from-purple-700 to-background">
             <div class="absolute inset-0">
                 <img v-if="data.albums[0]?.cover" :src="data.albums[0].cover" alt="Artist Image"

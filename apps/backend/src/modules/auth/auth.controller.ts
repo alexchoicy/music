@@ -1,14 +1,13 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 import { JWKSProvider } from './issuer/jwks.provider.js';
 import { LoginRequestDTO } from '#types/dto/auth.dto.js';
 import { setAuthCookies } from '#utils/auth/cookies.js';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { Public } from '#decorators/public.decorator.js';
 import { JWTCustomPayload } from '@music/api/dto/auth.dto';
 import { ConfigService } from '@nestjs/config/dist/index.js';
 
-@Public()
 @Controller('auth')
 export class AuthController {
 	constructor(
@@ -17,6 +16,7 @@ export class AuthController {
 		private readonly configService: ConfigService,
 	) {}
 
+	@Public()
 	@Post('login')
 	async login(
 		@Res({ passthrough: true }) res: Response,
@@ -44,5 +44,23 @@ export class AuthController {
 		);
 
 		return { token };
+	}
+
+	@Get('machineToken')
+	async getMachineToken(@Req() req: Request) {
+		const userInfo = req.user;
+
+		if (!userInfo || userInfo.type === 'machine') {
+			throw new Error('Unauthorized');
+		}
+
+		const payload: JWTCustomPayload = {
+			type: 'machine',
+			info: { uid: userInfo.info.uid, role: userInfo.info.role },
+		};
+
+		const token = await this.jwksProvider.signAccessToken(payload);
+
+		return token;
 	}
 }
