@@ -42,7 +42,6 @@ export class wsEventsGateway
 			const name = rawName.trim();
 			if (name === 'music_auth_token') {
 				const value = rawVal.join('=').trim();
-				console.log('found token in cookie:', value);
 				return value;
 			}
 		}
@@ -51,7 +50,6 @@ export class wsEventsGateway
 
 	private getToken(message: IncomingMessage): string {
 		if (message.headers.authorization?.startsWith('Bearer ')) {
-			console.log('found token in auth header');
 			return message.headers.authorization.substring(7);
 		}
 		return this.parseCookieAuth(message.headers.cookie);
