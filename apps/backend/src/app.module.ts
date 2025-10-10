@@ -21,6 +21,7 @@ import { UploadsModule } from '#modules/uploads/uploads.module.js';
 import { AlbumsModule } from '#modules/albums/albums.module.js';
 import { MediaModule } from '#modules/media/media.module.js';
 import { ArtistsModule } from '#modules/artists/artists.module.js';
+import { MigrationsModule } from '#modules/migrations/migrations.module.js';
 
 @Module({
 	imports: [
@@ -43,6 +44,7 @@ import { ArtistsModule } from '#modules/artists/artists.module.js';
 		AlbumsModule,
 		MediaModule,
 		ArtistsModule,
+		MigrationsModule,
 	],
 	controllers: [BaseController],
 	providers: [
