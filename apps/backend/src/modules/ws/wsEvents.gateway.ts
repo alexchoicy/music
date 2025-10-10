@@ -144,7 +144,14 @@ export class wsEventsGateway
 				}
 			} else if (client.user.type === 'machine') {
 				const uid = client.user.info.uid;
+
+				client.once('close', () => {
+					const current = this.machineRoom.get(uid);
+					if (current === client) this.machineRoom.delete(uid);
+				});
+
 				const existing = this.machineRoom.get(uid);
+
 				if (existing && existing !== client) {
 					existing.terminate();
 				}
@@ -159,6 +166,9 @@ export class wsEventsGateway
 	handleDisconnect(client: WebSocket) {
 		if (!client.user) return;
 		try {
+			if (client.user.type === 'machine') {
+				return;
+			}
 			const room = this.clientRoom.get(client.user.info.uid);
 			if (room) {
 				room.members.delete(client);
