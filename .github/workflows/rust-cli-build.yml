@@ -8,6 +8,7 @@ on:
       - "desktop/packages/**"
     tags:
       - "v*.*.*"
+      - "presence_cli@v*.*.*"
   workflow_dispatch:
 
 # from tauri example

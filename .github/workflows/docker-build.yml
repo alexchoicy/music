@@ -8,6 +8,8 @@ on:
       - "packages/**"
     tags:
       - "v*.*.*"
+      - "api@v*.*.*"
+      - "backend@v*.*.*"
   pull_request:
     types: [opened, synchronize, reopened, labeled]
     paths:
