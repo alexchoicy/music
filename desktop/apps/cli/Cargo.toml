@@ -1,0 +1,9 @@
+[package]
+name = "music_presence_cli"
+version = "1.0.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "signal"] }
+dotenvy = "0.15.7"
+music_presence = { path = "../../packages/presence" }

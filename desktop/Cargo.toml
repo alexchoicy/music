@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "apps/cli",
+    "packages/presence"
+]
+resolver = "3"
