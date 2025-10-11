@@ -6,6 +6,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface.js';
 import { ConfigService } from '@nestjs/config';
+import { WsAdapter } from '@nestjs/platform-ws';
 
 // BigInt JSON serialization
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -29,6 +30,8 @@ async function bootstrap() {
 	app.enableCors(corsOptions);
 
 	app.use(cookieParser());
+
+	app.useWebSocketAdapter(new WsAdapter(app));
 
 	app.useBodyParser('json', { limit: '1gb' });
 

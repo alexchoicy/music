@@ -25,7 +25,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
     event?.headers.get("user-agent") ||
     event?.node.req.headers["user-agent"] ||
     "";
-  console.log("User-Agent:", userAgent);
 
   const isBot = useIsBot();
 

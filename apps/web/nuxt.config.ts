@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     JWKS_URL: process.env.NUXT_JWKS_URL,
     //used for openGraph or things
     public: {
+      WS_URL: "",
       apiBase: "",
     },
   },

@@ -22,6 +22,8 @@ import { AlbumsModule } from '#modules/albums/albums.module.js';
 import { MediaModule } from '#modules/media/media.module.js';
 import { ArtistsModule } from '#modules/artists/artists.module.js';
 import { MigrationsModule } from '#modules/migrations/migrations.module.js';
+import { wsEventsModule } from './modules/ws/wsEvents.module.js';
+import { TracksModule } from '#modules/tracks/tracks.module.js';
 
 @Module({
 	imports: [
@@ -45,6 +47,8 @@ import { MigrationsModule } from '#modules/migrations/migrations.module.js';
 		MediaModule,
 		ArtistsModule,
 		MigrationsModule,
+		wsEventsModule,
+		TracksModule,
 	],
 	controllers: [BaseController],
 	providers: [
