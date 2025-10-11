@@ -71,7 +71,7 @@ impl PresenceClient {
                 Ok(Message::Text(txt)) => match serde_json::from_str::<WSMessage>(&txt) {
                     Ok(ws_msg) => match ws_msg {
                         WSMessage::Music(payload) => {
-                            Self::on_music_request(&self, &payload).await;
+                            Self::on_music_request(self, &payload).await;
                         }
                         WSMessage::Others() => {
                             println!("Received other type of message");
@@ -114,16 +114,15 @@ impl PresenceClient {
                 let current_id = Self::get_state_data(&ctx.state).map(|t| t.track_id);
 
                 let needs_fetch = current_id.as_deref() != Some(&payload.track_id);
-                if needs_fetch {
-                    if let Some(td) = get_track_data(ctx, &payload.track_id).await {
-                        Self::save_state_data(&ctx.state, td);
-                    }
+                if needs_fetch && let Some(td) = get_track_data(ctx, &payload.track_id).await {
+                    Self::save_state_data(&ctx.state, td);
                 }
                 if let Some(td) = Self::get_state_data(&ctx.state) {
                     let time_stamp =
                         get_time_stamp(payload.position_ms, payload.server_time, td.duration);
+
                     let mut client = ctx.discord.lock().unwrap();
-                    display_discord(&mut client, &td, time_stamp).await;
+                    display_discord(&mut client, &td, time_stamp);
                 }
             }
             WSMusicAction::Pause => {
@@ -143,7 +142,7 @@ impl PresenceClient {
                             saved_td.duration,
                         );
                         let mut client = ctx.discord.lock().unwrap();
-                        display_discord(&mut client, &saved_td, time_stamp).await;
+                        display_discord(&mut client, &saved_td, time_stamp);
                     }
                 }
             }
@@ -152,7 +151,7 @@ impl PresenceClient {
                     let time_stamp =
                         get_time_stamp(payload.position_ms, payload.server_time, td.duration);
                     let mut client = ctx.discord.lock().unwrap();
-                    display_discord(&mut client, &td, time_stamp).await;
+                    display_discord(&mut client, &td, time_stamp);
                 }
             }
         }

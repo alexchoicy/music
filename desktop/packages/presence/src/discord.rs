@@ -5,7 +5,7 @@ use discord_presence::{
 
 use crate::types::TrackData;
 
-pub async fn display_discord(
+pub fn display_discord(
     discord_client: &mut DiscordClient,
     track_data: &TrackData,
     position: ActivityTimestamps,
