@@ -11,7 +11,7 @@ import {
 	Property,
 } from '@mikro-orm/core';
 import { hash, verify } from 'argon2';
-import { WebAuth } from './auths.js';
+import { WebAuth } from './webauth.js';
 import { type UserRole, UserRolesSchema } from '@music/api/dto/auth.dto';
 
 @Entity()

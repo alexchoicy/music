@@ -85,3 +85,6 @@ docker/data/library/*
 # Docker Dir
 docker/.env.backend
 docker/.env.web
+
+# Mikro-orm
+apps/backend/src/database/migrations/.snapshot-*

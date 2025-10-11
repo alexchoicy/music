@@ -3,6 +3,7 @@ import type { NuxtError } from "#app";
 import { LoginRequestSchema } from "@music/api/dto/auth.dto"
 import { toTypedSchema } from "@vee-validate/zod"
 import { useForm } from "vee-validate"
+import { startAuthentication, type PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/browser';
 
 const formSchema = toTypedSchema(LoginRequestSchema);
 
@@ -29,6 +30,30 @@ const onFormSubmit = form.handleSubmit(async (values) => {
         errorMessage.value = error;
     }
 })
+
+const startWebAuthLogin = async (e: Event) => {
+    e.preventDefault();
+    const options = await useNuxtApp().$backend<PublicKeyCredentialRequestOptionsJSON>('/auth/webauth/options-authentication');
+
+    let asseResp;
+    try {
+        asseResp = await startAuthentication({ optionsJSON: options })
+    } catch (err) {
+        console.error(err);
+        return;
+    }
+
+    const verificationResp = await useNuxtApp().$backend<{ verified: boolean }>('/auth/webauth/verify-authentication', {
+        method: "POST",
+        body: asseResp,
+    });
+
+    if (verificationResp.verified) {
+        ws.open();
+        await navigateTo("/");
+    }
+}
+
 </script>
 
 <template>
@@ -68,9 +93,12 @@ const onFormSubmit = form.handleSubmit(async (values) => {
                     </p>
                 </CardFooter>
             </CardContent>
-            <CardFooter>
+            <CardFooter class="flex flex-col gap-2 p-6 pt-0">
                 <Button class="w-full">
                     Login
+                </Button>
+                <Button variant="outline" class="w-full" @click="startWebAuthLogin">
+                    WebAuthhhhh PassKeyyyyyyyyyy
                 </Button>
             </CardFooter>
         </form>
