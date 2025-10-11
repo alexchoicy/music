@@ -1,0 +1,30 @@
+name: Rust CI
+
+on:
+  pull_request:
+    paths:
+      - "desktop/apps/cli/**"
+      - "desktop/packages/**"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Build workspace
+        run: cargo build --workspace --all-targets --locked
+
+    #   - name: Run tests
+    #     run: cargo test --workspace --all-targets
