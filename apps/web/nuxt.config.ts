@@ -4,6 +4,10 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   telemetry: true,
 
+  app: {
+    head: { link: [{ rel: "icon", type: "image/svg+xml", href: "/icon.svg" }] },
+  },
+
   runtimeConfig: {
     JWKS_URL: process.env.NUXT_JWKS_URL,
     //used for openGraph or things
