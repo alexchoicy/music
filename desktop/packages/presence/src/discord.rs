@@ -36,7 +36,7 @@ pub fn get_time_stamp(position: f64, server_time: u64, duration: u64) -> Activit
         .expect("system time before UNIX EPOCH")
         .as_millis() as u64;
     let latency = now.saturating_sub(server_time);
-    let fixed_position = position - latency as f64;
+    let fixed_position = position + latency as f64;
     let start_time = now.saturating_sub(fixed_position as u64);
     ActivityTimestamps::new()
         .start(start_time)
