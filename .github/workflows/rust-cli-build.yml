@@ -49,7 +49,7 @@ jobs:
         run: cargo build --package music_presence_cli --release --locked
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.binary }}-${{ matrix.platform }}
           path: desktop/target/release/${{ matrix.binary }}
@@ -62,7 +62,7 @@ jobs:
       contents: write
     steps:
       - name: Download artifact for ubuntu
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           path: dist
 
