@@ -25,9 +25,10 @@ export async function flattenAlbums(albums: UploadAlbum[]) {
   return allMusics;
 }
 
-export async function albumsSorter(allMusics: UploadMusic[]) {
+// this is bad any smarter people
+export async function albumMapper(albums: UploadMusic[]) {
   const albumMap = new Map<string, UploadAlbum>();
-  for (const music of allMusics) {
+  for (const music of albums) {
     const albumHash = await getAlbumHash(music.album + music.albumArtist);
     if (!albumMap.has(albumHash)) {
       albumMap.set(albumHash, {
@@ -62,7 +63,12 @@ export async function albumsSorter(allMusics: UploadMusic[]) {
       album.NoOfTracks += 1;
     }
   }
+  return albumMap;
+}
 
+export async function albumsSorter(allMusics: UploadMusic[]) {
+  const albumMap = await albumMapper(allMusics);
+  let hasAlbumArtistDetected = false;
   const sortedAlbums = Array.from(albumMap.values());
 
   for (const sortedAlbum of sortedAlbums) {
@@ -80,6 +86,7 @@ export async function albumsSorter(allMusics: UploadMusic[]) {
       )[0]?.[0];
 
       if (mostFrequentArtist) {
+        hasAlbumArtistDetected = true;
         sortedAlbum.albumArtist = mostFrequentArtist;
         sortedAlbum.disc.forEach((disc: UploadDisc) => {
           disc.musics.forEach((music: UploadMusic) => {
@@ -107,5 +114,11 @@ export async function albumsSorter(allMusics: UploadMusic[]) {
       disc.musics.sort(albumMusicSorter)
     );
   }
-  return sortedAlbums;
+  if (hasAlbumArtistDetected) {
+    return albumMapper(
+      sortedAlbums.flatMap((a) => a.disc.flatMap((d) => d.musics))
+    ).then((map) => Array.from(map.values()));
+  } else {
+    return sortedAlbums;
+  }
 }
