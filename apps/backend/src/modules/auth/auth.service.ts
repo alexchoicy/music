@@ -13,6 +13,8 @@ import {
 	RegistrationResponseJSON,
 	verifyAuthenticationResponse,
 	verifyRegistrationResponse,
+	type PublicKeyCredentialRequestOptionsJSON,
+	type PublicKeyCredentialCreationOptionsJSON,
 } from '@simplewebauthn/server';
 import { WebAuth } from '#database/entities/webauth.js';
 
@@ -106,11 +108,11 @@ export class AuthService {
 		} catch (error) {
 			console.error(error);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-			return new BadRequestException({ error: error.message });
+			throw new BadRequestException({ error: error.message });
 		}
 
 		if (!verification.verified) {
-			return new BadRequestException({ error: 'Verification failed' });
+			throw new BadRequestException({ error: 'Verification failed' });
 		}
 		const { verified, registrationInfo } = verification;
 

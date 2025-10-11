@@ -17,6 +17,7 @@ import type {
 	RegistrationResponseJSON,
 	PublicKeyCredentialCreationOptionsJSON,
 	AuthenticationResponseJSON,
+	PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/server';
 
 declare module 'express-session' {
