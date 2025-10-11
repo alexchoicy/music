@@ -1,60 +1,47 @@
-import { watch } from "vue";
-import { useMagicKeys, onKeyStroke } from "@vueuse/core";
-import { useAudioPlayer } from "@/stores/audioPlayer";
+import { watch, computed } from "vue";
+import { useMagicKeys, onKeyStroke, useActiveElement } from "@vueuse/core";
 
 export function usePlayerHotkeys() {
   const player = useAudioPlayer();
 
+  const activeEl = useActiveElement();
+
+  const isFormFocused = computed(() => {
+    const t = activeEl.value as HTMLElement | null;
+    return (
+      t?.tagName === "INPUT" ||
+      t?.tagName === "TEXTAREA" ||
+      t?.isContentEditable
+    );
+  });
+
   const { ctrl_arrowleft, ctrl_arrowright, space } = useMagicKeys({
     passive: false,
-    onEventFired: (e) => {
-      const allowedCodes = new Set([
-        "Space",
-        "ArrowLeft",
-        "ArrowRight",
-        "ArrowUp",
-        "ArrowDown",
-      ]);
-      if (!allowedCodes.has(e.code)) return;
-
-      const target = e.target as HTMLElement | null;
-      const isFormElement =
-        target?.tagName === "INPUT" ||
-        target?.tagName === "TEXTAREA" ||
-        target?.isContentEditable;
-      if (!isFormElement) {
-        e.preventDefault();
-      }
-    },
   });
 
-  const stop = watch(space!, (pressed) => {
-    if (pressed) {
-      player.togglePlay();
-    }
-  });
+  const stopSpace = watch(
+    space!,
+    (pressed) => pressed && !isFormFocused.value && player.togglePlay()
+  );
+  const stopPrev = watch(
+    ctrl_arrowleft!,
+    (p) => p && !isFormFocused.value && player.manualPrevious()
+  );
+  const stopNext = watch(
+    ctrl_arrowright!,
+    (p) => p && !isFormFocused.value && player.manualNext()
+  );
 
-  const prev = watch(ctrl_arrowleft!, (pressed) => {
-    if (pressed) {
-      player.manualPrevious();
-    }
-  });
-
-  const next = watch(ctrl_arrowright!, (pressed) => {
-    if (pressed) {
-      player.manualNext();
-    }
-  });
-
-  const volUp = onKeyStroke(["ArrowUp"], (e) => {
+  const stopVolUp = onKeyStroke("ArrowUp", (e) => {
+    if (isFormFocused.value) return;
     e.preventDefault();
     player.setVolume(Math.min(1, player.volume + 0.05));
   });
-
-  const volDown = onKeyStroke(["ArrowDown"], (e) => {
+  const stopVolDown = onKeyStroke("ArrowDown", (e) => {
+    if (isFormFocused.value) return;
     e.preventDefault();
     player.setVolume(Math.max(0, player.volume - 0.05));
   });
 
-  return { stop, next, prev, volUp, volDown };
+  return { stopSpace, stopPrev, stopNext, stopVolUp, stopVolDown };
 }
