@@ -4,6 +4,8 @@ import AudioPlayer from '~/components/music/audioPlayer.vue';
 
 const isBot = useIsBot();
 
+usePlayerHotkeys();
+
 </script>
 
 <template>
