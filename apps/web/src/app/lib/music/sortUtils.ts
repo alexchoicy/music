@@ -25,7 +25,7 @@ export async function flattenAlbums(albums: UploadAlbum[]) {
   return allMusics;
 }
 
-// this is bad any smarter people
+// this is bad, any smarter people
 export async function albumMapper(albums: UploadMusic[]) {
   const albumMap = new Map<string, UploadAlbum>();
   for (const music of albums) {
@@ -63,14 +63,29 @@ export async function albumMapper(albums: UploadMusic[]) {
       album.NoOfTracks += 1;
     }
   }
-  return albumMap;
+  const sortedAlbums = Array.from(albumMap.values());
+  for (const sortedAlbum of sortedAlbums) {
+    if (checkIfSoundtrack(sortedAlbum.name, "")) {
+      sortedAlbum.albumType = "Soundtrack";
+    } else if (sortedAlbum.NoOfTracks < 2) {
+      sortedAlbum.albumType = "Single";
+    } else {
+      sortedAlbum.albumType = "Album";
+    }
+    sortedAlbum.disc.sort((a: UploadDisc, b: UploadDisc) => a.no - b.no);
+    sortedAlbum.disc.forEach((disc: UploadDisc) =>
+      disc.musics.sort(albumMusicSorter)
+    );
+  }
+
+  return sortedAlbums;
 }
 
+//bro this function is cursed, someone please refactor it
 export async function albumsSorter(allMusics: UploadMusic[]) {
   const albumMap = await albumMapper(allMusics);
   let hasAlbumArtistDetected = false;
   const sortedAlbums = Array.from(albumMap.values());
-
   for (const sortedAlbum of sortedAlbums) {
     if (sortedAlbum.albumArtist === "Unknown Album Artist") {
       const artistCount: Record<string, number> = {};
