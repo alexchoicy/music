@@ -109,6 +109,7 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       this.playing = false;
     },
     togglePlay() {
+      if (!this.currentTrack) return;
       this.playing = !this.playing;
 
       this.sendWs(this.playing ? "play" : "pause");
