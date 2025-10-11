@@ -220,17 +220,5 @@ export class wsEventsGateway
 	}
 
 	@SubscribeMessage('others')
-	handleOtherMessage(client: WebSocket, data: any) {
-		const room = this.clientRoom.get(client.user.info.uid);
-		if (!room) {
-			throw new WsException('Not in a room');
-		}
-
-		console.log(
-			'Received other message from',
-			client.user.info.uid,
-			':',
-			data,
-		);
-	}
+	handleOtherMessage() {}
 }
