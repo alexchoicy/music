@@ -10,9 +10,10 @@
 	},
 	"devDependencies": {
 		"typescript": "^5.5.2",
-		"wrangler": "^4.36.0"
+		"wrangler": "^4.42.2"
 	},
 	"dependencies": {
-		"aws4fetch": "^1.0.20"
+		"aws4fetch": "^1.0.20",
+		"jose": "^6.1.0"
 	}
 }
