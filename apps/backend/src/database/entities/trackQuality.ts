@@ -48,6 +48,9 @@ export class TrackQuality {
 	@Property({ nullable: true })
 	sampleRate?: number;
 
+	@Property({ nullable: true })
+	sizeBytes?: number;
+
 	@Enum({ items: () => FileUploadStatus })
 	uploadStatus: FileUploadStatus;
 

@@ -20,6 +20,7 @@ export class MediaController {
 	getMusicFile(
 		@Param('type') type: string,
 		@Param('trackHash') trackHash: string,
+		@Res({ passthrough: true }) res: Response,
 	) {
 		const typeCheck = TrackQualityOptions.safeParse(type);
 		if (!typeCheck.success) {
@@ -32,6 +33,10 @@ export class MediaController {
 		);
 
 		const file = createReadStream(filePath);
+		const stat = fs.statSync(filePath);
+		res.set({
+			'Content-Length': stat.size,
+		});
 
 		return new StreamableFile(file, {
 			type: contentType || 'application/octet-stream',

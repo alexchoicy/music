@@ -7,11 +7,13 @@ import {
 	getServices,
 } from '#modules/storageServices/storageServiceAbstract.js';
 import { ConfigService } from '@nestjs/config';
+import { JWKSProvider } from '#modules/auth/issuer/jwks.provider.js';
 
 @Module({
 	controllers: [MigrationsController],
 	providers: [
 		MigrationsService,
+		JWKSProvider,
 		{
 			provide: StorageService,
 			useFactory: (config: ConfigService) => {

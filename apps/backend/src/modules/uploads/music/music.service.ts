@@ -111,6 +111,7 @@ export class MusicService {
 			islossless: music.format.lossless,
 			type: music.format.lossless ? 'original' : 'transcoded',
 			track: track,
+			sizeBytes: music.size,
 			uploadStatus: FileUploadStatus.PENDING,
 			uploadHashCheck: music.uploadHashCheck,
 		});
