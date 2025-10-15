@@ -3,12 +3,18 @@ import { StorageService } from '../storageServices/storageServiceAbstract.js';
 import { ConfigService } from '@nestjs/config';
 import path from 'path';
 import fs from 'fs';
+import { EntityManager } from '@mikro-orm/postgresql';
+import { TrackQuality } from '#database/entities/trackQuality.js';
+import { getMusicExt } from '@music/api/lib/musicUtil';
+import { JWKSProvider } from '#modules/auth/issuer/jwks.provider.js';
 
 @Injectable()
 export class MigrationsService {
 	constructor(
 		private readonly storageService: StorageService,
 		private readonly config: ConfigService,
+		private readonly em: EntityManager,
+		private readonly jwksProvider: JWKSProvider,
 	) {}
 
 	async migrateAlbumCovers() {
@@ -51,5 +57,42 @@ export class MigrationsService {
 			message:
 				'Migration completed, The 404 may cached in your CDN, remember to purge it.',
 		};
+	}
+
+	async migrateMusicQualityData() {
+		const tempToken = await this.jwksProvider.signAccessToken({
+			type: 'machine',
+			info: {
+				uid: '0',
+				role: 'admin',
+			},
+		});
+
+		const data = await this.em.findAll(TrackQuality);
+
+		for (const item of data) {
+			// migrate size
+			if (!item.sizeBytes) {
+				const url = await this.storageService.audio.getMusicDataUrl(
+					item.hash,
+					item.type,
+					getMusicExt(item.fileContainer, item.fileCodec) || '',
+				);
+
+				const data = await fetch(url, {
+					headers: {
+						Authorization: `Bearer ${tempToken}`,
+					},
+				});
+
+				if (data.ok) {
+					const size = data.headers.get('content-length');
+					if (size) {
+						item.sizeBytes = parseInt(size, 10);
+						await this.em.flush();
+					}
+				}
+			}
+		}
 	}
 }

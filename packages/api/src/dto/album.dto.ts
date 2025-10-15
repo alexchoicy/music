@@ -1,5 +1,5 @@
 import { AlbumsAlbumTypeEnum, ArtistsArtistType } from "../type/music.js";
-import { z } from "zod/v4";
+import { size, z } from "zod/v4";
 
 export const AttachmentType = z.enum(["coverImage"]);
 
@@ -32,6 +32,7 @@ export const TrackQuality = z.object({
   bitrate: z.number(),
   sampleRate: z.number(),
   islossless: z.boolean(),
+  sizeBytes: z.number().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

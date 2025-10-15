@@ -11,4 +11,9 @@ export class MigrationsController {
 	async migrateAlbumCovers() {
 		return this.migrationService.migrateAlbumCovers();
 	}
+
+	@Post('quality')
+	async migrateMusicQualityData() {
+		return this.migrationService.migrateMusicQualityData();
+	}
 }

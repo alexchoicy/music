@@ -82,7 +82,7 @@ async function handleFiles(files: File[]) {
                 //maybe only load Image once later?
                 const metadata = await parseBlob(file);
                 const uploadHash = await hashFileStreamMd5(file);
-                const musicObj = covertToMusicObject(metadata, hash, uploadHash, file.name);
+                const musicObj = covertToMusicObject(metadata, hash, uploadHash, file.name, file.size);
 
                 props.fileObjects.set(hash, { file, uploadHash });
                 return musicObj;

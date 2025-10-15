@@ -126,7 +126,8 @@ export function covertToMusicObject(
   metadata: IAudioMetadata,
   hash: string,
   uploadHashCheck: string,
-  filename: string
+  filename: string,
+  size: number
 ): UploadMusic {
   const artists = Array.from(
     new Set(metadata.common.artists ?? ["Unknown Artist"])
@@ -161,6 +162,7 @@ export function covertToMusicObject(
       container: metadata.format.container || "unknown",
       lossless: metadata.format.lossless || false,
     },
+    size: size,
     picture: picture,
     isInstrumental: checkIfInstrumental(metadata.common.title || "", filename),
     isMC: checkIfMC(metadata.common.title || "", filename),

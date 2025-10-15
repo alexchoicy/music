@@ -34,7 +34,7 @@ export const MusicSchema = z.object({
       })
     )
     .optional(),
-
+  size: z.number().optional(),
   isInstrumental: z.boolean().optional(),
   isMC: z.boolean().optional(),
 });

@@ -190,6 +190,7 @@ export class AlbumsService {
 					bitrate: quality.bitrate ?? 0,
 					sampleRate: quality.sampleRate ?? 0,
 					islossless: quality.islossless,
+					sizeBytes: quality.sizeBytes ?? null,
 					createdAt: quality.createdAt.toISOString(),
 					updatedAt: quality.updatedAt.toISOString(),
 				};
