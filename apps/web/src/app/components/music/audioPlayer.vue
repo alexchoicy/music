@@ -7,6 +7,16 @@ import { RepeatMode } from '~/types/playlist';
 const audioPlayer = useAudioPlayer();
 const audioElement = ref<HTMLAudioElement>();
 
+const props = defineProps({
+    togglePlayList: {
+        type: Function,
+        require: true,
+    },
+    isCollapsed: {
+        type: Boolean,
+        require: true,
+    },
+});
 
 onMounted(() => {
     audioPlayer.initFromLocalStorage();
@@ -194,8 +204,9 @@ const sliderVolume = computed({
                 <PopoverTrigger as-child>
                     <Tooltip>
                         <TooltipTrigger as-child>
-                            <Button variant="ghost">
-                                <ListMusic />
+                            <Button variant="ghost" @click="props.togglePlayList">
+                                <ListMusic :class="props.isCollapsed ? 'text-muted-foreground' : 'text-primary'
+                                    " />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>

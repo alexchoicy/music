@@ -289,6 +289,14 @@ export const useAudioEntity = defineStore("audioEntity", {
   state: () => ({
     playList: [] as Playlist[],
   }),
+  getters: {
+    getTotalTrack(state) {
+      return state.playList.reduce(
+        (sum, playlist) => sum + playlist.tracks.length,
+        0,
+      );
+    },
+  },
   actions: {
     upsert(pl: Playlist) {
       this.playList.push(pl);
