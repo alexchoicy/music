@@ -2,17 +2,20 @@
 import Sidebar from "~/components/layouts/sidebar.vue";
 import AudioPlayer from "~/components/music/audioPlayer.vue";
 
-const isBot = useIsBot();
-
 import { SplitterGroup, SplitterPanel } from "reka-ui";
+
+const isBot = useIsBot();
 
 const currentPlayListRef = ref<InstanceType<typeof SplitterPanel> | null>(null);
 
 function showCurrentPlayList() {
   if (!currentPlayListRef.value) return;
-  currentPlayListRef.value.isCollapsed
-    ? currentPlayListRef.value.expand()
-    : currentPlayListRef.value.collapse();
+
+  if (currentPlayListRef.value.isCollapsed) {
+    currentPlayListRef.value.expand();
+  } else {
+    currentPlayListRef.value.collapse();
+  }
 }
 
 onMounted(async () => {
@@ -42,21 +45,14 @@ onMounted(async () => {
               <slot />
             </SplitterPanel>
             <ResizableHandle />
-            <SplitterPanel
-              :default-size="20"
-              collapsible
-              ref="currentPlayListRef"
-            >
+            <SplitterPanel ref="currentPlayListRef" :default-size="20" collapsible>
               <MusicCurrentPlayList />
             </SplitterPanel>
           </SplitterGroup>
-          <AudioPlayer
-            :toggle-play-list="showCurrentPlayList"
-            :is-collapsed="currentPlayListRef?.isCollapsed"
-          />
+          <AudioPlayer :toggle-play-list="showCurrentPlayList"
+            :is-collapsed="currentPlayListRef?.isCollapsed || false" />
         </div>
       </SidebarInset>
     </SidebarProvider>
   </TooltipProvider>
 </template>
-

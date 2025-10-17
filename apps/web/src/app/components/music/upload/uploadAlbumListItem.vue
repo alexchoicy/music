@@ -56,7 +56,7 @@ const isFeatUndetected = computed(() => {
                     </Badge>
                 </h3>
                 <div class="text-xs text-gray-400">
-                    <span v-for="(artist, index) in track.artists" class="" :key="`${track.hash}-${index}`">
+                    <span v-for="(artist, index) in track.artists" :key="`${track.hash}-${index}`" class="">
                         {{ artist }}<span v-if="!(index === track.artists.length - 1)">, </span>
                     </span>
                     <Tooltip v-if="isFeatUndetected">
@@ -74,7 +74,7 @@ const isFeatUndetected = computed(() => {
             </div>
             <div class="w-20 text-center">
                 <span class="text-sm text-gray-400">{{ getSecondToMinuteString(track.duration)
-                }}</span>
+                    }}</span>
             </div>
             <div class="w-20 flex text-center justify-end gap-1 ">
                 <Button variant="ghost" class="h-9 w-9 p-0" :disabled="props.blockUpload"

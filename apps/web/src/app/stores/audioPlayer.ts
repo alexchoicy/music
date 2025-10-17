@@ -4,8 +4,8 @@ import { parsePlayerPlayListFromPlaylist } from "~/lib/music/playerUtils";
 import type { AudioPlayerLocalStorage } from "~/types/audioPlayer";
 import { RepeatMode, type Playlist } from "~/types/playlist";
 
-import {
-  type WSMusicMessageClientPayloadType,
+import type {
+  WSMusicMessageClientPayloadType,
   WSMusicAction,
 } from "@music/api/type/ws";
 
@@ -25,7 +25,7 @@ export const getAudioPlayerLocalStorage = (): AudioPlayerLocalStorage => {
       };
     }
     return JSON.parse(storedPlayerInfo) as AudioPlayerLocalStorage;
-  } catch (e) {
+  } catch {
     console.warn("Corrupted audioPlayer data in localStorage, resetting...");
     localStorage.removeItem("audioPlayer");
     return {
@@ -89,7 +89,7 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       }
       return url + "/stream";
     },
-    getAlbumPath: (state) => {
+    getAlbumPath(): string {
       const track = useAudioPlayer().currentTrack;
       if (!track) return "";
       return `/music/albums/${track?.album.id}`;
@@ -169,6 +169,16 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       this.currentTime = 0;
       this.shuffle = this.shuffle.slice(1);
     },
+    advanceToNextTrack() {
+      if (this.isShuffling) {
+        this.shufflePlay();
+      } else if (this.hasNext) {
+        this.cursor++;
+        this.currentTime = 0;
+      } else {
+        this.playing = false;
+      }
+    },
     next() {
       switch (this.repeat) {
         case RepeatMode.One:
@@ -180,32 +190,16 @@ export const useAudioPlayer = defineStore("audioPlayer", {
             this.currentTime = 0;
             break;
           }
-        case RepeatMode.Off:
+          this.advanceToNextTrack();
+          break;
         default:
-          if (this.isShuffling) {
-            this.shufflePlay();
-          } else if (this.hasNext) {
-            this.cursor++;
-            this.currentTime = 0;
-          } else {
-            this.playing = false;
-          }
+          this.advanceToNextTrack();
+          break;
       }
       this.sendWs("change");
     },
     manualNext() {
-      if (this.isShuffling) {
-        this.shufflePlay();
-        this.sendWs("change");
-        return;
-      }
-      if (this.hasNext) {
-        this.cursor++;
-        this.currentTime = 0;
-      } else {
-        this.playing = false;
-      }
-
+      this.advanceToNextTrack();
       this.sendWs("change");
     },
     manualPrevious() {
@@ -293,7 +287,7 @@ export const useAudioEntity = defineStore("audioEntity", {
     getTotalTrack(state) {
       return state.playList.reduce(
         (sum, playlist) => sum + playlist.tracks.length,
-        0,
+        0
       );
     },
   },

@@ -14,6 +14,7 @@ const startWebAuthRegistration = async () => {
     }
 
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const verificationResp = await useNuxtApp().$backend<{ verified: boolean }>('/auth/webauth/verify-registration', {
         method: "POST",
         body: attResp,

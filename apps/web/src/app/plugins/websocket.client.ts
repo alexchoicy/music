@@ -1,7 +1,7 @@
 import { useWebSocket } from "@vueuse/core";
 import { toast } from "vue-sonner";
 
-export default defineNuxtPlugin((nuxtApp) => {
+export default defineNuxtPlugin(() => {
   const wsBaseUrl = useRuntimeConfig().public.WS_URL;
   const url = wsBaseUrl + "/events";
   const blockByAuth = useState("blockByAuth", () => true);
@@ -15,7 +15,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         toast.error("WebSocket connection failed. Please refresh the page.");
       },
     },
-    onConnected(ws) {
+    onConnected() {
       console.log("WebSocket connected");
       blockByAuth.value = false;
     },

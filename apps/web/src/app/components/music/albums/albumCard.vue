@@ -34,18 +34,20 @@ function handlePlayClick() {
 </script>
 
 <template>
-    <Card @click="handleAlbumClick"
-        class="group hover:bg-muted transition-all duration-300 hover:scale-105 hover:shadow-2xl border-0 rounded-lg cursor-pointer">
+    <Card
+        class="group hover:bg-muted transition-all duration-300 hover:scale-105 hover:shadow-2xl border-0 rounded-lg cursor-pointer"
+        @click="handleAlbumClick">
         <CardContent>
             <div class="aspect-square relative overflow-hidden">
-                <img v-if="album.cover" :src="album.cover" class="w-full h-full object-cover" />
+                <img v-if="album.cover" :src="album.cover" class="w-full h-full object-cover">
                 <DiscAlbum v-else class="w-full h-full text-muted-foreground" />
                 <Badge variant="secondary"
                     class="absolute top-2 right-2 bg-black/60 text-white border-0 backdrop-blur-sm">
                     {{ album.albumType }}
                 </Badge>
-                <Button size="icon" @click.stop="handlePlayClick"
-                    class="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-primary shadow-lg opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 cursor-pointer">
+                <Button size="icon"
+                    class="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-primary shadow-lg opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 cursor-pointer"
+                    @click.stop="handlePlayClick">
                     <Play
                         class="w-5 h-5 fill-primary-foreground text-primary-foreground ml-0.5 hover:fill-primary-foreground/20" />
                 </Button>

@@ -10,11 +10,11 @@ const audioElement = ref<HTMLAudioElement>();
 const props = defineProps({
     togglePlayList: {
         type: Function,
-        require: true,
+        required: true,
     },
     isCollapsed: {
         type: Boolean,
-        require: true,
+        required: true,
     },
 });
 
@@ -62,7 +62,8 @@ const runPlay = async () => {
         if (audioPlayer.playing) {
             await audioElement.value.play();
         }
-    } catch (err: any) {
+    } catch (err: unknown) {
+        if (!(err instanceof Error)) return;
         if (err?.name !== 'AbortError') console.warn(err);
     }
 }
@@ -142,9 +143,9 @@ const sliderVolume = computed({
                 <Shuffle />
             </Button>
             <Button variant="ghost" @click="audioPlayer.toggleRepeat">
-                <Repeat class="text-muted-foreground" v-if="audioPlayer.repeat === RepeatMode.Off" />
-                <Repeat class="text-primary" v-else-if="audioPlayer.repeat === RepeatMode.All" />
-                <Repeat1 class="text-primary" v-else-if="audioPlayer.repeat === RepeatMode.One" />
+                <Repeat v-if="audioPlayer.repeat === RepeatMode.Off" class="text-muted-foreground" />
+                <Repeat v-else-if="audioPlayer.repeat === RepeatMode.All" class="text-primary" />
+                <Repeat1 v-else-if="audioPlayer.repeat === RepeatMode.One" class="text-primary" />
             </Button>
         </div>
         <div class="flex flex-2 items-center gap-4 px-2">
@@ -175,7 +176,7 @@ const sliderVolume = computed({
             @click="onClickInfo">
             <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-700 md:h-12 md:w-12">
                 <img v-if="audioPlayer.currentTrack?.album.cover" :src="audioPlayer.currentTrack?.album.cover"
-                    alt="Album cover" class="h-full w-full rounded-lg object-cover" />
+                    alt="Album cover" class="h-full w-full rounded-lg object-cover">
                 <Music v-else class="h-full w-full object-cover" />
             </div>
 
@@ -216,8 +217,7 @@ const sliderVolume = computed({
                         </TooltipContent>
                     </Tooltip>
                 </PopoverTrigger>
-                <PopoverContent :side-offset="25">
-                </PopoverContent>
+                <PopoverContent :side-offset="25" />
             </Popover>
 
             <Popover>
@@ -235,10 +235,9 @@ const sliderVolume = computed({
                         </TooltipContent>
                     </Tooltip>
                 </PopoverTrigger>
-                <PopoverContent :side-offset="25">
-                </PopoverContent>
+                <PopoverContent :side-offset="25" />
             </Popover>
         </div>
-        <audio ref="audioElement" hidden></audio>
+        <audio ref="audioElement" hidden />
     </div>
 </template>

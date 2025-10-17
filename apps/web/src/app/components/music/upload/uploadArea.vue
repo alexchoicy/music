@@ -119,12 +119,12 @@ async function handleFiles(files: File[]) {
                     </div>
                     <h3 class="text-xl font-semibold mb-2">Choose music files</h3>
                     <p class="text-gray-400 mb-6">Drag and drop or browse to upload (Not support Folder)</p>
-                    <Input type="file" multiple accept="audio/*" class="hidden" id="file-upload" @change="(e: Event) => {
+                    <Input id="file-upload" type="file" multiple accept="audio/*" class="hidden" @change="(e: Event) => {
                         const files = (e.target as HTMLInputElement).files;
                         if (files) handleFiles(Array.from(files));
                     }" />
-                    <Button asChild class="font-semibold">
-                        <Label htmlFor="file-upload" class="cursor-pointer">
+                    <Button as-child class="font-semibold">
+                        <Label html-for="file-upload" class="cursor-pointer">
                             Browse Files
                         </Label>
                     </Button>

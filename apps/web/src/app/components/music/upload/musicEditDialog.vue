@@ -4,7 +4,7 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { useFieldArray, useForm } from 'vee-validate';
 import { Plus, X } from 'lucide-vue-next';
 
-import { type UploadMusic } from '@music/api/type/music';
+import type { UploadMusic } from '@music/api/type/music';
 import { nextTick, watch } from 'vue';
 
 const props = defineProps({
@@ -123,12 +123,12 @@ const onTrackFormSubmit = trackForm.handleSubmit(async (values) => {
                     the metadata editing will not effect the original file. (yet) i think tehe.
                 </DialogDescription>
             </DialogHeader>
-            <form @submit="onTrackFormSubmit" class="space-y-4">
+            <form class="space-y-4" @submit="onTrackFormSubmit">
                 <FormField v-slot="{ componentField }" name="title">
                     <FormItem>
                         <FormLabel>Title</FormLabel>
                         <FormControl>
-                            <Input type="text" v-bind="componentField"></Input>
+                            <Input type="text" v-bind="componentField" />
                         </FormControl>
                     </FormItem>
                 </FormField>
@@ -136,7 +136,7 @@ const onTrackFormSubmit = trackForm.handleSubmit(async (values) => {
                     <FormItem>
                         <FormLabel>Album Artists</FormLabel>
                         <FormControl>
-                            <Input type="text" v-bind="componentField" placeholder="Empty if unknown."></Input>
+                            <Input type="text" v-bind="componentField" placeholder="Empty if unknown." />
                         </FormControl>
                         <FormDescription>
                             The Main artist for the album. All track should have the same album artist.
@@ -144,15 +144,15 @@ const onTrackFormSubmit = trackForm.handleSubmit(async (values) => {
                     </FormItem>
                 </FormField>
                 <FormField v-for="(artistField, index) in artistsFields" :key="artistField.key"
-                    :name="`artists.${index}`" v-slot="{ componentField }">
+                    v-slot="{ componentField }" :name="`artists.${index}`">
                     <FormItem>
                         <FormLabel>Artist {{ index + 1 }}</FormLabel>
                         <FormControl>
                             <div class="flex items-center gap-2">
-                                <Input type="text" v-bind="componentField"></Input>
+                                <Input type="text" v-bind="componentField" />
                                 <Button v-if="artistsFields.length > 1" type="button" variant="ghost" size="sm"
-                                    class="h-9 w-9 p-0 hover:bg-red-900/20 hover:text-red-400"
-                                    @click="onRemoveArtist(index)" title="Remove">
+                                    class="h-9 w-9 p-0 hover:bg-red-900/20 hover:text-red-400" title="Remove"
+                                    @click="onRemoveArtist(index)">
                                     <X class="h-4 w-4" />
                                 </Button>
                             </div>
@@ -161,7 +161,7 @@ const onTrackFormSubmit = trackForm.handleSubmit(async (values) => {
                 </FormField>
                 <Button variant="ghost"
                     class="w-full h-8 text-gray-400 hover:text-white hover:bg-gray-800 border border-dashed border-gray-700 hover:border-gray-600"
-                    @click="onAddArtist" type="button">
+                    type="button" @click="onAddArtist">
                     <Plus class="h-4 w-4 mr-2" />
                     Add Artist
                 </Button>
@@ -169,7 +169,7 @@ const onTrackFormSubmit = trackForm.handleSubmit(async (values) => {
                     <FormItem>
                         <FormLabel>Album</FormLabel>
                         <FormControl>
-                            <Input type="text" v-bind="componentField"></Input>
+                            <Input type="text" v-bind="componentField" />
                         </FormControl>
                         <FormDescription>
                             All track should have the same album name.
@@ -181,7 +181,7 @@ const onTrackFormSubmit = trackForm.handleSubmit(async (values) => {
                         <FormItem>
                             <FormLabel>Year</FormLabel>
                             <FormControl>
-                                <Input type="number" v-bind="componentField"></Input>
+                                <Input type="number" v-bind="componentField" />
                             </FormControl>
                         </FormItem>
                     </FormField>
@@ -189,7 +189,7 @@ const onTrackFormSubmit = trackForm.handleSubmit(async (values) => {
                         <FormItem>
                             <FormLabel>Disc No.</FormLabel>
                             <FormControl>
-                                <Input type="number" v-bind="componentField"></Input>
+                                <Input type="number" v-bind="componentField" />
                             </FormControl>
                         </FormItem>
                     </FormField>
@@ -197,7 +197,7 @@ const onTrackFormSubmit = trackForm.handleSubmit(async (values) => {
                         <FormItem>
                             <FormLabel>Track No.</FormLabel>
                             <FormControl>
-                                <Input type="number" v-bind="componentField"></Input>
+                                <Input type="number" v-bind="componentField" />
                             </FormControl>
                         </FormItem>
                     </FormField>

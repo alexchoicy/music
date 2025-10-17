@@ -35,8 +35,8 @@ const isVariousArtists = computed(() => {
     <div class="flex items-center gap-4 w-full">
         <div class="w-16 h-16 rounded-lg flex flex-row item-center justify-center shrink-0">
             <img v-if="album.disc[0]!.musics?.[0]?.picture?.[0]?.data"
-                v-bind:src="`data:${album.disc[0]!.musics?.[0]?.picture?.[0]?.format};base64,${album.disc[0]!.musics?.[0]?.picture?.[0]?.data}`"
-                alt="Album Art" class="w-full h-full object-cover rounded-lg" />
+                :src="`data:${album.disc[0]!.musics?.[0]?.picture?.[0]?.format};base64,${album.disc[0]!.musics?.[0]?.picture?.[0]?.data}`"
+                alt="Album Art" class="w-full h-full object-cover rounded-lg">
             <div v-else class="w-full h-full bg-gray-700 flex items-center justify-center rounded-lg">
                 <Disc3 class="h-8 w-8 text-gray-400" />
             </div>
