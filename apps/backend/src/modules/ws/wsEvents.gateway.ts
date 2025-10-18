@@ -9,7 +9,10 @@ import {
 } from '@nestjs/websockets';
 import { IncomingMessage } from 'http';
 import WebSocket, { type Server } from 'ws';
-import { WSMusicMessageClientPayloadSchema } from '@music/api/type/ws';
+import {
+	WSMusicMessageClientPayloadSchema,
+	WSMusicMessageClientPayloadType,
+} from '@music/api/type/ws';
 
 //it meaning the socket of each user
 interface ClientRoom {
@@ -156,6 +159,17 @@ export class wsEventsGateway
 					existing.terminate();
 				}
 				this.machineRoom.set(uid, client);
+
+				const master = this.clientRoom.get(uid)?.leader;
+				if (!master) return;
+				const initPayload: WSMusicMessageClientPayloadType = {
+					action: 'init',
+					positionMs: 0,
+					trackID: '',
+				};
+				master.send(
+					JSON.stringify({ type: 'music', payload: initPayload }),
+				);
 			}
 		} catch {
 			console.log('Token verification failed');

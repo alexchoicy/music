@@ -254,6 +254,9 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       this.playing = true;
       this.sendWs("play");
     },
+    updateWs() {
+      this.sendWs(this.playing ? "play" : "pause");
+    },
     initFromLocalStorage() {
       if (typeof window === "undefined") return;
 

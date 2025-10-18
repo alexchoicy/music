@@ -1,6 +1,6 @@
 import { useWebSocket } from "@vueuse/core";
 import { toast } from "vue-sonner";
-
+import { WSMusicMessageClientPayloadSchema } from "@music/api/type/ws";
 export default defineNuxtPlugin(() => {
   const wsBaseUrl = useRuntimeConfig().public.WS_URL;
   const url = wsBaseUrl + "/events";
@@ -29,6 +29,23 @@ export default defineNuxtPlugin(() => {
         return;
       }
       console.log("WebSocket disconnected", event);
+    },
+    onMessage(ws, event) {
+      const message = JSON.parse(event.data);
+
+      if (message.type === "music") {
+        const payload = WSMusicMessageClientPayloadSchema.safeParse(
+          message.payload
+        );
+        if (!payload.success) {
+          console.error("Invalid music message payload", payload.error);
+          return;
+        }
+        if (payload.data.action === "init") {
+          const audioPlayer = useAudioPlayer();
+          audioPlayer.updateWs();
+        }
+      }
     },
   });
 
