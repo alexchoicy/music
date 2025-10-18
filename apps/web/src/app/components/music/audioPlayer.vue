@@ -19,6 +19,10 @@ const props = defineProps({
 });
 
 onMounted(() => {
+    if (audioElement.value) {
+        audioElement.value.volume = audioPlayer.muted ? 0 : audioPlayer.volume;
+    }
+
     audioElement.value?.addEventListener('ended', async () => {
         audioPlayer.next();
         if (!audioPlayer.hasNext && audioPlayer.repeat === RepeatMode.Off) {
