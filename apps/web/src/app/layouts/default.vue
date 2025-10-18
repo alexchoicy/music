@@ -41,11 +41,11 @@ onMounted(async () => {
             <Separator />
           </div>
           <SplitterGroup direction="horizontal">
-            <SplitterPanel class="p-6 overflow-y-auto size-full flex-1">
+            <SplitterPanel class="p-6 overflow-y-auto size-full flex-1" :default-size='100'>
               <slot />
             </SplitterPanel>
             <ResizableHandle />
-            <SplitterPanel ref="currentPlayListRef" :default-size="20" collapsible>
+            <SplitterPanel ref="currentPlayListRef" :min-size="20" collapsible>
               <MusicCurrentPlayList />
             </SplitterPanel>
           </SplitterGroup>

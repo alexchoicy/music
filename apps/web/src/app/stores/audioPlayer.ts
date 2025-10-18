@@ -8,6 +8,7 @@ import type {
   WSMusicMessageClientPayloadType,
   WSMusicAction,
 } from "@music/api/type/ws";
+import { toast } from "vue-sonner";
 
 export interface AudioPlayerList {
   playlistRef: string;
@@ -22,6 +23,7 @@ export const getAudioPlayerLocalStorage = (): AudioPlayerLocalStorage => {
         muted: false,
         volume: 1,
         repeat: RepeatMode.Off,
+        quality: "original",
       };
     }
     return JSON.parse(storedPlayerInfo) as AudioPlayerLocalStorage;
@@ -32,6 +34,7 @@ export const getAudioPlayerLocalStorage = (): AudioPlayerLocalStorage => {
       muted: false,
       volume: 1,
       repeat: RepeatMode.Off,
+      quality: "original",
     };
   }
 };
@@ -55,8 +58,7 @@ export const useAudioPlayer = defineStore("audioPlayer", {
     isShuffling: false,
     shuffle: [] as number[],
     currentTime: 0,
-    preferredQuality: "original" as TrackQualityType,
-    currentQuality: null as TrackQualityType | null,
+    quality: "original" as TrackQualityType,
   }),
   getters: {
     hasQueue: (state) => state.queue.length > 0,
@@ -76,12 +78,18 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       const track = useAudioPlayer().currentTrack;
       if (!track) return "";
 
-      const quality = state.currentQuality || state.preferredQuality;
+      const quality = state.quality;
 
-      const url =
-        track.quality.find((q) => q.type === quality)?.url ||
-        track.quality.find((q) => q.islossless)?.url ||
-        track.quality[0]?.url;
+      let url = track.quality.find((q) => q.type === quality)?.url;
+
+      if (!url) {
+        url =
+          track.quality.find((q) => q.islossless)?.url || track.quality[0]?.url;
+        toast.error(
+          `Requested quality "${quality}" not found, playing with Original quality instead.`,
+          { duration: 5000 }
+        );
+      }
 
       if (!url) {
         console.warn("No URL found for current track");
@@ -253,6 +261,7 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       this.volume = data.volume;
       this.muted = data.muted;
       this.repeat = data.repeat;
+      this.quality = data.quality;
     },
     subscribeLocalStorage() {
       if (typeof window === "undefined") return;
@@ -261,20 +270,26 @@ export const useAudioPlayer = defineStore("audioPlayer", {
         volume: this.volume,
         muted: this.muted,
         repeat: this.repeat,
+        quality: this.quality,
       };
 
       this.$subscribe((mutation, state) => {
-        const { volume, muted, repeat } = state;
+        const { volume, muted, repeat, quality } = state;
         if (
           volume === last.volume &&
           muted === last.muted &&
-          repeat === last.repeat
+          repeat === last.repeat &&
+          quality === last.quality
         ) {
           return;
         }
-        last = { volume, muted, repeat };
-        setAudioPlayerLocalStorage({ volume, muted, repeat });
+        last = { volume, muted, repeat, quality };
+        setAudioPlayerLocalStorage({ volume, muted, repeat, quality });
       });
+    },
+    setup() {
+      this.initFromLocalStorage();
+      this.subscribeLocalStorage();
     },
   },
 });
