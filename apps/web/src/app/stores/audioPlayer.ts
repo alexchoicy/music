@@ -4,10 +4,11 @@ import { parsePlayerPlayListFromPlaylist } from "~/lib/music/playerUtils";
 import type { AudioPlayerLocalStorage } from "~/types/audioPlayer";
 import { RepeatMode, type Playlist } from "~/types/playlist";
 
-import {
-  type WSMusicMessageClientPayloadType,
+import type {
+  WSMusicMessageClientPayloadType,
   WSMusicAction,
 } from "@music/api/type/ws";
+import { toast } from "vue-sonner";
 
 export interface AudioPlayerList {
   playlistRef: string;
@@ -22,16 +23,18 @@ export const getAudioPlayerLocalStorage = (): AudioPlayerLocalStorage => {
         muted: false,
         volume: 1,
         repeat: RepeatMode.Off,
+        quality: "original",
       };
     }
     return JSON.parse(storedPlayerInfo) as AudioPlayerLocalStorage;
-  } catch (e) {
+  } catch {
     console.warn("Corrupted audioPlayer data in localStorage, resetting...");
     localStorage.removeItem("audioPlayer");
     return {
       muted: false,
       volume: 1,
       repeat: RepeatMode.Off,
+      quality: "original",
     };
   }
 };
@@ -55,8 +58,7 @@ export const useAudioPlayer = defineStore("audioPlayer", {
     isShuffling: false,
     shuffle: [] as number[],
     currentTime: 0,
-    preferredQuality: "original" as TrackQualityType,
-    currentQuality: null as TrackQualityType | null,
+    quality: "original" as TrackQualityType,
   }),
   getters: {
     hasQueue: (state) => state.queue.length > 0,
@@ -76,12 +78,18 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       const track = useAudioPlayer().currentTrack;
       if (!track) return "";
 
-      const quality = state.currentQuality || state.preferredQuality;
+      const quality = state.quality;
 
-      const url =
-        track.quality.find((q) => q.type === quality)?.url ||
-        track.quality.find((q) => q.islossless)?.url ||
-        track.quality[0]?.url;
+      let url = track.quality.find((q) => q.type === quality)?.url;
+
+      if (!url) {
+        url =
+          track.quality.find((q) => q.islossless)?.url || track.quality[0]?.url;
+        toast.error(
+          `Requested quality "${quality}" not found, playing with Original quality instead.`,
+          { duration: 5000 }
+        );
+      }
 
       if (!url) {
         console.warn("No URL found for current track");
@@ -89,7 +97,7 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       }
       return url + "/stream";
     },
-    getAlbumPath: (state) => {
+    getAlbumPath(): string {
       const track = useAudioPlayer().currentTrack;
       if (!track) return "";
       return `/music/albums/${track?.album.id}`;
@@ -169,6 +177,16 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       this.currentTime = 0;
       this.shuffle = this.shuffle.slice(1);
     },
+    advanceToNextTrack() {
+      if (this.isShuffling) {
+        this.shufflePlay();
+      } else if (this.hasNext) {
+        this.cursor++;
+        this.currentTime = 0;
+      } else {
+        this.playing = false;
+      }
+    },
     next() {
       switch (this.repeat) {
         case RepeatMode.One:
@@ -180,32 +198,16 @@ export const useAudioPlayer = defineStore("audioPlayer", {
             this.currentTime = 0;
             break;
           }
-        case RepeatMode.Off:
+          this.advanceToNextTrack();
+          break;
         default:
-          if (this.isShuffling) {
-            this.shufflePlay();
-          } else if (this.hasNext) {
-            this.cursor++;
-            this.currentTime = 0;
-          } else {
-            this.playing = false;
-          }
+          this.advanceToNextTrack();
+          break;
       }
       this.sendWs("change");
     },
     manualNext() {
-      if (this.isShuffling) {
-        this.shufflePlay();
-        this.sendWs("change");
-        return;
-      }
-      if (this.hasNext) {
-        this.cursor++;
-        this.currentTime = 0;
-      } else {
-        this.playing = false;
-      }
-
+      this.advanceToNextTrack();
       this.sendWs("change");
     },
     manualPrevious() {
@@ -252,6 +254,9 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       this.playing = true;
       this.sendWs("play");
     },
+    updateWs() {
+      this.sendWs(this.playing ? "play" : "pause");
+    },
     initFromLocalStorage() {
       if (typeof window === "undefined") return;
 
@@ -259,6 +264,7 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       this.volume = data.volume;
       this.muted = data.muted;
       this.repeat = data.repeat;
+      this.quality = data.quality;
     },
     subscribeLocalStorage() {
       if (typeof window === "undefined") return;
@@ -267,20 +273,26 @@ export const useAudioPlayer = defineStore("audioPlayer", {
         volume: this.volume,
         muted: this.muted,
         repeat: this.repeat,
+        quality: this.quality,
       };
 
       this.$subscribe((mutation, state) => {
-        const { volume, muted, repeat } = state;
+        const { volume, muted, repeat, quality } = state;
         if (
           volume === last.volume &&
           muted === last.muted &&
-          repeat === last.repeat
+          repeat === last.repeat &&
+          quality === last.quality
         ) {
           return;
         }
-        last = { volume, muted, repeat };
-        setAudioPlayerLocalStorage({ volume, muted, repeat });
+        last = { volume, muted, repeat, quality };
+        setAudioPlayerLocalStorage({ volume, muted, repeat, quality });
       });
+    },
+    setup() {
+      this.initFromLocalStorage();
+      this.subscribeLocalStorage();
     },
   },
 });
@@ -289,6 +301,14 @@ export const useAudioEntity = defineStore("audioEntity", {
   state: () => ({
     playList: [] as Playlist[],
   }),
+  getters: {
+    getTotalTrack(state) {
+      return state.playList.reduce(
+        (sum, playlist) => sum + playlist.tracks.length,
+        0
+      );
+    },
+  },
   actions: {
     upsert(pl: Playlist) {
       this.playList.push(pl);

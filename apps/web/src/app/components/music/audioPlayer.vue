@@ -1,16 +1,27 @@
 <script setup lang="ts">
 import { useAudioPlayer } from '~/stores/audioPlayer';
-import { AudioLines, Heart, ListMusic, Pause, Play, Repeat, Shuffle, SkipBack, SkipForward, Volume, Volume1, Volume2, VolumeOff, Music, Repeat1 } from 'lucide-vue-next';
+import { Heart, ListMusic, Pause, Play, Repeat, Shuffle, SkipBack, SkipForward, Volume, Volume1, Volume2, VolumeOff, Music, Repeat1 } from 'lucide-vue-next';
 import { getMMSSFromMs } from '~/lib/music/display';
 import { RepeatMode } from '~/types/playlist';
 
 const audioPlayer = useAudioPlayer();
 const audioElement = ref<HTMLAudioElement>();
 
+const props = defineProps({
+    togglePlayList: {
+        type: Function,
+        required: true,
+    },
+    isCollapsed: {
+        type: Boolean,
+        required: true,
+    },
+});
 
 onMounted(() => {
-    audioPlayer.initFromLocalStorage();
-    audioPlayer.subscribeLocalStorage();
+    if (audioElement.value) {
+        audioElement.value.volume = audioPlayer.muted ? 0 : audioPlayer.volume;
+    }
 
     audioElement.value?.addEventListener('ended', async () => {
         audioPlayer.next();
@@ -44,7 +55,6 @@ const runPlay = async () => {
         audioPlayer.next();
         return;
     }
-
     try {
         audioElement.value.pause();
         audioElement.value.src = src;
@@ -52,13 +62,14 @@ const runPlay = async () => {
         if (audioPlayer.playing) {
             await audioElement.value.play();
         }
-    } catch (err: any) {
+    } catch (err: unknown) {
+        if (!(err instanceof Error)) return;
         if (err?.name !== 'AbortError') console.warn(err);
     }
 }
 
 
-watch([() => audioPlayer.currentItem, () => audioPlayer.currentQuality], async () => {
+watch([() => audioPlayer.currentItem, () => audioPlayer.quality], async () => {
     await runPlay();
 })
 
@@ -115,7 +126,7 @@ const sliderVolume = computed({
 </script>
 
 <template>
-    <div class="sticky bottom-0 z-20 bg-background flex flex-row py-4 border-t border-border">
+    <div class="sticky bottom-0 z-20 bg-background flex flex-row py-4 px-2 border-t border-border">
         <div class="flex flex-row item-center justify-center m-auto">
             <Button variant="ghost" :disabled="!audioPlayer.hasQueue" @click="audioPlayer.togglePlay">
                 <Pause v-if="audioPlayer.playing" />
@@ -132,9 +143,9 @@ const sliderVolume = computed({
                 <Shuffle />
             </Button>
             <Button variant="ghost" @click="audioPlayer.toggleRepeat">
-                <Repeat class="text-muted-foreground" v-if="audioPlayer.repeat === RepeatMode.Off" />
-                <Repeat class="text-primary" v-else-if="audioPlayer.repeat === RepeatMode.All" />
-                <Repeat1 class="text-primary" v-else-if="audioPlayer.repeat === RepeatMode.One" />
+                <Repeat v-if="audioPlayer.repeat === RepeatMode.Off" class="text-muted-foreground" />
+                <Repeat v-else-if="audioPlayer.repeat === RepeatMode.All" class="text-primary" />
+                <Repeat1 v-else-if="audioPlayer.repeat === RepeatMode.One" class="text-primary" />
             </Button>
         </div>
         <div class="flex flex-2 items-center gap-4 px-2">
@@ -147,25 +158,27 @@ const sliderVolume = computed({
             </div>
         </div>
         <div class="flex items-center justify-center m-auto">
-            <HoverCard>
-                <HoverCardTrigger as-child>
-                    <Button variant="ghost" @click="audioPlayer.muted = !audioPlayer.muted">
-                        <VolumeOff v-if="audioPlayer.muted" />
-                        <Volume v-else-if="audioPlayer.volume === 0" />
-                        <Volume1 v-else-if="audioPlayer.volume * 100 > 0 && audioPlayer.volume * 100 < 50" />
-                        <Volume2 v-else />
-                    </Button>
-                </HoverCardTrigger>
-                <HoverCardContent side="top" :side-offset="5" class="p-5 w-auto m-5">
-                    <Slider v-model="sliderVolume" :step="0.01" :max="1" orientation="vertical" />
-                </HoverCardContent>
-            </HoverCard>
+            <ClientOnly>
+                <HoverCard>
+                    <HoverCardTrigger as-child>
+                        <Button variant="ghost" @click="audioPlayer.muted = !audioPlayer.muted">
+                            <VolumeOff v-if="audioPlayer.muted" />
+                            <Volume v-else-if="audioPlayer.volume === 0" />
+                            <Volume1 v-else-if="audioPlayer.volume * 100 > 0 && audioPlayer.volume * 100 < 50" />
+                            <Volume2 v-else />
+                        </Button>
+                    </HoverCardTrigger>
+                    <HoverCardContent side="top" :side-offset="5" class="p-5 w-auto m-5">
+                        <Slider v-model="sliderVolume" :step="0.01" :max="1" orientation="vertical" />
+                    </HoverCardContent>
+                </HoverCard>
+            </ClientOnly>
         </div>
         <div class="flex flex-1 items-center gap-3 rounded-lg p-2 hover:bg-accent dark:hover:bg-accent/50"
             @click="onClickInfo">
             <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-700 md:h-12 md:w-12">
                 <img v-if="audioPlayer.currentTrack?.album.cover" :src="audioPlayer.currentTrack?.album.cover"
-                    alt="Album cover" class="h-full w-full rounded-lg object-cover" />
+                    alt="Album cover" class="h-full w-full rounded-lg object-cover">
                 <Music v-else class="h-full w-full object-cover" />
             </div>
 
@@ -190,44 +203,33 @@ const sliderVolume = computed({
                 <Heart />
             </Button>
 
-            <Popover>
-                <PopoverTrigger as-child>
-                    <Tooltip>
-                        <TooltipTrigger as-child>
-                            <Button variant="ghost">
-                                <ListMusic />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p class="p-1">
-                                Playlist
-                            </p>
-                        </TooltipContent>
-                    </Tooltip>
-                </PopoverTrigger>
-                <PopoverContent :side-offset="25">
-                </PopoverContent>
-            </Popover>
+            <Tooltip>
+                <TooltipTrigger as-child>
+                    <Button variant="ghost" @click="props.togglePlayList">
+                        <ListMusic :class="props.isCollapsed ? 'text-muted-foreground' : 'text-primary'
+                            " />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p class="p-1">
+                        Playlist
+                    </p>
+                </TooltipContent>
+            </Tooltip>
 
-            <Popover>
-                <PopoverTrigger as-child>
-                    <Tooltip>
-                        <TooltipTrigger as-child>
-                            <Button variant="ghost">
-                                <AudioLines />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p class="p-1">
-                                Playing in {{ audioPlayer.currentQuality }} Quality
-                            </p>
-                        </TooltipContent>
-                    </Tooltip>
-                </PopoverTrigger>
-                <PopoverContent :side-offset="25">
-                </PopoverContent>
-            </Popover>
+
+            <Tooltip>
+                <TooltipTrigger as-child>
+                    <MusicAudioPlayerSetting />
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p class="p-1">
+                        Playing in {{ audioPlayer.quality }} Quality
+                    </p>
+                </TooltipContent>
+            </Tooltip>
+
         </div>
-        <audio ref="audioElement" hidden></audio>
+        <audio ref="audioElement" hidden />
     </div>
 </template>

@@ -1,4 +1,5 @@
-import { H3Event, getCookie } from "h3";
+import type { H3Event } from "h3";
+import { getCookie } from "h3";
 import { verifyJWKS } from "../utils/verify_jwks";
 
 export default defineEventHandler(async (event: H3Event) => {
@@ -9,5 +10,7 @@ export default defineEventHandler(async (event: H3Event) => {
 
     const user = await verifyJWKS(token);
     event.context.user = user;
-  } catch {}
+  } catch {
+    /* empty */
+  }
 });

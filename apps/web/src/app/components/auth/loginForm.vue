@@ -26,8 +26,8 @@ const onFormSubmit = form.handleSubmit(async (values) => {
         });
         ws.open();
         await navigateTo("/");
-    } catch (error: any) {
-        errorMessage.value = error;
+    } catch (error: unknown) {
+        errorMessage.value = error as NuxtError;
     }
 })
 

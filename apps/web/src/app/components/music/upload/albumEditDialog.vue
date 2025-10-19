@@ -37,7 +37,7 @@ watch(() => [props.currentAlbum, props.isOpen], async ([currentAlbum, isOpen]) =
             albumArtist: props.currentAlbum.albumArtist === "Unknown Album Artist" ? "" : props.currentAlbum.albumArtist,
             albumType: props.currentAlbum.albumType || 'Album',
             picture: {
-                data: props.currentAlbum?.disc[0]!.musics?.[0]?.picture?.[0]?.data as any || undefined,
+                data: props.currentAlbum?.disc[0]!.musics?.[0]?.picture?.[0]?.data || undefined,
                 format: props.currentAlbum?.disc[0]!.musics?.[0]?.picture?.[0]?.format as ("image/jpeg" | "image/png") || undefined,
             },
         }
@@ -133,24 +133,25 @@ const artistTypeOptions: { value: ArtistType; label: string }[] =
                 <DialogTitle>Edit Album</DialogTitle>
                 <DialogDescription>Edit the details of the album. Will apply to all tracks</DialogDescription>
             </DialogHeader>
-            <form @submit="onAlbumEditSubmit" class="space-y-6 py-4">
+            <form class="space-y-6 py-4" @submit="onAlbumEditSubmit">
                 <FormField v-slot="{ }" name="picture">
                     <FormItem>
                         <FormLabel>Album Cover</FormLabel>
                         <FormControl>
                             <div class="flex items-center gap-4">
-                                <div class="relative w-24 h-24 rounded-lg border-2 border-dashed" ref="dropZoneRef">
+                                <div ref="dropZoneRef" class="relative w-24 h-24 rounded-lg border-2 border-dashed">
                                     <div v-if="newImage.data && newImage.format" class="w-full h-full">
                                         <img :src="`data:${newImage.format};base64,${newImage.data}`"
-                                            class="w-full h-full object-cover rounded-lg" />
-                                        <button @click="removeNewImage"
-                                            class="absolute cursor-pointer -top-2 -right-2 w-6 h-6 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center transition-colors">
+                                            class="w-full h-full object-cover rounded-lg">
+                                        <button
+                                            class="absolute cursor-pointer -top-2 -right-2 w-6 h-6 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center transition-colors"
+                                            @click="removeNewImage">
                                             <X class="h-3 w-3 text-white" />
                                         </button>
                                     </div>
                                     <img v-else-if="currentAlbum?.disc[0]!.musics[0] && currentAlbum?.disc[0].musics?.[0]?.picture?.[0]"
-                                        v-bind:src="`data:${currentAlbum?.disc[0].musics?.[0]?.picture?.[0]?.format};base64,${currentAlbum?.disc[0].musics?.[0]?.picture?.[0]?.data}`"
-                                        class="w-full h-full object-cover rounded-lg" />
+                                        :src="`data:${currentAlbum?.disc[0].musics?.[0]?.picture?.[0]?.format};base64,${currentAlbum?.disc[0].musics?.[0]?.picture?.[0]?.data}`"
+                                        class="w-full h-full object-cover rounded-lg">
                                     <div v-else
                                         class="w-full h-full bg-gray-700 flex items-center justify-center rounded-lg">
                                         <Disc3 class="h-8 w-8 text-gray-400" />
@@ -158,8 +159,8 @@ const artistTypeOptions: { value: ArtistType; label: string }[] =
                                 </div>
                                 <div class="flex-1">
                                     <div class="flex gap-2">
-                                        <Input type="file" multiple accept="image/jpeg, image/png" class="hidden"
-                                            id="cover-upload" @change="async (e: Event) => {
+                                        <Input id="cover-upload" type="file" multiple accept="image/jpeg, image/png"
+                                            class="hidden" @change="async (e: Event) => {
                                                 const target = e.target as HTMLInputElement;
                                                 if (target.files && target.files.length > 0) {
                                                     const file = target.files;
@@ -170,7 +171,7 @@ const artistTypeOptions: { value: ArtistType; label: string }[] =
                                                     };
                                                 }
                                             }" />
-                                        <Button asChild type="button">
+                                        <Button as-child type="button">
                                             <Label for="cover-upload">Upload Image</Label>
                                         </Button>
                                     </div>

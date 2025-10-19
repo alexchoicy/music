@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AlbumResponse } from '@music/api/dto/album.dto';
 
-const props = defineProps({
+defineProps({
     albums: {
         type: Object as () => AlbumResponse[],
         required: true,

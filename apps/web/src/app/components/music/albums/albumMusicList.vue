@@ -3,7 +3,7 @@ import type { AlbumDetailResponse } from '@music/api/dto/album.dto';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
 import { getMMSSFromMs } from '~/lib/music/display';
-import { EllipsisVertical, Play, Clock, Download } from 'lucide-vue-next';
+import { Play, Clock, Download } from 'lucide-vue-next';
 import { getMusicExt } from "@music/api/lib/musicUtil";
 
 
@@ -30,9 +30,9 @@ const props = defineProps({
                 <div class="w-8 text-center">#</div>
                 <div class="flex-1">Title</div>
                 <Clock class="size-fit" />
-                <div class="w-9"></div>
+                <div class="w-9" />
             </div>
-            <div v-for="disc in album.Disc">
+            <div v-for="disc in album.Disc" :key="disc.discNo">
                 <div class="flex items-center gap-2 pt-4">
                     <div class="h-px flex-1 bg-border" />
                     <span class="text-muted-foreground px-3">Disc {{ disc.discNo }}</span>
@@ -49,12 +49,12 @@ const props = defineProps({
                             <Play class="size-fit" />
                         </Button>
                         <div class="flex-1 min-w-0">
-                            <div class="truncate">{{ track.name }} <Badge variant="secondary"
-                                    v-if="track.isInstrumental"
+                            <div class="truncate">{{ track.name }}
+                                <Badge v-if="track.isInstrumental" variant="secondary"
                                     class="dark:border-purple-500/50 dark:text-purple-300 border-purple-700/50 text-purple-500 text-xs px-1 py-0">
                                     Instrumental
                                 </Badge>
-                                <Badge variant="secondary" v-if="track.isMC"
+                                <Badge v-if="track.isMC" variant="secondary"
                                     class="dark:border-purple-500/50 dark:text-purple-300 border-purple-700/50 text-purple-500 text-xs px-1 py-0">
                                     MC
                                 </Badge>
@@ -64,8 +64,8 @@ const props = defineProps({
                             </div>
                         </div>
                         <div class="text-muted-foreground">{{ getMMSSFromMs(track.durationMs) }}</div>
-                        <Button variant="ghost" size="icon" class="opacity-0 group-hover:opacity-100 transition-opacity"
-                            v-if="track.quality.length > 0"
+                        <Button v-if="track.quality.length > 0" variant="ghost" size="icon"
+                            class="opacity-0 group-hover:opacity-100 transition-opacity"
                             @click="props.onClickDownloadTrack(track.quality[0]!.url, `${disc.discNo}-${track.trackNo} ${track.name}. ${getMusicExt(track.quality[0]!.fileContainer, track.quality[0]!.fileCodec)}`)">
                             <!-- <EllipsisVertical class="size-fit" /> -->
                             <!-- temp -->
