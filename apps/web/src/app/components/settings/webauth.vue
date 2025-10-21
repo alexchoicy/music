@@ -113,6 +113,7 @@ function confirmRemove() {
                 </Button>
             </CardContent>
         </Card>
+
         <Card>
             <CardHeader>
                 <CardTitle>Your Credentials</CardTitle>
@@ -153,12 +154,12 @@ function confirmRemove() {
                     <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
                     <AlertDialogDescription>
                         Are you sure you want to remove this WebAuthn device? This action cannot be undone.
-                        <br />
-                        Device ID: {{ selectedDevice?.id }} <br />
-                        Device Name: {{ selectedDevice?.name }} <br />
-                        Device Type: {{ selectedDevice?.deviceType }} <br />
-                        Device: {{ selectedDevice?.device?.join(', ') }} <br />
-                        Created At: {{ selectedDevice ? formatDate(new Date(selectedDevice.createdAt)) : '' }} <br />
+                        <br>
+                        Device ID: {{ selectedDevice?.id }} <br>
+                        Device Name: {{ selectedDevice?.name }} <br>
+                        Device Type: {{ selectedDevice?.deviceType }} <br>
+                        Device: {{ selectedDevice?.device?.join(', ') }} <br>
+                        Created At: {{ selectedDevice ? formatDate(new Date(selectedDevice.createdAt)) : '' }} <br>
                         <span v-if="selectedDevice?.lastUsedAt">
                             Last Used At: {{ selectedDevice ? formatDate(new Date(selectedDevice.lastUsedAt)) : '' }}
                         </span>

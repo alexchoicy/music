@@ -24,6 +24,7 @@ import { ArtistsModule } from '#modules/artists/artists.module.js';
 import { MigrationsModule } from '#modules/migrations/migrations.module.js';
 import { wsEventsModule } from './modules/ws/wsEvents.module.js';
 import { TracksModule } from '#modules/tracks/tracks.module.js';
+import { UsersModule } from '#modules/users/users.module.js';
 
 @Module({
 	imports: [
@@ -49,6 +50,7 @@ import { TracksModule } from '#modules/tracks/tracks.module.js';
 		MigrationsModule,
 		wsEventsModule,
 		TracksModule,
+		UsersModule,
 	],
 	controllers: [BaseController],
 	providers: [
