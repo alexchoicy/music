@@ -20,3 +20,12 @@ export interface JWTCustomPayloadUserInfo {
   uid: string;
   role?: UserRole;
 }
+
+export type WebAuthDeviceDTO = {
+  id: string;
+  name: string;
+  deviceType: string;
+  device?: string[];
+  createdAt: Date;
+  lastUsedAt?: Date;
+};

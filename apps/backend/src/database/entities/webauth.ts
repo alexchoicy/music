@@ -2,7 +2,6 @@ import {
 	Entity,
 	Enum,
 	ManyToOne,
-	Opt,
 	PrimaryKey,
 	Property,
 	type Rel,
@@ -27,6 +26,9 @@ export class WebAuth {
 	//this is possible to be useless but leaving it for now
 	@PrimaryKey({ type: 'uuid' })
 	id: string = uuid();
+
+	@Property({ type: 'text' })
+	name?: string;
 
 	@Property({ type: 'text', unique: true })
 	credentialID!: Base64URLString;
@@ -57,12 +59,12 @@ export class WebAuth {
 		columnType: 'timestamp(6)',
 		defaultRaw: `now()`,
 	})
-	createdAt!: Date & Opt;
+	createdAt?: Date;
 
 	@Property({
 		type: 'datetime',
 		columnType: 'timestamp(6)',
 		defaultRaw: `now()`,
 	})
-	lastUsedAt!: Date & Opt;
+	lastUsedAt?: Date;
 }
