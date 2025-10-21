@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Album, User, Upload } from 'lucide-vue-next';
+import { Album, User, Upload, Settings } from 'lucide-vue-next';
 
 </script>
 
@@ -17,6 +17,7 @@ import { Album, User, Upload } from 'lucide-vue-next';
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
                     <SidebarMenu>
+
                         <SidebarMenuItem :key="'albums'">
                             <SidebarMenuButton as-child>
                                 <NuxtLink to="/music/albums">
@@ -43,10 +44,20 @@ import { Album, User, Upload } from 'lucide-vue-next';
                             </SidebarMenuButton>
                         </SidebarMenuItem>
 
-
                     </SidebarMenu>
                 </SidebarGroupContent>
             </SidebarGroup>
         </SidebarContent>
+
+        <SidebarFooter>
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <SidebarMenuButton size="lg" class="hover:cursor-pointer" @click="$router.push('/settings')">
+                        <Settings />
+                        Settings
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarFooter>
     </Sidebar>
 </template>
