@@ -13,6 +13,7 @@ pub fn display_discord(
     let activity = Activity {
         state: Some(format!("by {}", track_data.artists.join(", "))),
         activity_type: Some(ActivityType::Listening),
+        name: Some(format!("{}", track_data.artists.join(", "))),
         details: Some(format!("{} - {}", track_data.title, track_data.album_name)),
         timestamps: Some(position),
         assets: Some({
