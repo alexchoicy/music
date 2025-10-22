@@ -3,7 +3,13 @@ import { z } from "zod/v4";
 //i don't know what the others is
 export const WSMessageType = ["music", "ping", "others"] as const;
 
-export const WSMusicAction = ["play", "pause", "change", "changeTime"] as const;
+export const WSMusicAction = [
+  "play",
+  "pause",
+  "change",
+  "changeTime",
+  "init",
+] as const;
 
 export const WSMusicMessageClientPayloadSchema = z.object({
   action: z.enum(WSMusicAction),

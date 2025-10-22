@@ -23,7 +23,7 @@ export default defineNuxtConfig({
   },
 
   extends: [],
-  modules: ["shadcn-nuxt", "@pinia/nuxt"],
+  modules: ["shadcn-nuxt", "@pinia/nuxt", "@nuxt/eslint"],
   shadcn: {
     /**
      * Prefix for all the imported component

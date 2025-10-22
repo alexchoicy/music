@@ -2,8 +2,8 @@ import { AlbumsAlbumTypeEnum, ArtistsArtistType } from "../type/music.js";
 import { size, z } from "zod/v4";
 
 export const AttachmentType = z.enum(["coverImage"]);
-
-export const TrackQualityOptions = z.enum(["original", "transcoded"]);
+//i think there is a better name tagging quality type but i dunno
+export const TrackQualityOptions = z.enum(["original", "transcoded_opus_112k"]);
 
 export const Attachment = z.object({
   url: z.url(),

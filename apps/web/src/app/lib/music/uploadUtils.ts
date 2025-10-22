@@ -1,6 +1,6 @@
 import type { UploadMusic, UploadDisc } from "@music/api/type/music";
 import { createBLAKE3, createMD5 } from "hash-wasm";
-import { type IAudioMetadata } from "music-metadata";
+import type { IAudioMetadata } from "music-metadata";
 import { uint8ArrayToBase64 } from "uint8array-extras";
 
 export async function getAlbumHash(text: string) {

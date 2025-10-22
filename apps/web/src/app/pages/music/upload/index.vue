@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { type UploadAlbum } from '@music/api/type/music'
-import { type UploadMusicInitResponse } from '@music/api/dto/upload.dto'
+import type { UploadAlbum } from '@music/api/type/music'
+import type { UploadMusicInitResponse } from '@music/api/dto/upload.dto'
 import { flattenAlbums, albumsSorter } from '~/lib/music/sortUtils';
 import { toast } from 'vue-sonner';
 import pLimit from 'p-limit';
@@ -82,14 +82,14 @@ const percentage = computed(() => {
 
 
 <template>
-    <Loading v-if="blockUpload" :percentage="percentage" />
+    <LoadingScreen v-if="blockUpload" :percentage="percentage" />
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="md:col-span-3 space-y-6">
-            <MusicUploadArea :blockUpload="blockUpload" :albums="albums" :fileObjects="fileObjects" :uploaded="uploaded"
-                @update:blockUpload="blockUpload = $event" @update:albums="albums = $event"
+            <MusicUploadArea :block-upload="blockUpload" :albums="albums" :file-objects="fileObjects"
+                :uploaded="uploaded" @update:block-upload="blockUpload = $event" @update:albums="albums = $event"
                 @update:total="total = $event" @update:uploaded="uploaded = $event" />
-            <MusicUploadAlbumList :albums="albums" :blockUpload="blockUpload" :fileObjects="fileObjects"
-                @update:blockUpload="blockUpload = $event" :reSortAlbums="reSortAlbums" />
+            <MusicUploadAlbumList :albums="albums" :block-upload="blockUpload" :file-objects="fileObjects"
+                :re-sort-albums="reSortAlbums" @update:block-upload="blockUpload = $event" />
         </div>
 
         <div>
@@ -99,7 +99,7 @@ const percentage = computed(() => {
                 </CardHeader>
                 <CardContent>
                     <div class="w-full">
-                        <Button class="w-full" @click="uploadAlbums" :disabled="blockUpload">Upload</Button>
+                        <Button class="w-full" :disabled="blockUpload" @click="uploadAlbums">Upload</Button>
                     </div>
                 </CardContent>
             </Card>

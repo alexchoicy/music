@@ -1,7 +1,7 @@
 import { useWebSocket } from "@vueuse/core";
 import { toast } from "vue-sonner";
-
-export default defineNuxtPlugin((nuxtApp) => {
+import { WSMusicMessageClientPayloadSchema } from "@music/api/type/ws";
+export default defineNuxtPlugin(() => {
   const wsBaseUrl = useRuntimeConfig().public.WS_URL;
   const url = wsBaseUrl + "/events";
   const blockByAuth = useState("blockByAuth", () => true);
@@ -15,7 +15,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         toast.error("WebSocket connection failed. Please refresh the page.");
       },
     },
-    onConnected(ws) {
+    onConnected() {
       console.log("WebSocket connected");
       blockByAuth.value = false;
     },
@@ -29,6 +29,23 @@ export default defineNuxtPlugin((nuxtApp) => {
         return;
       }
       console.log("WebSocket disconnected", event);
+    },
+    onMessage(ws, event) {
+      const message = JSON.parse(event.data);
+
+      if (message.type === "music") {
+        const payload = WSMusicMessageClientPayloadSchema.safeParse(
+          message.payload
+        );
+        if (!payload.success) {
+          console.error("Invalid music message payload", payload.error);
+          return;
+        }
+        if (payload.data.action === "init") {
+          const audioPlayer = useAudioPlayer();
+          audioPlayer.updateWs();
+        }
+      }
     },
   });
 

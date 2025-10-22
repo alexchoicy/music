@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import { useAuthUser } from "#imports";
+
 definePageMeta({
     public: true,
     layout: false,
 });
-
-import { useAuthUser } from "#imports";
 
 const authUser = useAuthUser();
 

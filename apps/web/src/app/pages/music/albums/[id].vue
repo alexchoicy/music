@@ -85,13 +85,12 @@ const downloadFile = async (url: string, filename: string) => {
 </script>
 
 <template>
-    <NuxtLayout v-if="bot">
-    </NuxtLayout>
+    <NuxtLayout v-if="bot" />
     <div v-if="album && !bot">
         <div class=" flex gap-8 mb-8 justify-center">
             <div class="flex-shrink-0">
                 <div class="w-64 h-64 rounded-xl overflow-hidden">
-                    <img v-if="album.cover" :src="album.cover" class="w-full h-full object-cover" />
+                    <img v-if="album.cover" :src="album.cover" class="w-full h-full object-cover">
                     <DiscAlbum v-else class="w-full h-full text-muted-foreground" />
                 </div>
             </div>
@@ -102,7 +101,7 @@ const downloadFile = async (url: string, filename: string) => {
                     </Badge>
                     <h1 class="text-5xl font-bold">{{ album.name }}</h1>
                     <div class="flex items-center gap-2 text-muted-foreground flex-wrap pt-3">
-                        <span @click="onClickArtist(album.mainArtist.id)" class="cursor-pointer">{{
+                        <span class="cursor-pointer" @click="onClickArtist(album.mainArtist.id)">{{
                             album.mainArtist.name }}</span>
                         <span v-if="album.year">•</span>
                         <span v-if="album.year">{{ album.year }}</span>
@@ -126,7 +125,7 @@ const downloadFile = async (url: string, filename: string) => {
         </div>
         <div class="gap-4 grid grid-cols-1 lg:grid-cols-3">
             <MusicAlbumsAlbumMusicList v-if="album" :album="album" class="lg:col-span-2"
-                :onclickPlayTrack="onClickPlayTrack" :onClickDownloadTrack="downloadFile" />
+                :onclick-play-track="onClickPlayTrack" :on-click-download-track="downloadFile" />
             <Card class="h-fit">
                 <CardHeader>
                     <CardTitle>
@@ -135,8 +134,9 @@ const downloadFile = async (url: string, filename: string) => {
                 </CardHeader>
                 <CardHeader>
                     <div v-for="artist in album.artists" :key="artist.id" class="space-y-2">
-                        <div class="flex items-center gap-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer p-2"
-                            v-if="artist.artistType !== 'project'" @click="onClickArtist(artist.id)">
+                        <div v-if="artist.artistType !== 'project'"
+                            class="flex items-center gap-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer p-2"
+                            @click="onClickArtist(artist.id)">
                             <Avatar>
                                 <AvatarImage v-if="artist.image" :src="artist.image" />
                                 <AvatarFallback>
