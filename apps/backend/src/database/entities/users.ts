@@ -19,7 +19,7 @@ export class Users {
 	@PrimaryKey({ autoincrement: true })
 	id!: bigint;
 
-	@Property({ type: 'text' })
+	@Property({ type: 'text', unique: true })
 	username: string;
 
 	@Property({ type: 'text' })
