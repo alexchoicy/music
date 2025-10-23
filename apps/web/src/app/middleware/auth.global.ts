@@ -21,10 +21,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (isPublicRoute(to)) return;
   const event = useRequestEvent();
 
-  const userAgent =
-    event?.headers.get("user-agent") ||
-    event?.node.req.headers["user-agent"] ||
-    "";
+  const userAgent = event?.headers.get("user-agent") || event?.node.req.headers["user-agent"] || "";
 
   const isBot = useIsBot();
 

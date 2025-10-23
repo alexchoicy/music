@@ -8,29 +8,16 @@ export function usePlayerHotkeys() {
 
   const isFormFocused = computed(() => {
     const t = activeEl.value as HTMLElement | null;
-    return (
-      t?.tagName === "INPUT" ||
-      t?.tagName === "TEXTAREA" ||
-      t?.isContentEditable
-    );
+    return t?.tagName === "INPUT" || t?.tagName === "TEXTAREA" || t?.isContentEditable;
   });
 
   const { ctrl_arrowleft, ctrl_arrowright, space } = useMagicKeys({
     passive: false,
   });
 
-  const stopSpace = watch(
-    space!,
-    (pressed) => pressed && !isFormFocused.value && player.togglePlay()
-  );
-  const stopPrev = watch(
-    ctrl_arrowleft!,
-    (p) => p && !isFormFocused.value && player.manualPrevious()
-  );
-  const stopNext = watch(
-    ctrl_arrowright!,
-    (p) => p && !isFormFocused.value && player.manualNext()
-  );
+  const stopSpace = watch(space!, (pressed) => pressed && !isFormFocused.value && player.togglePlay());
+  const stopPrev = watch(ctrl_arrowleft!, (p) => p && !isFormFocused.value && player.manualPrevious());
+  const stopNext = watch(ctrl_arrowright!, (p) => p && !isFormFocused.value && player.manualNext());
 
   const stopVolUp = onKeyStroke("ArrowUp", (e) => {
     if (isFormFocused.value) return;

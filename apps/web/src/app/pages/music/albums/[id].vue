@@ -1,71 +1,72 @@
 <script setup lang="ts">
-import type { AlbumDetailResponse } from '@music/api/dto/album.dto';
-import { getHHMMFromMs } from '~/lib/music/display';
-import { Play, FolderDown, User, Users, DiscAlbum } from 'lucide-vue-next';
-import { parsePlaylistFromAlbumDetail } from '~/lib/music/playerUtils';
-import { getMusicExt } from "@music/api/lib/musicUtil";
+  import type { AlbumDetailResponse } from "@music/api/dto/album.dto";
+  import { getHHMMFromMs } from "~/lib/music/display";
+  import { Play, FolderDown, User, Users, DiscAlbum } from "lucide-vue-next";
+  import { parsePlaylistFromAlbumDetail } from "~/lib/music/playerUtils";
+  import { getMusicExt } from "@music/api/lib/musicUtil";
 
-definePageMeta({
+  definePageMeta({
     bot: true,
-});
+  });
 
-const id = useRoute().params.id as string;
+  const id = useRoute().params.id as string;
 
-const audioPlayer = useAudioPlayer();
+  const audioPlayer = useAudioPlayer();
 
-const bot = useIsBot();
+  const bot = useIsBot();
 
-const { data: meta } = await useAPI<{ artist: string; cover: string | null, name: string }>(`/albums/${id}/meta`, {
+  const { data: meta } = await useAPI<{ artist: string; cover: string | null; name: string }>(`/albums/${id}/meta`, {
     server: true,
-})
+  });
 
-useSeoMeta({
-    title: meta.value?.name || 'Album',
+  useSeoMeta({
+    title: meta.value?.name || "Album",
     description: `${meta.value?.name} by ${meta.value?.artist}`,
-    ogTitle: meta.value?.name || 'Album',
+    ogTitle: meta.value?.name || "Album",
     ogDescription: `${meta.value?.name} by ${meta.value?.artist}`,
     ogImage: meta.value?.cover || undefined,
-});
+  });
 
-
-
-const { data: album } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
-    method: 'GET',
+  const { data: album } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
+    method: "GET",
     server: false,
-});
+  });
 
-const onClickArtist = (artistId: string) => {
+  const onClickArtist = (artistId: string) => {
     useRouter().push(`/music/artists/${artistId}`);
-};
+  };
 
-const onClickPlayTrack = (index: number) => {
+  const onClickPlayTrack = (index: number) => {
     const playlist = parsePlaylistFromAlbumDetail(album.value!, true);
     audioPlayer.playWithListIndex(playlist, index);
-};
+  };
 
-const onClickPlayAlbum = () => {
+  const onClickPlayAlbum = () => {
     const playlist = parsePlaylistFromAlbumDetail(album.value!);
     audioPlayer.playWithList(playlist);
-};
+  };
 
-const downloadAlbum = () => {
+  const downloadAlbum = () => {
     if (!album.value) return;
     for (const disc of album.value.Disc) {
-        for (const track of disc.tracks) {
-            for (const quality of track.quality) {
-                if (!quality.islossless) {
-                    continue;
-                }
-                downloadFile(quality.url, `${disc.discNo}-${track.trackNo} ${track.name}. ${getMusicExt(quality.fileContainer, quality.fileCodec)}`);
-                break;
-            }
+      for (const track of disc.tracks) {
+        for (const quality of track.quality) {
+          if (!quality.islossless) {
+            continue;
+          }
+          downloadFile(
+            quality.url,
+            `${disc.discNo}-${track.trackNo} ${track.name}. ${getMusicExt(quality.fileContainer, quality.fileCodec)}`,
+          );
+          break;
         }
+      }
     }
-}
+  };
 
-const downloadFile = async (url: string, filename: string) => {
+  const downloadFile = async (url: string, filename: string) => {
     const response = await fetch(url, {
-        credentials: "include",
+      credentials: "include",
     });
 
     if (!response.ok) throw new Error("Failed to download file");
@@ -81,76 +82,78 @@ const downloadFile = async (url: string, filename: string) => {
     document.body.removeChild(a);
 
     URL.revokeObjectURL(blobUrl);
-};
+  };
 </script>
 
 <template>
-    <NuxtLayout v-if="bot" />
-    <div v-if="album && !bot">
-        <div class=" flex gap-8 mb-8 justify-center">
-            <div class="flex-shrink-0">
-                <div class="w-64 h-64 rounded-xl overflow-hidden">
-                    <img v-if="album.cover" :src="album.cover" class="w-full h-full object-cover">
-                    <DiscAlbum v-else class="w-full h-full text-muted-foreground" />
-                </div>
-            </div>
-            <div class="flex-1 flex flex-col gap-4">
-                <div class="space-y-2">
-                    <Badge variant="secondary" class="px-3 py-1">
-                        {{ album.albumType }}
-                    </Badge>
-                    <h1 class="text-5xl font-bold">{{ album.name }}</h1>
-                    <div class="flex items-center gap-2 text-muted-foreground flex-wrap pt-3">
-                        <span class="cursor-pointer" @click="onClickArtist(album.mainArtist.id)">{{
-                            album.mainArtist.name }}</span>
-                        <span v-if="album.year">•</span>
-                        <span v-if="album.year">{{ album.year }}</span>
-                        <span>•</span>
-                        <span>{{ album.totalTracks }} songs</span>
-                        <span>•</span>
-                        <span>{{ getHHMMFromMs(album.totalDurationMs) }}</span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3">
-                    <Button size="lg" class="rounded-full px-8" @click="onClickPlayAlbum">
-                        <Play class="w-5 h-5 mr-2" fill="currentColor" />
-                        Play
-                    </Button>
-                    <!-- Download button download defualt for now -->
-                    <Button size="lg" variant="ghost" class="rounded-full" @click="downloadAlbum">
-                        <FolderDown class="size-fit" />
-                    </Button>
-                </div>
-            </div>
+  <NuxtLayout v-if="bot" />
+  <div v-if="album && !bot">
+    <div class="flex gap-8 mb-8 justify-center">
+      <div class="flex-shrink-0">
+        <div class="w-64 h-64 rounded-xl overflow-hidden">
+          <img v-if="album.cover" :src="album.cover" class="w-full h-full object-cover" />
+          <DiscAlbum v-else class="w-full h-full text-muted-foreground" />
         </div>
-        <div class="gap-4 grid grid-cols-1 lg:grid-cols-3">
-            <MusicAlbumsAlbumMusicList v-if="album" :album="album" class="lg:col-span-2"
-                :onclick-play-track="onClickPlayTrack" :on-click-download-track="downloadFile" />
-            <Card class="h-fit">
-                <CardHeader>
-                    <CardTitle>
-                        Artists
-                    </CardTitle>
-                </CardHeader>
-                <CardHeader>
-                    <div v-for="artist in album.artists" :key="artist.id" class="space-y-2">
-                        <div v-if="artist.artistType !== 'project'"
-                            class="flex items-center gap-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer p-2"
-                            @click="onClickArtist(artist.id)">
-                            <Avatar>
-                                <AvatarImage v-if="artist.image" :src="artist.image" />
-                                <AvatarFallback>
-                                    <Users v-if="artist.artistType === 'group'" class="size-fit" />
-                                    <User v-else class="size-fit" />
-                                </AvatarFallback>
-                            </Avatar>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-muted-foreground truncate font-medium">{{ artist.name }}</h4>
-                            </div>
-                        </div>
-                    </div>
-                </CardHeader>
-            </Card>
+      </div>
+      <div class="flex-1 flex flex-col gap-4">
+        <div class="space-y-2">
+          <Badge variant="secondary" class="px-3 py-1">
+            {{ album.albumType }}
+          </Badge>
+          <h1 class="text-5xl font-bold">{{ album.name }}</h1>
+          <div class="flex items-center gap-2 text-muted-foreground flex-wrap pt-3">
+            <span class="cursor-pointer" @click="onClickArtist(album.mainArtist.id)">{{ album.mainArtist.name }}</span>
+            <span v-if="album.year">•</span>
+            <span v-if="album.year">{{ album.year }}</span>
+            <span>•</span>
+            <span>{{ album.totalTracks }} songs</span>
+            <span>•</span>
+            <span>{{ getHHMMFromMs(album.totalDurationMs) }}</span>
+          </div>
         </div>
+        <div class="flex items-center gap-3">
+          <Button size="lg" class="rounded-full px-8" @click="onClickPlayAlbum">
+            <Play class="w-5 h-5 mr-2" fill="currentColor" />
+            Play
+          </Button>
+          <!-- Download button download defualt for now -->
+          <Button size="lg" variant="ghost" class="rounded-full" @click="downloadAlbum">
+            <FolderDown class="size-fit" />
+          </Button>
+        </div>
+      </div>
     </div>
+    <div class="gap-4 grid grid-cols-1 lg:grid-cols-3">
+      <MusicAlbumsAlbumMusicList
+        v-if="album"
+        :album="album"
+        class="lg:col-span-2"
+        :onclick-play-track="onClickPlayTrack"
+        :on-click-download-track="downloadFile" />
+      <Card class="h-fit">
+        <CardHeader>
+          <CardTitle>Artists</CardTitle>
+        </CardHeader>
+        <CardHeader>
+          <div v-for="artist in album.artists" :key="artist.id" class="space-y-2">
+            <div
+              v-if="artist.artistType !== 'project'"
+              class="flex items-center gap-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer p-2"
+              @click="onClickArtist(artist.id)">
+              <Avatar>
+                <AvatarImage v-if="artist.image" :src="artist.image" />
+                <AvatarFallback>
+                  <Users v-if="artist.artistType === 'group'" class="size-fit" />
+                  <User v-else class="size-fit" />
+                </AvatarFallback>
+              </Avatar>
+              <div class="flex-1 min-w-0">
+                <h4 class="text-muted-foreground truncate font-medium">{{ artist.name }}</h4>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+    </div>
+  </div>
 </template>

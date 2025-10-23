@@ -289,6 +289,9 @@ importers:
         specifier: ^4.1.11
         version: 4.1.11
     devDependencies:
+      eslint-config-prettier:
+        specifier: ^10.1.8
+        version: 10.1.8(eslint@9.37.0(jiti@2.6.1))
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
