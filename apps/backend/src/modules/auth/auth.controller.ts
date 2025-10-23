@@ -208,6 +208,6 @@ export class AuthController {
 			throw new UnauthorizedException('Unauthorized');
 		}
 		const { id } = req.params;
-		return this.authService.removeWebAuthDevice(id);
+		return this.authService.removeWebAuthDevice(userInfo.info.uid, id);
 	}
 }

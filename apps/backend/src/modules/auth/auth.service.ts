@@ -197,8 +197,8 @@ export class AuthService {
 		return { verified, user: webAuth.user as Users };
 	}
 
-	async setWebAuthDeviceName(useid: string, id: string, name: string) {
-		const webAuth = await this.em.findOne(WebAuth, { id, user: useid });
+	async setWebAuthDeviceName(userId: string, id: string, name: string) {
+		const webAuth = await this.em.findOne(WebAuth, { id, user: userId });
 		if (!webAuth) {
 			throw new NotFoundException('WebAuth device not found');
 		}
@@ -229,8 +229,8 @@ export class AuthService {
 		}));
 	}
 
-	async removeWebAuthDevice(id: string) {
-		const webAuth = await this.em.findOne(WebAuth, { id });
+	async removeWebAuthDevice(userId: string, id: string) {
+		const webAuth = await this.em.findOne(WebAuth, { id, user: userId });
 		if (!webAuth) {
 			throw new NotFoundException('WebAuth device not found');
 		}
