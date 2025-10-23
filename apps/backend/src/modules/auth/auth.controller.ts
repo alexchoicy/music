@@ -1,9 +1,11 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	NotFoundException,
 	Post,
+	Put,
 	Req,
 	Res,
 	UnauthorizedException,
@@ -175,5 +177,37 @@ export class AuthController {
 
 		req.session.webAuthAuthenticationOptions = undefined;
 		return { verified: result.verified };
+	}
+
+	@Put('webauth/name')
+	async setWebAuthDeviceName(
+		@Body() body: { id: string; name: string },
+		@Req() req: Request,
+	) {
+		return this.authService.setWebAuthDeviceName(
+			req.user.info.uid,
+			body.id,
+			body.name,
+		);
+	}
+
+	@Get('webauth/devices')
+	async getWebAuthDevices(@Req() req: Request) {
+		const userInfo = req.user;
+		if (!userInfo) {
+			throw new UnauthorizedException('Unauthorized');
+		}
+
+		return this.authService.getWebAuthDevicesForUser(userInfo.info.uid);
+	}
+
+	@Delete('webauth/device/:id')
+	async removeWebAuthDevice(@Req() req: Request) {
+		const userInfo = req.user;
+		if (!userInfo) {
+			throw new UnauthorizedException('Unauthorized');
+		}
+		const { id } = req.params;
+		return this.authService.removeWebAuthDevice(userInfo.info.uid, id);
 	}
 }

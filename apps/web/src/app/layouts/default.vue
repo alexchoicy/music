@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import Sidebar from "~/components/layouts/sidebar.vue";
-import AudioPlayer from "~/components/music/audioPlayer.vue";
+  import Sidebar from "~/components/layouts/sidebar.vue";
+  import AudioPlayer from "~/components/music/audioPlayer.vue";
 
-import { SplitterGroup, SplitterPanel } from "reka-ui";
+  import { SplitterGroup, SplitterPanel } from "reka-ui";
 
-const isBot = useIsBot();
+  const isBot = useIsBot();
 
-const currentPlayListRef = ref<InstanceType<typeof SplitterPanel> | null>(null);
+  const currentPlayListRef = ref<InstanceType<typeof SplitterPanel> | null>(null);
 
-function showCurrentPlayList() {
-  if (!currentPlayListRef.value) return;
+  function showCurrentPlayList() {
+    if (!currentPlayListRef.value) return;
 
-  if (currentPlayListRef.value.isCollapsed) {
-    currentPlayListRef.value.expand();
-  } else {
-    currentPlayListRef.value.collapse();
+    if (currentPlayListRef.value.isCollapsed) {
+      currentPlayListRef.value.expand();
+    } else {
+      currentPlayListRef.value.collapse();
+    }
   }
-}
 
-onMounted(async () => {
-  await nextTick();
-  currentPlayListRef.value?.collapse();
-});
+  onMounted(async () => {
+    await nextTick();
+    currentPlayListRef.value?.collapse();
+  });
 </script>
 
 <template>
@@ -41,7 +41,7 @@ onMounted(async () => {
             <Separator />
           </div>
           <SplitterGroup direction="horizontal">
-            <SplitterPanel class="p-6 overflow-y-auto size-full flex-1" :default-size='100'>
+            <SplitterPanel class="p-6 overflow-y-auto size-full flex-1" :default-size="100">
               <slot />
             </SplitterPanel>
             <ResizableHandle />
@@ -49,7 +49,8 @@ onMounted(async () => {
               <MusicCurrentPlayList />
             </SplitterPanel>
           </SplitterGroup>
-          <AudioPlayer :toggle-play-list="showCurrentPlayList"
+          <AudioPlayer
+            :toggle-play-list="showCurrentPlayList"
             :is-collapsed="currentPlayListRef?.isCollapsed || false" />
         </div>
       </SidebarInset>

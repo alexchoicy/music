@@ -28,6 +28,9 @@ export class WebAuth {
 	@PrimaryKey({ type: 'uuid' })
 	id: string = uuid();
 
+	@Property({ type: 'text' })
+	name?: string;
+
 	@Property({ type: 'text', unique: true })
 	credentialID!: Base64URLString;
 

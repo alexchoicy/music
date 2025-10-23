@@ -2,9 +2,7 @@ import type { AlbumDetailResponse } from "@music/api/dto/album.dto";
 import type { AudioPlayerList } from "~/stores/audioPlayer";
 import type { Playlist } from "~/types/playlist";
 
-export function parsePlayerPlayListFromPlaylist(
-  playlist: Playlist
-): AudioPlayerList[] {
+export function parsePlayerPlayListFromPlaylist(playlist: Playlist): AudioPlayerList[] {
   return playlist.tracks.map((track) => ({
     trackid: track.id,
     playlistRef: playlist.playListRef,
@@ -15,7 +13,7 @@ export function parsePlaylistFromAlbumDetail(
   albumDetail: AlbumDetailResponse,
   directlyPlay = false,
   ignoreInstrumental = true,
-  ignoreMC = true
+  ignoreMC = true,
 ): Playlist {
   const refKey = `${albumDetail.id}-${Date.now()}`;
   const tracks = albumDetail.Disc.map((d) => d.tracks)

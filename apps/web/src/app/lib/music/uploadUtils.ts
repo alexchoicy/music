@@ -55,18 +55,10 @@ export async function hashFileStreamMd5(file: File) {
 }
 
 export function checkIfSoundtrack(title: string, filename: string): boolean {
-  const soundtrackIndicators = [
-    "soundtrack",
-    "ost",
-    "サウンドトラック",
-    "オリジナル",
-  ];
+  const soundtrackIndicators = ["soundtrack", "ost", "サウンドトラック", "オリジナル"];
   const lowerTitle = title.toLowerCase();
   const lowerFilename = filename.toLowerCase();
-  return soundtrackIndicators.some(
-    (indicator) =>
-      lowerTitle.includes(indicator) || lowerFilename.includes(indicator)
-  );
+  return soundtrackIndicators.some((indicator) => lowerTitle.includes(indicator) || lowerFilename.includes(indicator));
 }
 
 function checkIfInstrumental(title: string, filename: string): boolean {
@@ -74,8 +66,7 @@ function checkIfInstrumental(title: string, filename: string): boolean {
   const lowerTitle = title.toLowerCase();
   const lowerFilename = filename.toLowerCase();
   return instrumentalIndicators.some(
-    (indicator) =>
-      lowerTitle.includes(indicator) || lowerFilename.includes(indicator)
+    (indicator) => lowerTitle.includes(indicator) || lowerFilename.includes(indicator),
   );
 }
 
@@ -83,10 +74,7 @@ export function checkIfMC(title: string, filename: string): boolean {
   const mcIndicators = ["mc", "m.c.", "m.c", "ＭＣ"];
   const lowerTitle = title.toLowerCase();
   const lowerFilename = filename.toLowerCase();
-  return mcIndicators.some(
-    (indicator) =>
-      lowerTitle.includes(indicator) || lowerFilename.includes(indicator)
-  );
+  return mcIndicators.some((indicator) => lowerTitle.includes(indicator) || lowerFilename.includes(indicator));
 }
 
 export function checkIfUnsolvedFeat(artist: string[], title: string): boolean {
@@ -94,10 +82,7 @@ export function checkIfUnsolvedFeat(artist: string[], title: string): boolean {
   const lowerArtist = artist.map((a) => a.toLowerCase()).join(" ");
   const lowerTitle = title.toLowerCase();
 
-  return unsolvedFeatIndicators.some(
-    (indicator) =>
-      lowerArtist.includes(indicator) || lowerTitle.includes(indicator)
-  );
+  return unsolvedFeatIndicators.some((indicator) => lowerArtist.includes(indicator) || lowerTitle.includes(indicator));
 }
 
 export function getNextFreeTrackNo(dics: UploadDisc, preferred: number) {
@@ -127,11 +112,9 @@ export function covertToMusicObject(
   hash: string,
   uploadHashCheck: string,
   filename: string,
-  size: number
+  size: number,
 ): UploadMusic {
-  const artists = Array.from(
-    new Set(metadata.common.artists ?? ["Unknown Artist"])
-  );
+  const artists = Array.from(new Set(metadata.common.artists ?? ["Unknown Artist"]));
   const picture =
     metadata.common.picture?.map((pic) => ({
       format: pic.format,

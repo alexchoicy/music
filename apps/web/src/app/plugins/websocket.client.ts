@@ -34,9 +34,7 @@ export default defineNuxtPlugin(() => {
       const message = JSON.parse(event.data);
 
       if (message.type === "music") {
-        const payload = WSMusicMessageClientPayloadSchema.safeParse(
-          message.payload
-        );
+        const payload = WSMusicMessageClientPayloadSchema.safeParse(message.payload);
         if (!payload.success) {
           console.error("Invalid music message payload", payload.error);
           return;

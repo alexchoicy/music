@@ -11,4 +11,7 @@ export default withNuxt([
       "vue/no-mutating-props": "off",
     },
   },
+  {
+    extends: ["prettier"],
+  },
 ]);

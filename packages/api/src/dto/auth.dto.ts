@@ -5,7 +5,7 @@ export const LoginRequestSchema = z.object({
   password: z.string().min(1),
 });
 
-export const UserRolesSchema = z.enum(["user", "admin"]);
+export const UserRolesSchema = z.enum(["user", "admin", "uploader"]);
 
 export type UserRole = z.infer<typeof UserRolesSchema>;
 
@@ -20,3 +20,12 @@ export interface JWTCustomPayloadUserInfo {
   uid: string;
   role?: UserRole;
 }
+
+export type WebAuthDeviceDTO = {
+  id: string;
+  name: string;
+  deviceType: string;
+  device?: string[];
+  createdAt: Date;
+  lastUsedAt?: Date;
+};

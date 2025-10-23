@@ -139,7 +139,7 @@ export class AuthService {
 		});
 		await this.em.persistAndFlush(newDevice);
 
-		return { verified };
+		return { verified, newDeviceId: newDevice.id };
 	}
 
 	async getWebAuthAuthenticationOptions() {
@@ -179,6 +179,7 @@ export class AuthService {
 					transports: webAuth.device,
 				},
 			});
+			webAuth.lastUsedAt = new Date();
 		} catch (error) {
 			console.log(error);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
@@ -194,5 +195,45 @@ export class AuthService {
 		webAuth.lastUsedAt = new Date();
 		await this.em.persistAndFlush(webAuth);
 		return { verified, user: webAuth.user as Users };
+	}
+
+	async setWebAuthDeviceName(userId: string, id: string, name: string) {
+		const webAuth = await this.em.findOne(WebAuth, { id, user: userId });
+		if (!webAuth) {
+			throw new NotFoundException('WebAuth device not found');
+		}
+		webAuth.name = name;
+		await this.em.persistAndFlush(webAuth);
+	}
+
+	async getWebAuthDevicesForUser(userId: string) {
+		const user = await this.em.findOne(
+			Users,
+			{ id: userId },
+			{ populate: ['WebAuths'] },
+		);
+
+		if (!user) {
+			throw new NotFoundException('User not found');
+		}
+
+		const devices = user.WebAuths.getItems();
+
+		return devices.map((device) => ({
+			id: device.id,
+			name: device.name || 'Unnamed Device',
+			deviceType: device.deviceType,
+			device: device.device,
+			createdAt: device.createdAt.toISOString(),
+			lastUsedAt: device.lastUsedAt.toISOString(),
+		}));
+	}
+
+	async removeWebAuthDevice(userId: string, id: string) {
+		const webAuth = await this.em.findOne(WebAuth, { id, user: userId });
+		if (!webAuth) {
+			throw new NotFoundException('WebAuth device not found');
+		}
+		await this.em.removeAndFlush(webAuth);
 	}
 }

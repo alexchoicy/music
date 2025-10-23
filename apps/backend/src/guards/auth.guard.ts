@@ -9,7 +9,8 @@ import { IS_PUBLIC_KEY } from '#decorators/public.decorator.js';
 import { Request } from 'express';
 import { getAuthTokenFromCookies } from '#utils/auth/cookies.js';
 import { JWKSProvider } from '#modules/auth/issuer/jwks.provider.js';
-import { IS_ADMIN_KEY } from '#decorators/admin.decorator.js';
+import { Roles } from '#decorators/roles.decorator.js';
+import { UserRole } from '@music/api/dto/auth.dto';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -37,34 +38,30 @@ export class JwtAuthGuard implements CanActivate {
 				if (!token) {
 					throw new UnauthorizedException('No token provided');
 				}
-				try {
-					const valid = await this.jwksProvider.verifyToken(token);
+				const valid = await this.jwksProvider.verifyToken(token);
 
-					const isAdminOnlyPath =
-						this.reflector.getAllAndOverride<boolean>(
-							IS_ADMIN_KEY,
-							[context.getHandler(), context.getClass()],
-						);
+				const allowedRoles = this.reflector.getAllAndOverride(Roles, [
+					context.getHandler(),
+					context.getClass(),
+				]);
 
-					if (
-						isAdminOnlyPath &&
-						valid.payload.info.role !== 'admin'
-					) {
-						throw new UnauthorizedException('Admin role required');
-					}
-
-					request.user = {
-						type: valid.payload.type,
-						info: {
-							uid: valid.payload.info.uid,
-							role: valid.payload.info.role,
-						},
-					};
-
-					return true;
-				} catch {
-					throw new UnauthorizedException('Invalid token');
+				if (
+					allowedRoles &&
+					allowedRoles.length > 0 &&
+					!allowedRoles.includes(valid.payload.info.role as UserRole)
+				) {
+					throw new UnauthorizedException('Insufficient role');
 				}
+
+				request.user = {
+					type: valid.payload.type,
+					info: {
+						uid: valid.payload.info.uid,
+						role: valid.payload.info.role,
+					},
+				};
+
+				return true;
 			}
 			case 'ws': {
 				//this not work

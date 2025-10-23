@@ -4,10 +4,7 @@ import { parsePlayerPlayListFromPlaylist } from "~/lib/music/playerUtils";
 import type { AudioPlayerLocalStorage } from "~/types/audioPlayer";
 import { RepeatMode, type Playlist } from "~/types/playlist";
 
-import type {
-  WSMusicMessageClientPayloadType,
-  WSMusicAction,
-} from "@music/api/type/ws";
+import type { WSMusicMessageClientPayloadType, WSMusicAction } from "@music/api/type/ws";
 import { toast } from "vue-sonner";
 
 export interface AudioPlayerList {
@@ -39,9 +36,7 @@ export const getAudioPlayerLocalStorage = (): AudioPlayerLocalStorage => {
   }
 };
 
-export const setAudioPlayerLocalStorage = (
-  info: Partial<AudioPlayerLocalStorage>
-) => {
+export const setAudioPlayerLocalStorage = (info: Partial<AudioPlayerLocalStorage>) => {
   const current = getAudioPlayerLocalStorage();
   const updated = { ...current, ...info };
   localStorage.setItem("audioPlayer", JSON.stringify(updated));
@@ -69,9 +64,7 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       const entity = useAudioEntity();
       if (!entity.playList) return null;
       const current = state.queue[state.cursor];
-      const pl = entity.playList.find(
-        (p) => p.playListRef === current?.playlistRef
-      );
+      const pl = entity.playList.find((p) => p.playListRef === current?.playlistRef);
       return pl?.tracks.find((t) => t.id === current?.trackid) || null;
     },
     getPlayUrl: (state) => {
@@ -83,12 +76,10 @@ export const useAudioPlayer = defineStore("audioPlayer", {
       let url = track.quality.find((q) => q.type === quality)?.url;
 
       if (!url) {
-        url =
-          track.quality.find((q) => q.islossless)?.url || track.quality[0]?.url;
-        toast.error(
-          `Requested quality "${quality}" not found, playing with Original quality instead.`,
-          { duration: 5000 }
-        );
+        url = track.quality.find((q) => q.islossless)?.url || track.quality[0]?.url;
+        toast.error(`Requested quality "${quality}" not found, playing with Original quality instead.`, {
+          duration: 5000,
+        });
       }
 
       if (!url) {
@@ -278,12 +269,7 @@ export const useAudioPlayer = defineStore("audioPlayer", {
 
       this.$subscribe((mutation, state) => {
         const { volume, muted, repeat, quality } = state;
-        if (
-          volume === last.volume &&
-          muted === last.muted &&
-          repeat === last.repeat &&
-          quality === last.quality
-        ) {
+        if (volume === last.volume && muted === last.muted && repeat === last.repeat && quality === last.quality) {
           return;
         }
         last = { volume, muted, repeat, quality };
@@ -303,10 +289,7 @@ export const useAudioEntity = defineStore("audioEntity", {
   }),
   getters: {
     getTotalTrack(state) {
-      return state.playList.reduce(
-        (sum, playlist) => sum + playlist.tracks.length,
-        0
-      );
+      return state.playList.reduce((sum, playlist) => sum + playlist.tracks.length, 0);
     },
   },
   actions: {

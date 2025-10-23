@@ -1,13 +1,5 @@
-import type {
-  UploadAlbum,
-  UploadMusic,
-  UploadDisc,
-} from "@music/api/type/music";
-import {
-  checkIfSoundtrack,
-  getAlbumHash,
-  getNextFreeTrackNo,
-} from "./uploadUtils";
+import type { UploadAlbum, UploadMusic, UploadDisc } from "@music/api/type/music";
+import { checkIfSoundtrack, getAlbumHash, getNextFreeTrackNo } from "./uploadUtils";
 
 export function albumMusicSorter(a: UploadMusic, b: UploadMusic) {
   return a.disc.no - b.disc.no || a.track.no - b.track.no;
@@ -73,9 +65,7 @@ export async function albumMapper(albums: UploadMusic[]) {
       sortedAlbum.albumType = "Album";
     }
     sortedAlbum.disc.sort((a: UploadDisc, b: UploadDisc) => a.no - b.no);
-    sortedAlbum.disc.forEach((disc: UploadDisc) =>
-      disc.musics.sort(albumMusicSorter)
-    );
+    sortedAlbum.disc.forEach((disc: UploadDisc) => disc.musics.sort(albumMusicSorter));
   }
 
   return sortedAlbums;
@@ -96,9 +86,7 @@ export async function albumsSorter(allMusics: UploadMusic[]) {
           });
         });
       });
-      const mostFrequentArtist = Object.entries(artistCount).sort(
-        (a, b) => b[1] - a[1]
-      )[0]?.[0];
+      const mostFrequentArtist = Object.entries(artistCount).sort((a, b) => b[1] - a[1])[0]?.[0];
 
       if (mostFrequentArtist) {
         hasAlbumArtistDetected = true;
@@ -108,9 +96,7 @@ export async function albumsSorter(allMusics: UploadMusic[]) {
             music.albumArtist = sortedAlbum.albumArtist;
           });
         });
-        const newAlbumHash = await getAlbumHash(
-          sortedAlbum.name + sortedAlbum.albumArtist
-        );
+        const newAlbumHash = await getAlbumHash(sortedAlbum.name + sortedAlbum.albumArtist);
         sortedAlbum.hash = newAlbumHash;
       }
     }
@@ -125,14 +111,12 @@ export async function albumsSorter(allMusics: UploadMusic[]) {
     }
 
     sortedAlbum.disc.sort((a: UploadDisc, b: UploadDisc) => a.no - b.no);
-    sortedAlbum.disc.forEach((disc: UploadDisc) =>
-      disc.musics.sort(albumMusicSorter)
-    );
+    sortedAlbum.disc.forEach((disc: UploadDisc) => disc.musics.sort(albumMusicSorter));
   }
   if (hasAlbumArtistDetected) {
-    return albumMapper(
-      sortedAlbums.flatMap((a) => a.disc.flatMap((d) => d.musics))
-    ).then((map) => Array.from(map.values()));
+    return albumMapper(sortedAlbums.flatMap((a) => a.disc.flatMap((d) => d.musics))).then((map) =>
+      Array.from(map.values()),
+    );
   } else {
     return sortedAlbums;
   }

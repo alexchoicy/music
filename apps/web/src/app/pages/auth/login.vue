@@ -1,23 +1,20 @@
 <script setup lang="ts">
-import { useAuthUser } from "#imports";
+  import { useAuthUser } from "#imports";
 
-definePageMeta({
+  definePageMeta({
     public: true,
     layout: false,
-});
+  });
 
-const authUser = useAuthUser();
+  const authUser = useAuthUser();
 
-if (authUser.value) {
+  if (authUser.value) {
     await navigateTo("/");
-}
-
-
+  }
 </script>
 
 <template>
-    <div class="relative min-h-svh flex-col bg-background w-full h-screen flex items-center justify-center px-4">
-        <AuthLoginForm />
-    </div>
-
+  <div class="relative min-h-svh flex-col bg-background w-full h-screen flex items-center justify-center px-4">
+    <AuthLoginForm />
+  </div>
 </template>
