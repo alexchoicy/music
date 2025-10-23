@@ -179,6 +179,7 @@ export class AuthService {
 					transports: webAuth.device,
 				},
 			});
+			webAuth.lastUsedAt = new Date();
 		} catch (error) {
 			console.log(error);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
@@ -196,8 +197,8 @@ export class AuthService {
 		return { verified, user: webAuth.user as Users };
 	}
 
-	async setWebAuthDeviceName(id: string, name: string) {
-		const webAuth = await this.em.findOne(WebAuth, { id });
+	async setWebAuthDeviceName(useid: string, id: string, name: string) {
+		const webAuth = await this.em.findOne(WebAuth, { id, user: useid });
 		if (!webAuth) {
 			throw new NotFoundException('WebAuth device not found');
 		}
@@ -223,8 +224,8 @@ export class AuthService {
 			name: device.name || 'Unnamed Device',
 			deviceType: device.deviceType,
 			device: device.device,
-			createdAt: device.createdAt,
-			lastUsedAt: device.lastUsedAt,
+			createdAt: device.createdAt.toISOString(),
+			lastUsedAt: device.lastUsedAt.toISOString(),
 		}));
 	}
 

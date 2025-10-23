@@ -180,8 +180,15 @@ export class AuthController {
 	}
 
 	@Put('webauth/name')
-	async setWebAuthDeviceName(@Body() body: { id: string; name: string }) {
-		return this.authService.setWebAuthDeviceName(body.id, body.name);
+	async setWebAuthDeviceName(
+		@Body() body: { id: string; name: string },
+		@Req() req: Request,
+	) {
+		return this.authService.setWebAuthDeviceName(
+			req.user.info.uid,
+			body.id,
+			body.name,
+		);
 	}
 
 	@Get('webauth/devices')
