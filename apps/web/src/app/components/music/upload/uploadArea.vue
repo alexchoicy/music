@@ -73,7 +73,7 @@
             seenInBatch.add(hash);
 
             const isDupInLibrary = props.albums.some((album) =>
-              album.disc.some((disc: UploadDisc) => disc.musics.some((m: UploadMusic) => m.hash === hash)),
+              album.disc.some((disc: UploadDisc) => disc.musics.some((m: UploadMusic) => m.hash === hash))
             );
             if (isDupInLibrary) {
               return null;
@@ -89,7 +89,7 @@
             processed += 1;
             emit("update:uploaded", processed);
           }
-        }),
+        })
       );
 
       const results = await Promise.all(tasks);
@@ -132,7 +132,7 @@
               }
             " />
           <Button as-child class="font-semibold">
-            <Label html-for="file-upload" class="cursor-pointer">Browse Files</Label>
+            <Label htmlFor="file-upload" class="cursor-pointer">Browse Files</Label>
           </Button>
         </div>
         <template #fallback>
