@@ -88,3 +88,6 @@ docker/.env.web
 
 # Mikro-orm
 apps/backend/src/database/migrations/.snapshot-*
+
+
+.zed

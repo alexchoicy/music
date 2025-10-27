@@ -25,6 +25,7 @@ import { MigrationsModule } from '#modules/migrations/migrations.module.js';
 import { wsEventsModule } from './modules/ws/wsEvents.module.js';
 import { TracksModule } from '#modules/tracks/tracks.module.js';
 import { UsersModule } from '#modules/users/users.module.js';
+import { SearchModule } from '#modules/search/search.module.js';
 
 @Module({
 	imports: [
@@ -51,6 +52,7 @@ import { UsersModule } from '#modules/users/users.module.js';
 		wsEventsModule,
 		TracksModule,
 		UsersModule,
+		SearchModule,
 	],
 	controllers: [BaseController],
 	providers: [

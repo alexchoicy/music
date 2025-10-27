@@ -53,6 +53,7 @@
             :toggle-play-list="showCurrentPlayList"
             :is-collapsed="currentPlayListRef?.isCollapsed || false" />
         </div>
+        <SearchCMD />
       </SidebarInset>
     </SidebarProvider>
   </TooltipProvider>
