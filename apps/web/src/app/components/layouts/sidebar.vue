@@ -1,11 +1,21 @@
 <script setup lang="ts">
-  import { Album, User, Upload, Settings } from "lucide-vue-next";
+  import { Album, User, Upload, Settings, Search } from "lucide-vue-next";
+  import { useSearchCMD } from "~/composables/useSearchCMD";
+  const { toggle } = useSearchCMD();
 </script>
 
 <template>
   <Sidebar>
     <SidebarHeader>
       <NuxtLink to="/" class="text-2xl font-bold items-center flex justify-center">Music</NuxtLink>
+      <Button class="w-full justify-between" variant="ghost" @click="toggle">
+        <Search class="w-5 h-5 mr-2" />
+        <div>Search</div>
+        <KbdGroup>
+          <Kbd>Ctrl</Kbd>
+          <Kbd>K</Kbd>
+        </KbdGroup>
+      </Button>
     </SidebarHeader>
     <SidebarContent>
       <SidebarGroup>
