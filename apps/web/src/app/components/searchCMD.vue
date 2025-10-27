@@ -1,14 +1,12 @@
 <script setup lang="ts">
   import { Search } from "lucide-vue-next";
   import { useMagicKeys, watchDebounced } from "@vueuse/core";
-  import { CommandDialog, CommandInput } from "./ui/command";
+  import { CommandDialog } from "./ui/command";
   import type { SearchDTO } from "@music/api/dto/search.dto";
-  import type { ListboxFilterProps } from "reka-ui";
-  import { reactiveOmit } from "@vueuse/core";
-  import { ListboxFilter, useForwardProps } from "reka-ui";
-  import type { HTMLAttributes } from "vue";
+  import { ListboxFilter } from "reka-ui";
   import { cn } from "@/lib/utils";
   import { useSearchCMD } from "~/composables/useSearchCMD";
+  import { Primitive } from "reka-ui";
 
   const { state, toggle } = useSearchCMD();
 
@@ -20,15 +18,15 @@
   });
 
   watch(ctrl_k!, (v) => {
-    if (v) handleOpenChange();
+    if (v) handleOpenChange(true);
   });
 
-  function handleOpenChange() {
+  function handleOpenChange(next: boolean) {
     if (!state.value) {
       searchTerm.value = "";
       data.value = undefined;
     }
-    toggle();
+    state.value = next;
   }
 
   const searchTerm = ref("");
@@ -56,67 +54,73 @@
     { debounce: 500, immediate: false },
   );
 
-  const props = defineProps<
-    ListboxFilterProps & {
-      class?: HTMLAttributes["class"];
-    }
-  >();
-
-  const delegatedProps = reactiveOmit(props, "class");
-
-  const forwardedProps = useForwardProps(delegatedProps);
+  function handleSelect(href: string) {
+    useNuxtApp().$router.push(href);
+    handleOpenChange(false);
+  }
 </script>
 
 <template>
   <CommandDialog :open="state" @update:open="handleOpenChange">
     <div data-slot="command-input-wrapper" class="flex h-12 items-center gap-2 border-b px-3">
+      <!-- copy from CommandInput -->
       <Search class="size-4 shrink-0 opacity-50" />
       <ListboxFilter
-        v-bind="{ ...forwardedProps, ...$attrs }"
         v-model="searchTerm"
-        data-slot="command-input"
         auto-focus
         :class="
           cn(
             'placeholder:text-muted-foreground flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
-            props.class,
           )
         " />
     </div>
     <CommandList v-if="data">
+      <!-- i just copy from orginal CommandEmpty -->
+      <Primitive v-if="!data.albums.length && !data.artists.length && !loading" :class="cn('py-6 text-center text-sm')">
+        No results found.
+      </Primitive>
+      <Primitive v-if="loading" :class="cn('flex py-6 justify-center')">
+        <Spinner />
+      </Primitive>
       <CommandGroup v-if="data.albums.length" heading="Albums">
-        <CommandItem as-child v-for="album in data.albums" :key="album.albumID" :value="album.title">
-          <Item as-child>
-            <a :href="`/music/albums/${album.albumID}`">
-              <ItemMedia variant="image" class="m-auto">
-                <img v-if="album.imageUrl" :src="album.imageUrl" class="object-cover" />
-              </ItemMedia>
-              <ItemContent>
-                <ItemTitle>
-                  {{ album.title }}
-                </ItemTitle>
-                <ItemDescription>
-                  {{ album.artistName }}
-                </ItemDescription>
-              </ItemContent>
-            </a>
+        <CommandItem
+          as-child
+          v-for="album in data.albums"
+          :key="album.albumID"
+          :value="album.title"
+          @click="handleSelect(`/music/albums/${album.albumID}`)">
+          <Item>
+            <ItemMedia variant="image" class="m-auto">
+              <img v-if="album.imageUrl" :src="album.imageUrl" class="object-cover" />
+            </ItemMedia>
+            <ItemContent>
+              <ItemTitle>
+                {{ album.title }}
+              </ItemTitle>
+              <ItemDescription>
+                {{ album.artistName }}
+              </ItemDescription>
+            </ItemContent>
           </Item>
         </CommandItem>
       </CommandGroup>
       <CommandGroup v-if="data.artists.length" heading="Artists">
-        <CommandItem as-child v-for="artist in data.artists" :key="artist.artistID" :value="artist.name">
-          <Item as-child>
-            <a :href="`/music/artists/${artist.artistID}`">
-              <ItemMedia variant="image">
-                <img v-if="artist.imageUrl" :src="artist.imageUrl" class="object-cover" />
-              </ItemMedia>
-              <ItemContent>
-                <ItemTitle>
-                  {{ artist.name }}
-                </ItemTitle>
-                <ItemDescription>No of Album: {{ artist.albumCount }}</ItemDescription>
-              </ItemContent>
-            </a>
+        <CommandItem
+          as-child
+          v-for="artist in data.artists"
+          :key="artist.artistID"
+          :value="artist.name"
+          @click="handleSelect(`/music/artists/${artist.artistID}`)">
+          <Item>
+            <ItemMedia variant="image">
+              <img v-if="artist.imageUrl" :src="artist.imageUrl" class="object-cover" />
+            </ItemMedia>
+            <ItemContent>
+              <ItemTitle>
+                {{ artist.name }}
+              </ItemTitle>
+              <ItemDescription>No of Album: {{ artist.albumCount }}</ItemDescription>
+            </ItemContent>
           </Item>
         </CommandItem>
       </CommandGroup>
