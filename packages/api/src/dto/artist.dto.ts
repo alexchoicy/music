@@ -7,6 +7,7 @@ export const artistSchema = z.object({
   id: z.string(),
   name: z.string(),
   image: z.url().nullable(),
+  banner: z.url().nullable(),
   artistType: ArtistsArtistType,
   albums: z.array(AlbumResponseSchema),
   featuredIn: z.array(AlbumResponseSchema).nullable(),

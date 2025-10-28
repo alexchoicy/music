@@ -1,6 +1,6 @@
 import { Albums } from '#database/entities/albums.js';
 import { AlbumTracks } from '#database/entities/albumTracks.js';
-import { Artists } from '#database/entities/artists.js';
+import { Artists, ArtistsAlias } from '#database/entities/artists.js';
 import { Attachments } from '#database/entities/attachments.js';
 import { TrackArtists } from '#database/entities/trackArtists.js';
 import { Tracks } from '#database/entities/tracks.js';
@@ -16,9 +16,15 @@ import {
 } from '#database/entities/trackQuality.js';
 import mime from 'mime';
 import { UploadAlbum, UploadDisc, UploadMusic } from '@music/api/type/music';
+import {
+	formatMusicBrainzAlias,
+	getMusicBrainzRelationUrl,
+	searchMusicBrainzByName,
+} from '#utils/artists/musicBrainz.js';
 
 @Injectable()
 export class MusicService {
+	private twitterToken = process.env.TWITTER_BEARER_TOKEN || '';
 	constructor(
 		private readonly orm: MikroORM,
 		private readonly em: EntityManager,
@@ -39,6 +45,40 @@ export class MusicService {
 				name: name,
 				artistType: uploadMusicInit.artistsType || 'person',
 			});
+			await tem.persistAndFlush(newArtist);
+			const musicBrainzInfo = await searchMusicBrainzByName(name);
+			if (musicBrainzInfo) {
+				const aliases = formatMusicBrainzAlias(
+					name,
+					musicBrainzInfo.aliases || [],
+				);
+				if (aliases.length > 0) {
+					await this.em
+						.createQueryBuilder(ArtistsAlias)
+						.insert(
+							aliases.map((a) => ({
+								artist: newArtist.id,
+								alias: a.name,
+								type: a.type,
+							})),
+						)
+						.onConflict('("artist_id", "alias") DO NOTHING')
+						.execute();
+				}
+				newArtist.musicBrainzID = musicBrainzInfo.id;
+				newArtist.area = musicBrainzInfo.area?.name || null;
+
+				await new Promise((resolve) => setTimeout(resolve, 500));
+
+				const relationData = await getMusicBrainzRelationUrl(
+					musicBrainzInfo.id,
+				);
+
+				if (relationData) {
+					newArtist.spotifyID = relationData.spotifyID || null;
+					newArtist.twitterName = relationData.twitterName || null;
+				}
+			}
 			await tem.persistAndFlush(newArtist);
 			albumArtist = newArtist;
 		}
@@ -173,6 +213,50 @@ export class MusicService {
 									name: artist,
 									artistType: 'person',
 								});
+								await tem.persistAndFlush(newArtist);
+								const musicBrainzInfo =
+									await searchMusicBrainzByName(artist);
+								if (musicBrainzInfo) {
+									const aliases = formatMusicBrainzAlias(
+										artist,
+										musicBrainzInfo.aliases || [],
+									);
+									if (aliases.length > 0) {
+										await this.em
+											.createQueryBuilder(ArtistsAlias)
+											.insert(
+												aliases.map((a) => ({
+													artist: newArtist.id,
+													alias: a.name,
+													type: a.type,
+												})),
+											)
+											.onConflict(
+												'("artist_id", "alias") DO NOTHING',
+											)
+											.execute();
+									}
+									newArtist.musicBrainzID =
+										musicBrainzInfo.id;
+									newArtist.area =
+										musicBrainzInfo.area?.name || null;
+
+									await new Promise((resolve) =>
+										setTimeout(resolve, 500),
+									);
+
+									const relationData =
+										await getMusicBrainzRelationUrl(
+											musicBrainzInfo.id,
+										);
+
+									if (relationData) {
+										newArtist.spotifyID =
+											relationData.spotifyID || null;
+										newArtist.twitterName =
+											relationData.twitterName || null;
+									}
+								}
 								await tem.persistAndFlush(newArtist);
 								trackArtist = newArtist;
 							}

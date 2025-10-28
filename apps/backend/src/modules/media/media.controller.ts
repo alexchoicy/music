@@ -115,4 +115,38 @@ export class MediaController {
 			},
 		});
 	}
+	@Get('artist/image/:fileName')
+	getArtistImage(@Param('fileName') fileName: string, @Res() res: Response) {
+		const { filePath, contentType } =
+			this.mediaService.getArtistImageFileInfo(fileName);
+
+		if (!fs.existsSync(filePath)) {
+			res.status(404).send('Not found');
+			return;
+		}
+
+		res.sendFile(filePath, {
+			headers: {
+				'Content-Type': contentType || 'application/octet-stream',
+				'Cache-Control': 'public, max-age=31536000, immutable',
+			},
+		});
+	}
+
+	@Get('artist/banner/:fileName')
+	getArtistBanner(@Param('fileName') fileName: string, @Res() res: Response) {
+		const { filePath, contentType } =
+			this.mediaService.getArtistBannerFileInfo(fileName);
+		if (!fs.existsSync(filePath)) {
+			res.status(404).send('Not found');
+			return;
+		}
+
+		res.sendFile(filePath, {
+			headers: {
+				'Content-Type': contentType || 'application/octet-stream',
+				'Cache-Control': 'public, max-age=31536000, immutable',
+			},
+		});
+	}
 }

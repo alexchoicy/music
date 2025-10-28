@@ -28,6 +28,12 @@ export class AlbumsService {
 		return this.storageService.staticContent.getAlbumCoverDataUrl(id, ext);
 	}
 
+	private async getProfilePicDataUrl(id: string, fileType?: string | null) {
+		if (!fileType) return null;
+		const ext = mime.getExtension(fileType) || '';
+		return this.storageService.staticContent.getArtistImageDataUrl(id, ext);
+	}
+
 	private async getAlbumStats(album: Albums) {
 		const [nonInstrumentalTracks, totalTracks] = await Promise.all([
 			this.em.count(AlbumTracks, {
@@ -65,6 +71,7 @@ export class AlbumsService {
 				id: album.mainArtist?.id?.toString(),
 				name: album.mainArtist?.name,
 				image: null,
+				banner: null,
 				language: null,
 				artistType: (album.mainArtist?.artistType ?? '') as string,
 				createdAt: album.mainArtist?.createdAt?.toISOString(),
@@ -104,6 +111,7 @@ export class AlbumsService {
 					'albumTracksCollection.track',
 					'mainArtist',
 					'albumTracksCollection.track.trackArtistsCollection.artist',
+					'albumTracksCollection.track.trackArtistsCollection.artist.profilePic',
 					'coverAttachment',
 					'albumTracksCollection.track.trackQualityCollection',
 				],
@@ -161,11 +169,19 @@ export class AlbumsService {
 			});
 
 			for (const trackArtist of albumTrack.track.trackArtistsCollection) {
+				const profilePic = trackArtist.artist.profilePic
+					? await this.getProfilePicDataUrl(
+							trackArtist.artist.profilePic.id,
+							trackArtist.artist.profilePic.fileType,
+						)
+					: null;
+
 				const artistInfo = Artist.parse({
 					id: trackArtist.artist.id.toString(),
 					name: trackArtist.artist.name,
 					language: null,
-					image: null,
+					image: profilePic,
+					banner: null,
 					artistType: trackArtist.artist.artistType as string,
 					createdAt: trackArtist.artist.createdAt.toISOString(),
 					updatedAt: trackArtist.artist.updatedAt.toISOString(),
@@ -205,6 +221,7 @@ export class AlbumsService {
 			name: album.mainArtist?.name,
 			language: null,
 			image: null,
+			banner: null,
 			artistType: album.mainArtist?.artistType as string,
 			createdAt: album.mainArtist?.createdAt.toISOString(),
 			updatedAt: album.mainArtist?.updatedAt.toISOString(),

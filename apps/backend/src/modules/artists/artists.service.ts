@@ -25,10 +25,26 @@ export class ArtistsService {
 		private readonly em: EntityManager,
 		private readonly storageService: StorageService,
 	) {}
+
 	private async getCoverDataUrl(id: string, fileType?: string | null) {
 		if (!fileType) return null;
 		const ext = mime.getExtension(fileType) || '';
 		return this.storageService.staticContent.getAlbumCoverDataUrl(id, ext);
+	}
+
+	private async getBannerDataUrl(id: string, fileType?: string | null) {
+		if (!fileType) return null;
+		const ext = mime.getExtension(fileType) || '';
+		return this.storageService.staticContent.getArtistBannerDataUrl(
+			id,
+			ext,
+		);
+	}
+
+	private async getProfilePicDataUrl(id: string, fileType?: string | null) {
+		if (!fileType) return null;
+		const ext = mime.getExtension(fileType) || '';
+		return this.storageService.staticContent.getArtistImageDataUrl(id, ext);
 	}
 
 	private async getAlbumStats(album: Albums) {
@@ -57,10 +73,19 @@ export class ArtistsService {
 		if (ignoreNoAlbum && albumsArr.length < 1) return null;
 		const albums = await this.getArtistAlbumsToDTO(albumsArr);
 		if (!albums || (ignoreNoAlbum && albums.length < 1)) return null;
+
+		const profilePic = artist.profilePic
+			? await this.getProfilePicDataUrl(
+					artist.profilePic.id,
+					artist.profilePic.fileType,
+				)
+			: null;
+
 		return {
 			id: artist.id.toString(),
 			name: artist.name,
-			image: null,
+			image: profilePic,
+			banner: null,
 			language: null,
 			artistType: artist.artistType,
 			createdAt: artist.createdAt.toISOString(),
@@ -100,7 +125,7 @@ export class ArtistsService {
 	}
 
 	async getAlbumInfo(album: Albums): Promise<AlbumResponse | null> {
-		const [cover, stats] = await Promise.all([
+		const [cover, stats, profilePic] = await Promise.all([
 			album.coverAttachment
 				? this.getCoverDataUrl(
 						album.coverAttachment.id,
@@ -108,6 +133,13 @@ export class ArtistsService {
 					)
 				: Promise.resolve(null),
 			this.getAlbumStats(album),
+
+			album.mainArtist?.profilePic
+				? this.getProfilePicDataUrl(
+						album.mainArtist.profilePic.id,
+						album.mainArtist.profilePic.fileType,
+					)
+				: Promise.resolve(null),
 		]);
 		return {
 			id: album.id.toString(),
@@ -121,7 +153,8 @@ export class ArtistsService {
 			mainArtist: Artist.parse({
 				id: album.mainArtist?.id?.toString(),
 				name: album.mainArtist?.name,
-				image: null,
+				image: profilePic,
+				banner: null,
 				language: null,
 				artistType: (album.mainArtist?.artistType ?? '') as string,
 				createdAt: album.mainArtist?.createdAt?.toISOString(),
@@ -134,7 +167,11 @@ export class ArtistsService {
 
 	async getArtists() {
 		const rawArtists = await this.em.findAll(Artists, {
-			populate: ['albumsCollection.coverAttachment', 'profilePic'],
+			populate: [
+				'albumsCollection.coverAttachment',
+				'profilePic',
+				'profileBanner',
+			],
 		});
 		const limit = pLimit(10);
 		const promises = rawArtists.map((artist) =>
@@ -153,6 +190,9 @@ export class ArtistsService {
 			{ id },
 			{
 				populate: [
+					'profileBanner',
+					'profilePic',
+
 					// Own albums (with cover + main artist so DTO can be built)
 					'albumsCollection',
 					'albumsCollection.coverAttachment',
@@ -237,6 +277,7 @@ export class ArtistsService {
 							'albumsCollection',
 							'albumsCollection.coverAttachment',
 							'albumsCollection.mainArtist',
+							'albumsCollection.mainArtist.profilePic',
 						],
 					},
 				);
@@ -247,11 +288,26 @@ export class ArtistsService {
 			}
 		}
 
+		const profilePic = artist.profilePic
+			? await this.getProfilePicDataUrl(
+					artist.profilePic.id,
+					artist.profilePic.fileType,
+				)
+			: null;
+
+		const banner = artist.profileBanner
+			? await this.getBannerDataUrl(
+					artist.profileBanner.id,
+					artist.profileBanner.fileType,
+				)
+			: null;
+
 		const result = ArtistDetailDTO.create({
 			id: artist.id.toString(),
 			name: artist.name,
 			artistType: artist.artistType as string,
-			image: null,
+			image: profilePic,
+			banner: banner,
 			albums,
 			featuredIn,
 			groupMembers,

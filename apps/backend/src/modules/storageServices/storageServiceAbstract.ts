@@ -28,6 +28,28 @@ export interface StaticStorageInterface {
 		imageBuffer: Buffer,
 		ext: string,
 	): string | Promise<string>;
+
+	saveArtistBanner(
+		attachmentID: string,
+		imageBuffer: Buffer,
+		contentType: string,
+	): string | Promise<string>;
+
+	getArtistBannerDataUrl(
+		attachmentID: string,
+		ext: string,
+	): string | Promise<string>;
+
+	saveArtistImage(
+		attachmentID: string,
+		imageBuffer: Buffer,
+		contentType: string,
+	): string | Promise<string>;
+
+	getArtistImageDataUrl(
+		attachmentID: string,
+		ext: string,
+	): string | Promise<string>;
 }
 
 export abstract class StorageService {

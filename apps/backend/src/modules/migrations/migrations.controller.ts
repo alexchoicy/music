@@ -1,4 +1,4 @@
-import { Controller, Post } from '@nestjs/common';
+import { Controller, Put } from '@nestjs/common';
 import { MigrationsService } from './migrations.service.js';
 import { Roles } from '#decorators/roles.decorator.js';
 
@@ -7,13 +7,23 @@ import { Roles } from '#decorators/roles.decorator.js';
 export class MigrationsController {
 	constructor(private readonly migrationService: MigrationsService) {}
 
-	@Post('cover')
+	@Put('cover')
 	async migrateAlbumCovers() {
 		return this.migrationService.migrateAlbumCovers();
 	}
 
-	@Post('quality')
+	@Put('quality')
 	async migrateMusicQualityData() {
 		return this.migrationService.migrateMusicQualityData();
+	}
+
+	@Put('musicBrainzAliases')
+	async migrateMusicBrainzAliases() {
+		return this.migrationService.getMusicBrainzData();
+	}
+
+	@Put('twitterImages')
+	async migrateTwitterImages() {
+		return this.migrationService.getArtistImageAndBannerWithTwitter();
 	}
 }

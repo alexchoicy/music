@@ -61,7 +61,10 @@ export class SearchService {
 		const artists = await this.em.find(
 			Artists,
 			{
-				name: { $ilike: `%${text}%` },
+				$or: [
+					{ name: { $ilike: `%${text}%` } },
+					{ aliases: { alias: { $ilike: `%${text}%` } } },
+				],
 			},
 			{
 				populate: [

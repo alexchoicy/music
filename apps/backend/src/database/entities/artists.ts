@@ -2,6 +2,7 @@ import {
 	Collection,
 	Entity,
 	Enum,
+	Index,
 	ManyToOne,
 	OneToMany,
 	OneToOne,
@@ -9,6 +10,7 @@ import {
 	PrimaryKey,
 	Property,
 	type Rel,
+	Unique,
 } from '@mikro-orm/core';
 import { Albums } from './albums.js';
 import { ArtistGroups } from './artistGroups.js';
@@ -31,6 +33,21 @@ export class Artists {
 
 	@Enum({ items: () => ArtistsArtistType.options })
 	artistType!: ArtistType;
+
+	@Property({ type: 'text', nullable: true })
+	musicBrainzID?: string | null;
+
+	@Property({ type: 'text', nullable: true })
+	area?: string | null;
+
+	@Property({ type: 'text', nullable: true })
+	spotifyID?: string | null;
+
+	@Property({ type: 'text', nullable: true })
+	twitterName?: string | null;
+
+	@ManyToOne({ entity: () => Attachments, nullable: true })
+	profileBanner?: Rel<Attachments>;
 
 	@ManyToOne({ entity: () => Attachments, nullable: true })
 	profilePic?: Rel<Attachments>;
@@ -60,4 +77,38 @@ export class Artists {
 
 	@OneToMany({ entity: () => TrackArtists, mappedBy: 'artist' })
 	trackArtistsCollection = new Collection<TrackArtists>(this);
+
+	@OneToMany({ entity: () => ArtistsAlias, mappedBy: 'artist' })
+	aliases = new Collection<ArtistsAlias>(this);
+}
+
+@Entity()
+@Index({ name: 'artists_alias_artist_idx', properties: ['artist'] })
+@Unique({ name: 'uniq_artist_alias', properties: ['artist', 'alias'] })
+export class ArtistsAlias {
+	@PrimaryKey({ autoincrement: true })
+	id!: bigint;
+
+	@ManyToOne({ entity: () => Artists })
+	artist!: Rel<Artists>;
+
+	@Property({ type: 'text' })
+	alias!: string;
+
+	@Property({ type: 'text' })
+	type!: string;
+
+	@Property({
+		type: 'datetime',
+		columnType: 'timestamp(6)',
+		defaultRaw: `now()`,
+	})
+	createdAt!: Date & Opt;
+
+	@Property({
+		type: 'datetime',
+		columnType: 'timestamp(6)',
+		defaultRaw: `now()`,
+	})
+	updatedAt!: Date & Opt;
 }

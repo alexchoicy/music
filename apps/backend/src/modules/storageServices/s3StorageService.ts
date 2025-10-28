@@ -57,6 +57,49 @@ export class S3StorageService
 		return `${this.config.get('appConfig.app.public_data_url')}/coverImages/${attachmentID}.${ext}`;
 	}
 
+	async saveArtistImage(
+		attachmentID: string,
+		imageBuffer: Buffer,
+		contentType: string,
+	): Promise<string> {
+		const ext = mime.getExtension(contentType) || 'jpg';
+		const upload = new PutObjectCommand({
+			Bucket: this.config.get('appConfig.storage.type.static.bucket'),
+			Key: `artistImages/${attachmentID}.${ext}`,
+			ContentType: contentType || 'image/jpeg',
+			Body: imageBuffer,
+			CacheControl: 'public, max-age=31536000, immutable',
+		});
+		await this.s3Client.send(upload);
+		return `${attachmentID}.${ext}`;
+	}
+
+	getArtistImageDataUrl(attachmentID: string, ext: string) {
+		return `${this.config.get('appConfig.app.public_data_url')}/artistImages/${attachmentID}.${ext}`;
+	}
+
+	async saveArtistBanner(
+		attachmentID: string,
+		imageBuffer: Buffer,
+		contentType: string,
+	): Promise<string> {
+		const ext = mime.getExtension(contentType) || 'jpg';
+
+		const upload = new PutObjectCommand({
+			Bucket: this.config.get('appConfig.storage.type.static.bucket'),
+			Key: `artistBanners/${attachmentID}.${ext}`,
+			ContentType: contentType || 'image/jpeg',
+			Body: imageBuffer,
+			CacheControl: 'public, max-age=31536000, immutable',
+		});
+		await this.s3Client.send(upload);
+		return `${attachmentID}.${ext}`;
+	}
+
+	getArtistBannerDataUrl(attachmentID: string, ext: string) {
+		return `${this.config.get('appConfig.app.public_data_url')}/artistBanners/${attachmentID}.${ext}`;
+	}
+
 	createPresignedMusicUploadUrl(
 		albumId: string,
 		trackId: string,
