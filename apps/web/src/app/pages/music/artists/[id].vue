@@ -52,8 +52,9 @@
   <div v-if="data && !bot">
     <div class="relative h-[400px] w-full overflow-hidden bg-gradient-to-b from-purple-700 to-background">
       <div class="absolute inset-0">
+        <img v-if="data.banner" :src="data.banner" alt="Artist Image" class="w-full h-full object-cover opacity-40" />
         <img
-          v-if="data.albums[0]?.cover"
+          v-else-if="data.albums[0]?.cover"
           :src="data.albums[0].cover"
           alt="Artist Image"
           class="w-full h-full object-cover opacity-40" />

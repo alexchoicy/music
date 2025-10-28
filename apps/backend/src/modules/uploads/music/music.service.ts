@@ -16,9 +16,15 @@ import {
 } from '#database/entities/trackQuality.js';
 import mime from 'mime';
 import { UploadAlbum, UploadDisc, UploadMusic } from '@music/api/type/music';
+import {
+	formatMusicBrainzAlias,
+	getMusicBrainzRelationUrl,
+	searchMusicBrainzByName,
+} from '#utils/artists/musicBrainz.js';
 
 @Injectable()
 export class MusicService {
+	private twitterToken = process.env.TWITTER_BEARER_TOKEN || '';
 	constructor(
 		private readonly orm: MikroORM,
 		private readonly em: EntityManager,
@@ -38,7 +44,32 @@ export class MusicService {
 			const newArtist = tem.create(Artists, {
 				name: name,
 				artistType: uploadMusicInit.artistsType || 'person',
+				aliases: [],
 			});
+			const musicBrainzInfo = await searchMusicBrainzByName(name);
+			if (musicBrainzInfo) {
+				const aliases = formatMusicBrainzAlias(
+					name,
+					musicBrainzInfo.aliases,
+				);
+
+				if (aliases) {
+					newArtist.aliases.push(...aliases);
+				}
+				newArtist.musicBrainzID = musicBrainzInfo.id;
+				newArtist.area = musicBrainzInfo.area?.name || null;
+
+				await new Promise((resolve) => setTimeout(resolve, 500));
+
+				const relationData = await getMusicBrainzRelationUrl(
+					musicBrainzInfo.id,
+				);
+
+				if (relationData) {
+					newArtist.spotifyID = relationData.spotifyID || null;
+					newArtist.twitterName = relationData.twitterName || null;
+				}
+			}
 			await tem.persistAndFlush(newArtist);
 			albumArtist = newArtist;
 		}
@@ -172,7 +203,40 @@ export class MusicService {
 								const newArtist = tem.create(Artists, {
 									name: artist,
 									artistType: 'person',
+									aliases: [],
 								});
+								const musicBrainzInfo =
+									await searchMusicBrainzByName(artist);
+								if (musicBrainzInfo) {
+									const aliases = formatMusicBrainzAlias(
+										artist,
+										musicBrainzInfo.aliases,
+									);
+
+									if (aliases) {
+										newArtist.aliases.push(...aliases);
+									}
+									newArtist.musicBrainzID =
+										musicBrainzInfo.id;
+									newArtist.area =
+										musicBrainzInfo.area?.name || null;
+
+									await new Promise((resolve) =>
+										setTimeout(resolve, 500),
+									);
+
+									const relationData =
+										await getMusicBrainzRelationUrl(
+											musicBrainzInfo.id,
+										);
+
+									if (relationData) {
+										newArtist.spotifyID =
+											relationData.spotifyID || null;
+										newArtist.twitterName =
+											relationData.twitterName || null;
+									}
+								}
 								await tem.persistAndFlush(newArtist);
 								trackArtist = newArtist;
 							}

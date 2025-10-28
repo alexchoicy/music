@@ -19,6 +19,7 @@ export const Artist = z.object({
   name: z.string(),
   language: z.object().nullable(),
   image: z.url().nullable(),
+  banner: z.url().nullable(),
   artistType: ArtistsArtistType,
   createdAt: z.string(),
   updatedAt: z.string(),

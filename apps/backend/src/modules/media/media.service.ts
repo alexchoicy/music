@@ -67,4 +67,32 @@ export class MediaService {
 			contentType: mime.getType(filePath),
 		};
 	}
+
+	getArtistImageFileInfo(filename: string) {
+		const filePath = path.join(
+			this.libraryDir,
+			'attachments',
+			'artistImages',
+			filename,
+		);
+		this.pathCheck(filePath);
+		return {
+			filePath,
+			contentType: mime.getType(filePath),
+		};
+	}
+
+	getArtistBannerFileInfo(filename: string) {
+		const filePath = path.join(
+			this.libraryDir,
+			'attachments',
+			'artistBanners',
+			filename,
+		);
+		this.pathCheck(filePath);
+		return {
+			filePath,
+			contentType: mime.getType(filePath),
+		};
+	}
 }

@@ -32,6 +32,24 @@ export class Artists {
 	@Enum({ items: () => ArtistsArtistType.options })
 	artistType!: ArtistType;
 
+	@Property({ type: 'array', columnType: 'text[]' })
+	aliases: string[] = [];
+
+	@Property({ type: 'text', nullable: true })
+	musicBrainzID?: string | null;
+
+	@Property({ type: 'text', nullable: true })
+	area?: string | null;
+
+	@Property({ type: 'text', nullable: true })
+	spotifyID?: string | null;
+
+	@Property({ type: 'text', nullable: true })
+	twitterName?: string | null;
+
+	@ManyToOne({ entity: () => Attachments, nullable: true })
+	profileBanner?: Rel<Attachments>;
+
 	@ManyToOne({ entity: () => Attachments, nullable: true })
 	profilePic?: Rel<Attachments>;
 

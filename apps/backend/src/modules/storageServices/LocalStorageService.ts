@@ -7,6 +7,7 @@ import { Injectable } from '@nestjs/common';
 import { TrackQualityType } from '@music/api/dto/album.dto';
 import fs from 'fs';
 import path from 'path';
+import mime from 'mime';
 
 @Injectable()
 export class LocalStorageService
@@ -22,8 +23,49 @@ export class LocalStorageService
 		return `${this.config.get('appConfig.app.public_base_api_url')}/media/music/${quality}/${trackHash}${ext}`;
 	}
 
-	getAlbumCoverDataUrl(attachmentID: string, ext: string) {
-		return `${this.config.get('appConfig.app.public_base_api_url')}/media/cover/${attachmentID}.${ext}`;
+	saveArtistBanner(
+		attachmentID: string,
+		imageBuffer: Buffer,
+		contentType: string,
+	): string {
+		const dir = path.join(
+			this.config.get('appConfig.storage.library_dir')!,
+			'attachments',
+			'artistBanners',
+		);
+		if (!fs.existsSync(dir)) {
+			fs.mkdirSync(dir, { recursive: true });
+		}
+		const ext = mime.getExtension(contentType) || 'jpg';
+
+		fs.writeFileSync(path.join(dir, `${attachmentID}.${ext}`), imageBuffer);
+		return `${attachmentID}.${ext}`;
+	}
+
+	getArtistBannerDataUrl(attachmentID: string, ext: string) {
+		return `${this.config.get('appConfig.app.public_base_api_url')}/media/artist/banner/${attachmentID}.${ext}`;
+	}
+
+	saveArtistImage(
+		attachmentID: string,
+		imageBuffer: Buffer,
+		contentType: string,
+	): string {
+		const dir = path.join(
+			this.config.get('appConfig.storage.library_dir')!,
+			'attachments',
+			'artistImages',
+		);
+		if (!fs.existsSync(dir)) {
+			fs.mkdirSync(dir, { recursive: true });
+		}
+		const ext = mime.getExtension(contentType) || 'jpg';
+		fs.writeFileSync(path.join(dir, `${attachmentID}.${ext}`), imageBuffer);
+		return `${attachmentID}.${ext}`;
+	}
+
+	getArtistImageDataUrl(attachmentID: string, ext: string) {
+		return `${this.config.get('appConfig.app.public_base_api_url')}/media/artist/image/${attachmentID}.${ext}`;
 	}
 
 	saveCoverImage(
@@ -41,5 +83,9 @@ export class LocalStorageService
 		}
 		fs.writeFileSync(path.join(dir, `${attachmentID}.${ext}`), imageBuffer);
 		return `${attachmentID}.${ext}`;
+	}
+
+	getAlbumCoverDataUrl(attachmentID: string, ext: string) {
+		return `${this.config.get('appConfig.app.public_base_api_url')}/media/cover/${attachmentID}.${ext}`;
 	}
 }
