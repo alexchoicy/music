@@ -81,13 +81,24 @@ export async function getMusicBrainzRelationUrl(id: string) {
 
 	for (const relation of data.relations) {
 		const url = relation.url.resource;
-		if (url.includes('spotify.com')) {
+		let hostname;
+
+		try {
+			hostname = new URL(url).hostname;
+		} catch {
+			continue;
+		}
+
+		if (hostname.includes('spotify.com')) {
 			const parts = url.split('/');
 			const spotifyID = parts.pop() || parts.pop();
 			if (spotifyID) {
 				result.spotifyID = spotifyID;
 			}
-		} else if (url.includes('twitter.com') || url.includes('x.com')) {
+		} else if (
+			hostname.includes('twitter.com') ||
+			hostname.includes('x.com')
+		) {
 			const parts = url.split('/');
 			const username = parts.pop() || parts.pop();
 			if (username) {
