@@ -127,18 +127,19 @@ export class MigrationsService {
 				artist.name,
 				musicBrainzInfo.aliases || [],
 			);
-			await this.em
-				.createQueryBuilder(ArtistsAlias)
-				.insert(
-					aliases.map((a) => ({
-						artist: artist.id,
-						alias: a.name,
-						type: a.type,
-					})),
-				)
-				.onConflict('("artist_id", "alias") DO NOTHING')
-				.execute();
-
+			if (aliases.length > 0) {
+				await this.em
+					.createQueryBuilder(ArtistsAlias)
+					.insert(
+						aliases.map((a) => ({
+							artist: artist.id,
+							alias: a.name,
+							type: a.type,
+						})),
+					)
+					.onConflict('("artist_id", "alias") DO NOTHING')
+					.execute();
+			}
 			await this.em.flush();
 			// To avoid rate limit
 			await new Promise((resolve) => setTimeout(resolve, 500));
