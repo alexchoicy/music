@@ -123,12 +123,14 @@ export function formatMusicBrainzAlias(
 		const lowerName = name.toLowerCase();
 		const lowerSort = sortName.toLowerCase();
 
+		const type = item.type || 'musicBrainz';
+
 		if (lowerName !== lowerArtist) {
-			aliasMap.set(lowerName, { name, type: item.type });
+			aliasMap.set(lowerName, { name, type });
 		}
 
 		if (lowerSort !== lowerName && lowerSort !== lowerArtist) {
-			aliasMap.set(lowerSort, { name: sortName, type: item.type });
+			aliasMap.set(lowerSort, { name: sortName, type });
 		}
 	}
 

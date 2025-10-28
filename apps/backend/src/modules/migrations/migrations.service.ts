@@ -122,7 +122,7 @@ export class MigrationsService {
 			}
 
 			artist.musicBrainzID = musicBrainzInfo.id;
-			artist.area = musicBrainzInfo.area.name || null;
+			artist.area = musicBrainzInfo.area?.name || null;
 			const aliases = formatMusicBrainzAlias(
 				artist.name,
 				musicBrainzInfo.aliases || [],

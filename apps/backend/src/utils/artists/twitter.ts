@@ -50,6 +50,9 @@ export async function getTwitterProfileImgUrl(
 	}
 
 	const result = (await data.json()) as TwitterProfileImage;
+	if (!result.data.profile_image_url) {
+		return null;
+	}
 	const rawImage = result.data.profile_image_url.replace('_normal', '');
 	return rawImage;
 }
@@ -66,6 +69,9 @@ export async function getTwitterProfileBannerUrl(
 	}
 
 	const result = (await data.json()) as TwitterProfileBanner;
+	if (!result.data.profile_banner_url) {
+		return null;
+	}
 	const rawImage = result.data.profile_banner_url.replace('_normal', '');
 	return rawImage;
 }
