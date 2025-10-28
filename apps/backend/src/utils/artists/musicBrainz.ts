@@ -10,6 +10,7 @@ export interface MusicBrainzArtist {
 export interface MusicBrainzAlias {
 	'sort-name': string;
 	name: string;
+	type: string;
 }
 
 export interface MusicBrainzResponse {
@@ -102,19 +103,23 @@ export function formatMusicBrainzAlias(
 	artistName: string,
 	aliases: MusicBrainzAlias[],
 ) {
-	const alias = [];
+	const aliasMap = new Map<string, { name: string; type: string }>();
+	const lowerArtist = artistName.toLowerCase();
 
 	for (const item of aliases) {
-		if (item.name.toLowerCase() !== artistName.toLowerCase()) {
-			alias.push(item.name);
+		const name = item.name;
+		const sortName = item['sort-name'];
+		const lowerName = name.toLowerCase();
+		const lowerSort = sortName.toLowerCase();
+
+		if (lowerName !== lowerArtist) {
+			aliasMap.set(lowerName, { name, type: item.type });
 		}
 
-		if (
-			item['sort-name'].toLowerCase() !== item.name.toLowerCase() &&
-			item['sort-name'].toLowerCase() !== artistName.toLowerCase()
-		) {
-			alias.push(item['sort-name']);
+		if (lowerSort !== lowerName && lowerSort !== lowerArtist) {
+			aliasMap.set(lowerSort, { name: sortName, type: item.type });
 		}
 	}
-	return alias;
+
+	return Array.from(aliasMap.values());
 }

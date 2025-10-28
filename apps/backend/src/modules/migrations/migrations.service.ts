@@ -7,7 +7,7 @@ import { EntityManager } from '@mikro-orm/postgresql';
 import { TrackQuality } from '#database/entities/trackQuality.js';
 import { getMusicExt } from '@music/api/lib/musicUtil';
 import { JWKSProvider } from '#modules/auth/issuer/jwks.provider.js';
-import { Artists } from '#database/entities/artists.js';
+import { Artists, ArtistsAlias } from '#database/entities/artists.js';
 import {
 	formatMusicBrainzAlias,
 	getMusicBrainzRelationUrl,
@@ -123,13 +123,21 @@ export class MigrationsService {
 
 			artist.musicBrainzID = musicBrainzInfo.id;
 			artist.area = musicBrainzInfo.area.name || null;
-			const alias = formatMusicBrainzAlias(
+			const aliases = formatMusicBrainzAlias(
 				artist.name,
 				musicBrainzInfo.aliases || [],
 			);
-			if (alias) {
-				artist.aliases.push(...alias);
-			}
+			await this.em
+				.createQueryBuilder(ArtistsAlias)
+				.insert(
+					aliases.map((a) => ({
+						artist: artist.id,
+						alias: a.name,
+						type: a.type,
+					})),
+				)
+				.onConflict('("artist_id", "alias") DO NOTHING')
+				.execute();
 
 			await this.em.flush();
 			// To avoid rate limit

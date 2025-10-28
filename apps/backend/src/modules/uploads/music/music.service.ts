@@ -1,6 +1,6 @@
 import { Albums } from '#database/entities/albums.js';
 import { AlbumTracks } from '#database/entities/albumTracks.js';
-import { Artists } from '#database/entities/artists.js';
+import { Artists, ArtistsAlias } from '#database/entities/artists.js';
 import { Attachments } from '#database/entities/attachments.js';
 import { TrackArtists } from '#database/entities/trackArtists.js';
 import { Tracks } from '#database/entities/tracks.js';
@@ -44,17 +44,26 @@ export class MusicService {
 			const newArtist = tem.create(Artists, {
 				name: name,
 				artistType: uploadMusicInit.artistsType || 'person',
-				aliases: [],
 			});
+			await tem.persistAndFlush(newArtist);
 			const musicBrainzInfo = await searchMusicBrainzByName(name);
 			if (musicBrainzInfo) {
 				const aliases = formatMusicBrainzAlias(
 					name,
-					musicBrainzInfo.aliases,
+					musicBrainzInfo.aliases || [],
 				);
-
-				if (aliases) {
-					newArtist.aliases.push(...aliases);
+				if (aliases.length > 0) {
+					await this.em
+						.createQueryBuilder(ArtistsAlias)
+						.insert(
+							aliases.map((a) => ({
+								artist: newArtist.id,
+								alias: a.name,
+								type: a.type,
+							})),
+						)
+						.onConflict('("artist_id", "alias") DO NOTHING')
+						.execute();
 				}
 				newArtist.musicBrainzID = musicBrainzInfo.id;
 				newArtist.area = musicBrainzInfo.area?.name || null;
@@ -203,18 +212,29 @@ export class MusicService {
 								const newArtist = tem.create(Artists, {
 									name: artist,
 									artistType: 'person',
-									aliases: [],
 								});
+								await tem.persistAndFlush(newArtist);
 								const musicBrainzInfo =
 									await searchMusicBrainzByName(artist);
 								if (musicBrainzInfo) {
 									const aliases = formatMusicBrainzAlias(
 										artist,
-										musicBrainzInfo.aliases,
+										musicBrainzInfo.aliases || [],
 									);
-
-									if (aliases) {
-										newArtist.aliases.push(...aliases);
+									if (aliases.length > 0) {
+										await this.em
+											.createQueryBuilder(ArtistsAlias)
+											.insert(
+												aliases.map((a) => ({
+													artist: newArtist.id,
+													alias: a.name,
+													type: a.type,
+												})),
+											)
+											.onConflict(
+												'("artist_id", "alias") DO NOTHING',
+											)
+											.execute();
 									}
 									newArtist.musicBrainzID =
 										musicBrainzInfo.id;
