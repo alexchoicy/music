@@ -1,4 +1,4 @@
-import { Controller, Put } from '@nestjs/common';
+import { Controller, Get, Put } from '@nestjs/common';
 import { MigrationsService } from './migrations.service.js';
 import { Roles } from '#decorators/roles.decorator.js';
 
@@ -25,5 +25,10 @@ export class MigrationsController {
 	@Put('twitterImages')
 	async migrateTwitterImages() {
 		return this.migrationService.getArtistImageAndBannerWithTwitter();
+	}
+
+	@Get('similarArtists')
+	async getSimilarArtistByName() {
+		return this.migrationService.getSimilarArtistName();
 	}
 }

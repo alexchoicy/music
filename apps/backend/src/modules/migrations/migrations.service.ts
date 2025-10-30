@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import path from 'path';
 import fs from 'fs';
 import { EntityManager } from '@mikro-orm/postgresql';
+import { fuzzy } from 'fast-fuzzy';
 import { TrackQuality } from '#database/entities/trackQuality.js';
 import { getMusicExt } from '@music/api/lib/musicUtil';
 import { JWKSProvider } from '#modules/auth/issuer/jwks.provider.js';
@@ -223,5 +224,26 @@ export class MigrationsService {
 				await this.em.flush();
 			}
 		}
+	}
+	async getSimilarArtistName() {
+		const THRESHOLD = 0.8;
+		const data = await this.em.findAll(Artists);
+		const visted = new Set<Artists>();
+		const groups = [];
+		for (const artist of data) {
+			if (visted.has(artist)) continue;
+
+			const group = data.filter(
+				(item) => fuzzy(artist.name, item.name) >= THRESHOLD,
+			);
+
+			group.forEach((item) => visted.add(item));
+			if (group.length > 1) {
+				groups.push(
+					group.map((info) => ({ id: info.id, name: info.name })),
+				);
+			}
+		}
+		return groups;
 	}
 }
