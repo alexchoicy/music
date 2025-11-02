@@ -1,4 +1,5 @@
 // @ts-check
+import eslintConfigPrettier from "eslint-config-prettier";
 import withNuxt from "./.nuxt/eslint.config.mjs";
 export default withNuxt([
   {
@@ -11,7 +12,5 @@ export default withNuxt([
       "vue/no-mutating-props": "off",
     },
   },
-  {
-    extends: ["prettier"],
-  },
+  eslintConfigPrettier,
 ]);
