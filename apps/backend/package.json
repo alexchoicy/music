@@ -44,7 +44,7 @@
     "dotenv": "^17.2.1",
     "express-session": "^1.18.2",
     "jose": "^6.1.0",
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.1.1",
     "mime": "^4.0.7",
     "nestjs-zod": "^5.0.1",
     "p-limit": "^7.1.1",
