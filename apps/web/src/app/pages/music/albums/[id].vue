@@ -1,107 +1,107 @@
 <script setup lang="ts">
-  import type { AlbumDetailResponse } from "@music/api/dto/album.dto";
-  import { getHHMMFromMs } from "~/lib/music/display";
-  import { Play, FolderDown, User, Users, DiscAlbum } from "lucide-vue-next";
-  import { parsePlaylistFromAlbumDetail } from "~/lib/music/playerUtils";
-  import { getMusicExt } from "@music/api/lib/musicUtil";
+import type { AlbumDetailResponse } from "@music/api/dto/album.dto";
+import { getHHMMFromMs } from "~/lib/music/display";
+import { Play, FolderDown, User, Users, DiscAlbum } from "lucide-vue-next";
+import { parsePlaylistFromAlbumDetail } from "~/lib/music/playerUtils";
+import { getMusicExt } from "@music/api/lib/musicUtil";
 
-  definePageMeta({
-    bot: true,
-  });
+definePageMeta({
+  bot: true,
+});
 
-  const id = useRoute().params.id as string;
+const id = useRoute().params.id as string;
 
-  const audioPlayer = useAudioPlayer();
+const audioPlayer = useAudioPlayer();
 
-  const bot = useIsBot();
+const bot = useIsBot();
 
-  const { data: meta } = await useAPI<{ artist: string; cover: string | null; name: string }>(`/albums/${id}/meta`, {
-    server: true,
-  });
+const { data: meta } = await useAPI<{ artist: string; cover: string | null; name: string }>(`/albums/${id}/meta`, {
+  server: true,
+});
 
-  useSeoMeta({
-    title: meta.value?.name || "Album",
-    description: `${meta.value?.name} by ${meta.value?.artist}`,
-    ogTitle: meta.value?.name || "Album",
-    ogDescription: `${meta.value?.name} by ${meta.value?.artist}`,
-    ogImage: meta.value?.cover || undefined,
-  });
+useSeoMeta({
+  title: meta.value?.name || "Album",
+  description: `${meta.value?.name} by ${meta.value?.artist}`,
+  ogTitle: meta.value?.name || "Album",
+  ogDescription: `${meta.value?.name} by ${meta.value?.artist}`,
+  ogImage: meta.value?.cover || undefined,
+});
 
-  const { data: album } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
-    method: "GET",
-    server: false,
-  });
+const { data: album } = await useAPI<AlbumDetailResponse>(`/albums/${id}`, {
+  method: "GET",
+  server: false,
+});
 
-  const onClickArtist = (artistId: string) => {
-    useRouter().push(`/music/artists/${artistId}`);
-  };
+const onClickArtist = (artistId: string) => {
+  useRouter().push(`/music/artists/${artistId}`);
+};
 
-  const onClickPlayTrack = (index: number) => {
-    const playlist = parsePlaylistFromAlbumDetail(album.value!, true);
-    audioPlayer.playWithListIndex(playlist, index);
-  };
+const onClickPlayTrack = (index: number) => {
+  const playlist = parsePlaylistFromAlbumDetail(album.value!, true);
+  audioPlayer.playWithListIndex(playlist, index);
+};
 
-  const onClickPlayAlbum = () => {
-    const playlist = parsePlaylistFromAlbumDetail(album.value!);
-    audioPlayer.playWithList(playlist);
-  };
+const onClickPlayAlbum = () => {
+  const playlist = parsePlaylistFromAlbumDetail(album.value!);
+  audioPlayer.playWithList(playlist);
+};
 
-  const downloadAlbum = () => {
-    if (!album.value) return;
-    for (const disc of album.value.Disc) {
-      for (const track of disc.tracks) {
-        for (const quality of track.quality) {
-          if (!quality.islossless) {
-            continue;
-          }
-          downloadFile(
-            quality.url,
-            `${disc.discNo}-${track.trackNo} ${track.name}. ${getMusicExt(quality.fileContainer, quality.fileCodec)}`,
-          );
-          break;
+const downloadAlbum = () => {
+  if (!album.value) return;
+  for (const disc of album.value.Disc) {
+    for (const track of disc.tracks) {
+      for (const quality of track.quality) {
+        if (!quality.islossless) {
+          continue;
         }
+        downloadFile(
+          quality.url,
+          `${disc.discNo}-${track.trackNo} ${track.name}. ${getMusicExt(quality.fileContainer, quality.fileCodec)}`,
+        );
+        break;
       }
     }
-  };
+  }
+};
 
-  const downloadFile = async (url: string, filename: string) => {
-    const response = await fetch(url, {
-      credentials: "include",
-    });
+const downloadFile = async (url: string, filename: string) => {
+  const response = await fetch(url, {
+    credentials: "include",
+  });
 
-    if (!response.ok) throw new Error("Failed to download file");
+  if (!response.ok) throw new Error("Failed to download file");
 
-    const blob = await response.blob();
-    const blobUrl = URL.createObjectURL(blob);
+  const blob = await response.blob();
+  const blobUrl = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 
-    URL.revokeObjectURL(blobUrl);
-  };
+  URL.revokeObjectURL(blobUrl);
+};
 </script>
 
 <template>
   <NuxtLayout v-if="bot" />
   <div v-if="album && !bot">
-    <div class="flex gap-8 mb-8 justify-center">
+    <div class="flex flex-col gap-6 mb-8 items-center lg:flex-row lg:gap-8 lg:justify-center lg:items-start">
       <div class="flex-shrink-0">
-        <div class="w-64 h-64 rounded-xl overflow-hidden">
+        <div class="w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 rounded-xl overflow-hidden">
           <img v-if="album.cover" :src="album.cover" class="w-full h-full object-cover" />
           <DiscAlbum v-else class="w-full h-full text-muted-foreground" />
         </div>
       </div>
-      <div class="flex-1 flex flex-col gap-4">
+      <div class="flex-1 flex flex-col gap-4 text-center lg:text-left">
         <div class="space-y-2">
           <Badge variant="secondary" class="px-3 py-1">
             {{ album.albumType }}
           </Badge>
           <h1 class="text-5xl font-bold">{{ album.name }}</h1>
-          <div class="flex items-center gap-2 text-muted-foreground flex-wrap pt-3">
+          <div class="flex items-center gap-2 justify-center text-muted-foreground flex-wrap pt-3 lg:justify-start">
             <span class="cursor-pointer" @click="onClickArtist(album.mainArtist.id)">{{ album.mainArtist.name }}</span>
             <span v-if="album.year">•</span>
             <span v-if="album.year">{{ album.year }}</span>
@@ -111,7 +111,7 @@
             <span>{{ getHHMMFromMs(album.totalDurationMs) }}</span>
           </div>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 justify-center flex-wrap lg:justify-start">
           <Button size="lg" class="rounded-full px-8" @click="onClickPlayAlbum">
             <Play class="w-5 h-5 mr-2" fill="currentColor" />
             Play
@@ -124,20 +124,15 @@
       </div>
     </div>
     <div class="gap-4 grid grid-cols-1 lg:grid-cols-3">
-      <MusicAlbumsAlbumMusicList
-        v-if="album"
-        :album="album"
-        class="lg:col-span-2"
-        :onclick-play-track="onClickPlayTrack"
-        :on-click-download-track="downloadFile" />
+      <MusicAlbumsAlbumMusicList v-if="album" :album="album" class="lg:col-span-2"
+        :onclick-play-track="onClickPlayTrack" :on-click-download-track="downloadFile" />
       <Card class="h-fit">
         <CardHeader>
           <CardTitle>Artists</CardTitle>
         </CardHeader>
         <CardHeader>
           <div v-for="artist in album.artists" :key="artist.id" class="space-y-2">
-            <div
-              v-if="artist.artistType !== 'project'"
+            <div v-if="artist.artistType !== 'project'"
               class="flex items-center gap-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer p-2"
               @click="onClickArtist(artist.id)">
               <Avatar>
