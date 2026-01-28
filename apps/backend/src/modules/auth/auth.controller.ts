@@ -4,6 +4,7 @@ import {
 	Delete,
 	Get,
 	NotFoundException,
+	Param,
 	Post,
 	Put,
 	Req,
@@ -38,7 +39,7 @@ export class AuthController {
 		private readonly authService: AuthService,
 		private readonly jwksProvider: JWKSProvider,
 		private readonly configService: ConfigService,
-	) {}
+	) { }
 
 	@Public()
 	@Post('login')
@@ -202,12 +203,11 @@ export class AuthController {
 	}
 
 	@Delete('webauth/device/:id')
-	async removeWebAuthDevice(@Req() req: Request) {
+	async removeWebAuthDevice(@Req() req: Request, @Param('id') id: string) {
 		const userInfo = req.user;
 		if (!userInfo) {
 			throw new UnauthorizedException('Unauthorized');
 		}
-		const { id } = req.params;
 		return this.authService.removeWebAuthDevice(userInfo.info.uid, id);
 	}
 }
