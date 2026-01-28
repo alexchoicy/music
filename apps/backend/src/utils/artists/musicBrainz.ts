@@ -32,7 +32,9 @@ export interface MusicBrainzRelationUrlReturn {
 
 export async function searchMusicBrainzByName(artistName: string) {
 	const response = await fetch(
-		`https://musicbrainz.org/ws/2/artist/?query=artist:${artistName}&fmt=json`,
+		`https://musicbrainz.org/ws/2/artist/?query=artist:${encodeURIComponent(
+			artistName,
+		)}&fmt=json`,
 		{
 			headers: {
 				'User-Agent':
@@ -62,7 +64,9 @@ export async function searchMusicBrainzByName(artistName: string) {
 
 export async function getMusicBrainzRelationUrl(id: string) {
 	const response = await fetch(
-		`https://musicbrainz.org/ws/2/artist/${id}?inc=url-rels&fmt=json`,
+		`https://musicbrainz.org/ws/2/artist/${encodeURIComponent(
+			id,
+		)}?inc=url-rels&fmt=json`,
 		{
 			headers: {
 				'User-Agent':
