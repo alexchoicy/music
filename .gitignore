@@ -74,3 +74,8 @@ docker/.env.web
 
 # apps
 appConfig.yaml
+
+# apps
+appsettings.*.json
+# BRO AS EXAMPLE
+!appsettings.json
