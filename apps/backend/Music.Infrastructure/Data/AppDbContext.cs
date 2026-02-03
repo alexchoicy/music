@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Music.Core.Utils;
-using Music.Infrastructure.Entity;
+using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data;
 
