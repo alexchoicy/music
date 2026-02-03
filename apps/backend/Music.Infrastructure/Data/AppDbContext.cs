@@ -1,12 +1,32 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Music.Core.Utils;
 using Music.Infrastructure.Entity;
 
 namespace Music.Infrastructure.Data;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<User>(options)
 {
+
+    public DbSet<Party> Parties { get; set; }
+    public DbSet<PartyAlias> PartyAliases { get; set; }
+    public DbSet<PartyMembership> PartyMemberships { get; set; }
+    public DbSet<PartyImage> PartyImages { get; set; }
+    public DbSet<Album> Albums { get; set; }
+    public DbSet<AlbumCredit> AlbumCredits { get; set; }
+    public DbSet<AlbumImage> AlbumImages { get; set; }
+    public DbSet<Track> Tracks { get; set; }
+    public DbSet<AlbumTrack> AlbumTracks { get; set; }
+    public DbSet<TrackVariant> TrackVariants { get; set; }
+    public DbSet<TrackCredit> TrackCredits { get; set; }
+    public DbSet<TrackSource> TrackSources { get; set; }
+    public DbSet<Entity.File> Files { get; set; }
+    public DbSet<FileObject> FileObjects { get; set; }
+
+    public DbSet<Language> Languages { get; set; }
+
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -39,4 +59,44 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
         builder.Entity<IdentityRole>().HasData(roles);
     }
+
+    public override int SaveChanges()
+    {
+        NormalizeEntities();
+        return base.SaveChanges();
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        NormalizeEntities();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+
+
+    private void NormalizeEntities()
+    {
+        var entries = ChangeTracker.Entries()
+            .Where(entry => entry.State is EntityState.Added or EntityState.Modified);
+
+        foreach (var entry in entries)
+        {
+            switch (entry.Entity)
+            {
+                case Party party:
+                    party.NormalizedName = StringUtils.NormalizeString(party.Name);
+                    break;
+                case PartyAlias partyAlias:
+                    partyAlias.NormalizedName = StringUtils.NormalizeString(partyAlias.Name);
+                    break;
+                case Album album:
+                    album.NormalizedTitle = StringUtils.NormalizeString(album.Title);
+                    break;
+                case Track track:
+                    track.NormalizedTitle = StringUtils.NormalizeString(track.Title);
+                    break;
+            }
+        }
+    }
+
 }
