@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Music.Infrastructure.Entity;
+namespace Music.Infrastructure.Entities;
 
 [Table("Tracks")]
 [PrimaryKey(nameof(Id))]

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace Music.Infrastructure.Entity;
+namespace Music.Infrastructure.Entities;
 
 public class User : IdentityUser
 {

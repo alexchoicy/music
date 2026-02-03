@@ -1,8 +1,8 @@
-namespace Music.Core.Enum;
+namespace Music.Core.Enums;
 
 public enum PartyType
 {
-    PERSON,
+    INDIVIDUAL,
     GROUP,
     PROJECT,
 }

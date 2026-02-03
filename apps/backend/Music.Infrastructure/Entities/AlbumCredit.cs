@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using Music.Core.Enum;
 
-namespace Music.Infrastructure.Entity;
+namespace Music.Infrastructure.Entities;
 
 [Table("AlbumCredits")]
 [PrimaryKey(nameof(Id))]

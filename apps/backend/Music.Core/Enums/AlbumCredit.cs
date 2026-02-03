@@ -1,4 +1,4 @@
-namespace Music.Core.Enum;
+namespace Music.Core.Enums;
 
 // Primary peoples in the album
 public enum AlbumCreditType

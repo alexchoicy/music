@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Music.Infrastructure.Entity;
+namespace Music.Infrastructure.Entities;
 
 [Table("PartyMemberships")]
 [PrimaryKey(nameof(PartyId), nameof(MemberId))]
