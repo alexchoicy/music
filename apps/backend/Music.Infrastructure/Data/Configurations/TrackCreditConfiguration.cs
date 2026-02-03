@@ -17,5 +17,11 @@ public class TrackCreditConfiguration : IEntityTypeConfiguration<TrackCredit>
             .WithMany(p => p.TrackCredits)
             .HasForeignKey(tc => tc.PartyId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(tc => tc.TrackId);
+        builder.HasIndex(tc => tc.PartyId);
+        builder.HasIndex(tc => tc.Credit);
+
+        builder.HasIndex(tc => new { tc.TrackId, tc.PartyId, tc.Credit }).IsUnique();
     }
 }

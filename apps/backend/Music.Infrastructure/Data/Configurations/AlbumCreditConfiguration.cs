@@ -17,5 +17,11 @@ public class AlbumCreditConfiguration : IEntityTypeConfiguration<AlbumCredit>
             .WithMany(p => p.AlbumCredits)
             .HasForeignKey(ac => ac.PartyId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(ac => ac.AlbumId);
+        builder.HasIndex(ac => ac.PartyId);
+        builder.HasIndex(ac => ac.Credit);
+
+        builder.HasIndex(ac => new { ac.AlbumId, ac.PartyId, ac.Credit }).IsUnique();
     }
 }

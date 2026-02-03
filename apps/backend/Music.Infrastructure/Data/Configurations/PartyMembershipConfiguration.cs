@@ -17,5 +17,8 @@ public class PartyMembershipConfiguration : IEntityTypeConfiguration<PartyMember
             .WithMany(p => p.MemberOf)
             .HasForeignKey(pm => pm.MemberId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(pm => pm.PartyId);
+        builder.HasIndex(pm => pm.MemberId);
     }
 }

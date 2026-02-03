@@ -17,5 +17,14 @@ public class PartyImageConfiguration : IEntityTypeConfiguration<PartyImage>
             .WithMany()
             .HasForeignKey(pi => pi.FileId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(pi => pi.PartyId);
+        builder.HasIndex(pi => pi.FileId);
+        builder.HasIndex(pi => pi.PartyImageType);
+        builder.HasIndex(pi => pi.IsPrimary);
+        builder.HasIndex(pi => pi.CreatedAt);
+
+        builder.HasIndex(pi => new { pi.PartyId, pi.PartyImageType });
+        builder.HasIndex(pi => new { pi.PartyId, pi.IsPrimary });
     }
 }

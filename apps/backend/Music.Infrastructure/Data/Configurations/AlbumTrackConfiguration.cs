@@ -17,5 +17,12 @@ public class AlbumTrackConfiguration : IEntityTypeConfiguration<AlbumTrack>
             .WithMany(track => track.AlbumTracks)
             .HasForeignKey(at => at.TrackId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(at => at.AlbumId);
+        builder.HasIndex(at => at.TrackId);
+        builder.HasIndex(at => at.CreatedAt);
+
+        builder.HasIndex(at => new { at.AlbumId, at.DiscNumber, at.TrackNumber });
+        builder.HasIndex(at => new { at.AlbumId, at.TrackId }).IsUnique();
     }
 }

@@ -17,5 +17,12 @@ public class AlbumImageConfiguration : IEntityTypeConfiguration<AlbumImage>
             .WithMany()
             .HasForeignKey(pi => pi.FileId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(ai => ai.AlbumId);
+        builder.HasIndex(ai => ai.FileId);
+        builder.HasIndex(ai => ai.IsPrimary);
+        builder.HasIndex(ai => ai.CreatedAt);
+
+        builder.HasIndex(ai => new { ai.AlbumId, ai.IsPrimary });
     }
 }

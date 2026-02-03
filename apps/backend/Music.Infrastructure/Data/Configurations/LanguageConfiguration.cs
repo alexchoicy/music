@@ -17,5 +17,7 @@ public class LanguageConfiguration : IEntityTypeConfiguration<Language>
             .WithOne(t => t.Language)
             .HasForeignKey(t => t.LanguageId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(l => l.Name).IsUnique();
     }
 }

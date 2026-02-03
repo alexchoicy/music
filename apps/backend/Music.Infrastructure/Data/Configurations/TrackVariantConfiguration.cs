@@ -12,5 +12,10 @@ public class TrackVariantConfiguration : IEntityTypeConfiguration<TrackVariant>
             .WithMany(t => t.Variants)
             .HasForeignKey(tv => tv.TrackId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(tv => tv.TrackId);
+        builder.HasIndex(tv => tv.VariantType);
+
+        builder.HasIndex(tv => new { tv.TrackId, tv.VariantType }).IsUnique();
     }
 }

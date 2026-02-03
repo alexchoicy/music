@@ -27,5 +27,14 @@ public class PartyConfiguration : IEntityTypeConfiguration<Party>
             .WithOne(tc => tc.Party)
             .HasForeignKey(tc => tc.PartyId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(p => p.NormalizedName);
+        builder.HasIndex(p => p.Type);
+        builder.HasIndex(p => p.LanguageId);
+        builder.HasIndex(p => p.ReleaseDate);
+        builder.HasIndex(p => p.CreatedAt);
+        builder.HasIndex(p => p.UpdatedAt);
+
+        builder.HasIndex(p => new { p.Type, p.LanguageId });
     }
 }

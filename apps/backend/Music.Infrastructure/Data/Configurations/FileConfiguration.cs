@@ -17,5 +17,7 @@ public class FileConfiguration : IEntityTypeConfiguration<Entity.File>
             .WithOne(ts => ts.File)
             .HasForeignKey(ts => ts.FileId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(f => f.Type);
     }
 }

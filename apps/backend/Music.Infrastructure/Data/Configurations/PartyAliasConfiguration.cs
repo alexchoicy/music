@@ -17,5 +17,15 @@ public class PartyAliasConfiguration : IEntityTypeConfiguration<PartyAlias>
             .WithMany()
             .HasForeignKey(aa => aa.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(aa => aa.PartyId);
+        builder.HasIndex(aa => aa.NormalizedName);
+        builder.HasIndex(aa => aa.SourceType);
+        builder.HasIndex(aa => aa.CreatedByUserId);
+        builder.HasIndex(aa => aa.DeletedAt);
+        builder.HasIndex(aa => aa.CreatedAt);
+
+        builder.HasIndex(aa => new { aa.PartyId, aa.DeletedAt });
+        builder.HasIndex(aa => new { aa.NormalizedName, aa.DeletedAt });
     }
 }
