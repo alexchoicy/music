@@ -13,6 +13,8 @@ public class FileObject
     public int FileId { get; set; }
     public File? File { get; set; }
 
+    public Status Status { get; set; } = Status.Pending;
+
     // storageType/variant/Blake3Hash.ext
     public required string StoragePath { get; set; } // can be S3 path, local path, etc.
 

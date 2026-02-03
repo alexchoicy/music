@@ -6,3 +6,11 @@ public enum FileObjectType
     Thumbnail,
     Transcoded,
 }
+
+public enum Status
+{
+    Pending,
+    Processing,
+    Completed,
+    Failed
+}
