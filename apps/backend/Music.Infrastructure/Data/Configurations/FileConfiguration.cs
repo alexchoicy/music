@@ -16,7 +16,7 @@ public class FileConfiguration : IEntityTypeConfiguration<Entity.File>
         builder.HasMany(f => f.TrackSources)
             .WithOne(ts => ts.File)
             .HasForeignKey(ts => ts.FileId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(f => f.Type);
     }
