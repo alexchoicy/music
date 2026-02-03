@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
-using Music.Core.Enum;
+using Music.Core.Enums;
 
 namespace Music.Infrastructure.Entities;
 

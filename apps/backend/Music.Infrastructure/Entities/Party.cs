@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
-using Music.Core.Enum;
+using Music.Core.Enums;
 
 namespace Music.Infrastructure.Entities;
 
@@ -22,7 +22,7 @@ public class Party
     public int? LanguageId { get; set; }
     public Language? Language { get; set; }
 
-    public PartyType Type { get; set; } = PartyType.PERSON;
+    public PartyType Type { get; set; } = PartyType.INDIVIDUAL;
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;

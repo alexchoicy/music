@@ -21,7 +21,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<TrackVariant> TrackVariants { get; set; }
     public DbSet<TrackCredit> TrackCredits { get; set; }
     public DbSet<TrackSource> TrackSources { get; set; }
-    public DbSet<Entity.File> Files { get; set; }
+    public DbSet<Entities.File> Files { get; set; }
     public DbSet<FileObject> FileObjects { get; set; }
 
     public DbSet<Language> Languages { get; set; }
@@ -37,22 +37,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000001",
-                Name = Core.Enum.Roles.ADMIN.ToString(),
-                NormalizedName = Core.Enum.Roles.ADMIN.ToString().ToUpper(),
+                Name = Core.Enums.Roles.ADMIN.ToString(),
+                NormalizedName = Core.Enums.Roles.ADMIN.ToString().ToUpper(),
                 ConcurrencyStamp = "508a0eaf-dbca-47d9-baeb-597b81a4957e"
             },
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000002",
-                Name = Core.Enum.Roles.UPLOADER.ToString(),
-                NormalizedName = Core.Enum.Roles.UPLOADER.ToString().ToUpper(),
+                Name = Core.Enums.Roles.UPLOADER.ToString(),
+                NormalizedName = Core.Enums.Roles.UPLOADER.ToString().ToUpper(),
                 ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0"
             },
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000003",
-                Name = Core.Enum.Roles.USER.ToString(),
-                NormalizedName = Core.Enum.Roles.USER.ToString().ToUpper(),
+                Name = Core.Enums.Roles.USER.ToString(),
+                NormalizedName = Core.Enums.Roles.USER.ToString().ToUpper(),
                 ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0"
             }
         };

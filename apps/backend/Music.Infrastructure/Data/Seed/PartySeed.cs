@@ -1,4 +1,4 @@
-using Music.Core.Enum;
+using Music.Core.Enums;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data.Seed;

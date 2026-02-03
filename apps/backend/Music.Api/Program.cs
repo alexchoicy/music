@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Music.Api.Handlers;
-using Music.Core.Enum;
+using Music.Core.Enums;
 using Music.Infrastructure;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Data.Seed;

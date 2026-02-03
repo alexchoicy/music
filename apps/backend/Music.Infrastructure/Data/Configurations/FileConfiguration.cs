@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Music.Infrastructure.Data.Configurations;
 
-public class FileConfiguration : IEntityTypeConfiguration<Entity.File>
+public class FileConfiguration : IEntityTypeConfiguration<Entities.File>
 {
-    public void Configure(EntityTypeBuilder<Entity.File> builder)
+    public void Configure(EntityTypeBuilder<Entities.File> builder)
     {
         builder.HasMany(f => f.FileObjects)
             .WithOne(fo => fo.File)
