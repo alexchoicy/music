@@ -9,7 +9,7 @@ namespace Music.Infrastructure.Data.Seed;
 
 public class UserSeed
 {
-    public static async Task SeedAsync(AppDbContext context, ILogger logger, UserManager<User> userManager, IConfiguration configuration, IHostEnvironment environment)
+    public static async Task SeedAsync(AppDbContext context, ILogger<UserSeed> logger, UserManager<User> userManager, IConfiguration configuration, IHostEnvironment environment)
     {
         if (context.Users.Any())
             return;

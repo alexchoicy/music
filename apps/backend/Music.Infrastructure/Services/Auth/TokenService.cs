@@ -18,23 +18,12 @@ public class TokenService : ITokenService
 {
     private readonly IConfiguration _config;
     private readonly SymmetricSecurityKey _key;
-    private readonly Logger<TokenService> _logger;
 
-    public TokenService(IConfiguration config, Logger<TokenService> logger)
+    public TokenService(IConfiguration config)
     {
-        _logger = logger;
         _config = config;
 
-
-        string? secret = _config["JWT:SecretKey"];
-
-        if (string.IsNullOrWhiteSpace(secret))
-        {
-            _logger.LogCritical("JWT Secret Key is not configured. Refusing to start.");
-            Environment.FailFast("Missing config: JWT:SecretKey");
-        }
-
-        _key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secret));
+        _key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_config["JWT:SecretKey"]!));
     }
 
     public string GenerateUserToken(User user, IList<string> roles)

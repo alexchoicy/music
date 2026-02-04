@@ -3,8 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Music.Core.Services.Interfaces;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Entities;
+using Music.Infrastructure.Services.Auth;
+using Music.Infrastructure.Services.Party;
 
 namespace Music.Infrastructure;
 
@@ -20,7 +23,7 @@ public static class DependencyInjection
         services.AddDbContextPool<AppDbContext>(opt =>
         {
             opt.UseNpgsql(
-                configuration["Database:ConnectionString"]);
+                configuration["Database:DBConnectionString"]);
         });
 
         services.AddIdentityCore<User>(opt =>
@@ -36,8 +39,9 @@ public static class DependencyInjection
         }).AddRoles<IdentityRole>()
         .AddEntityFrameworkStores<AppDbContext>();
 
-
-
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IPartyService, PartyService>();
 
         return services;
     }

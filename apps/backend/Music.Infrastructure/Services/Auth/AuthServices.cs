@@ -7,7 +7,6 @@ namespace Music.Infrastructure.Services.Auth;
 
 public class AuthService(UserManager<User> userManager, ITokenService tokenService) : IAuthService
 {
-
     private readonly UserManager<User> _userManager = userManager;
     private readonly ITokenService _tokenService = tokenService;
 

@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Music.Api.Handlers;
+using Music.Api.Startup;
 using Music.Core.Enums;
+using Music.Core.Models;
 using Music.Infrastructure;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Data.Seed;
@@ -40,6 +42,14 @@ builder.Services.AddCors(options =>
     );
 });
 
+// Config
+// call with "IOptions<StorageOptions>" injection
+builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Storage"));
+
+ConfigValidation.Validation(builder.Configuration);
+// Checked in Validation
+string cookieName = builder.Configuration.GetValue<string>("Cookies:Name")!;
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme =
@@ -63,7 +73,7 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            if (context.Request.Cookies.TryGetValue("AlexCoolShelfAppToken", out string? authToken))
+            if (context.Request.Cookies.TryGetValue(cookieName, out string? authToken))
             {
                 context.Token = authToken;
             }
@@ -103,12 +113,12 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-using (var scope = app.Services.CreateScope())
+using (IServiceScope scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
     dbContext.Database.Migrate();
-    ILogger logger = scope.ServiceProvider.GetRequiredService<ILogger>();
+    ILogger<UserSeed> logger = scope.ServiceProvider.GetRequiredService<ILogger<UserSeed>>();
     UserManager<User> userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
     await UserSeed.SeedAsync(dbContext, logger, userManager, builder.Configuration, builder.Environment);

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Music.Core.Utils;
 using Music.Infrastructure.Entities;
 
@@ -8,6 +9,7 @@ namespace Music.Infrastructure.Data;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<User>(options)
 {
+    public DbSet<Language> Languages { get; set; }
 
     public DbSet<Party> Parties { get; set; }
     public DbSet<PartyAlias> PartyAliases { get; set; }
@@ -24,7 +26,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<StoredFile> StoredFiles { get; set; }
     public DbSet<FileObject> FileObjects { get; set; }
 
-    public DbSet<Language> Languages { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -32,8 +33,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        List<IdentityRole> roles = new()
-        {
+        List<IdentityRole> roles =
+        [
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000001",
@@ -55,7 +56,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
                 NormalizedName = Core.Enums.Roles.USER.ToString().ToUpper(),
                 ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0"
             }
-        };
+        ];
 
         builder.Entity<IdentityRole>().HasData(roles);
     }
@@ -73,10 +74,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     }
 
 
-
     private void NormalizeEntities()
     {
-        var entries = ChangeTracker.Entries()
+        IEnumerable<EntityEntry> entries = ChangeTracker.Entries()
             .Where(entry => entry.State is EntityState.Added or EntityState.Modified);
 
         foreach (var entry in entries)
