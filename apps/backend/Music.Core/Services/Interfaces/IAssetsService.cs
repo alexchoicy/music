@@ -1,5 +1,5 @@
 namespace Music.Core.Services.Interfaces;
 
-public interface IAssetsService
+public interface IAssetsService : IStorageService
 {
 }

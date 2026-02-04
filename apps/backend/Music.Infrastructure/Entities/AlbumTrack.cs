@@ -12,10 +12,12 @@ public class AlbumTrack
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    public required int AlbumId { get; set; }
+    [Required]
+    public int AlbumId { get; set; }
     public Album? Album { get; set; }
 
-    public required int TrackId { get; set; }
+    [Required]
+    public int TrackId { get; set; }
     public Track? Track { get; set; }
 
     public int TrackNumber { get; set; } = 1;

@@ -9,6 +9,7 @@ using Music.Core.Models;
 using Music.Core.Services.Interfaces;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Entities;
+using Music.Infrastructure.Services.Album;
 using Music.Infrastructure.Services.Auth;
 using Music.Infrastructure.Services.Party;
 using Music.Infrastructure.Services.Storage;
@@ -46,28 +47,27 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPartyService, PartyService>();
+        services.AddScoped<IAlbumService, AlbumService>();
 
 
         // Content Service
         services.AddScoped<IContentService>(sp =>
         {
-            StorageProvider provieder = sp.GetRequiredService<IOptions<StorageOptions>>().Value.Content.Provider;
-
-            return provieder switch
+            StorageProvider provider = sp.GetRequiredService<IOptions<StorageOptions>>().Value.Content.Provider;
+            return provider switch
             {
                 StorageProvider.S3 => new S3ContentService(sp.GetRequiredService<IOptions<StorageOptions>>()),
-                _ => throw new NotSupportedException($"Unsupported storage provider for content: {provieder}")
+                _ => throw new NotSupportedException($"Unsupported storage provider for content: {provider}")
             };
         });
 
         services.AddScoped<IAssetsService>(sp =>
         {
-            StorageProvider provieder = sp.GetRequiredService<IOptions<StorageOptions>>().Value.Assets.Provider;
-
-            return provieder switch
+            StorageProvider provider = sp.GetRequiredService<IOptions<StorageOptions>>().Value.Assets.Provider;
+            return provider switch
             {
                 StorageProvider.S3 => new S3AssetsService(sp.GetRequiredService<IOptions<StorageOptions>>()),
-                _ => throw new NotSupportedException($"Unsupported storage provider for assets: {provieder}")
+                _ => throw new NotSupportedException($"Unsupported storage provider for assets: {provider}")
             };
         });
 

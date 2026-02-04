@@ -13,7 +13,7 @@ public sealed class CreatePartyModel
 
 public sealed class PartyListParams
 {
-    public string? Serach { get; set; }
+    public string? Search { get; set; }
 }
 
 public sealed class PartyAliasModel

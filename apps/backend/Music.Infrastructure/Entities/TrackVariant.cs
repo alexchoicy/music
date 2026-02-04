@@ -13,7 +13,8 @@ public class TrackVariant
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    public required int TrackId { get; set; }
+    [Required]
+    public int TrackId { get; set; }
     public Track? Track { get; set; }
 
     public TrackVariantType VariantType { get; set; } = TrackVariantType.DEFAULT;

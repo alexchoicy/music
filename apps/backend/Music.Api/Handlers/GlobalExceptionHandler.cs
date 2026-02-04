@@ -6,7 +6,7 @@ using Music.Core.Exceptions;
 namespace Music.Api.Handlers;
 
 // It work, but not on swagger for some reason
-public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetailsService) : IExceptionHandler
+public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetailsService, ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
         HttpContext context,
@@ -21,6 +21,8 @@ public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetails
             DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "Concurrency conflict"),
             _ => (StatusCodes.Status500InternalServerError, "Unexpected error")
         };
+
+        logger.LogError(exception, "Unhandled exception: {ExceptionType}", exception.GetType().Name);
 
         context.Response.StatusCode = statusCode;
 

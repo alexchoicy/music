@@ -26,13 +26,11 @@ public class AuthController(IAuthService authService, IConfiguration configurati
 
         if (result is null)
         {
-            if (result is null)
-            {
-                return Problem(
-                    title: "InvalidCredentials",
-                    detail: "Invalid username or password.",
-                    statusCode: StatusCodes.Status401Unauthorized);
-            }
+            return Problem(
+                title: "InvalidCredentials",
+                detail: "Invalid username or password.",
+                statusCode: StatusCodes.Status401Unauthorized);
+
         }
 
         Response.Cookies.Append(AuthCookieName, result.Token, new CookieOptions

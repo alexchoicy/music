@@ -1,14 +1,11 @@
-using System.Text.Json.Serialization;
-using Music.Core.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Music.Api.Dtos.Requests;
 
-public sealed class CreatePartyRequest
+public sealed class LoginRequest
 {
-    public required string Name { get; init; }
-
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public required PartyType PartyType { get; init; }
-
-    public int LanguageId { get; init; }
+    [Required, MinLength(1)]
+    public required string Username { get; init; }
+    [Required, MinLength(1)]
+    public required string Password { get; init; }
 }

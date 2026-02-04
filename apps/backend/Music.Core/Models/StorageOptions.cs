@@ -33,7 +33,7 @@ public sealed class DataStorageOptions
 public sealed class StorageOptions
 {
     public required string TempDir { get; init; }
-    public MediaFoldersOptions MediaFolders = new();
-    public required DataStorageOptions Content;
-    public required DataStorageOptions Assets;
+    public MediaFoldersOptions MediaFolders { get; init; } = new();
+    public required DataStorageOptions Content { get; init; }
+    public required DataStorageOptions Assets { get; init; }
 }

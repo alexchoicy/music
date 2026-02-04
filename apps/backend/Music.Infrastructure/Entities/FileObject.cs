@@ -21,11 +21,14 @@ public class FileObject
     public required string OriginalBlake3Hash { get; set; } // I have this idea because this file will be changed with metadata after upload
     public required string CurrentBlake3Hash { get; set; }
 
+    public required string FileSHA1 { get; set; } // Bro becuase B2 only support this
+
     public required FileObjectType Type { get; set; }
 
     public required long SizeInBytes { get; set; }
     public required string MimeType { get; set; }
     public required string Container { get; set; } // e.g., "mp4", "mp3", "flac", etc.
+    public required string Extension { get; set; } // e.g., "mp4", "mp3", "flac", etc
     public string? Codec { get; set; } // e.g., "aac", "vorbis", "opus", etc. // empty because image don't have codec
 
     public int? Width { get; set; }
@@ -38,6 +41,7 @@ public class FileObject
 
     public int? DurationInMs { get; set; } = null;
 
+    public required string OriginalFileName { get; set; } // for user reference, not used for storage
     public string? CreatedByUserId { get; set; } // null = system
     public User? CreatedByUser { get; set; }
 

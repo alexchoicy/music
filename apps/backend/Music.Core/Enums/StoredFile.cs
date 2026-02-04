@@ -2,8 +2,8 @@ namespace Music.Core.Enums;
 
 public enum FileType
 {
-    Image,
-    Audio,
-    Video,
-    Document
+    IMAGE,
+    AUDIO,
+    VIDEO,
+    DOCUMENT
 }

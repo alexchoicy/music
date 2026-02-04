@@ -1,0 +1,278 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
+using Music.Core.Enums;
+using Music.Core.Models;
+using Music.Core.Services.Interfaces;
+using Music.Core.Utils;
+using Music.Infrastructure.Data;
+using Music.Infrastructure.Entities;
+
+namespace Music.Infrastructure.Services.Album;
+
+public class AlbumService(AppDbContext dbContext, IContentService contentService, IAssetsService assetsService, ILogger<AlbumService> logger) : IAlbumService
+{
+    private readonly AppDbContext _dbContext = dbContext;
+    private readonly IContentService _contentService = contentService;
+    private readonly IAssetsService _assetsService = assetsService;
+    private readonly ILogger<AlbumService> _logger = logger;
+
+    public async Task<IReadOnlyList<CreateAlbumResult>> CreateAlbumAsync(
+        IReadOnlyList<CreateAlbumModel> albums,
+        string userId,
+        CancellationToken cancellationToken = default)
+    {
+        if (albums.Count == 0)
+            return [];
+
+        List<CreateAlbumResult> results = new(albums.Count);
+
+        foreach (var album in albums)
+        {
+            if (await AlbumExistsAsync(album, cancellationToken))
+            {
+                results.Add(CreateAlbumResult.Failure(
+                    album.Title,
+                    "Album already exists with the same title and artists"));
+                continue;
+            }
+
+            await using IDbContextTransaction transaction = await _dbContext.Database
+                .BeginTransactionAsync(cancellationToken);
+
+            try
+            {
+                Entities.Album newAlbum = CreateSingleAlbum(album, userId);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                results.Add(CreateAlbumResult.Success(album.Title, newAlbum.Id));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating album {AlbumTitle}", album.Title);
+                await transaction.RollbackAsync(cancellationToken);
+                _dbContext.ChangeTracker.Clear();
+                results.Add(CreateAlbumResult.Failure(album.Title, "Failed to create this album"));
+            }
+        }
+
+        return results;
+    }
+
+    private async Task<bool> AlbumExistsAsync(
+        CreateAlbumModel album,
+        CancellationToken cancellationToken)
+    {
+        string normalizedTitle = StringUtils.NormalizeString(album.Title);
+
+        List<int> inputArtistIds = album.AlbumCredits
+            .Where(c => c.Credit == AlbumCreditType.ARTIST)
+            .Select(c => c.PartyId)
+            .OrderBy(id => id)
+            .ToList();
+
+        if (inputArtistIds.Count == 0)
+            return false;
+
+        List<Entities.Album> matchingAlbums = await _dbContext.Albums
+            .Where(a => a.NormalizedTitle == normalizedTitle)
+            .Include(a => a.Credits)
+            .ToListAsync(cancellationToken);
+
+        foreach (var existingAlbum in matchingAlbums)
+        {
+            List<int> existingArtistIds = existingAlbum.Credits
+                .Where(c => c.Credit == AlbumCreditType.ARTIST)
+                .Select(c => c.PartyId)
+                .OrderBy(id => id)
+                .ToList();
+
+            if (inputArtistIds.SequenceEqual(existingArtistIds))
+                return true;
+        }
+
+        return false;
+    }
+
+    private Entities.Album CreateSingleAlbum(CreateAlbumModel album, string userId)
+    {
+        var newAlbum = new Entities.Album
+        {
+            Title = album.Title,
+            Description = album.Description,
+            Type = album.Type,
+            LanguageId = album.LanguageId == 0 ? null : album.LanguageId,
+            CreatedByUserId = userId,
+            ReleaseDate = album.ReleaseDate
+        };
+
+        _dbContext.Albums.Add(newAlbum);
+
+        var albumCredits = album.AlbumCredits.Select(ac => new AlbumCredit
+        {
+            Album = newAlbum,
+            PartyId = ac.PartyId,
+            Credit = ac.Credit
+        });
+
+        _dbContext.AlbumCredits.AddRange(albumCredits);
+
+        if (album.AlbumImage is not null)
+        {
+            CreateAlbumImage(album.AlbumImage, newAlbum, userId);
+        }
+
+        foreach (AlbumTrackModel albumTrack in album.Tracks)
+        {
+            CreateTrack(albumTrack, newAlbum, userId);
+        }
+
+        return newAlbum;
+    }
+
+    private void CreateAlbumImage(AlbumImageModel imageModel, Entities.Album album, string userId)
+    {
+        string imagePath = _assetsService.GetStoragePath(
+            MediaFolderOptions.ASSETSCOVER,
+            imageModel.File.FileBlake3,
+            imageModel.File.Container);
+
+        (StoredFile? storedFile, FileObject? fileObject) = CreateStoredFileWithObject(
+            imageModel.File,
+            FileType.IMAGE,
+            imagePath,
+            userId);
+
+        _dbContext.StoredFiles.Add(storedFile);
+        _dbContext.FileObjects.Add(fileObject);
+
+        AlbumImage albumImage = new()
+        {
+            Album = album,
+            File = storedFile,
+            IsPrimary = true
+        };
+
+        _dbContext.AlbumImages.Add(albumImage);
+    }
+
+    private void CreateTrack(AlbumTrackModel albumTrack, Entities.Album album, string userId)
+    {
+        Track track = new()
+        {
+            Title = albumTrack.Title,
+            IsMC = albumTrack.IsMC,
+            Description = albumTrack.Description,
+            DurationInMs = albumTrack.DurationInMs,
+            LanguageId = albumTrack.LanguageId == 0 ? null : albumTrack.LanguageId,
+            CreatedByUserId = userId
+        };
+
+        _dbContext.Tracks.Add(track);
+
+        AlbumTrack newAlbumTrack = new()
+        {
+            Album = album,
+            Track = track,
+            TrackNumber = albumTrack.TrackNumber,
+            DiscNumber = albumTrack.DiscNumber
+        };
+
+        _dbContext.AlbumTracks.Add(newAlbumTrack);
+
+        IEnumerable<TrackCredit> trackCredits = albumTrack.TrackCredits.Select(tc => new TrackCredit
+        {
+            Track = track,
+            PartyId = tc.PartyId,
+            Credit = tc.Credit
+        });
+
+        _dbContext.TrackCredits.AddRange(trackCredits);
+
+        foreach (TrackVariantModel trackVariant in albumTrack.TrackVariants)
+        {
+            CreateTrackVariant(trackVariant, track, userId);
+        }
+    }
+
+    private void CreateTrackVariant(TrackVariantModel variantModel, Track track, string userId)
+    {
+        var newTrackVariant = new TrackVariant
+        {
+            Track = track,
+            VariantType = variantModel.VariantType
+        };
+
+        _dbContext.TrackVariants.Add(newTrackVariant);
+
+        foreach (TrackSourceModel trackSource in variantModel.Sources)
+        {
+            CreateTrackSource(trackSource, newTrackVariant, userId);
+        }
+    }
+
+    private void CreateTrackSource(TrackSourceModel sourceModel, TrackVariant trackVariant, string userId)
+    {
+        string path = _contentService.GetStoragePath(
+            MediaFolderOptions.ORIGINALMUSIC,
+            sourceModel.File.FileBlake3,
+            sourceModel.File.Container);
+
+        (StoredFile? storedFile, FileObject? fileObject) = CreateStoredFileWithObject(
+            sourceModel.File,
+            FileType.AUDIO,
+            path,
+            userId);
+
+        _dbContext.StoredFiles.Add(storedFile);
+        _dbContext.FileObjects.Add(fileObject);
+
+        TrackSource newTrackSource = new()
+        {
+            TrackVariant = trackVariant,
+            From = sourceModel.From,
+            File = storedFile,
+            UploadedByUserId = userId
+        };
+
+        _dbContext.TrackSources.Add(newTrackSource);
+    }
+
+    private static (StoredFile storedFile, FileObject fileObject) CreateStoredFileWithObject(
+        CreateFileModel model,
+        FileType fileType,
+        string storagePath,
+        string userId)
+    {
+        StoredFile storedFile = new()
+        {
+            Type = fileType
+        };
+
+        FileObject fileObject = new()
+        {
+            File = storedFile,
+            StoragePath = storagePath,
+            OriginalBlake3Hash = model.FileBlake3,
+            CurrentBlake3Hash = model.FileBlake3,
+            FileSHA1 = model.FileSHA1,
+            Type = FileObjectType.Original,
+            SizeInBytes = model.FileSizeInBytes,
+            MimeType = model.MimeType,
+            Container = model.Container,
+            Extension = model.Extension,
+            Codec = model.Codec,
+            AudioSampleRate = model.AudioSampleRate,
+            Bitrate = model.Bitrate,
+            DurationInMs = model.DurationInMs,
+            OriginalFileName = model.OriginalFileName,
+            FrameRate = model.FrameRate,
+            Width = model.Width,
+            Height = model.Height,
+            CreatedByUserId = userId
+        };
+
+        return (storedFile, fileObject);
+    }
+}

@@ -13,10 +13,12 @@ public class TrackSource
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    public required int TrackVariantId { get; set; }
+    [Required]
+    public int TrackVariantId { get; set; }
     public TrackVariant? TrackVariant { get; set; }
 
-    public required int FileId { get; set; }
+    [Required]
+    public int FileId { get; set; }
     public StoredFile? File { get; set; }
 
     // Ranking the audio from source, can be flac, mp3 etc.

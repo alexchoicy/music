@@ -13,10 +13,12 @@ public class TrackCredit
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    public required int TrackId { get; set; }
+    [Required]
+    public int TrackId { get; set; }
     public Track? Track { get; set; }
 
-    public required int PartyId { get; set; }
+    [Required]
+    public int PartyId { get; set; }
     public Party? Party { get; set; }
 
     public required TrackCreditType Credit { get; set; }

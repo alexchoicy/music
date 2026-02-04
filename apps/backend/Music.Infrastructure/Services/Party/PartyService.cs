@@ -32,9 +32,9 @@ public class PartyService(AppDbContext dbContext) : IPartyService
     {
         IQueryable<Entities.Party> baseQuery = _dbContext.Parties.AsNoTracking();
 
-        if (!string.IsNullOrEmpty(partyListParams.Serach))
+        if (!string.IsNullOrEmpty(partyListParams.Search))
         {
-            string serachNormalized = StringUtils.NormalizeString(partyListParams.Serach);
+            string serachNormalized = StringUtils.NormalizeString(partyListParams.Search);
             baseQuery = baseQuery.Where(p => p.NormalizedName.Contains(serachNormalized) ||
                                              p.Aliases.Any(a => a.NormalizedName.Contains(serachNormalized)));
         }
