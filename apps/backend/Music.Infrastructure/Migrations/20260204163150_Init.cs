@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Music.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -289,10 +289,12 @@ namespace Music.Infrastructure.Migrations
                     StoragePath = table.Column<string>(type: "text", nullable: false),
                     OriginalBlake3Hash = table.Column<string>(type: "text", nullable: false),
                     CurrentBlake3Hash = table.Column<string>(type: "text", nullable: false),
+                    FileSHA1 = table.Column<string>(type: "text", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false),
                     SizeInBytes = table.Column<long>(type: "bigint", nullable: false),
                     MimeType = table.Column<string>(type: "text", nullable: false),
                     Container = table.Column<string>(type: "text", nullable: false),
+                    Extension = table.Column<string>(type: "text", nullable: false),
                     Codec = table.Column<string>(type: "text", nullable: true),
                     Width = table.Column<int>(type: "integer", nullable: true),
                     Height = table.Column<int>(type: "integer", nullable: true),
@@ -300,6 +302,7 @@ namespace Music.Infrastructure.Migrations
                     Bitrate = table.Column<int>(type: "integer", nullable: true),
                     FrameRate = table.Column<decimal>(type: "numeric", nullable: true),
                     DurationInMs = table.Column<int>(type: "integer", nullable: true),
+                    OriginalFileName = table.Column<string>(type: "text", nullable: false),
                     CreatedByUserId = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)

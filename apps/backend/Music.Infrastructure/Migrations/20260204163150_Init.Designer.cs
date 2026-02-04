@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Music.Infrastructure.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Music.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260204163150_Init")]
+    partial class Init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -385,8 +388,16 @@ namespace Music.Infrastructure.Migrations
                     b.Property<int?>("DurationInMs")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Extension")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("FileId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("FileSHA1")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<decimal?>("FrameRate")
                         .HasColumnType("numeric");
@@ -399,6 +410,10 @@ namespace Music.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("OriginalBlake3Hash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OriginalFileName")
                         .IsRequired()
                         .HasColumnType("text");
 
