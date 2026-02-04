@@ -21,7 +21,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<TrackVariant> TrackVariants { get; set; }
     public DbSet<TrackCredit> TrackCredits { get; set; }
     public DbSet<TrackSource> TrackSources { get; set; }
-    public DbSet<Entities.File> Files { get; set; }
+    public DbSet<StoredFile> StoredFiles { get; set; }
     public DbSet<FileObject> FileObjects { get; set; }
 
     public DbSet<Language> Languages { get; set; }

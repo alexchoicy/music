@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data.Configurations;
 
-public class FileConfiguration : IEntityTypeConfiguration<Entities.File>
+public class FileConfiguration : IEntityTypeConfiguration<StoredFile>
 {
-    public void Configure(EntityTypeBuilder<Entities.File> builder)
+    public void Configure(EntityTypeBuilder<StoredFile> builder)
     {
         builder.HasMany(f => f.FileObjects)
             .WithOne(fo => fo.File)

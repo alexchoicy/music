@@ -17,7 +17,7 @@ public class TrackSource
     public TrackVariant? TrackVariant { get; set; }
 
     public required int FileId { get; set; }
-    public File? File { get; set; }
+    public StoredFile? File { get; set; }
 
     // Ranking the audio from source, can be flac, mp3 etc.
     // But they are source not transcoded version by us

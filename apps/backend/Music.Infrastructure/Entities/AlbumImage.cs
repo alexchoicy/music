@@ -21,7 +21,7 @@ public class AlbumImage
     public Album? Album { get; set; }
 
     public required int FileId { get; set; }
-    public File? File { get; set; }
+    public StoredFile? File { get; set; }
 
     public bool IsPrimary { get; set; } = false;
 

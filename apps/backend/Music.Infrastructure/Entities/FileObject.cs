@@ -11,7 +11,7 @@ public class FileObject
     public Guid Id { get; set; } = Guid.CreateVersion7();
 
     public int FileId { get; set; }
-    public File? File { get; set; }
+    public StoredFile? File { get; set; }
 
     public Status Status { get; set; } = Status.Pending;
 

@@ -5,9 +5,9 @@ using Music.Core.Enums;
 
 namespace Music.Infrastructure.Entities;
 
-[Table("Files")]
+[Table("StoredFiles")]
 [PrimaryKey(nameof(Id))]
-public class File
+public class StoredFile
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
