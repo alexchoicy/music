@@ -25,6 +25,8 @@ public class FileObject
 
     public required FileObjectType Type { get; set; }
 
+    public required FileObjectVariant FileObjectVariant { get; set; }
+
     public required long SizeInBytes { get; set; }
     public required string MimeType { get; set; }
     public required string Container { get; set; } // e.g., "mp4", "mp3", "flac", etc.

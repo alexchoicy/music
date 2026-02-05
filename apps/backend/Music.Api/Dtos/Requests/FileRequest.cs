@@ -23,3 +23,11 @@ public sealed class FileRequest
 
     public required string OriginalFileName { get; init; }
 }
+
+public sealed class FileCroppedArea
+{
+    public required int Width { get; set; }
+    public required int Height { get; set; }
+    public required int X { get; set; }
+    public required int Y { get; set; }
+}

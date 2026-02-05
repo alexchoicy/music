@@ -22,6 +22,11 @@ public class PartyImage
     public required int FileId { get; set; }
     public StoredFile? File { get; set; }
 
+    public int? CropX { get; set; }
+    public int? CropY { get; set; }
+    public int? CropWidth { get; set; }
+    public int? CropHeight { get; set; }
+
     public bool IsPrimary { get; set; } = false;
 
     public required PartyImageType PartyImageType { get; set; }
