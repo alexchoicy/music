@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Music.Infrastructure.Entities;
+using Music.Core.Entities;
 
 namespace Music.Infrastructure.Data.Configurations;
 
@@ -8,6 +8,10 @@ public class PartyMembershipConfiguration : IEntityTypeConfiguration<PartyMember
 {
     public void Configure(EntityTypeBuilder<PartyMembership> builder)
     {
+        builder.ToTable("PartyMemberships");
+
+        builder.HasKey(pm => new { pm.PartyId, pm.MemberId });
+
         builder.HasOne(pm => pm.Party)
             .WithMany(p => p.Members)
             .HasForeignKey(pm => pm.PartyId)

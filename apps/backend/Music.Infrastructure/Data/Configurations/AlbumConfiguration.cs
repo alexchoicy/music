@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Music.Core.Entities;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data.Configurations;
@@ -8,7 +9,17 @@ public class AlbumConfiguration : IEntityTypeConfiguration<Album>
 {
     public void Configure(EntityTypeBuilder<Album> builder)
     {
-        builder.HasOne(album => album.CreatedByUser)
+        builder.ToTable("Albums");
+
+        builder.HasKey(a => a.Id);
+
+        builder.Property(a => a.Id)
+            .ValueGeneratedOnAdd();
+
+        builder.Property(a => a.Version)
+             .IsRowVersion();
+
+        builder.HasOne<User>()
             .WithMany(user => user.CreatedAlbums)
             .HasForeignKey(album => album.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);

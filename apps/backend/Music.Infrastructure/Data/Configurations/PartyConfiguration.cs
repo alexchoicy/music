@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Music.Infrastructure.Entities;
+using Music.Core.Entities;
 
 namespace Music.Infrastructure.Data.Configurations;
 
@@ -8,6 +8,16 @@ public class PartyConfiguration : IEntityTypeConfiguration<Party>
 {
     public void Configure(EntityTypeBuilder<Party> builder)
     {
+        builder.ToTable("Parties");
+
+        builder.HasKey(p => p.Id);
+
+        builder.Property(p => p.Id)
+            .ValueGeneratedOnAdd();
+
+        builder.Property(p => p.Version)
+             .IsRowVersion();
+
         builder.HasOne(p => p.Language)
             .WithMany()
             .HasForeignKey(p => p.LanguageId)

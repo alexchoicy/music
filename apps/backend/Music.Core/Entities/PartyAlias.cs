@@ -1,16 +1,9 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 using Music.Core.Enums;
 
-namespace Music.Infrastructure.Entities;
+namespace Music.Core.Entities;
 
-[Table("PartyAliases")]
-[PrimaryKey(nameof(Id))]
 public class PartyAlias
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
     public required string Name { get; set; }
@@ -25,7 +18,6 @@ public class PartyAlias
     public AliasSourceType SourceType { get; set; } = AliasSourceType.UserCreated;
 
     public string? CreatedByUserId { get; set; }
-    public User? CreatedByUser { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;

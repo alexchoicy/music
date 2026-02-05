@@ -18,7 +18,7 @@ public enum FileObjectVariant
     Opus96, //this is enough
 }
 
-public enum Status
+public enum FileProcessingStatus
 {
     Pending,
     Processing,

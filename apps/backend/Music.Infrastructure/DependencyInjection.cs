@@ -8,11 +8,12 @@ using Music.Core.Enums;
 using Music.Core.Models;
 using Music.Core.Services.Interfaces;
 using Music.Infrastructure.Data;
-using Music.Infrastructure.Entities;
+using Music.Core.Entities;
 using Music.Infrastructure.Services.Album;
 using Music.Infrastructure.Services.Auth;
 using Music.Infrastructure.Services.Party;
 using Music.Infrastructure.Services.Storage;
+using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure;
 

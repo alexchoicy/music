@@ -25,6 +25,7 @@ public sealed class AlbumImageRequest
 {
     public required FileRequest File { get; init; }
     public string Description { get; init; } = string.Empty;
+    public FileCroppedArea? FileCroppedArea { get; init; }
 }
 
 public sealed class AlbumCreditRequest
@@ -69,6 +70,6 @@ public sealed class TrackVariantRequest
 public sealed class TrackSourceRequest
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public required TrackFrom From { get; init; }
+    public required TrackSource Source { get; init; }
     public required FileRequest File { get; init; }
 }

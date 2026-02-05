@@ -20,7 +20,8 @@ public static class AlbumMapping
     public static AlbumImageModel ToModel(this AlbumImageRequest r) => new()
     {
         Description = r.Description,
-        File = r.File.ToModel()
+        File = r.File.ToModel(),
+        FileCroppedArea = r.FileCroppedArea?.ToModel()
     };
 
     public static AlbumCreditModel ToModel(this AlbumCreditRequest r) => new()
@@ -56,25 +57,7 @@ public static class AlbumMapping
 
     public static TrackSourceModel ToModel(this TrackSourceRequest r) => new()
     {
-        From = r.From,
+        Source = r.Source,
         File = r.File.ToModel()
-    };
-
-    public static CreateFileModel ToModel(this FileRequest r) => new()
-    {
-        FileBlake3 = r.FileBlake3,
-        FileSHA1 = r.FileSHA1,
-        MimeType = r.MimeType,
-        FileSizeInBytes = r.FileSizeInBytes,
-        Container = r.Container,
-        Extension = r.Extension,
-        Codec = r.Codec,
-        Width = r.Width,
-        Height = r.Height,
-        AudioSampleRate = r.AudioSampleRate,
-        Bitrate = r.Bitrate,
-        FrameRate = r.FrameRate,
-        DurationInMs = r.DurationInMs,
-        OriginalFileName = r.OriginalFileName
     };
 }

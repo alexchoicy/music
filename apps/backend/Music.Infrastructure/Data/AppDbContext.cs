@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Music.Core.Utils;
+using Music.Core.Entities;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data;
@@ -38,22 +39,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000001",
-                Name = Core.Enums.Roles.ADMIN.ToString(),
-                NormalizedName = Core.Enums.Roles.ADMIN.ToString().ToUpper(),
+                Name = Core.Enums.Roles.Admin.ToString(),
+                NormalizedName = Core.Enums.Roles.Admin.ToString().ToUpper(),
                 ConcurrencyStamp = "508a0eaf-dbca-47d9-baeb-597b81a4957e"
             },
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000002",
-                Name = Core.Enums.Roles.UPLOADER.ToString(),
-                NormalizedName = Core.Enums.Roles.UPLOADER.ToString().ToUpper(),
+                Name = Core.Enums.Roles.Uploader.ToString(),
+                NormalizedName = Core.Enums.Roles.Uploader.ToString().ToUpper(),
                 ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0"
             },
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000003",
-                Name = Core.Enums.Roles.USER.ToString(),
-                NormalizedName = Core.Enums.Roles.USER.ToString().ToUpper(),
+                Name = Core.Enums.Roles.User.ToString(),
+                NormalizedName = Core.Enums.Roles.User.ToString().ToUpper(),
                 ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0"
             }
         ];

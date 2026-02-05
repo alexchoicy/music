@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Music.Core.Models;
 using Music.Core.Services.Interfaces;
+using Music.Core.Entities;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Services.Auth;
@@ -26,7 +27,14 @@ public class AuthService(UserManager<User> userManager, ITokenService tokenServi
 
         IList<string> roles = await _userManager.GetRolesAsync(user);
 
-        string token = _tokenService.GenerateUserToken(user, roles);
+        UserInfo userInfo = new()
+        {
+            Id = user.Id,
+            UserName = user.UserName!,
+            Roles = roles
+        };
+
+        string token = _tokenService.GenerateUserToken(userInfo, roles);
 
         return new AuthSession
         {

@@ -12,7 +12,8 @@ public sealed class CreatePartyRequest
 
     public int LanguageId { get; init; }
 
-    public List<PartyImageRequest> Images { get; init; } = [];
+    public PartyImageRequest? Cover { get; init; }
+    public PartyImageRequest? Banner { get; init; }
 }
 
 public sealed class PartyImageRequest
@@ -21,4 +22,5 @@ public sealed class PartyImageRequest
     public required PartyImageType ImageType { get; init; }
 
     public required FileRequest Image { get; init; }
+    public FileCroppedArea? FileCroppedArea { get; init; }
 }

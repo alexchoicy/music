@@ -9,6 +9,17 @@ public sealed class CreatePartyModel
     public required PartyType PartyType { get; init; }
 
     public int LanguageId { get; init; }
+
+    public PartyImageRequest? Cover { get; init; }
+    public PartyImageRequest? Banner { get; init; }
+}
+
+public sealed class PartyImageRequest
+{
+    public required PartyImageType ImageType { get; init; }
+
+    public required CreateFileModel Image { get; init; }
+    public FileCroppedAreaModel? FileCroppedArea { get; init; }
 }
 
 public sealed class PartyListParams

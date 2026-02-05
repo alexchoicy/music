@@ -6,7 +6,7 @@ using Music.Core.Models;
 using Music.Core.Services.Interfaces;
 using Music.Core.Utils;
 using Music.Infrastructure.Data;
-using Music.Infrastructure.Entities;
+using Music.Core.Entities;
 
 namespace Music.Infrastructure.Services.Album;
 
@@ -42,7 +42,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
             try
             {
-                Entities.Album newAlbum = CreateSingleAlbum(album, userId);
+                Core.Entities.Album newAlbum = CreateSingleAlbum(album, userId);
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 
@@ -67,7 +67,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         string normalizedTitle = StringUtils.NormalizeString(album.Title);
 
         List<int> inputArtistIds = album.AlbumCredits
-            .Where(c => c.Credit == AlbumCreditType.ARTIST)
+            .Where(c => c.Credit == AlbumCreditType.Artist)
             .Select(c => c.PartyId)
             .OrderBy(id => id)
             .ToList();
@@ -75,7 +75,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         if (inputArtistIds.Count == 0)
             return false;
 
-        List<Entities.Album> matchingAlbums = await _dbContext.Albums
+        List<Core.Entities.Album> matchingAlbums = await _dbContext.Albums
             .Where(a => a.NormalizedTitle == normalizedTitle)
             .Include(a => a.Credits)
             .ToListAsync(cancellationToken);
@@ -83,7 +83,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         foreach (var existingAlbum in matchingAlbums)
         {
             List<int> existingArtistIds = existingAlbum.Credits
-                .Where(c => c.Credit == AlbumCreditType.ARTIST)
+                .Where(c => c.Credit == AlbumCreditType.Artist)
                 .Select(c => c.PartyId)
                 .OrderBy(id => id)
                 .ToList();
@@ -95,9 +95,9 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         return false;
     }
 
-    private Entities.Album CreateSingleAlbum(CreateAlbumModel album, string userId)
+    private Core.Entities.Album CreateSingleAlbum(CreateAlbumModel album, string userId)
     {
-        var newAlbum = new Entities.Album
+        var newAlbum = new Core.Entities.Album
         {
             Title = album.Title,
             Description = album.Description,
@@ -131,16 +131,16 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         return newAlbum;
     }
 
-    private void CreateAlbumImage(AlbumImageModel imageModel, Entities.Album album, string userId)
+    private void CreateAlbumImage(AlbumImageModel imageModel, Core.Entities.Album album, string userId)
     {
         string imagePath = _assetsService.GetStoragePath(
-            MediaFolderOptions.ASSETSCOVER,
+            MediaFolderOptions.AssetsCover,
             imageModel.File.FileBlake3,
             imageModel.File.Container);
 
-        (StoredFile? storedFile, FileObject? fileObject) = CreateStoredFileWithObject(
+        (StoredFile? storedFile, FileObject? fileObject) = _assetsService.CreateStoredFileWithObject(
             imageModel.File,
-            FileType.IMAGE,
+            FileType.Image,
             imagePath,
             userId);
 
@@ -151,13 +151,17 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         {
             Album = album,
             File = storedFile,
-            IsPrimary = true
+            IsPrimary = true,
+            CropHeight = imageModel.FileCroppedArea?.Height,
+            CropWidth = imageModel.FileCroppedArea?.Width,
+            CropX = imageModel.FileCroppedArea?.X,
+            CropY = imageModel.FileCroppedArea?.Y,
         };
 
         _dbContext.AlbumImages.Add(albumImage);
     }
 
-    private void CreateTrack(AlbumTrackModel albumTrack, Entities.Album album, string userId)
+    private void CreateTrack(AlbumTrackModel albumTrack, Core.Entities.Album album, string userId)
     {
         Track track = new()
         {
@@ -215,23 +219,23 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
     private void CreateTrackSource(TrackSourceModel sourceModel, TrackVariant trackVariant, string userId)
     {
         string path = _contentService.GetStoragePath(
-            MediaFolderOptions.ORIGINALMUSIC,
+            MediaFolderOptions.OriginalMusic,
             sourceModel.File.FileBlake3,
             sourceModel.File.Container);
 
-        (StoredFile? storedFile, FileObject? fileObject) = CreateStoredFileWithObject(
+        (StoredFile? storedFile, FileObject? fileObject) = _assetsService.CreateStoredFileWithObject(
             sourceModel.File,
-            FileType.AUDIO,
+            FileType.Audio,
             path,
             userId);
 
         _dbContext.StoredFiles.Add(storedFile);
         _dbContext.FileObjects.Add(fileObject);
 
-        TrackSource newTrackSource = new()
+        Core.Entities.TrackSource newTrackSource = new()
         {
             TrackVariant = trackVariant,
-            From = sourceModel.From,
+            Source = sourceModel.Source,
             File = storedFile,
             UploadedByUserId = userId
         };
@@ -239,40 +243,4 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         _dbContext.TrackSources.Add(newTrackSource);
     }
 
-    private static (StoredFile storedFile, FileObject fileObject) CreateStoredFileWithObject(
-        CreateFileModel model,
-        FileType fileType,
-        string storagePath,
-        string userId)
-    {
-        StoredFile storedFile = new()
-        {
-            Type = fileType
-        };
-
-        FileObject fileObject = new()
-        {
-            File = storedFile,
-            StoragePath = storagePath,
-            OriginalBlake3Hash = model.FileBlake3,
-            CurrentBlake3Hash = model.FileBlake3,
-            FileSHA1 = model.FileSHA1,
-            Type = FileObjectType.Original,
-            SizeInBytes = model.FileSizeInBytes,
-            MimeType = model.MimeType,
-            Container = model.Container,
-            Extension = model.Extension,
-            Codec = model.Codec,
-            AudioSampleRate = model.AudioSampleRate,
-            Bitrate = model.Bitrate,
-            DurationInMs = model.DurationInMs,
-            OriginalFileName = model.OriginalFileName,
-            FrameRate = model.FrameRate,
-            Width = model.Width,
-            Height = model.Height,
-            CreatedByUserId = userId
-        };
-
-        return (storedFile, fileObject);
-    }
 }

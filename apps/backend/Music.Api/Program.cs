@@ -10,6 +10,7 @@ using Music.Core.Models;
 using Music.Infrastructure;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Data.Seed;
+using Music.Core.Entities;
 using Music.Infrastructure.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -86,14 +87,14 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("UserAllowed",
-        policy => policy.RequireClaim("access_type", TokenUseType.USERACCESS.ToString()));
+        policy => policy.RequireClaim("access_type", TokenUseType.UserAccess.ToString()));
 
-    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole(Roles.ADMIN.ToString()));
+    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole(Roles.Admin.ToString()));
 
     options.AddPolicy("ShareAllowed", policy =>
         policy.RequireClaim("access_type",
-            TokenUseType.USERACCESS.ToString(),
-            TokenUseType.CONTENTACCESS.ToString()));
+            TokenUseType.UserAccess.ToString(),
+            TokenUseType.ContentAccess.ToString()));
 
     options.DefaultPolicy = options.GetPolicy("UserAllowed")!;
 });

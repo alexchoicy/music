@@ -3,6 +3,7 @@ using Music.Core.Models;
 using Music.Core.Services.Interfaces;
 using Music.Core.Utils;
 using Music.Infrastructure.Data;
+using Music.Core.Entities;
 
 namespace Music.Infrastructure.Services.Party;
 
@@ -12,7 +13,7 @@ public class PartyService(AppDbContext dbContext) : IPartyService
 
     public async Task<bool> CreatePartyAsync(CreatePartyModel request, string userId)
     {
-        Entities.Party party = new()
+        Core.Entities.Party party = new()
         {
             Name = request.Name,
             Type = request.PartyType,
@@ -30,7 +31,7 @@ public class PartyService(AppDbContext dbContext) : IPartyService
 
     public async Task<IReadOnlyList<PartyListModel>> GetAllForListAsync(PartyListParams partyListParams)
     {
-        IQueryable<Entities.Party> baseQuery = _dbContext.Parties.AsNoTracking();
+        IQueryable<Core.Entities.Party> baseQuery = _dbContext.Parties.AsNoTracking();
 
         if (!string.IsNullOrEmpty(partyListParams.Search))
         {
@@ -54,6 +55,6 @@ public class PartyService(AppDbContext dbContext) : IPartyService
             .ToListAsync();
 
         return parties;
-
     }
+
 }

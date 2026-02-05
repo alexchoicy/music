@@ -1,13 +1,13 @@
 namespace Music.Core.Enums;
 
-public enum TrackFrom
-{
+public enum TrackSource
+{ // use brand names case
     MORA,
     OTOTOY,
     CD,
-    BLUERAY,
-    VINYL,
-    YOUTUBE, // cover music
-    SOUND_CLOUD,
-    OTHER
+    BluRay,
+    Vinyl,
+    YouTube, // cover music
+    SoundCloud,
+    OTHER = 99
 }

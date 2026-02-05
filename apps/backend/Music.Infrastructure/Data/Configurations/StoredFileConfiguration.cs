@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Music.Infrastructure.Entities;
+using Music.Core.Entities;
 
 namespace Music.Infrastructure.Data.Configurations;
 
@@ -8,6 +8,13 @@ public class FileConfiguration : IEntityTypeConfiguration<StoredFile>
 {
     public void Configure(EntityTypeBuilder<StoredFile> builder)
     {
+        builder.ToTable("StoredFiles");
+
+        builder.HasKey(f => f.Id);
+
+        builder.Property(f => f.Id)
+            .ValueGeneratedOnAdd();
+
         builder.HasMany(f => f.FileObjects)
             .WithOne(fo => fo.File)
             .HasForeignKey(fo => fo.FileId)

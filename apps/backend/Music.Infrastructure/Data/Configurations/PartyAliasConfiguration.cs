@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Music.Core.Entities;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data.Configurations;
@@ -8,12 +9,19 @@ public class PartyAliasConfiguration : IEntityTypeConfiguration<PartyAlias>
 {
     public void Configure(EntityTypeBuilder<PartyAlias> builder)
     {
+        builder.ToTable("PartyAliases");
+
+        builder.HasKey(aa => aa.Id);
+
+        builder.Property(aa => aa.Id)
+            .ValueGeneratedOnAdd();
+
         builder.HasOne(aa => aa.Party)
             .WithMany(p => p.Aliases)
             .HasForeignKey(aa => aa.PartyId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(aa => aa.CreatedByUser)
+        builder.HasOne<User>()
             .WithMany()
             .HasForeignKey(aa => aa.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);

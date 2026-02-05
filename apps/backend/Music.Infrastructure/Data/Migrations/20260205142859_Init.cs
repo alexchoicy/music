@@ -285,12 +285,13 @@ namespace Music.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     FileId = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
+                    ProcessingStatus = table.Column<int>(type: "integer", nullable: false),
                     StoragePath = table.Column<string>(type: "text", nullable: false),
                     OriginalBlake3Hash = table.Column<string>(type: "text", nullable: false),
                     CurrentBlake3Hash = table.Column<string>(type: "text", nullable: false),
                     FileSHA1 = table.Column<string>(type: "text", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false),
+                    FileObjectVariant = table.Column<int>(type: "integer", nullable: false),
                     SizeInBytes = table.Column<long>(type: "bigint", nullable: false),
                     MimeType = table.Column<string>(type: "text", nullable: false),
                     Container = table.Column<string>(type: "text", nullable: false),
@@ -332,6 +333,10 @@ namespace Music.Infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     AlbumId = table.Column<int>(type: "integer", nullable: false),
                     FileId = table.Column<int>(type: "integer", nullable: false),
+                    CropX = table.Column<int>(type: "integer", nullable: true),
+                    CropY = table.Column<int>(type: "integer", nullable: true),
+                    CropWidth = table.Column<int>(type: "integer", nullable: true),
+                    CropHeight = table.Column<int>(type: "integer", nullable: true),
                     IsPrimary = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
@@ -420,6 +425,10 @@ namespace Music.Infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PartyId = table.Column<int>(type: "integer", nullable: false),
                     FileId = table.Column<int>(type: "integer", nullable: false),
+                    CropX = table.Column<int>(type: "integer", nullable: true),
+                    CropY = table.Column<int>(type: "integer", nullable: true),
+                    CropWidth = table.Column<int>(type: "integer", nullable: true),
+                    CropHeight = table.Column<int>(type: "integer", nullable: true),
                     IsPrimary = table.Column<bool>(type: "boolean", nullable: false),
                     PartyImageType = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
@@ -553,8 +562,8 @@ namespace Music.Infrastructure.Migrations
                     FileId = table.Column<int>(type: "integer", nullable: false),
                     Rank = table.Column<int>(type: "integer", nullable: false),
                     Pinned = table.Column<bool>(type: "boolean", nullable: false),
-                    From = table.Column<int>(type: "integer", nullable: false),
-                    UploadedByUserId = table.Column<string>(type: "text", nullable: false),
+                    Source = table.Column<int>(type: "integer", nullable: false),
+                    UploadedByUserId = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
@@ -586,9 +595,9 @@ namespace Music.Infrastructure.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { "00000000-0000-0000-0000-000000000001", "508a0eaf-dbca-47d9-baeb-597b81a4957e", "ADMIN", "ADMIN" },
-                    { "00000000-0000-0000-0000-000000000002", "70b645e2-64b9-4d69-8a37-46413af238b0", "UPLOADER", "UPLOADER" },
-                    { "00000000-0000-0000-0000-000000000003", "70b645e2-64b9-4d69-8a37-46413af238b0", "USER", "USER" }
+                    { "00000000-0000-0000-0000-000000000001", "508a0eaf-dbca-47d9-baeb-597b81a4957e", "Admin", "ADMIN" },
+                    { "00000000-0000-0000-0000-000000000002", "70b645e2-64b9-4d69-8a37-46413af238b0", "Uploader", "UPLOADER" },
+                    { "00000000-0000-0000-0000-000000000003", "70b645e2-64b9-4d69-8a37-46413af238b0", "User", "USER" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -973,14 +982,14 @@ namespace Music.Infrastructure.Migrations
                 column: "FileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TrackSources_From",
-                table: "TrackSources",
-                column: "From");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_TrackSources_Pinned",
                 table: "TrackSources",
                 column: "Pinned");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TrackSources_Source",
+                table: "TrackSources",
+                column: "Source");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TrackSources_TrackVariantId",
@@ -988,14 +997,14 @@ namespace Music.Infrastructure.Migrations
                 column: "TrackVariantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TrackSources_TrackVariantId_From",
-                table: "TrackSources",
-                columns: new[] { "TrackVariantId", "From" });
-
-            migrationBuilder.CreateIndex(
                 name: "IX_TrackSources_TrackVariantId_Pinned_Rank",
                 table: "TrackSources",
                 columns: new[] { "TrackVariantId", "Pinned", "Rank" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TrackSources_TrackVariantId_Source",
+                table: "TrackSources",
+                columns: new[] { "TrackVariantId", "Source" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_TrackSources_UploadedByUserId",

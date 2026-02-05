@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Music.Core.Enums;
+using Music.Core.Entities;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data.Seed;
@@ -31,7 +32,7 @@ public class UserSeed
 
         if (result.Succeeded)
         {
-            await userManager.AddToRoleAsync(adminUser, Roles.ADMIN.ToString());
+            await userManager.AddToRoleAsync(adminUser, Roles.Admin.ToString());
         }
     }
 

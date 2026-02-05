@@ -7,12 +7,12 @@ public enum StorageProvider
 
 public enum MediaFolderOptions
 {
-    ORIGINALMUSIC,
-    ORIGINALVIDEO,
-    ORIGINALEXTRA,
-    DERIVATEDEDMUSIC,
-    DERIVATEDEVIDEO,
-    ASSETSCOVER,
-    ASSETSPARTYCOVER,
-    ASSETSPARTYBANNER,
+    OriginalMusic,
+    OriginalVideo,
+    OriginalExtra,
+    DerivedMusic,
+    DerivedVideo,
+    AssetsCover,
+    PartyCover,
+    PartyBanner,
 }

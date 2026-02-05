@@ -22,6 +22,7 @@ public sealed class AlbumImageModel
 {
     public required CreateFileModel File { get; init; }
     public string Description { get; init; } = string.Empty;
+    public FileCroppedAreaModel? FileCroppedArea { get; init; }
 }
 
 public sealed class AlbumCreditModel
@@ -59,32 +60,8 @@ public sealed class TrackVariantModel
 
 public sealed class TrackSourceModel
 {
-    public required TrackFrom From { get; init; }
+    public required TrackSource Source { get; init; }
     public required CreateFileModel File { get; init; }
-}
-
-public sealed class CreateFileModel
-{
-    public required string FileBlake3 { get; init; }
-    public required string FileSHA1 { get; init; }
-    public required string MimeType { get; init; }
-    public required long FileSizeInBytes { get; init; }
-    public required string Container { get; init; }
-    public required string Extension { get; init; }
-
-    public string? Codec { get; init; }
-
-    public int? Width { get; init; }
-    public int? Height { get; init; }
-
-    public int? AudioSampleRate { get; init; }
-    public int? Bitrate { get; init; }
-
-    public decimal? FrameRate { get; init; }
-
-    public int? DurationInMs { get; init; }
-
-    public required string OriginalFileName { get; init; }
 }
 
 public sealed record CreateAlbumResult

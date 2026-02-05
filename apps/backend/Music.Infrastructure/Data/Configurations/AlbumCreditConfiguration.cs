@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Music.Infrastructure.Entities;
+using Music.Core.Entities;
 
 namespace Music.Infrastructure.Data.Configurations;
 
@@ -8,6 +8,19 @@ public class AlbumCreditConfiguration : IEntityTypeConfiguration<AlbumCredit>
 {
     public void Configure(EntityTypeBuilder<AlbumCredit> builder)
     {
+        builder.ToTable("AlbumCredits");
+
+        builder.HasKey(a => a.Id);
+
+        builder.Property(a => a.Id)
+            .ValueGeneratedOnAdd();
+
+        builder.Property(ac => ac.AlbumId)
+            .IsRequired();
+
+        builder.Property(ac => ac.PartyId)
+            .IsRequired();
+
         builder.HasOne(ac => ac.Album)
             .WithMany(a => a.Credits)
             .HasForeignKey(ac => ac.AlbumId)

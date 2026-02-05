@@ -1,16 +1,9 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 using Music.Core.Enums;
 
-namespace Music.Infrastructure.Entities;
+namespace Music.Core.Entities;
 
-[Table("Parties")]
-[PrimaryKey(nameof(Id))]
 public class Party
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
     public required string Name { get; set; }
@@ -22,12 +15,11 @@ public class Party
     public int? LanguageId { get; set; }
     public Language? Language { get; set; }
 
-    public PartyType Type { get; set; } = PartyType.INDIVIDUAL;
+    public PartyType Type { get; set; } = PartyType.Individual;
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
-    [Timestamp]
     public byte[]? Version { get; set; }
 
     public ICollection<PartyMembership> Members { get; set; } = [];

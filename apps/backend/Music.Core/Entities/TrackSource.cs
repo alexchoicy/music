@@ -1,23 +1,12 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
-using Music.Core.Enums;
+namespace Music.Core.Entities;
 
-namespace Music.Infrastructure.Entities;
-
-[Table("TrackSources")]
-[PrimaryKey(nameof(Id))]
 public class TrackSource
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    [Required]
     public int TrackVariantId { get; set; }
     public TrackVariant? TrackVariant { get; set; }
 
-    [Required]
     public int FileId { get; set; }
     public StoredFile? File { get; set; }
 
@@ -27,10 +16,10 @@ public class TrackSource
 
     public bool Pinned { get; set; } = false; // override rank
 
-    public required TrackFrom From { get; set; }
+    public required Core.Enums.TrackSource Source { get; set; }
 
-    public required string UploadedByUserId { get; set; }
-    public User? UploadedByUser { get; set; }
+    // null = by system
+    public string? UploadedByUserId { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;

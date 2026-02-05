@@ -1,11 +1,7 @@
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 using Music.Core.Enums;
 
-namespace Music.Infrastructure.Entities;
+namespace Music.Core.Entities;
 
-[Table("FileObjects")]
-[PrimaryKey(nameof(Id))]
 public class FileObject
 {
     public Guid Id { get; set; } = Guid.CreateVersion7();
@@ -13,7 +9,7 @@ public class FileObject
     public int FileId { get; set; }
     public StoredFile? File { get; set; }
 
-    public Status Status { get; set; } = Status.Pending;
+    public FileProcessingStatus ProcessingStatus { get; set; } = FileProcessingStatus.Pending;
 
     // storageType/variant/Blake3Hash.ext
     public required string StoragePath { get; set; } // can be S3 path, local path, etc.
@@ -45,7 +41,6 @@ public class FileObject
 
     public required string OriginalFileName { get; set; } // for user reference, not used for storage
     public string? CreatedByUserId { get; set; } // null = system
-    public User? CreatedByUser { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;

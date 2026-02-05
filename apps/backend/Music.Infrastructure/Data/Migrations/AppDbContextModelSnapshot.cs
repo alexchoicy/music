@@ -52,21 +52,21 @@ namespace Music.Infrastructure.Migrations
                         {
                             Id = "00000000-0000-0000-0000-000000000001",
                             ConcurrencyStamp = "508a0eaf-dbca-47d9-baeb-597b81a4957e",
-                            Name = "ADMIN",
+                            Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
                             Id = "00000000-0000-0000-0000-000000000002",
                             ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0",
-                            Name = "UPLOADER",
+                            Name = "Uploader",
                             NormalizedName = "UPLOADER"
                         },
                         new
                         {
                             Id = "00000000-0000-0000-0000-000000000003",
                             ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0",
-                            Name = "USER",
+                            Name = "User",
                             NormalizedName = "USER"
                         });
                 });
@@ -177,7 +177,7 @@ namespace Music.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.Album", b =>
+            modelBuilder.Entity("Music.Core.Entities.Album", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -237,10 +237,10 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasIndex("UpdatedAt");
 
-                    b.ToTable("Albums");
+                    b.ToTable("Albums", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.AlbumCredit", b =>
+            modelBuilder.Entity("Music.Core.Entities.AlbumCredit", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -268,10 +268,10 @@ namespace Music.Infrastructure.Migrations
                     b.HasIndex("AlbumId", "PartyId", "Credit")
                         .IsUnique();
 
-                    b.ToTable("AlbumCredits");
+                    b.ToTable("AlbumCredits", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.AlbumImage", b =>
+            modelBuilder.Entity("Music.Core.Entities.AlbumImage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -284,6 +284,18 @@ namespace Music.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CropHeight")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CropWidth")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CropX")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CropY")
+                        .HasColumnType("integer");
 
                     b.Property<int>("FileId")
                         .HasColumnType("integer");
@@ -303,10 +315,10 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasIndex("AlbumId", "IsPrimary");
 
-                    b.ToTable("AlbumImages");
+                    b.ToTable("AlbumImages", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.AlbumTrack", b =>
+            modelBuilder.Entity("Music.Core.Entities.AlbumTrack", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -350,10 +362,10 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasIndex("AlbumId", "DiscNumber", "TrackNumber");
 
-                    b.ToTable("AlbumTracks");
+                    b.ToTable("AlbumTracks", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.FileObject", b =>
+            modelBuilder.Entity("Music.Core.Entities.FileObject", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -392,6 +404,9 @@ namespace Music.Infrastructure.Migrations
                     b.Property<int>("FileId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("FileObjectVariant")
+                        .HasColumnType("integer");
+
                     b.Property<string>("FileSHA1")
                         .IsRequired()
                         .HasColumnType("text");
@@ -414,11 +429,11 @@ namespace Music.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("ProcessingStatus")
+                        .HasColumnType("integer");
+
                     b.Property<long>("SizeInBytes")
                         .HasColumnType("bigint");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
 
                     b.Property<string>("StoragePath")
                         .IsRequired()
@@ -451,10 +466,10 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasIndex("FileId", "Type");
 
-                    b.ToTable("FileObjects");
+                    b.ToTable("FileObjects", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.Language", b =>
+            modelBuilder.Entity("Music.Core.Entities.Language", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -471,10 +486,10 @@ namespace Music.Infrastructure.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Languages");
+                    b.ToTable("Languages", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.Party", b =>
+            modelBuilder.Entity("Music.Core.Entities.Party", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -526,10 +541,10 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasIndex("Type", "LanguageId");
 
-                    b.ToTable("Parties");
+                    b.ToTable("Parties", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.PartyAlias", b =>
+            modelBuilder.Entity("Music.Core.Entities.PartyAlias", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -584,10 +599,10 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasIndex("PartyId", "DeletedAt");
 
-                    b.ToTable("PartyAliases");
+                    b.ToTable("PartyAliases", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.PartyImage", b =>
+            modelBuilder.Entity("Music.Core.Entities.PartyImage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -597,6 +612,18 @@ namespace Music.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CropHeight")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CropWidth")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CropX")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CropY")
+                        .HasColumnType("integer");
 
                     b.Property<int>("FileId")
                         .HasColumnType("integer");
@@ -626,10 +653,10 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasIndex("PartyId", "PartyImageType");
 
-                    b.ToTable("PartyImages");
+                    b.ToTable("PartyImages", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.PartyMembership", b =>
+            modelBuilder.Entity("Music.Core.Entities.PartyMembership", b =>
                 {
                     b.Property<int>("PartyId")
                         .HasColumnType("integer");
@@ -643,10 +670,10 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasIndex("PartyId");
 
-                    b.ToTable("PartyMemberships");
+                    b.ToTable("PartyMemberships", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.StoredFile", b =>
+            modelBuilder.Entity("Music.Core.Entities.StoredFile", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -661,10 +688,10 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasIndex("Type");
 
-                    b.ToTable("StoredFiles");
+                    b.ToTable("StoredFiles", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.Track", b =>
+            modelBuilder.Entity("Music.Core.Entities.Track", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -724,10 +751,10 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasIndex("LanguageId", "IsMC");
 
-                    b.ToTable("Tracks");
+                    b.ToTable("Tracks", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.TrackCredit", b =>
+            modelBuilder.Entity("Music.Core.Entities.TrackCredit", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -755,10 +782,10 @@ namespace Music.Infrastructure.Migrations
                     b.HasIndex("TrackId", "PartyId", "Credit")
                         .IsUnique();
 
-                    b.ToTable("TrackCredits");
+                    b.ToTable("TrackCredits", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.TrackSource", b =>
+            modelBuilder.Entity("Music.Core.Entities.TrackSource", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -772,13 +799,13 @@ namespace Music.Infrastructure.Migrations
                     b.Property<int>("FileId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("From")
-                        .HasColumnType("integer");
-
                     b.Property<bool>("Pinned")
                         .HasColumnType("boolean");
 
                     b.Property<int>("Rank")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Source")
                         .HasColumnType("integer");
 
                     b.Property<int>("TrackVariantId")
@@ -788,7 +815,6 @@ namespace Music.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UploadedByUserId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -797,22 +823,22 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasIndex("FileId");
 
-                    b.HasIndex("From");
-
                     b.HasIndex("Pinned");
+
+                    b.HasIndex("Source");
 
                     b.HasIndex("TrackVariantId");
 
                     b.HasIndex("UploadedByUserId");
 
-                    b.HasIndex("TrackVariantId", "From");
+                    b.HasIndex("TrackVariantId", "Source");
 
                     b.HasIndex("TrackVariantId", "Pinned", "Rank");
 
-                    b.ToTable("TrackSources");
+                    b.ToTable("TrackSources", (string)null);
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.TrackVariant", b =>
+            modelBuilder.Entity("Music.Core.Entities.TrackVariant", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -835,7 +861,7 @@ namespace Music.Infrastructure.Migrations
                     b.HasIndex("TrackId", "VariantType")
                         .IsUnique();
 
-                    b.ToTable("TrackVariants");
+                    b.ToTable("TrackVariants", (string)null);
                 });
 
             modelBuilder.Entity("Music.Infrastructure.Entities.User", b =>
@@ -953,33 +979,31 @@ namespace Music.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.Album", b =>
+            modelBuilder.Entity("Music.Core.Entities.Album", b =>
                 {
-                    b.HasOne("Music.Infrastructure.Entities.User", "CreatedByUser")
+                    b.HasOne("Music.Infrastructure.Entities.User", null)
                         .WithMany("CreatedAlbums")
                         .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Music.Infrastructure.Entities.Language", "Language")
+                    b.HasOne("Music.Core.Entities.Language", "Language")
                         .WithMany("Albums")
                         .HasForeignKey("LanguageId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("CreatedByUser");
-
                     b.Navigation("Language");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.AlbumCredit", b =>
+            modelBuilder.Entity("Music.Core.Entities.AlbumCredit", b =>
                 {
-                    b.HasOne("Music.Infrastructure.Entities.Album", "Album")
+                    b.HasOne("Music.Core.Entities.Album", "Album")
                         .WithMany("Credits")
                         .HasForeignKey("AlbumId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Music.Infrastructure.Entities.Party", "Party")
+                    b.HasOne("Music.Core.Entities.Party", "Party")
                         .WithMany("AlbumCredits")
                         .HasForeignKey("PartyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -990,15 +1014,15 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Party");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.AlbumImage", b =>
+            modelBuilder.Entity("Music.Core.Entities.AlbumImage", b =>
                 {
-                    b.HasOne("Music.Infrastructure.Entities.Album", "Album")
+                    b.HasOne("Music.Core.Entities.Album", "Album")
                         .WithMany("Images")
                         .HasForeignKey("AlbumId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Music.Infrastructure.Entities.StoredFile", "File")
+                    b.HasOne("Music.Core.Entities.StoredFile", "File")
                         .WithMany()
                         .HasForeignKey("FileId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1009,15 +1033,15 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("File");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.AlbumTrack", b =>
+            modelBuilder.Entity("Music.Core.Entities.AlbumTrack", b =>
                 {
-                    b.HasOne("Music.Infrastructure.Entities.Album", "Album")
+                    b.HasOne("Music.Core.Entities.Album", "Album")
                         .WithMany("Tracks")
                         .HasForeignKey("AlbumId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Music.Infrastructure.Entities.Track", "Track")
+                    b.HasOne("Music.Core.Entities.Track", "Track")
                         .WithMany("AlbumTracks")
                         .HasForeignKey("TrackId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1028,27 +1052,25 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Track");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.FileObject", b =>
+            modelBuilder.Entity("Music.Core.Entities.FileObject", b =>
                 {
-                    b.HasOne("Music.Infrastructure.Entities.User", "CreatedByUser")
+                    b.HasOne("Music.Infrastructure.Entities.User", null)
                         .WithMany("CreatedFileObjects")
                         .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Music.Infrastructure.Entities.StoredFile", "File")
+                    b.HasOne("Music.Core.Entities.StoredFile", "File")
                         .WithMany("FileObjects")
                         .HasForeignKey("FileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CreatedByUser");
-
                     b.Navigation("File");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.Party", b =>
+            modelBuilder.Entity("Music.Core.Entities.Party", b =>
                 {
-                    b.HasOne("Music.Infrastructure.Entities.Language", "Language")
+                    b.HasOne("Music.Core.Entities.Language", "Language")
                         .WithMany()
                         .HasForeignKey("LanguageId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -1056,33 +1078,31 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Language");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.PartyAlias", b =>
+            modelBuilder.Entity("Music.Core.Entities.PartyAlias", b =>
                 {
-                    b.HasOne("Music.Infrastructure.Entities.User", "CreatedByUser")
+                    b.HasOne("Music.Infrastructure.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Music.Infrastructure.Entities.Party", "Party")
+                    b.HasOne("Music.Core.Entities.Party", "Party")
                         .WithMany("Aliases")
                         .HasForeignKey("PartyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CreatedByUser");
-
                     b.Navigation("Party");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.PartyImage", b =>
+            modelBuilder.Entity("Music.Core.Entities.PartyImage", b =>
                 {
-                    b.HasOne("Music.Infrastructure.Entities.StoredFile", "File")
+                    b.HasOne("Music.Core.Entities.StoredFile", "File")
                         .WithMany()
                         .HasForeignKey("FileId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Music.Infrastructure.Entities.Party", "Party")
+                    b.HasOne("Music.Core.Entities.Party", "Party")
                         .WithMany("Images")
                         .HasForeignKey("PartyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1093,15 +1113,15 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Party");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.PartyMembership", b =>
+            modelBuilder.Entity("Music.Core.Entities.PartyMembership", b =>
                 {
-                    b.HasOne("Music.Infrastructure.Entities.Party", "Member")
+                    b.HasOne("Music.Core.Entities.Party", "Member")
                         .WithMany("MemberOf")
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Music.Infrastructure.Entities.Party", "Party")
+                    b.HasOne("Music.Core.Entities.Party", "Party")
                         .WithMany("Members")
                         .HasForeignKey("PartyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1112,33 +1132,31 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Party");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.Track", b =>
+            modelBuilder.Entity("Music.Core.Entities.Track", b =>
                 {
-                    b.HasOne("Music.Infrastructure.Entities.User", "CreatedByUser")
+                    b.HasOne("Music.Infrastructure.Entities.User", null)
                         .WithMany("CreatedTracks")
                         .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Music.Infrastructure.Entities.Language", "Language")
+                    b.HasOne("Music.Core.Entities.Language", "Language")
                         .WithMany("Tracks")
                         .HasForeignKey("LanguageId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("CreatedByUser");
-
                     b.Navigation("Language");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.TrackCredit", b =>
+            modelBuilder.Entity("Music.Core.Entities.TrackCredit", b =>
                 {
-                    b.HasOne("Music.Infrastructure.Entities.Party", "Party")
+                    b.HasOne("Music.Core.Entities.Party", "Party")
                         .WithMany("TrackCredits")
                         .HasForeignKey("PartyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Music.Infrastructure.Entities.Track", "Track")
+                    b.HasOne("Music.Core.Entities.Track", "Track")
                         .WithMany("Credits")
                         .HasForeignKey("TrackId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1149,36 +1167,33 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Track");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.TrackSource", b =>
+            modelBuilder.Entity("Music.Core.Entities.TrackSource", b =>
                 {
-                    b.HasOne("Music.Infrastructure.Entities.StoredFile", "File")
+                    b.HasOne("Music.Core.Entities.StoredFile", "File")
                         .WithMany("TrackSources")
                         .HasForeignKey("FileId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Music.Infrastructure.Entities.TrackVariant", "TrackVariant")
+                    b.HasOne("Music.Core.Entities.TrackVariant", "TrackVariant")
                         .WithMany("Sources")
                         .HasForeignKey("TrackVariantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Music.Infrastructure.Entities.User", "UploadedByUser")
+                    b.HasOne("Music.Infrastructure.Entities.User", null)
                         .WithMany("UploadedTrackSources")
                         .HasForeignKey("UploadedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("File");
 
                     b.Navigation("TrackVariant");
-
-                    b.Navigation("UploadedByUser");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.TrackVariant", b =>
+            modelBuilder.Entity("Music.Core.Entities.TrackVariant", b =>
                 {
-                    b.HasOne("Music.Infrastructure.Entities.Track", "Track")
+                    b.HasOne("Music.Core.Entities.Track", "Track")
                         .WithMany("Variants")
                         .HasForeignKey("TrackId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1187,7 +1202,7 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Track");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.Album", b =>
+            modelBuilder.Entity("Music.Core.Entities.Album", b =>
                 {
                     b.Navigation("Credits");
 
@@ -1196,14 +1211,14 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Tracks");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.Language", b =>
+            modelBuilder.Entity("Music.Core.Entities.Language", b =>
                 {
                     b.Navigation("Albums");
 
                     b.Navigation("Tracks");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.Party", b =>
+            modelBuilder.Entity("Music.Core.Entities.Party", b =>
                 {
                     b.Navigation("AlbumCredits");
 
@@ -1218,14 +1233,14 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("TrackCredits");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.StoredFile", b =>
+            modelBuilder.Entity("Music.Core.Entities.StoredFile", b =>
                 {
                     b.Navigation("FileObjects");
 
                     b.Navigation("TrackSources");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.Track", b =>
+            modelBuilder.Entity("Music.Core.Entities.Track", b =>
                 {
                     b.Navigation("AlbumTracks");
 
@@ -1234,7 +1249,7 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Variants");
                 });
 
-            modelBuilder.Entity("Music.Infrastructure.Entities.TrackVariant", b =>
+            modelBuilder.Entity("Music.Core.Entities.TrackVariant", b =>
                 {
                     b.Navigation("Sources");
                 });

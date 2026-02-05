@@ -1,16 +1,9 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 using Music.Core.Enums;
 
-namespace Music.Infrastructure.Entities;
+namespace Music.Core.Entities;
 
-[Table("Albums")]
-[PrimaryKey(nameof(Id))]
 public class Album
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
     public required string Title { get; set; }
@@ -19,17 +12,15 @@ public class Album
 
     public string Description { get; set; } = string.Empty;
 
-    public AlbumType Type { get; set; } = AlbumType.ALBUM;
+    public AlbumType Type { get; set; } = AlbumType.Album;
 
     public int? LanguageId { get; set; }
     public Language? Language { get; set; }
 
     public required string CreatedByUserId { get; set; }
-    public User? CreatedByUser { get; set; }
 
     public DateTimeOffset? ReleaseDate { get; set; }
 
-    [Timestamp]
     public byte[]? Version { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

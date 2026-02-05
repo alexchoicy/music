@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Music.Infrastructure.Entities;
+using Music.Core.Entities;
 
 namespace Music.Infrastructure.Data.Configurations;
 
@@ -8,6 +8,13 @@ public class PartyImageConfiguration : IEntityTypeConfiguration<PartyImage>
 {
     public void Configure(EntityTypeBuilder<PartyImage> builder)
     {
+        builder.ToTable("PartyImages");
+
+        builder.HasKey(pi => pi.Id);
+
+        builder.Property(pi => pi.Id)
+            .ValueGeneratedOnAdd();
+
         builder.HasOne(pi => pi.Party)
             .WithMany(p => p.Images)
             .HasForeignKey(pi => pi.PartyId)

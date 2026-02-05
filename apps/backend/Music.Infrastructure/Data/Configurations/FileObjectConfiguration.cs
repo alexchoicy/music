@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Music.Core.Entities;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data.Configurations;
@@ -8,7 +9,11 @@ public class FileObjectConfiguration : IEntityTypeConfiguration<FileObject>
 {
     public void Configure(EntityTypeBuilder<FileObject> builder)
     {
-        builder.HasOne(fo => fo.CreatedByUser)
+        builder.ToTable("FileObjects");
+
+        builder.HasKey(fo => fo.Id);
+
+        builder.HasOne<User>()
             .WithMany(user => user.CreatedFileObjects)
             .HasForeignKey(fo => fo.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);

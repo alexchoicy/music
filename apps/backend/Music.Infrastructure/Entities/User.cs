@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Music.Core.Entities;
 
 namespace Music.Infrastructure.Entities;
 

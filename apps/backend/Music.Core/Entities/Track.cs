@@ -1,15 +1,7 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+namespace Music.Core.Entities;
 
-namespace Music.Infrastructure.Entities;
-
-[Table("Tracks")]
-[PrimaryKey(nameof(Id))]
 public class Track
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
     public required string Title { get; set; }
@@ -25,9 +17,7 @@ public class Track
     public Language? Language { get; set; }
 
     public required string CreatedByUserId { get; set; }
-    public User? CreatedByUser { get; set; }
 
-    [Timestamp]
     public byte[]? Version { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

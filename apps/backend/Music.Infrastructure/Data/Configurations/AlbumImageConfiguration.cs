@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Music.Infrastructure.Entities;
+using Music.Core.Entities;
 
 namespace Music.Infrastructure.Data.Configurations;
 
@@ -8,6 +8,19 @@ public class AlbumImageConfiguration : IEntityTypeConfiguration<AlbumImage>
 {
     public void Configure(EntityTypeBuilder<AlbumImage> builder)
     {
+        builder.ToTable("AlbumImages");
+
+        builder.HasKey(ai => ai.Id);
+
+        builder.Property(ai => ai.Id)
+            .ValueGeneratedOnAdd();
+
+        builder.Property(ai => ai.AlbumId)
+            .IsRequired();
+
+        builder.Property(ai => ai.FileId)
+            .IsRequired();
+
         builder.HasOne(pi => pi.Album)
             .WithMany(p => p.Images)
             .HasForeignKey(pi => pi.AlbumId)

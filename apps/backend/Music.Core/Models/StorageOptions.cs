@@ -7,8 +7,8 @@ public sealed class MediaFoldersOptions
     public string OriginalMusic { get; init; } = "media/originals/music";
     public string OriginalVideo { get; init; } = "media/originals/video";
     public string OriginalExtra { get; init; } = "media/originals/extra";
-    public string DerivatedMusic { get; init; } = "media/derivatives/music";
-    public string DerivatedVideo { get; init; } = "media/derivatives/video";
+    public string DerivedMusic { get; init; } = "media/derivatives/music";
+    public string DerivedVideo { get; init; } = "media/derivatives/video";
 
     public string AssetsCover { get; init; } = "assets/cover";
     public string AssetsParty { get; init; } = "assets/party";

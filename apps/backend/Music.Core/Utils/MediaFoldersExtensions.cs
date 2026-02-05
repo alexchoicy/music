@@ -9,14 +9,14 @@ public static class MediaFoldersExtensions
     public static string GetFolder(this MediaFolderOptions variant, MediaFoldersOptions folders) =>
         variant switch
         {
-            MediaFolderOptions.ORIGINALMUSIC => folders.OriginalMusic,
-            MediaFolderOptions.ORIGINALVIDEO => folders.OriginalVideo,
-            MediaFolderOptions.ORIGINALEXTRA => folders.OriginalExtra,
-            MediaFolderOptions.DERIVATEDEDMUSIC => folders.DerivatedMusic,
-            MediaFolderOptions.DERIVATEDEVIDEO => folders.DerivatedVideo,
-            MediaFolderOptions.ASSETSCOVER => folders.AssetsCover,
-            MediaFolderOptions.ASSETSPARTYCOVER => folders.AssetsParty + "/cover",
-            MediaFolderOptions.ASSETSPARTYBANNER => folders.AssetsParty + "/banner",
+            MediaFolderOptions.OriginalMusic => folders.OriginalMusic,
+            MediaFolderOptions.OriginalVideo => folders.OriginalVideo,
+            MediaFolderOptions.OriginalExtra => folders.OriginalExtra,
+            MediaFolderOptions.DerivedMusic => folders.DerivedMusic,
+            MediaFolderOptions.DerivedVideo => folders.DerivedVideo,
+            MediaFolderOptions.AssetsCover => folders.AssetsCover,
+            MediaFolderOptions.PartyCover => folders.AssetsParty + "/cover",
+            MediaFolderOptions.PartyBanner => folders.AssetsParty + "/banner",
             _ => throw new ArgumentOutOfRangeException(nameof(variant), variant, null)
         };
 }

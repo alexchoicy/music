@@ -1,18 +1,13 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Music.Core.Enums;
-using Music.Infrastructure.Entities;
+using Music.Core.Entities;
+using Music.Core.Services.Interfaces;
+using Music.Core.Models;
 
 namespace Music.Infrastructure.Services.Auth;
-
-public interface ITokenService
-{
-    string GenerateUserToken(User user, IList<string> roles);
-    string GenerateShareToken(string shareId);
-}
 
 public class TokenService : ITokenService
 {
@@ -26,13 +21,13 @@ public class TokenService : ITokenService
         _key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_config["JWT:SecretKey"]!));
     }
 
-    public string GenerateUserToken(User user, IList<string> roles)
+    public string GenerateUserToken(UserInfo user, IList<string> roles)
     {
         List<Claim> claims =
            [
                 new Claim(JwtRegisteredClaimNames.NameId, user.Id),
                 new Claim(JwtRegisteredClaimNames.Name, user.UserName!),
-                new Claim("access_type", TokenUseType.USERACCESS.ToString()),
+                new Claim("access_type", TokenUseType.UserAccess.ToString()),
            ];
 
         foreach (var role in roles)
@@ -62,7 +57,7 @@ public class TokenService : ITokenService
         List<Claim> claims =
            [
                 new("share_id", shareId),
-                new("access_type", TokenUseType.CONTENTACCESS.ToString()),
+                new("access_type", TokenUseType.ContentAccess.ToString()),
            ];
 
         SigningCredentials creds = new(_key, SecurityAlgorithms.HmacSha512Signature);
