@@ -197,7 +197,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": unknown;
+                        "application/json": components["schemas"]["PartyListModel"][];
                     };
                 };
             };
@@ -311,6 +311,10 @@ export interface components {
             token: string;
             user: components["schemas"]["UserDto"];
         };
+        PartyAliasModel: {
+            aliasName: string;
+            aliasNormalizedName: string;
+        };
         PartyImageRequest: {
             imageType: components["schemas"]["PartyImageType"];
             image: components["schemas"]["FileRequest"];
@@ -318,6 +322,13 @@ export interface components {
         };
         /** @enum {unknown} */
         PartyImageType: "Avatar" | "Banner";
+        PartyListModel: {
+            /** Format: int32 */
+            partyId: number | string;
+            partyName: string;
+            partyNormalizedName: string;
+            partyAliases: components["schemas"]["PartyAliasModel"][];
+        };
         /** @enum {unknown} */
         PartyType: "Individual" | "Group" | "Project";
         ProblemDetails: {

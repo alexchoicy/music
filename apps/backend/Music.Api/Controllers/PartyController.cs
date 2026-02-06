@@ -42,10 +42,10 @@ public class PartyController(IPartyService partyService) : ControllerBase
     [HttpGet("list")]
     [Authorize]
     [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IReadOnlyList<PartyListModel>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllForListAsync([FromQuery] PartyListParams @params)
     {
-        var list = await _partyService.GetAllForListAsync(@params ?? new PartyListParams());
+        IReadOnlyList<PartyListModel> list = await _partyService.GetAllForListAsync(@params ?? new PartyListParams());
         return Ok(list);
     }
 }

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
+import { Route as PublicLoginIndexRouteImport } from './routes/_public/login/index'
 import { Route as AuthedCreateIndexRouteImport } from './routes/_authed/create/index'
 
 const AuthedRouteRoute = AuthedRouteRouteImport.update({
@@ -22,6 +23,11 @@ const AuthedIndexRoute = AuthedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const PublicLoginIndexRoute = PublicLoginIndexRouteImport.update({
+  id: '/_public/login/',
+  path: '/login/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthedCreateIndexRoute = AuthedCreateIndexRouteImport.update({
   id: '/create/',
   path: '/create/',
@@ -31,27 +37,36 @@ const AuthedCreateIndexRoute = AuthedCreateIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
   '/create/': typeof AuthedCreateIndexRoute
+  '/login/': typeof PublicLoginIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AuthedIndexRoute
   '/create': typeof AuthedCreateIndexRoute
+  '/login': typeof PublicLoginIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authed': typeof AuthedRouteRouteWithChildren
   '/_authed/': typeof AuthedIndexRoute
   '/_authed/create/': typeof AuthedCreateIndexRoute
+  '/_public/login/': typeof PublicLoginIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/create/'
+  fullPaths: '/' | '/create/' | '/login/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/create'
-  id: '__root__' | '/_authed' | '/_authed/' | '/_authed/create/'
+  to: '/' | '/create' | '/login'
+  id:
+    | '__root__'
+    | '/_authed'
+    | '/_authed/'
+    | '/_authed/create/'
+    | '/_public/login/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
+  PublicLoginIndexRoute: typeof PublicLoginIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -69,6 +84,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AuthedIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
+    }
+    '/_public/login/': {
+      id: '/_public/login/'
+      path: '/login'
+      fullPath: '/login/'
+      preLoaderRoute: typeof PublicLoginIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authed/create/': {
       id: '/_authed/create/'
@@ -96,6 +118,7 @@ const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AuthedRouteRoute: AuthedRouteRouteWithChildren,
+  PublicLoginIndexRoute: PublicLoginIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

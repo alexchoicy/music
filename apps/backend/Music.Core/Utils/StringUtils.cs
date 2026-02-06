@@ -13,21 +13,11 @@ public static class StringUtils
         s = s.ToUpperInvariant();
 
         StringBuilder sb = new StringBuilder(s.Length);
-        bool lastWasSpace = true;
         foreach (var r in s.EnumerateRunes())
         {
             if (Rune.IsLetterOrDigit(r))
             {
                 sb.Append(r.ToString());
-                lastWasSpace = false;
-            }
-            else if (Rune.IsWhiteSpace(r))
-            {
-                if (!lastWasSpace)
-                {
-                    sb.Append(' ');
-                    lastWasSpace = true;
-                }
             }
         }
 
