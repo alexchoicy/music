@@ -69,6 +69,7 @@ export function MusicDropBox({
 								)
 							: undefined,
 					albumTracks: [],
+					trackMap: new Map(),
 				};
 				musicFiles.set(musicFileHash, createAlbumObject);
 			} else {

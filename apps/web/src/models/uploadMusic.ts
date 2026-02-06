@@ -36,7 +36,7 @@ export type CreateTrack = {
 	title: string;
 	description?: string;
 	languageId?: string;
-	isrc?: string;
+	isMC?: boolean;
 	durationInMs: number;
 
 	unsolvedTrackCredits: string[];
