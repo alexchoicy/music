@@ -1,6 +1,7 @@
 import type { Crop, PixelCrop } from "react-image-crop";
 import type { components } from "@/data/APIschema";
 
+// each file request has a blake3 ID so i will use that
 export type LocalImage = {
 	file: components["schemas"]["FileRequest"];
 	description?: string;
@@ -15,31 +16,67 @@ export type LocalImage = {
 	croppedURL?: string; // preview of cropped output
 };
 
-export type CreateAlbum = {
+export type LocalID = string; // it is a crypto.randomUUID()
+export type Blake3ID = string;
+export type AlbumID = string; // it build by albumTitle - creditsNames
+
+export type Album = {
+	id: LocalID;
+	albumMatchId: AlbumID;
 	title: string;
 	description?: string;
+
 	type: components["schemas"]["AlbumType"];
 	languageId?: string;
-	relaseDate?: string;
+	releaseDate?: string;
 
 	unsolvedAlbumCredits: string[];
 	albumCredits: components["schemas"]["AlbumCreditRequest"][];
-	albumImage?: null | LocalImage;
 
-	albumTracks: CreateTrack[];
+	OrderedAlbumDiscsIds: LocalID[];
 };
 
-export type CreateTrack = {
-	trackNumber: number;
+type Disc = {
+	id: LocalID;
+	albumId: LocalID;
 	discNumber: number;
+	subtitle?: string;
+	OrderedTrackIds: LocalID[];
+};
 
+type Track = {
+	id: LocalID;
+	discId: LocalID;
+
+	trackNumber: number;
 	title: string;
 	description?: string;
 	languageId?: string;
-	isMC?: boolean;
+	isMC: boolean;
 	durationInMs: number;
 
 	unsolvedTrackCredits: string[];
 	trackCredits: components["schemas"]["TrackCreditRequest"][];
-	trackVariants: components["schemas"]["TrackVariantRequest"][];
+
+	trackVariantsIds: Blake3ID[];
+};
+
+type TrackVariant = {
+	id: Blake3ID; // unique id
+	trackId: LocalID;
+
+	variantType: components["schemas"]["TrackVariantType"];
+	source: components["schemas"]["TrackSource"];
+
+	fileRequest: components["schemas"]["FileRequest"];
+	file: File;
+};
+
+export type UploadMusicState = {
+	albumIds: LocalID[]; // so it is used to forcing the order of albums, so when edit, it won't drop to last.
+	albums: Record<LocalID, Album>;
+	discs: Record<LocalID, Disc>;
+	tracks: Record<LocalID, Track>;
+	trackVariants: Record<Blake3ID, TrackVariant>;
+	albumCovers: Record<LocalID, LocalImage>;
 };
