@@ -1,5 +1,5 @@
 import type { components } from "@/data/APIschema";
-import { normalizeString } from "./upload";
+import { normalizeString } from "./string";
 
 export function splitArtists(artistString?: string): string[] {
 	if (!artistString) return [];

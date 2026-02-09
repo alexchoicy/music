@@ -3,7 +3,7 @@ import type { UploadMusicState } from "@/models/uploadMusic";
 
 export type Action = {
 	type: "ProcessUpload";
-	payload: Omit<UploadMusicState, "albumIds">;
+	payload: UploadMusicState;
 };
 
 const initialState: UploadMusicState = {
@@ -17,6 +17,8 @@ const initialState: UploadMusicState = {
 
 function reducer(state: UploadMusicState, action: Action): UploadMusicState {
 	switch (action.type) {
+		case "ProcessUpload":
+			return action.payload;
 		default:
 			return state;
 	}

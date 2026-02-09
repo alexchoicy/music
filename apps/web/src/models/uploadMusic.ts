@@ -36,7 +36,7 @@ export type Album = {
 	OrderedAlbumDiscsIds: LocalID[];
 };
 
-type Disc = {
+export type Disc = {
 	id: LocalID;
 	albumId: LocalID;
 	discNumber: number;
@@ -44,7 +44,7 @@ type Disc = {
 	OrderedTrackIds: LocalID[];
 };
 
-type Track = {
+export type Track = {
 	id: LocalID;
 	discId: LocalID;
 
@@ -61,7 +61,7 @@ type Track = {
 	trackVariantsIds: Blake3ID[];
 };
 
-type TrackVariant = {
+export type TrackVariant = {
 	id: Blake3ID; // unique id
 	trackId: LocalID;
 

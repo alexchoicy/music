@@ -2,8 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { twMerge } from "tailwind-merge";
-import { useMusicUploadDispatch } from "@/contexts/uploadMusicContext";
+import {
+	useMusicUploadDispatch,
+	useMusicUploadState,
+} from "@/contexts/uploadMusicContext";
 import { partyQueries } from "@/lib/queries/party.queries";
+import { processDroppedFiles } from "@/lib/utils/upload";
 import { Button } from "../shadcn/button";
 
 type MusicDropBoxProps = {
@@ -18,11 +22,20 @@ export function MusicDropBox({
 	const { data: parties } = useQuery(partyQueries.getPartySearchList(""));
 
 	const dispatch = useMusicUploadDispatch();
+	const state = useMusicUploadState();
 
 	const onDrop = async (acceptedFiles: File[]) => {
-		setIsProcessing(true);
-
-		setIsProcessing(false);
+		try {
+			setIsProcessing(true);
+			const newState = await processDroppedFiles(
+				acceptedFiles,
+				state,
+				parties || [],
+			);
+			dispatch({ type: "ProcessUpload", payload: newState.newState });
+		} finally {
+			setIsProcessing(false);
+		}
 	};
 
 	const {

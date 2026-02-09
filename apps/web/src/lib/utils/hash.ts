@@ -20,3 +20,23 @@ export async function hashFileStream(
 
 	return { blake3Hash, sha1Hash };
 }
+
+export async function hashBlake3FileUnit8Array(params: Uint8Array) {
+	const blake3 = await createBLAKE3();
+
+	blake3.update(params);
+
+	const blake3Hash = blake3.digest("hex");
+
+	return blake3Hash;
+}
+
+export async function hashSHA1FileUnit8Array(params: Uint8Array) {
+	const sha1 = await createSHA1();
+
+	sha1.update(params);
+
+	const sha1Hash = sha1.digest("hex");
+
+	return sha1Hash;
+}
