@@ -68,6 +68,11 @@ export function UploadAlbumDetail({
 								{album.unsolvedAlbumCredits.length} unsolved credits
 							</Badge>
 						)}
+
+						{album.albumCredits.length === 0 && (
+							<Badge variant="destructive">No credits</Badge>
+						)}
+
 						{isVariousArtists && (
 							<Badge variant="destructive">Various Artists</Badge>
 						)}

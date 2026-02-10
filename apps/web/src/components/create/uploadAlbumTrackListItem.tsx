@@ -51,6 +51,9 @@ export function UploadAlbumTrackListItem({
 							{track.unsolvedTrackCredits.length} unsolved credits
 						</Badge>
 					)}
+					{track.trackCredits.length === 0 && (
+						<Badge variant="destructive">No credits</Badge>
+					)}
 				</div>
 			</div>
 

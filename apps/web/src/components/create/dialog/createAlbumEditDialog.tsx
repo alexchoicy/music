@@ -1,6 +1,14 @@
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { AlertCircleIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import PartyCombobox from "@/components/combobox/partyCombobox";
+import {
+	Alert,
+	AlertAction,
+	AlertDescription,
+	AlertTitle,
+} from "@/components/shadcn/alert";
 import { Button } from "@/components/shadcn/button";
 import {
 	Dialog,
@@ -16,14 +24,16 @@ import {
 	useMusicUploadDispatch,
 	useMusicUploadState,
 } from "@/contexts/uploadMusicContext";
+import type { components } from "@/data/APIschema";
 import { partyQueries } from "@/lib/queries/party.queries";
-import { makeMatchingKey } from "@/lib/utils/upload";
 
 type CreateAlbumEditDialogProps = {
 	albumId: string | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 };
+
+type PartyList = components["schemas"]["PartyListModel"];
 
 export function CreateAlbumEditDialog({
 	albumId,
@@ -37,6 +47,8 @@ export function CreateAlbumEditDialog({
 	const album = albumId ? state.albums[albumId] : null;
 	const albumCover = albumId ? state.albumCovers[albumId] : null;
 
+	const [partyList, setPartyList] = useState<PartyList[]>([]);
+
 	const form = useForm({
 		defaultValues: {
 			title: album?.title || "",
@@ -49,12 +61,13 @@ export function CreateAlbumEditDialog({
 		},
 		onSubmit: ({ value }) => {
 			if (!albumId || !album) return;
-
-			const newMatchKey = makeMatchingKey(
-				value.title,
-				value.albumCredits,
-				value.unsolvedAlbumCredits,
-			);
+			console.log("Submitting form with values:", value);
+			console.log("Selected parties:", partyList);
+			// const newMatchKey = makeMatchingKey(
+			// 	value.title,
+			// 	value.albumCredits,
+			// 	value.unsolvedAlbumCredits,
+			// );
 		},
 	});
 
@@ -69,8 +82,21 @@ export function CreateAlbumEditDialog({
 				unsolvedAlbumCredits: album.unsolvedAlbumCredits || [],
 				languageId: album.languageId || "",
 			});
+
+			if (parties) {
+				const convertedPartyList: PartyList[] = [];
+				album.albumCredits.forEach((credit) => {
+					const matchedParty = parties.find(
+						(party) => party.partyId === credit.partyId,
+					);
+					if (matchedParty) {
+						convertedPartyList.push(matchedParty);
+					}
+				});
+				setPartyList(convertedPartyList);
+			}
 		}
-	}, [form, album]);
+	}, [form, album, parties]);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -103,6 +129,52 @@ export function CreateAlbumEditDialog({
 								);
 							}}
 						/>
+						<Field>
+							<FieldLabel htmlFor="album-description">Album Artists</FieldLabel>
+							<div className="flex flex-col gap-2">
+								<form.Field
+									name="unsolvedAlbumCredits"
+									children={(field) => {
+										if (
+											!field.state.value ||
+											field.state.value.length === 0 ||
+											partyList.length > 0
+										) {
+											return;
+										}
+
+										return (
+											<Alert variant="destructive">
+												<AlertCircleIcon />
+												<AlertTitle>Unsolved Album Credits</AlertTitle>
+												<AlertDescription>
+													<div>
+														<ul className="list-disc ml-5">
+															{field.state.value.map((c) => (
+																<li key={c}>{c}</li>
+															))}
+														</ul>
+													</div>
+												</AlertDescription>
+												<AlertAction>
+													<Button
+														size="xs"
+														onClick={() => field.handleChange([])}
+													>
+														Clear
+													</Button>
+												</AlertAction>
+											</Alert>
+										);
+									}}
+								/>
+								<PartyCombobox
+									parties={parties || []}
+									selectedValues={partyList}
+									setSelectedValues={setPartyList}
+								/>
+							</div>
+						</Field>
 					</FieldGroup>
 				</form>
 				<DialogFooter>

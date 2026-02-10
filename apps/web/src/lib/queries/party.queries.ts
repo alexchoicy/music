@@ -34,7 +34,7 @@ export const partyMutations = {
 			if (!result.ok) {
 				throw new Error("Failed to create party");
 			}
-			return result.data;
+			return result;
 		},
 	},
 };
