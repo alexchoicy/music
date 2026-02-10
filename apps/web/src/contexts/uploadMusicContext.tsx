@@ -1,10 +1,20 @@
 import { createContext, useContext, useReducer } from "react";
-import type { UploadMusicState } from "@/models/uploadMusic";
+import type { LocalID, UploadMusicState } from "@/models/uploadMusic";
 
-export type Action = {
-	type: "ProcessUpload";
-	payload: UploadMusicState;
-};
+export type Action =
+	| {
+			type: "ProcessUpload";
+			payload: UploadMusicState;
+	  }
+	| {
+			type: "UpdateAlbum";
+			payload: {
+				albumId: LocalID;
+				newMatchingKey: string;
+				editAlbum: Partial<UploadMusicState["albums"][LocalID]>;
+				editDiscs: Array<Partial<UploadMusicState["discs"][LocalID]>>;
+			};
+	  };
 
 const initialState: UploadMusicState = {
 	albumIds: [],
@@ -17,6 +27,34 @@ const initialState: UploadMusicState = {
 
 function reducer(state: UploadMusicState, action: Action): UploadMusicState {
 	switch (action.type) {
+		case "UpdateAlbum": {
+			const { albumId, newMatchingKey, editAlbum, editDiscs } = action.payload;
+
+			const newAlbums = {
+				...state.albums,
+				[albumId]: {
+					...state.albums[albumId],
+					...editAlbum,
+					albumMatchId: newMatchingKey,
+				},
+			};
+
+			const newDiscs = { ...state.discs };
+
+			for (const disc of editDiscs || []) {
+				if (!disc || !disc.id) continue;
+				newDiscs[disc.id] = {
+					...state.discs[disc.id],
+					...disc,
+				};
+			}
+
+			return {
+				...state,
+				albums: newAlbums,
+				discs: newDiscs,
+			};
+		}
 		case "ProcessUpload":
 			return action.payload;
 		default:

@@ -15,7 +15,6 @@ export const Route = createFileRoute("/_authed/create/")({
 	component: RouteComponent,
 });
 function RouteComponent() {
-	// provider is mounted here; hook must be used in a child
 	return (
 		<MusicUploadProvider>
 			<CreatePageContent />
@@ -28,14 +27,18 @@ function CreatePageContent() {
 	const [editingAlbumDialogAlbumId, setEditingAlbumDialogAlbumId] =
 		useState<LocalID | null>(null);
 
-	// use the upload hook inside the provider
 	const state = useMusicUploadState();
 	const onUpload = () => {
-		console.log(editingAlbumDialogAlbumId);
-		// console.log("Uploading music with state:", state);
+		console.log("Uploading music with state:", state);
 	};
 	return (
-		<AppLayout header={<Button onClick={onUpload}>Upload</Button>}>
+		<AppLayout
+			header={
+				<Button disabled={isProcessing} onClick={onUpload}>
+					Upload
+				</Button>
+			}
+		>
 			<div className="space-y-6">
 				<MusicDropBox
 					isProcessing={isProcessing}

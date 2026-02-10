@@ -54,15 +54,15 @@ export function UploadAlbumDetail({
 					</Badge>
 				</div>
 
-				<div className="text-gray-400 flex-row">
+				<div className="text-gray-600 flex-row items-center">
 					{album.albumCredits.map((credit) => (
-						<div key={credit.partyId}>
+						<span key={credit.partyId}>
 							{parties?.find((party) => party.partyId === credit.partyId)
 								?.partyName || "Unknown Artist"}
-						</div>
+						</span>
 					))}
 
-					<span className="flex flex-row items-center gap-2 mt-2">
+					<span className="flex flex-row items-center gap-2">
 						{album.unsolvedAlbumCredits.length > 0 && (
 							<Badge variant="destructive">
 								{album.unsolvedAlbumCredits.length} unsolved credits
@@ -89,7 +89,6 @@ export function UploadAlbumDetail({
 				<Button
 					variant="ghost"
 					onClick={() => {
-						console.log("Opening edit dialog for album:", albumId);
 						openAlbumEdit(album.id);
 					}}
 				>

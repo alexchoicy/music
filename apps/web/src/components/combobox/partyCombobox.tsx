@@ -234,14 +234,12 @@ export default function PartyCombobox({
 				return;
 			}
 
-			startTransition(() => {
-				const result = searchParty(nextSearchValue);
-				if (!controller.signal.aborted) {
-					startTransition(() => {
-						setSearchResults(result);
-					});
-				}
-			});
+			const result = searchParty(nextSearchValue);
+			if (!controller.signal.aborted) {
+				startTransition(() => {
+					setSearchResults(result);
+				});
+			}
 		},
 		[parties, searchParty],
 	);
