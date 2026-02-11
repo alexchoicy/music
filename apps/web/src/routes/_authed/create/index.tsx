@@ -10,6 +10,7 @@ import {
 	MusicUploadProvider,
 	useMusicUploadState,
 } from "@/contexts/uploadMusicContext";
+import { buildMusicUploadRequest } from "@/lib/utils/upload";
 import type { LocalID } from "@/models/uploadMusic";
 
 export const Route = createFileRoute("/_authed/create/")({
@@ -33,7 +34,8 @@ function CreatePageContent() {
 
 	const state = useMusicUploadState();
 	const onUpload = () => {
-		console.log("Uploading music with state:", state);
+		const requestJson = buildMusicUploadRequest(state);
+		console.log("Upload Request:", JSON.stringify(requestJson));
 	};
 	return (
 		<AppLayout

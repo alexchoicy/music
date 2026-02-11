@@ -15,7 +15,7 @@ public sealed class CreateAlbumModel
     public required IReadOnlyList<AlbumCreditModel> AlbumCredits { get; init; } = [];
     public AlbumImageModel? AlbumImage { get; init; }
 
-    public required IReadOnlyList<AlbumTrackModel> Tracks { get; init; } = [];
+    public required IReadOnlyList<AlbumDiscModel> Discs { get; init; } = [];
 }
 
 public sealed class AlbumImageModel
@@ -31,10 +31,18 @@ public sealed class AlbumCreditModel
     public required AlbumCreditType Credit { get; init; }
 }
 
+
+public sealed class AlbumDiscModel
+{
+    public required int DiscNumber { get; init; }
+    public string Subtitle { get; init; } = string.Empty;
+    public required IReadOnlyList<AlbumTrackModel> Tracks { get; init; } = [];
+}
+
+
 public sealed class AlbumTrackModel
 {
     public required int TrackNumber { get; init; }
-    public required int DiscNumber { get; init; }
     public required string Title { get; init; }
     public string Description { get; init; } = string.Empty;
     public bool IsMC { get; init; } = false;

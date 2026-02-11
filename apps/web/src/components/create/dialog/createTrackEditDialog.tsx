@@ -332,7 +332,7 @@ export function CreateTrackEditDialog({
 										</FieldDescription>
 
 										<PartyCombobox
-											parties={partyList || []}
+											parties={parties || []}
 											selectedValues={partyList}
 											setSelectedValues={setPartyList}
 										/>

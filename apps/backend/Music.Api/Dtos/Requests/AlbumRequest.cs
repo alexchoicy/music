@@ -18,7 +18,7 @@ public sealed class CreateAlbumRequest
 
     public AlbumImageRequest? AlbumImage { get; init; }
 
-    public required IReadOnlyList<AlbumTrackRequest> Tracks { get; init; } = [];
+    public required IReadOnlyList<AlbumDiscRequest> Discs { get; init; } = [];
 }
 
 public sealed class AlbumImageRequest
@@ -36,10 +36,17 @@ public sealed class AlbumCreditRequest
     public required AlbumCreditType Credit { get; init; }
 }
 
+public sealed class AlbumDiscRequest
+{
+    public required int DiscNumber { get; init; }
+    public string Subtitle { get; init; } = string.Empty;
+    public required IReadOnlyList<AlbumTrackRequest> Tracks { get; init; } = [];
+}
+
+
 public sealed class AlbumTrackRequest
 {
     public required int TrackNumber { get; init; }
-    public required int DiscNumber { get; init; }
     public required string Title { get; init; }
     public string Description { get; set; } = string.Empty;
     public bool IsMC { get; init; } = false;

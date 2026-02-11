@@ -123,13 +123,31 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
             CreateAlbumImage(album.AlbumImage, newAlbum, userId);
         }
 
-        foreach (AlbumTrackModel albumTrack in album.Tracks)
+        foreach (AlbumDiscModel albumDisc in album.Discs)
         {
-            CreateTrack(albumTrack, newAlbum, userId);
+            CreateDisc(albumDisc, newAlbum, userId);
         }
 
         return newAlbum;
     }
+
+    private void CreateDisc(AlbumDiscModel albumDisc, Core.Entities.Album album, string userId)
+    {
+        AlbumDisc newAlbumDisc = new()
+        {
+            Album = album,
+            DiscNumber = albumDisc.DiscNumber,
+            Subtitle = albumDisc.Subtitle
+        };
+
+        _dbContext.AlbumDiscs.Add(newAlbumDisc);
+
+        foreach (AlbumTrackModel albumTrack in albumDisc.Tracks)
+        {
+            CreateTrack(albumTrack, newAlbumDisc, userId);
+        }
+    }
+
 
     private void CreateAlbumImage(AlbumImageModel imageModel, Core.Entities.Album album, string userId)
     {
@@ -161,7 +179,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         _dbContext.AlbumImages.Add(albumImage);
     }
 
-    private void CreateTrack(AlbumTrackModel albumTrack, Core.Entities.Album album, string userId)
+    private void CreateTrack(AlbumTrackModel albumTrack, AlbumDisc albumDisc, string userId)
     {
         Track track = new()
         {
@@ -177,10 +195,9 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         AlbumTrack newAlbumTrack = new()
         {
-            Album = album,
+            AlbumDisc = albumDisc,
             Track = track,
             TrackNumber = albumTrack.TrackNumber,
-            DiscNumber = albumTrack.DiscNumber
         };
 
         _dbContext.AlbumTracks.Add(newAlbumTrack);

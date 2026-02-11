@@ -14,7 +14,7 @@ public static class AlbumMapping
         ReleaseDate = r.ReleaseDate,
         AlbumImage = r.AlbumImage?.ToModel(),
         AlbumCredits = r.AlbumCredits.Select(x => x.ToModel()).ToList(),
-        Tracks = r.Tracks.Select(x => x.ToModel()).ToList(),
+        Discs = r.Discs.Select(x => x.ToModel()).ToList(),
     };
 
     public static AlbumImageModel ToModel(this AlbumImageRequest r) => new()
@@ -30,10 +30,16 @@ public static class AlbumMapping
         Credit = r.Credit
     };
 
+    public static AlbumDiscModel ToModel(this AlbumDiscRequest r) => new()
+    {
+        DiscNumber = r.DiscNumber,
+        Subtitle = r.Subtitle,
+        Tracks = r.Tracks.Select(x => x.ToModel()).ToList()
+    };
+
     public static AlbumTrackModel ToModel(this AlbumTrackRequest r) => new()
     {
         TrackNumber = r.TrackNumber,
-        DiscNumber = r.DiscNumber,
         Title = r.Title,
         Description = r.Description,
         IsMC = r.IsMC,

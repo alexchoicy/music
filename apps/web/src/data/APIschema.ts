@@ -221,6 +221,12 @@ export interface components {
         };
         /** @enum {unknown} */
         AlbumCreditType: "Artist";
+        AlbumDiscRequest: {
+            /** Format: int32 */
+            discNumber: number | string;
+            subtitle?: string;
+            tracks: components["schemas"]["AlbumTrackRequest"][];
+        };
         AlbumImageRequest: {
             file: components["schemas"]["FileRequest"];
             description?: string;
@@ -229,8 +235,6 @@ export interface components {
         AlbumTrackRequest: {
             /** Format: int32 */
             trackNumber: number | string;
-            /** Format: int32 */
-            discNumber: number | string;
             title: string;
             description?: string;
             isMC?: boolean;
@@ -253,7 +257,7 @@ export interface components {
             releaseDate?: null | string;
             albumCredits: components["schemas"]["AlbumCreditRequest"][];
             albumImage?: null | components["schemas"]["AlbumImageRequest"];
-            tracks: components["schemas"]["AlbumTrackRequest"][];
+            discs: components["schemas"]["AlbumDiscRequest"][];
         };
         CreateAlbumResult: {
             albumTitle: string;

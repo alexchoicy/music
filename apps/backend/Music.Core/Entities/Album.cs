@@ -28,7 +28,7 @@ public class Album
     // This credit is primary the main group of peoples
     // track can have different credits than album
     public ICollection<AlbumCredit> Credits { get; set; } = [];
-    public ICollection<AlbumTrack> Tracks { get; set; } = [];
+    public ICollection<AlbumDisc> Discs { get; set; } = [];
 
     public ICollection<AlbumImage> Images { get; set; } = [];
 }

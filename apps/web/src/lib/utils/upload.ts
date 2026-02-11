@@ -200,7 +200,7 @@ export async function processDroppedFiles(
 				originalFileName: file.name,
 				codec: metadata.format.codec?.toUpperCase(),
 				audioSampleRate: metadata.format.sampleRate,
-				bitrate: metadata.format.bitrate,
+				bitrate: Math.round(metadata.format.bitrate || 0),
 				durationInMs: metadata.format.duration
 					? Math.round(metadata.format.duration * 1000)
 					: undefined,
@@ -238,4 +238,75 @@ export function makeMatchingKey(
 	const u = unsolvedArtists.map((a) => normalizeString(a)).join("|");
 
 	return `${t}__${c}__${u}`;
+}
+
+export function buildMusicUploadRequest(state: UploadMusicState) {
+	const albums: components["schemas"]["CreateAlbumRequest"][] = [];
+
+	for (const albumId of state.albumIds) {
+		const album = state.albums[albumId];
+		const albumCover = state.albumCovers[albumId];
+
+		const discs: components["schemas"]["AlbumDiscRequest"][] = [];
+
+		for (const discId of album.OrderedAlbumDiscsIds) {
+			const disc = state.discs[discId];
+			const tracks: components["schemas"]["AlbumTrackRequest"][] = [];
+
+			for (const trackId of disc.OrderedTrackIds) {
+				const track = state.tracks[trackId];
+
+				const trackVariants: components["schemas"]["TrackVariantRequest"][] =
+					[];
+
+				for (const trackVariantId of track.trackVariantsIds) {
+					const trackVariant = state.trackVariants[trackVariantId];
+
+					const trackSource: components["schemas"]["TrackSourceRequest"][] = [];
+
+					trackSource.push({
+						source: trackVariant.source,
+						file: trackVariant.fileRequest,
+					});
+
+					trackVariants.push({
+						variantType: trackVariant.variantType,
+						sources: trackSource,
+					});
+				}
+
+				tracks.push({
+					title: track.title,
+					description: track.description,
+					trackNumber: track.trackNumber,
+					isMC: track.isMC,
+					durationInMs: track.durationInMs,
+					trackCredits: track.trackCredits,
+					trackVariants,
+				});
+			}
+
+			discs.push({
+				discNumber: disc.discNumber,
+				subtitle: disc.subtitle,
+				tracks,
+			});
+		}
+
+		const albumImageRequest: components["schemas"]["AlbumImageRequest"] = {
+			file: albumCover.file,
+		};
+
+		albums.push({
+			title: album.title,
+			description: album.description,
+			type: album.type,
+			releaseDate: album.releaseDate ? album.releaseDate : undefined,
+			albumCredits: album.albumCredits,
+			albumImage: albumCover ? albumImageRequest : undefined,
+			discs,
+		});
+	}
+
+	return albums;
 }

@@ -17,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<PartyMembership> PartyMemberships { get; set; }
     public DbSet<PartyImage> PartyImages { get; set; }
     public DbSet<Album> Albums { get; set; }
+    public DbSet<AlbumDisc> AlbumDiscs { get; set; }
     public DbSet<AlbumCredit> AlbumCredits { get; set; }
     public DbSet<AlbumImage> AlbumImages { get; set; }
     public DbSet<Track> Tracks { get; set; }
