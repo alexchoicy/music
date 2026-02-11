@@ -50,6 +50,10 @@ import { ALBUM_TYPES } from "@/enums/album";
 import { partyQueries } from "@/lib/queries/party.queries";
 import { makeMatchingKey } from "@/lib/utils/upload";
 
+//TODO: language
+//TODO: albumImage
+//TODO: source full replace
+
 type CreateAlbumEditDialogProps = {
 	albumId: string | null;
 	open: boolean;
@@ -166,7 +170,7 @@ export function CreateAlbumEditDialog({
 				<DialogHeader>
 					<DialogTitle>Edit Album</DialogTitle>
 				</DialogHeader>
-				<div className="no-scrollbar -mx-4 max-h-[50vh] overflow-y-auto px-4">
+				<div className="no-scrollbar -mx-4 max-h-[50vh] overflow-y-auto p-4">
 					<form
 						id="edit-album-form"
 						onSubmit={(e) => {

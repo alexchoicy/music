@@ -1,5 +1,9 @@
 import { createContext, useContext, useReducer } from "react";
-import type { LocalID, UploadMusicState } from "@/models/uploadMusic";
+import type {
+	LocalID,
+	TrackVariant,
+	UploadMusicState,
+} from "@/models/uploadMusic";
 
 export type Action =
 	| {
@@ -13,6 +17,28 @@ export type Action =
 				newMatchingKey: string;
 				editAlbum: Partial<UploadMusicState["albums"][LocalID]>;
 				editDiscs: Array<Partial<UploadMusicState["discs"][LocalID]>>;
+			};
+	  }
+	| {
+			type: "TrackToVariant";
+			payload: {
+				originalTrackId: LocalID;
+				targetTrackId: LocalID;
+			};
+	  }
+	| {
+			type: "RemoveVariant";
+			payload: {
+				variantId: string;
+				trackId: LocalID;
+			};
+	  }
+	| {
+			type: "UpdateTrack";
+			payload: {
+				trackId: LocalID;
+				editTrack: Partial<UploadMusicState["tracks"][LocalID]>;
+				variantTrack: TrackVariant[];
 			};
 	  };
 
@@ -53,6 +79,110 @@ function reducer(state: UploadMusicState, action: Action): UploadMusicState {
 				...state,
 				albums: newAlbums,
 				discs: newDiscs,
+			};
+		}
+		case "TrackToVariant": {
+			const { originalTrackId, targetTrackId } = action.payload;
+
+			const originalTrack = state.tracks[originalTrackId];
+			const targetTrack = state.tracks[targetTrackId];
+
+			const originalTrackVariantIDs =
+				state.tracks[originalTrackId].trackVariantsIds;
+
+			const targetVariantIDs = state.tracks[targetTrackId].trackVariantsIds;
+
+			const mergedVariantIDs = Array.from(
+				new Set([...targetVariantIDs, ...originalTrackVariantIDs]),
+			);
+
+			const updatedTrackVariants = { ...state.trackVariants };
+			for (const variantId of originalTrackVariantIDs) {
+				const variant = state.trackVariants[variantId];
+				if (!variant) continue;
+				updatedTrackVariants[variantId] = {
+					...variant,
+					trackId: targetTrackId,
+				};
+			}
+
+			const newTracks = {
+				...state.tracks,
+				[targetTrackId]: {
+					...targetTrack,
+					trackVariantsIds: mergedVariantIDs,
+				},
+			};
+			delete newTracks[originalTrackId];
+
+			const newDiscs = { ...state.discs };
+			if (originalTrack.discId) {
+				const disc = newDiscs[originalTrack.discId];
+				if (disc && Array.isArray(disc.OrderedTrackIds)) {
+					newDiscs[originalTrack.discId] = {
+						...disc,
+						OrderedTrackIds: disc.OrderedTrackIds.filter(
+							(id) => id !== originalTrackId,
+						),
+					};
+				}
+			}
+
+			return {
+				...state,
+				tracks: newTracks,
+				trackVariants: updatedTrackVariants,
+				discs: newDiscs,
+			};
+		}
+		case "RemoveVariant": {
+			const { variantId, trackId } = action.payload;
+
+			const track = state.tracks[trackId];
+			if (!track) {
+				return state;
+			}
+
+			track.trackVariantsIds = track.trackVariantsIds.filter(
+				(id) => id !== variantId,
+			);
+
+			const newTrackVariants = { ...state.trackVariants };
+			delete newTrackVariants[variantId];
+
+			return {
+				...state,
+				tracks: {
+					...state.tracks,
+					[trackId]: track,
+				},
+				trackVariants: newTrackVariants,
+			};
+		}
+		case "UpdateTrack": {
+			const { trackId, editTrack, variantTrack } = action.payload;
+
+			const newTracks = {
+				...state.tracks,
+				[trackId]: {
+					...state.tracks[trackId],
+					...editTrack,
+				},
+			};
+
+			const newTrackVariants = { ...state.trackVariants };
+
+			variantTrack.forEach((variant) => {
+				newTrackVariants[variant.id] = {
+					...state.trackVariants[variant.id],
+					...variant,
+				};
+			});
+
+			return {
+				...state,
+				tracks: newTracks,
+				trackVariants: newTrackVariants,
 			};
 		}
 		case "ProcessUpload":
