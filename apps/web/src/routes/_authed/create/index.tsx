@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { CreateAlbumEditDialog } from "@/components/create/dialog/createAlbumEditDialog";
+import { CreateTrackEditDialog } from "@/components/create/dialog/createTrackEditDialog";
 import { MusicDropBox } from "@/components/create/musicDropBox";
 import { UploadAlbumCard } from "@/components/create/uploadAlbumCard";
 import { Button } from "@/components/shadcn/button";
@@ -27,6 +28,9 @@ function CreatePageContent() {
 	const [editingAlbumDialogAlbumId, setEditingAlbumDialogAlbumId] =
 		useState<LocalID | null>(null);
 
+	const [editingTrackDialogTrackId, setEditingTrackDialogTrackId] =
+		useState<LocalID | null>(null);
+
 	const state = useMusicUploadState();
 	const onUpload = () => {
 		console.log("Uploading music with state:", state);
@@ -50,6 +54,7 @@ function CreatePageContent() {
 							albumId={album.id}
 							key={album.id}
 							openAlbumEdit={(id) => setEditingAlbumDialogAlbumId(id)}
+							openTrackEdit={(id) => setEditingTrackDialogTrackId(id)}
 						/>
 					))}
 				</div>
@@ -58,6 +63,11 @@ function CreatePageContent() {
 				albumId={editingAlbumDialogAlbumId}
 				open={!!editingAlbumDialogAlbumId}
 				onOpenChange={(open) => !open && setEditingAlbumDialogAlbumId(null)}
+			/>
+			<CreateTrackEditDialog
+				trackId={editingTrackDialogTrackId}
+				open={!!editingTrackDialogTrackId}
+				onOpenChange={(open) => !open && setEditingTrackDialogTrackId(null)}
 			/>
 		</AppLayout>
 	);

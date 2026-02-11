@@ -5,12 +5,13 @@ import { UploadAlbumTrackList } from "./uploadAlbumTrackList";
 type UploadAlbumCardProps = {
 	albumId: string;
 	openAlbumEdit: (albumId: string) => void;
-	// openTrackEdit: (trackId: string) => void;
+	openTrackEdit: (trackId: string) => void;
 };
 
 export function UploadAlbumCard({
 	albumId,
 	openAlbumEdit,
+	openTrackEdit,
 }: UploadAlbumCardProps) {
 	const state = useMusicUploadState();
 	const album = state.albums[albumId];
@@ -22,7 +23,7 @@ export function UploadAlbumCard({
 			<div>
 				<UploadAlbumTrackList
 					discIds={album.OrderedAlbumDiscsIds}
-					// openTrackEdit={openTrackEdit}
+					openTrackEdit={openTrackEdit}
 				/>
 			</div>
 		</div>

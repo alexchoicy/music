@@ -162,227 +162,231 @@ export function CreateAlbumEditDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
+			<DialogContent className="top-[calc(50%+1.25rem*var(--nested-dialogs))] scale-[calc(1-0.1*var(--nested-dialogs))]  data-nested-dialog-open:after:inset-0 data-nested-dialog-open:after:rounded-[inherit] data-nested-dialog-open:after:bg-black/5 ">
 				<DialogHeader>
 					<DialogTitle>Edit Album</DialogTitle>
 				</DialogHeader>
-				<form
-					id="edit-album-form"
-					onSubmit={(e) => {
-						e.preventDefault();
-						form.handleSubmit();
-					}}
-				>
-					<FieldGroup>
-						<FieldSet>
-							<form.Field
-								name="title"
-								children={(field) => {
-									return (
-										<Field>
-											<FieldLabel htmlFor={field.name}>Album Title</FieldLabel>
-											<Input
-												id={field.name}
-												name={field.name}
-												value={field.state.value}
-												onBlur={field.handleBlur}
-												onChange={(e) => field.handleChange(e.target.value)}
-											/>
-										</Field>
-									);
-								}}
-							/>
-							<Field>
-								<FieldLabel htmlFor="album-description">
-									Album Artists
-								</FieldLabel>
-								<div className="flex flex-col gap-2">
-									<form.Field
-										name="unsolvedAlbumCredits"
-										children={(field) => {
-											if (
-												!field.state.value ||
-												field.state.value.length === 0 ||
-												partyList.length > 0
-											) {
-												return;
-											}
-
-											return (
-												<Alert variant="destructive">
-													<AlertCircleIcon />
-													<AlertTitle>Unsolved Album Credits</AlertTitle>
-													<AlertDescription>
-														<div>
-															<ul className="list-disc ml-5">
-																{field.state.value.map((c) => (
-																	<li key={c}>{c}</li>
-																))}
-															</ul>
-														</div>
-													</AlertDescription>
-													<AlertAction>
-														<Button
-															size="xs"
-															onClick={() => field.handleChange([])}
-														>
-															Clear
-														</Button>
-													</AlertAction>
-												</Alert>
-											);
-										}}
-									/>
-									<PartyCombobox
-										parties={parties || []}
-										selectedValues={partyList}
-										setSelectedValues={setPartyList}
-									/>
-								</div>
-							</Field>
-
-							<form.Field
-								name="type"
-								children={(field) => {
-									return (
-										<Field>
-											<FieldLabel>Album Type</FieldLabel>
-											<Select
-												value={field.state.value}
-												onValueChange={(v) =>
-													field.handleChange(
-														v as components["schemas"]["AlbumType"],
-													)
+				<div className="no-scrollbar -mx-4 max-h-[50vh] overflow-y-auto px-4">
+					<form
+						id="edit-album-form"
+						onSubmit={(e) => {
+							e.preventDefault();
+							form.handleSubmit();
+						}}
+					>
+						<FieldGroup>
+							<FieldSet>
+								<form.Field
+									name="title"
+									children={(field) => {
+										return (
+											<Field>
+												<FieldLabel htmlFor={field.name}>
+													Album Title
+												</FieldLabel>
+												<Input
+													id={field.name}
+													name={field.name}
+													value={field.state.value}
+													onBlur={field.handleBlur}
+													onChange={(e) => field.handleChange(e.target.value)}
+												/>
+											</Field>
+										);
+									}}
+								/>
+								<Field>
+									<FieldLabel htmlFor="album-description">
+										Album Artists
+									</FieldLabel>
+									<div className="flex flex-col gap-2">
+										<form.Field
+											name="unsolvedAlbumCredits"
+											children={(field) => {
+												if (
+													!field.state.value ||
+													field.state.value.length === 0 ||
+													partyList.length > 0
+												) {
+													return;
 												}
-											>
-												<SelectTrigger>
-													<SelectValue placeholder="Select album type" />
-												</SelectTrigger>
-												<SelectContent>
-													<SelectGroup>
-														{ALBUM_TYPES.map((t) => (
-															<SelectItem key={t.value} value={t.value}>
-																{t.label}
-															</SelectItem>
-														))}
-													</SelectGroup>
-												</SelectContent>
-											</Select>
-										</Field>
-									);
-								}}
-							/>
 
-							<div className="grid grid-cols-2 gap-4">
-								<Field>
-									<FieldLabel htmlFor="album-year">Release Date</FieldLabel>
-									<form.Field
-										name="releaseDate"
-										children={(field) => {
-											return (
-												<Popover
-													open={openCalendar}
-													onOpenChange={setOpenCalendar}
-												>
-													<PopoverTrigger
-														render={
+												return (
+													<Alert variant="destructive">
+														<AlertCircleIcon />
+														<AlertTitle>Unsolved Album Credits</AlertTitle>
+														<AlertDescription>
+															<div>
+																<ul className="list-disc ml-5">
+																	{field.state.value.map((c) => (
+																		<li key={c}>{c}</li>
+																	))}
+																</ul>
+															</div>
+														</AlertDescription>
+														<AlertAction>
 															<Button
-																variant="outline"
-																id={dateButton}
-																className="justify-start font-normal"
+																size="xs"
+																onClick={() => field.handleChange([])}
 															>
-																{field.state.value
-																	? new Date(
-																			field.state.value,
-																		).toLocaleDateString()
-																	: "Select date"}
+																Clear
 															</Button>
-														}
-													/>
-													<PopoverContent
-														className="w-auto overflow-hidden p-0"
-														align="start"
+														</AlertAction>
+													</Alert>
+												);
+											}}
+										/>
+										<PartyCombobox
+											parties={parties || []}
+											selectedValues={partyList}
+											setSelectedValues={setPartyList}
+										/>
+									</div>
+								</Field>
+
+								<form.Field
+									name="type"
+									children={(field) => {
+										return (
+											<Field>
+												<FieldLabel>Album Type</FieldLabel>
+												<Select
+													value={field.state.value}
+													onValueChange={(v) =>
+														field.handleChange(
+															v as components["schemas"]["AlbumType"],
+														)
+													}
+												>
+													<SelectTrigger>
+														<SelectValue placeholder="Select album type" />
+													</SelectTrigger>
+													<SelectContent>
+														<SelectGroup>
+															{ALBUM_TYPES.map((t) => (
+																<SelectItem key={t.value} value={t.value}>
+																	{t.label}
+																</SelectItem>
+															))}
+														</SelectGroup>
+													</SelectContent>
+												</Select>
+											</Field>
+										);
+									}}
+								/>
+
+								<div className="grid grid-cols-2 gap-4">
+									<Field>
+										<FieldLabel htmlFor="album-year">Release Date</FieldLabel>
+										<form.Field
+											name="releaseDate"
+											children={(field) => {
+												return (
+													<Popover
+														open={openCalendar}
+														onOpenChange={setOpenCalendar}
 													>
-														<Calendar
-															mode="single"
-															selected={new Date(field.state.value ?? "")}
-															captionLayout="dropdown"
-															onSelect={(date) => {
-																field.handleChange(
-																	date ? date.toISOString() : "",
-																);
-																setOpenCalendar(false);
-															}}
+														<PopoverTrigger
+															render={
+																<Button
+																	variant="outline"
+																	id={dateButton}
+																	className="justify-start font-normal"
+																>
+																	{field.state.value
+																		? new Date(
+																				field.state.value,
+																			).toLocaleDateString()
+																		: "Select date"}
+																</Button>
+															}
 														/>
-													</PopoverContent>
-												</Popover>
-											);
-										}}
-									/>
-								</Field>
-								<Field>
-									<FieldLabel htmlFor="album-language">Language</FieldLabel>
-								</Field>
-							</div>
-						</FieldSet>
-						<FieldSeparator />
-						<FieldSet>
-							<FieldLegend>Discs</FieldLegend>
-							<FieldGroup>
-								<FieldSet>
-									<FieldLegend>Disc Subtitles</FieldLegend>
-									<form.Field
-										name="discs"
-										mode="array"
-										children={(field) => {
-											return (
-												<div className="grid">
-													{field.state.value.map((_, index) => (
-														<FieldGroup
-															className="gap-2"
-															key={`disc-${albumId}`}
+														<PopoverContent
+															className="w-auto overflow-hidden p-0"
+															align="start"
 														>
-															<form.Field
-																key={`disc-${albumId}`}
-																name={`${field.name}[${index}]`}
-																children={(subField) => {
-																	return (
-																		<Field orientation="horizontal">
-																			<FieldLabel
-																				htmlFor={subField.name}
-																				className="w-auto"
-																			>
-																				{`${subField.state.value.discNumber}`}
-																			</FieldLabel>
-																			<Input
-																				id={subField.name}
-																				name={subField.name}
-																				value={
-																					subField.state.value.subtitle || ""
-																				}
-																				onBlur={subField.handleBlur}
-																				onChange={(e) =>
-																					subField.handleChange({
-																						...subField.state.value,
-																						subtitle: e.target.value,
-																					})
-																				}
-																			/>
-																		</Field>
+															<Calendar
+																mode="single"
+																selected={new Date(field.state.value ?? "")}
+																captionLayout="dropdown"
+																onSelect={(date) => {
+																	field.handleChange(
+																		date ? date.toISOString() : "",
 																	);
+																	setOpenCalendar(false);
 																}}
 															/>
-														</FieldGroup>
-													))}
-												</div>
-											);
-										}}
-									/>
-								</FieldSet>
-							</FieldGroup>
-						</FieldSet>
-					</FieldGroup>
-				</form>
+														</PopoverContent>
+													</Popover>
+												);
+											}}
+										/>
+									</Field>
+									<Field>
+										<FieldLabel htmlFor="album-language">Language</FieldLabel>
+									</Field>
+								</div>
+							</FieldSet>
+							<FieldSeparator />
+							<FieldSet>
+								<FieldLegend>Discs</FieldLegend>
+								<FieldGroup>
+									<FieldSet>
+										<FieldLegend>Disc Subtitles</FieldLegend>
+										<form.Field
+											name="discs"
+											mode="array"
+											children={(field) => {
+												return (
+													<div className="grid">
+														{field.state.value.map((_, index) => (
+															<FieldGroup
+																className="gap-2"
+																key={`disc-${albumId}`}
+															>
+																<form.Field
+																	key={`disc-${albumId}`}
+																	name={`${field.name}[${index}]`}
+																	children={(subField) => {
+																		return (
+																			<Field orientation="horizontal">
+																				<FieldLabel
+																					htmlFor={subField.name}
+																					className="w-auto"
+																				>
+																					{`${subField.state.value.discNumber}`}
+																				</FieldLabel>
+																				<Input
+																					id={subField.name}
+																					name={subField.name}
+																					value={
+																						subField.state.value.subtitle || ""
+																					}
+																					onBlur={subField.handleBlur}
+																					onChange={(e) =>
+																						subField.handleChange({
+																							...subField.state.value,
+																							subtitle: e.target.value,
+																						})
+																					}
+																				/>
+																			</Field>
+																		);
+																	}}
+																/>
+															</FieldGroup>
+														))}
+													</div>
+												);
+											}}
+										/>
+									</FieldSet>
+								</FieldGroup>
+							</FieldSet>
+						</FieldGroup>
+					</form>
+				</div>
 				<DialogFooter>
 					<DialogClose
 						render={

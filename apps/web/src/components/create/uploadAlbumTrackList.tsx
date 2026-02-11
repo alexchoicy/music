@@ -5,12 +5,12 @@ import { UploadAlbumTrackListItem } from "./uploadAlbumTrackListItem";
 // uploadAlbumTrackList.tsx - Lookup from state
 type UploadAlbumTrackListProps = {
 	discIds: string[];
-	// openTrackEdit: (trackId: string) => void;
+	openTrackEdit: (trackId: string) => void;
 };
 
 export function UploadAlbumTrackList({
 	discIds,
-	// openTrackEdit,
+	openTrackEdit,
 }: UploadAlbumTrackListProps) {
 	const state = useMusicUploadState();
 
@@ -42,7 +42,7 @@ export function UploadAlbumTrackList({
 									<UploadAlbumTrackListItem
 										key={trackId}
 										trackId={trackId}
-										// openEdit={openTrackEdit}
+										openEdit={openTrackEdit}
 									/>
 								))}
 							</div>

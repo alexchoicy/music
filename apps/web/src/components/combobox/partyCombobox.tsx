@@ -314,7 +314,10 @@ export default function PartyCombobox({
 				</ComboboxContent>
 			</Combobox>
 			<Dialog open={openDialog} onOpenChange={setOpenDialog}>
-				<DialogContent initialFocus={createInputRef}>
+				<DialogContent
+					initialFocus={createInputRef}
+					className="top-[calc(50%+1.25rem*var(--nested-dialogs))] scale-[calc(1-0.1*var(--nested-dialogs))] data-[nested-dialog-open]:after:absolute data-[nested-dialog-open]:after:inset-0 data-[nested-dialog-open]:after:rounded-[inherit] data-[nested-dialog-open]:after:bg-black/5"
+				>
 					<DialogHeader>
 						<DialogTitle>Create Party</DialogTitle>
 					</DialogHeader>

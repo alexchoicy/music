@@ -8,12 +8,12 @@ import { Button } from "../shadcn/button";
 
 type UploadAlbumTrackListItemProps = {
 	trackId: string;
-	// openEdit: (trackId: string) => void;
+	openEdit: (trackId: string) => void;
 };
 
 export function UploadAlbumTrackListItem({
 	trackId,
-	// openEdit,
+	openEdit,
 }: UploadAlbumTrackListItemProps) {
 	const { data: parties } = useQuery(partyQueries.getPartySearchList(""));
 
@@ -65,7 +65,7 @@ export function UploadAlbumTrackListItem({
 				<Button
 					variant="ghost"
 					className="h-9 w-9 p-2"
-					// onClick={() => openEdit(trackId)}
+					onClick={() => openEdit(trackId)}
 				>
 					<span>Edit</span>
 				</Button>
