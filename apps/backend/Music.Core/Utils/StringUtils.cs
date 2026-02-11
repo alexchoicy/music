@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text;
 
 namespace Music.Core.Utils;
@@ -23,4 +24,6 @@ public static class StringUtils
 
         return sb.ToString().Trim();
     }
+
 }
+

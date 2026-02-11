@@ -42,11 +42,11 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
             try
             {
-                Core.Entities.Album newAlbum = CreateSingleAlbum(album, userId);
+                CreateAlbumUploadResult uploadResults = await CreateSingleAlbum(album, userId);
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 
-                results.Add(CreateAlbumResult.Success(album.Title, newAlbum.Id));
+                results.Add(CreateAlbumResult.Success(album.Title, uploadResults));
             }
             catch (Exception ex)
             {
@@ -95,7 +95,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         return false;
     }
 
-    private Core.Entities.Album CreateSingleAlbum(CreateAlbumModel album, string userId)
+    private async Task<CreateAlbumUploadResult> CreateSingleAlbum(CreateAlbumModel album, string userId)
     {
         var newAlbum = new Core.Entities.Album
         {
@@ -118,20 +118,22 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         _dbContext.AlbumCredits.AddRange(albumCredits);
 
+        CreateAlbumUploadResult uploadResults = new();
+
         if (album.AlbumImage is not null)
         {
-            CreateAlbumImage(album.AlbumImage, newAlbum, userId);
+            uploadResults.AlbumImage = await CreateAlbumImage(album.AlbumImage, newAlbum, userId);
         }
 
         foreach (AlbumDiscModel albumDisc in album.Discs)
         {
-            CreateDisc(albumDisc, newAlbum, userId);
+            uploadResults.Tracks.AddRange(await CreateDisc(albumDisc, newAlbum, userId));
         }
 
-        return newAlbum;
+        return uploadResults;
     }
 
-    private void CreateDisc(AlbumDiscModel albumDisc, Core.Entities.Album album, string userId)
+    private async Task<List<CreateAlbumUploadItemResult>> CreateDisc(AlbumDiscModel albumDisc, Core.Entities.Album album, string userId)
     {
         AlbumDisc newAlbumDisc = new()
         {
@@ -142,14 +144,18 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         _dbContext.AlbumDiscs.Add(newAlbumDisc);
 
+        List<CreateAlbumUploadItemResult> sourceResults = [];
+
         foreach (AlbumTrackModel albumTrack in albumDisc.Tracks)
         {
-            CreateTrack(albumTrack, newAlbumDisc, userId);
+            sourceResults.AddRange(await CreateTrack(albumTrack, newAlbumDisc, userId));
         }
+
+        return sourceResults;
     }
 
 
-    private void CreateAlbumImage(AlbumImageModel imageModel, Core.Entities.Album album, string userId)
+    private async Task<CreateAlbumUploadItemResult> CreateAlbumImage(AlbumImageModel imageModel, Core.Entities.Album album, string userId)
     {
         string imagePath = _assetsService.GetStoragePath(
             MediaFolderOptions.AssetsCover,
@@ -177,9 +183,16 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         };
 
         _dbContext.AlbumImages.Add(albumImage);
+
+        return new CreateAlbumUploadItemResult
+        {
+            Blake3Id = imageModel.File.FileBlake3,
+            FileName = imageModel.File.OriginalFileName,
+            UploadUrl = await _contentService.CreateUploadUrlAsync(imagePath, fileObject.MimeType, CancellationToken.None)
+        };
     }
 
-    private void CreateTrack(AlbumTrackModel albumTrack, AlbumDisc albumDisc, string userId)
+    private async Task<List<CreateAlbumUploadItemResult>> CreateTrack(AlbumTrackModel albumTrack, AlbumDisc albumDisc, string userId)
     {
         Track track = new()
         {
@@ -211,13 +224,17 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         _dbContext.TrackCredits.AddRange(trackCredits);
 
+        List<CreateAlbumUploadItemResult> sourceResults = [];
+
         foreach (TrackVariantModel trackVariant in albumTrack.TrackVariants)
         {
-            CreateTrackVariant(trackVariant, track, userId);
+            sourceResults.AddRange(await CreateTrackVariant(trackVariant, track, userId));
         }
+
+        return sourceResults;
     }
 
-    private void CreateTrackVariant(TrackVariantModel variantModel, Track track, string userId)
+    private async Task<List<CreateAlbumUploadItemResult>> CreateTrackVariant(TrackVariantModel variantModel, Track track, string userId)
     {
         var newTrackVariant = new TrackVariant
         {
@@ -227,13 +244,17 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         _dbContext.TrackVariants.Add(newTrackVariant);
 
+        List<CreateAlbumUploadItemResult> sourceResults = [];
+
         foreach (TrackSourceModel trackSource in variantModel.Sources)
         {
-            CreateTrackSource(trackSource, newTrackVariant, userId);
+            sourceResults.Add(await CreateTrackSource(trackSource, newTrackVariant, userId));
         }
+
+        return sourceResults;
     }
 
-    private void CreateTrackSource(TrackSourceModel sourceModel, TrackVariant trackVariant, string userId)
+    private async Task<CreateAlbumUploadItemResult> CreateTrackSource(TrackSourceModel sourceModel, TrackVariant trackVariant, string userId)
     {
         string path = _contentService.GetStoragePath(
             MediaFolderOptions.OriginalMusic,
@@ -258,6 +279,13 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         };
 
         _dbContext.TrackSources.Add(newTrackSource);
+
+        return new CreateAlbumUploadItemResult
+        {
+            Blake3Id = sourceModel.File.FileBlake3,
+            FileName = sourceModel.File.OriginalFileName,
+            UploadUrl = await _contentService.CreateUploadUrlAsync(path, fileObject.MimeType, CancellationToken.None)
+        };
     }
 
 }

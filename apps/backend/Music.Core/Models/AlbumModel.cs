@@ -76,12 +76,25 @@ public sealed record CreateAlbumResult
 {
     public required string AlbumTitle { get; init; }
     public bool IsSuccess { get; init; }
-    public int? AlbumId { get; init; }
     public string? ErrorMessage { get; init; }
+    public CreateAlbumUploadResult CreateAlbumUploadResults { get; init; }
 
-    public static CreateAlbumResult Success(string title, int albumId)
-        => new() { AlbumTitle = title, IsSuccess = true, AlbumId = albumId };
-
+    public static CreateAlbumResult Success(string title, CreateAlbumUploadResult uploadResults)
+        => new() { AlbumTitle = title, IsSuccess = true, CreateAlbumUploadResults = uploadResults };
     public static CreateAlbumResult Failure(string title, string errorMessage)
         => new() { AlbumTitle = title, IsSuccess = false, ErrorMessage = errorMessage };
+}
+
+public sealed record CreateAlbumUploadItemResult
+{
+    public required string Blake3Id { get; init; }
+    public required string FileName { get; init; }
+    public required string UploadUrl { get; init; }
+}
+
+public sealed record CreateAlbumUploadResult
+{
+    public string AlbumTitle { get; init; }
+    public CreateAlbumUploadItemResult AlbumImage { get; set; }
+    public List<CreateAlbumUploadItemResult> Tracks { get; set; } = [];
 }
