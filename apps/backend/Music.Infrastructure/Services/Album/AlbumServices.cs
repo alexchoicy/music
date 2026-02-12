@@ -118,7 +118,10 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         _dbContext.AlbumCredits.AddRange(albumCredits);
 
-        CreateAlbumUploadResult uploadResults = new();
+        CreateAlbumUploadResult uploadResults = new()
+        {
+            AlbumTitle = album.Title,
+        };
 
         if (album.AlbumImage is not null)
         {

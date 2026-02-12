@@ -12,7 +12,7 @@ public class StorageService(IOptions<StorageOptions> options) : IStorageService
 {
     private readonly StorageOptions _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
 
-    private string GetExtensionFromMimeType(string mimeType)
+    private static string GetExtensionFromMimeType(string mimeType)
     {
         if (MediaFiles.MimeToExt.TryGetValue(mimeType, out string? ext))
         {

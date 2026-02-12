@@ -1,6 +1,6 @@
 # Create Migrations
 ```
-dotnet ef migrations add init --project Music.Infrastructure --startup-project Music.Api
+dotnet ef migrations add Init --project Music.Infrastructure --startup-project Music.Api
 ```
 
 

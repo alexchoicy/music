@@ -77,7 +77,7 @@ public sealed record CreateAlbumResult
     public required string AlbumTitle { get; init; }
     public bool IsSuccess { get; init; }
     public string? ErrorMessage { get; init; }
-    public CreateAlbumUploadResult CreateAlbumUploadResults { get; init; }
+    public CreateAlbumUploadResult? CreateAlbumUploadResults { get; init; }
 
     public static CreateAlbumResult Success(string title, CreateAlbumUploadResult uploadResults)
         => new() { AlbumTitle = title, IsSuccess = true, CreateAlbumUploadResults = uploadResults };
@@ -94,7 +94,7 @@ public sealed record CreateAlbumUploadItemResult
 
 public sealed record CreateAlbumUploadResult
 {
-    public string AlbumTitle { get; init; }
-    public CreateAlbumUploadItemResult AlbumImage { get; set; }
+    public required string AlbumTitle { get; init; }
+    public CreateAlbumUploadItemResult? AlbumImage { get; set; }
     public List<CreateAlbumUploadItemResult> Tracks { get; set; } = [];
 }

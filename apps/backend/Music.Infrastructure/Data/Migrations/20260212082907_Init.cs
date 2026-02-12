@@ -326,6 +326,28 @@ namespace Music.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AlbumDiscs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    AlbumId = table.Column<int>(type: "integer", nullable: false),
+                    DiscNumber = table.Column<int>(type: "integer", nullable: false),
+                    Subtitle = table.Column<string>(type: "character varying(250)", maxLength: 250, nullable: false),
+                    Version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AlbumDiscs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AlbumDiscs_Albums_AlbumId",
+                        column: x => x.AlbumId,
+                        principalTable: "Albums",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AlbumImages",
                 columns: table => new
                 {
@@ -475,37 +497,6 @@ namespace Music.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AlbumTracks",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    AlbumId = table.Column<int>(type: "integer", nullable: false),
-                    TrackId = table.Column<int>(type: "integer", nullable: false),
-                    TrackNumber = table.Column<int>(type: "integer", nullable: false),
-                    DiscNumber = table.Column<int>(type: "integer", nullable: false),
-                    Version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AlbumTracks", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AlbumTracks_Albums_AlbumId",
-                        column: x => x.AlbumId,
-                        principalTable: "Albums",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AlbumTracks_Tracks_TrackId",
-                        column: x => x.TrackId,
-                        principalTable: "Tracks",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "TrackCredits",
                 columns: table => new
                 {
@@ -546,6 +537,36 @@ namespace Music.Infrastructure.Migrations
                     table.PrimaryKey("PK_TrackVariants", x => x.Id);
                     table.ForeignKey(
                         name: "FK_TrackVariants_Tracks_TrackId",
+                        column: x => x.TrackId,
+                        principalTable: "Tracks",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AlbumTracks",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    AlbumDiscId = table.Column<int>(type: "integer", nullable: false),
+                    TrackId = table.Column<int>(type: "integer", nullable: false),
+                    TrackNumber = table.Column<int>(type: "integer", nullable: false),
+                    Version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AlbumTracks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AlbumTracks_AlbumDiscs_AlbumDiscId",
+                        column: x => x.AlbumDiscId,
+                        principalTable: "AlbumDiscs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AlbumTracks_Tracks_TrackId",
                         column: x => x.TrackId,
                         principalTable: "Tracks",
                         principalColumn: "Id",
@@ -622,6 +643,17 @@ namespace Music.Infrastructure.Migrations
                 column: "PartyId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AlbumDiscs_AlbumId",
+                table: "AlbumDiscs",
+                column: "AlbumId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AlbumDiscs_AlbumId_DiscNumber",
+                table: "AlbumDiscs",
+                columns: new[] { "AlbumId", "DiscNumber" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_AlbumImages_AlbumId",
                 table: "AlbumImages",
                 column: "AlbumId");
@@ -682,20 +714,20 @@ namespace Music.Infrastructure.Migrations
                 column: "UpdatedAt");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AlbumTracks_AlbumId",
+                name: "IX_AlbumTracks_AlbumDiscId",
                 table: "AlbumTracks",
-                column: "AlbumId");
+                column: "AlbumDiscId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AlbumTracks_AlbumId_DiscNumber_TrackNumber",
+                name: "IX_AlbumTracks_AlbumDiscId_TrackId",
                 table: "AlbumTracks",
-                columns: new[] { "AlbumId", "DiscNumber", "TrackNumber" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AlbumTracks_AlbumId_TrackId",
-                table: "AlbumTracks",
-                columns: new[] { "AlbumId", "TrackId" },
+                columns: new[] { "AlbumDiscId", "TrackId" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AlbumTracks_AlbumDiscId_TrackNumber",
+                table: "AlbumTracks",
+                columns: new[] { "AlbumDiscId", "TrackNumber" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AlbumTracks_CreatedAt",
@@ -1074,7 +1106,7 @@ namespace Music.Infrastructure.Migrations
                 name: "TrackSources");
 
             migrationBuilder.DropTable(
-                name: "Albums");
+                name: "AlbumDiscs");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -1087,6 +1119,9 @@ namespace Music.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "TrackVariants");
+
+            migrationBuilder.DropTable(
+                name: "Albums");
 
             migrationBuilder.DropTable(
                 name: "Tracks");
