@@ -83,7 +83,6 @@ function CreatePageContent() {
 					});
 				}
 
-				const controller = new AbortController();
 				const trackUploads = album.createAlbumUploadResults?.tracks || [];
 
 				await pMap(
@@ -100,8 +99,6 @@ function CreatePageContent() {
 							const result = await multipartFileRequest(
 								trackFile.file,
 								trackUpload.multipartUploadInfo,
-								controller.signal,
-								({ partNumber }) => console.log("done part", partNumber),
 							);
 
 							completedResults.push({

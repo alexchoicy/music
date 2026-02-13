@@ -335,12 +335,11 @@ async function uploadPartWithRetry(
 	blob: Blob,
 	partNumber: number,
 	maxRetries = 5,
-	signal: AbortSignal,
 ) {
 	let attempt = 1;
 	while (true) {
 		try {
-			const res = await fetch(url, { method: "PUT", body: blob, signal });
+			const res = await fetch(url, { method: "PUT", body: blob });
 			if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
 			const etag = res.headers.get("ETag");
@@ -348,8 +347,6 @@ async function uploadPartWithRetry(
 
 			return { PartNumber: partNumber, ETag: etag };
 		} catch (error: unknown) {
-			if (signal?.aborted) throw error;
-
 			const message = error instanceof Error ? error.message : String(error);
 
 			if (attempt >= maxRetries) {
@@ -371,12 +368,6 @@ async function uploadPartWithRetry(
 export async function multipartFileRequest(
 	file: File,
 	uploadInfo: components["schemas"]["MultipartUploadInfo"],
-	signal: AbortSignal,
-	onPartDone?: (info: {
-		partNumber: number;
-		loaded: number;
-		total: number;
-	}) => void,
 ): Promise<components["schemas"]["CompleteMultipartUploadPart"][]> {
 	const partSize = uploadInfo.partSizeInBytes;
 	const parts = splitFile(file, Number(partSize));
@@ -392,16 +383,9 @@ export async function multipartFileRequest(
 			const { partNumber, blob } = parts[i];
 			const url = uploadInfo.parts[partNumber - 1];
 
-			const out = await uploadPartWithRetry(
-				url.url,
-				blob,
-				partNumber,
-				5,
-				signal,
-			);
+			const out = await uploadPartWithRetry(url.url, blob, partNumber, 5);
 
 			results[i] = out;
-			onPartDone?.({ partNumber, loaded: blob.size, total: blob.size });
 		}
 	}
 
