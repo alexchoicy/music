@@ -345,7 +345,7 @@ async function uploadPartWithRetry(
 			const etag = res.headers.get("ETag");
 			if (!etag) throw new Error("Missing ETag (check S3 CORS ExposeHeaders)");
 
-			return { PartNumber: partNumber, ETag: etag };
+			return { partNumber: partNumber, eTag: etag };
 		} catch (error: unknown) {
 			const message = error instanceof Error ? error.message : String(error);
 
@@ -372,24 +372,18 @@ export async function multipartFileRequest(
 	const partSize = uploadInfo.partSizeInBytes;
 	const parts = splitFile(file, Number(partSize));
 
-	const results = new Array(parts.length);
-	let nextIndex = 0;
-
-	async function worker() {
-		while (true) {
-			const i = nextIndex++;
-			if (i >= parts.length) return;
-
-			const { partNumber, blob } = parts[i];
+	const results = await pMap(
+		parts,
+		async (part) => {
+			const { partNumber, blob } = part;
 			const url = uploadInfo.parts[partNumber - 1];
 
-			const out = await uploadPartWithRetry(url.url, blob, partNumber, 5);
+			return await uploadPartWithRetry(url.url, blob, partNumber, 5);
+		},
+		{ concurrency: 4 },
+	);
 
-			results[i] = out;
-		}
-	}
+	const sorted = results.sort((a, b) => a.partNumber - b.partNumber);
 
-	await Promise.all(Array.from({ length: 4 }, () => worker()));
-
-	return results.sort((a, b) => a.PartNumber - b.PartNumber);
+	return sorted;
 }
