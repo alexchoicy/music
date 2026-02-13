@@ -247,6 +247,11 @@ export interface components {
         };
         /** @enum {unknown} */
         AlbumType: "Album" | "Single" | "Compilation" | "Live" | "Soundtrack" | "Remix" | "Other";
+        CreateAlbumImageUploadItemResult: {
+            blake3Id: string;
+            fileName: string;
+            uploadUrl: string;
+        };
         CreateAlbumRequest: {
             title: string;
             description?: string;
@@ -262,9 +267,18 @@ export interface components {
         CreateAlbumResult: {
             albumTitle: string;
             isSuccess?: boolean;
-            /** Format: int32 */
-            albumId?: null | number | string;
             errorMessage?: null | string;
+            createAlbumUploadResults?: null | components["schemas"]["CreateAlbumUploadResult"];
+        };
+        CreateAlbumTrackUploadItemResult: {
+            blake3Id: string;
+            fileName: string;
+            multipartUploadInfo: components["schemas"]["MultipartUploadInfo"];
+        };
+        CreateAlbumUploadResult: {
+            albumTitle: string;
+            albumImage?: null | components["schemas"]["CreateAlbumImageUploadItemResult"];
+            tracks?: components["schemas"]["CreateAlbumTrackUploadItemResult"][];
         };
         CreatePartyRequest: {
             name: string;
@@ -314,6 +328,17 @@ export interface components {
         LoginResponse: {
             token: string;
             user: components["schemas"]["UserDto"];
+        };
+        MultipartUploadInfo: {
+            uploadId: string;
+            /** Format: int64 */
+            partSizeInBytes: number | string;
+            parts: components["schemas"]["MultipartUploadPartInfo"][];
+        };
+        MultipartUploadPartInfo: {
+            /** Format: int32 */
+            partNumber: number | string;
+            url: string;
         };
         PartyAliasModel: {
             aliasName: string;

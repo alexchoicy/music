@@ -1,4 +1,5 @@
 using Amazon.S3;
+using Amazon.S3.Model;
 using Microsoft.Extensions.Options;
 using Music.Core.Models;
 using Music.Core.Services.Interfaces;
@@ -9,9 +10,22 @@ public class S3AssetsService(IOptions<StorageOptions> options, AssetsS3Client cl
 {
     private readonly string bucket = options.Value.Assets!.S3!.BucketName;
 
-    public Task<string> CreateUploadUrlAsync(string objectPath, string mimeType, CancellationToken cancellationToken = default)
+    public string CreateUploadUrlAsync(string objectPath, string mimeType, string sha1, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult($"{objectPath} (upload URL generation not implemented) ${mimeType}");
+
+        GetPreSignedUrlRequest request = new()
+        {
+            BucketName = bucket,
+            Key = objectPath,
+            Verb = HttpVerb.PUT,
+            ContentType = mimeType,
+            Expires = DateTime.UtcNow.AddMinutes(30), // I dunno
+        };
+
+        request.Headers["x-amz-checksum-sha1"] = sha1;
+
+        string url = client.GetPreSignedURL(request);
+        return url;
     }
 }
 

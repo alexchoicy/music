@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Music.Core.Enums;
 
 namespace Music.Core.Models;
@@ -26,6 +27,7 @@ public sealed class S3StorageOptions
 
 public sealed class DataStorageOptions
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public required StorageProvider Provider { get; init; }
     public S3StorageOptions? S3 { get; init; }
 }

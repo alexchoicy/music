@@ -136,7 +136,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         return uploadResults;
     }
 
-    private async Task<List<CreateAlbumUploadItemResult>> CreateDisc(AlbumDiscModel albumDisc, Core.Entities.Album album, string userId)
+    private async Task<List<CreateAlbumTrackUploadItemResult>> CreateDisc(AlbumDiscModel albumDisc, Core.Entities.Album album, string userId)
     {
         AlbumDisc newAlbumDisc = new()
         {
@@ -147,7 +147,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         _dbContext.AlbumDiscs.Add(newAlbumDisc);
 
-        List<CreateAlbumUploadItemResult> sourceResults = [];
+        List<CreateAlbumTrackUploadItemResult> sourceResults = [];
 
         foreach (AlbumTrackModel albumTrack in albumDisc.Tracks)
         {
@@ -158,7 +158,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
     }
 
 
-    private async Task<CreateAlbumUploadItemResult> CreateAlbumImage(AlbumImageModel imageModel, Core.Entities.Album album, string userId)
+    private async Task<CreateAlbumImageUploadItemResult> CreateAlbumImage(AlbumImageModel imageModel, Core.Entities.Album album, string userId)
     {
         string imagePath = _assetsService.GetStoragePath(
             MediaFolderOptions.AssetsCover,
@@ -187,15 +187,15 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         _dbContext.AlbumImages.Add(albumImage);
 
-        return new CreateAlbumUploadItemResult
+        return new CreateAlbumImageUploadItemResult
         {
             Blake3Id = imageModel.File.FileBlake3,
             FileName = imageModel.File.OriginalFileName,
-            UploadUrl = await _contentService.CreateUploadUrlAsync(imagePath, fileObject.MimeType, CancellationToken.None)
+            UploadUrl = _assetsService.CreateUploadUrlAsync(imagePath, fileObject.MimeType, fileObject.FileSHA1, CancellationToken.None)
         };
     }
 
-    private async Task<List<CreateAlbumUploadItemResult>> CreateTrack(AlbumTrackModel albumTrack, AlbumDisc albumDisc, string userId)
+    private async Task<List<CreateAlbumTrackUploadItemResult>> CreateTrack(AlbumTrackModel albumTrack, AlbumDisc albumDisc, string userId)
     {
         Track track = new()
         {
@@ -227,7 +227,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         _dbContext.TrackCredits.AddRange(trackCredits);
 
-        List<CreateAlbumUploadItemResult> sourceResults = [];
+        List<CreateAlbumTrackUploadItemResult> sourceResults = [];
 
         foreach (TrackVariantModel trackVariant in albumTrack.TrackVariants)
         {
@@ -237,7 +237,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         return sourceResults;
     }
 
-    private async Task<List<CreateAlbumUploadItemResult>> CreateTrackVariant(TrackVariantModel variantModel, Track track, string userId)
+    private async Task<List<CreateAlbumTrackUploadItemResult>> CreateTrackVariant(TrackVariantModel variantModel, Track track, string userId)
     {
         var newTrackVariant = new TrackVariant
         {
@@ -247,7 +247,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         _dbContext.TrackVariants.Add(newTrackVariant);
 
-        List<CreateAlbumUploadItemResult> sourceResults = [];
+        List<CreateAlbumTrackUploadItemResult> sourceResults = [];
 
         foreach (TrackSourceModel trackSource in variantModel.Sources)
         {
@@ -257,7 +257,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         return sourceResults;
     }
 
-    private async Task<CreateAlbumUploadItemResult> CreateTrackSource(TrackSourceModel sourceModel, TrackVariant trackVariant, string userId)
+    private async Task<CreateAlbumTrackUploadItemResult> CreateTrackSource(TrackSourceModel sourceModel, TrackVariant trackVariant, string userId)
     {
         string path = _contentService.GetStoragePath(
             MediaFolderOptions.OriginalMusic,
@@ -283,11 +283,11 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         _dbContext.TrackSources.Add(newTrackSource);
 
-        return new CreateAlbumUploadItemResult
+        return new CreateAlbumTrackUploadItemResult
         {
             Blake3Id = sourceModel.File.FileBlake3,
             FileName = sourceModel.File.OriginalFileName,
-            UploadUrl = await _contentService.CreateUploadUrlAsync(path, fileObject.MimeType, CancellationToken.None)
+            MultipartUploadInfo = await _contentService.CreateMultipartUploadAsync(path, fileObject.MimeType, fileObject.SizeInBytes, CancellationToken.None)
         };
     }
 

@@ -55,16 +55,18 @@ public static class DependencyInjection
             .Get<StorageOptions>()
             ?? throw new InvalidOperationException("Storage config missing");
 
+        Console.WriteLine($"Storage Provider - Content: {storage.Content.Provider}, Assets: {storage.Assets.Provider}, {storage.Content.Provider == StorageProvider.S3}");
+
         if (storage.Assets.Provider == StorageProvider.S3)
         {
             services.AddSingleton<AssetsS3Client>(_ =>
             {
                 var opt = storage.Assets.S3 ?? throw new InvalidOperationException("Assets S3 settings missing.");
-
                 var cfg = new AmazonS3Config
                 {
                     ServiceURL = opt.Endpoint,
-                    ForcePathStyle = true
+                    ForcePathStyle = true,
+                    AuthenticationRegion = opt.Region,
                 };
 
                 return new AssetsS3Client(opt.AccessKey, opt.SecretKey, cfg);
@@ -76,11 +78,11 @@ public static class DependencyInjection
             services.AddSingleton<Content3Client>(_ =>
             {
                 var opt = storage.Content.S3 ?? throw new InvalidOperationException("Content S3 settings missing.");
-
                 var cfg = new AmazonS3Config
                 {
                     ServiceURL = opt.Endpoint,
-                    ForcePathStyle = true
+                    ForcePathStyle = true,
+                    AuthenticationRegion = opt.Region,
                 };
 
                 return new Content3Client(opt.AccessKey, opt.SecretKey, cfg);

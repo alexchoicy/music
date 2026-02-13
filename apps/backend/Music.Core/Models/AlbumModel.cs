@@ -84,17 +84,3 @@ public sealed record CreateAlbumResult
     public static CreateAlbumResult Failure(string title, string errorMessage)
         => new() { AlbumTitle = title, IsSuccess = false, ErrorMessage = errorMessage };
 }
-
-public sealed record CreateAlbumUploadItemResult
-{
-    public required string Blake3Id { get; init; }
-    public required string FileName { get; init; }
-    public required string UploadUrl { get; init; }
-}
-
-public sealed record CreateAlbumUploadResult
-{
-    public required string AlbumTitle { get; init; }
-    public CreateAlbumUploadItemResult? AlbumImage { get; set; }
-    public List<CreateAlbumUploadItemResult> Tracks { get; set; } = [];
-}

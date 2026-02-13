@@ -12,7 +12,6 @@ public class PartySeed
 
         Party unknownParty = new()
         {
-            Id = 1,
             Name = "Unknown",
             Type = PartyType.Individual,
         };
