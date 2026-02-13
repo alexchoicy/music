@@ -16,7 +16,6 @@ public static class FileMapping
     public static CreateFileModel ToModel(this FileRequest r) => new()
     {
         FileBlake3 = r.FileBlake3,
-        FileSHA1 = r.FileSHA1,
         MimeType = r.MimeType,
         FileSizeInBytes = r.FileSizeInBytes,
         Container = r.Container,

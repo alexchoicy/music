@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Music.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260212082907_Init")]
+    [Migration("20260213112816_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -440,10 +440,6 @@ namespace Music.Infrastructure.Migrations
 
                     b.Property<int>("FileObjectVariant")
                         .HasColumnType("integer");
-
-                    b.Property<string>("FileSHA1")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<decimal?>("FrameRate")
                         .HasColumnType("numeric");

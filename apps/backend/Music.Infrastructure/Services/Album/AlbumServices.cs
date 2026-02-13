@@ -191,7 +191,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         {
             Blake3Id = imageModel.File.FileBlake3,
             FileName = imageModel.File.OriginalFileName,
-            UploadUrl = _assetsService.CreateUploadUrlAsync(imagePath, fileObject.MimeType, fileObject.FileSHA1, CancellationToken.None)
+            UploadUrl = _assetsService.CreateUploadUrlAsync(imagePath, fileObject.MimeType, CancellationToken.None)
         };
     }
 

@@ -292,44 +292,42 @@ export function CreateTrackEditDialog({
 									</div>
 									<Field>
 										<FieldLabel>Track Artist</FieldLabel>
-										<FieldDescription>
-											<form.Field
-												name="unsolvedTrackCredits"
-												children={(field) => {
-													if (
-														!field.state.value ||
-														field.state.value.length === 0 ||
-														partyList.length > 0
-													) {
-														return;
-													}
+										<form.Field
+											name="unsolvedTrackCredits"
+											children={(field) => {
+												if (
+													!field.state.value ||
+													field.state.value.length === 0 ||
+													partyList.length > 0
+												) {
+													return;
+												}
 
-													return (
-														<Alert variant="destructive">
-															<AlertCircleIcon />
-															<AlertTitle>Unsolved Album Credits</AlertTitle>
-															<AlertDescription>
-																<div>
-																	<ul className="list-disc ml-5">
-																		{field.state.value.map((c) => (
-																			<li key={c}>{c}</li>
-																		))}
-																	</ul>
-																</div>
-															</AlertDescription>
-															<AlertAction>
-																<Button
-																	size="xs"
-																	onClick={() => field.handleChange([])}
-																>
-																	Clear
-																</Button>
-															</AlertAction>
-														</Alert>
-													);
-												}}
-											/>
-										</FieldDescription>
+												return (
+													<Alert variant="destructive">
+														<AlertCircleIcon />
+														<AlertTitle>Unsolved Album Credits</AlertTitle>
+														<AlertDescription>
+															<div>
+																<ul className="list-disc ml-5">
+																	{field.state.value.map((c) => (
+																		<li key={c}>{c}</li>
+																	))}
+																</ul>
+															</div>
+														</AlertDescription>
+														<AlertAction>
+															<Button
+																size="xs"
+																onClick={() => field.handleChange([])}
+															>
+																Clear
+															</Button>
+														</AlertAction>
+													</Alert>
+												);
+											}}
+										/>
 
 										<PartyCombobox
 											parties={parties || []}

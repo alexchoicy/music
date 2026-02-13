@@ -289,7 +289,6 @@ namespace Music.Infrastructure.Migrations
                     StoragePath = table.Column<string>(type: "text", nullable: false),
                     OriginalBlake3Hash = table.Column<string>(type: "text", nullable: false),
                     CurrentBlake3Hash = table.Column<string>(type: "text", nullable: false),
-                    FileSHA1 = table.Column<string>(type: "text", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false),
                     FileObjectVariant = table.Column<int>(type: "integer", nullable: false),
                     SizeInBytes = table.Column<long>(type: "bigint", nullable: false),

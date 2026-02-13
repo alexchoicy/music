@@ -40,6 +40,9 @@ export type Action =
 				editTrack: Partial<UploadMusicState["tracks"][LocalID]>;
 				variantTrack: TrackVariant[];
 			};
+	  }
+	| {
+			type: "Reset";
 	  };
 
 const initialState: UploadMusicState = {
@@ -187,6 +190,8 @@ function reducer(state: UploadMusicState, action: Action): UploadMusicState {
 		}
 		case "ProcessUpload":
 			return action.payload;
+		case "Reset":
+			return initialState;
 		default:
 			return state;
 	}

@@ -3,12 +3,43 @@ using Music.Core.Models;
 using Music.Core.Services.Interfaces;
 using Amazon.S3;
 using Amazon.S3.Model;
+using Music.Infrastructure.Data;
+using Music.Core.Entities;
 
 namespace Music.Infrastructure.Services.Storage;
 
-public class S3ContentService(IOptions<StorageOptions> options, Content3Client client) : StorageService(options), IContentService
+public class S3ContentService(IOptions<StorageOptions> options, Content3Client client, AppDbContext context) : StorageService(options), IContentService
 {
     private readonly string bucket = options.Value.Content!.S3!.BucketName;
+
+    public async Task CompleteMultipartUploadAsync(List<Core.Models.CompleteMultipartUploadRequest> requests, CancellationToken cancellationToken = default)
+    {
+        foreach (Core.Models.CompleteMultipartUploadRequest request in requests)
+        {
+            FileObject fileObject = context.FileObjects.First(fo => fo.OriginalBlake3Hash == request.Blake3Id);
+
+            List<PartETag> partETags =
+                    request.Parts.Select(p => new PartETag
+                    {
+                        PartNumber = p.PartNumber,
+                        ETag = p.ETag
+                    }).ToList();
+
+            Amazon.S3.Model.CompleteMultipartUploadRequest completeRequest = new()
+            {
+                BucketName = bucket,
+                Key = fileObject.StoragePath,
+                UploadId = request.UploadId,
+                PartETags = partETags
+            };
+
+            await client.CompleteMultipartUploadAsync(completeRequest, cancellationToken);
+            fileObject.ProcessingStatus = Core.Enums.FileProcessingStatus.Completed;
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+        return;
+    }
 
     public async Task<MultipartUploadInfo> CreateMultipartUploadAsync(string objectPath, string mimeType, long fileSizeInBytes, CancellationToken cancellationToken = default)
     {

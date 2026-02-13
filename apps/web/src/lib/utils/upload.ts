@@ -21,13 +21,12 @@ export async function getImageFileRequestFromMetadata(
 	});
 	const ext = resolveExtension(file);
 
-	const { blake3Hash, sha1Hash } = await hashFileStream(file);
+	const { blake3Hash } = await hashFileStream(file);
 
 	const dimensions = await getDimensions(file);
 
 	const fileRequest: components["schemas"]["FileRequest"] = {
 		fileBlake3: blake3Hash,
-		fileSHA1: sha1Hash,
 		mimeType: metadata.format,
 		fileSizeInBytes: file.size,
 		container: metadata.format,
@@ -46,8 +45,6 @@ export async function getImageFileRequestFromMetadata(
 
 type ProcessedFileData = {
 	file: File;
-	blake3Hash: string;
-	sha1Hash: string;
 	metadata: IAudioMetadata;
 };
 
@@ -55,9 +52,9 @@ export async function processFile(
 	file: File,
 ): Promise<ProcessedFileData | null> {
 	try {
-		const { blake3Hash, sha1Hash } = await hashFileStream(file);
+		const { blake3Hash } = await hashFileStream(file);
 		const metadata = await parseBlob(file);
-		return { file, blake3Hash, sha1Hash, metadata };
+		return { file, blake3Hash, metadata };
 	} catch (error) {
 		console.error(`Error processing file ${file.name}:`, error);
 		return null;
@@ -94,7 +91,7 @@ export async function processDroppedFiles(
 	for (const fileData of fileDataResults) {
 		if (!fileData) continue;
 
-		const { file, blake3Hash, sha1Hash, metadata } = fileData;
+		const { file, blake3Hash, metadata } = fileData;
 
 		if (newState.trackVariants[blake3Hash]) {
 			skipped.push(file.name);
@@ -192,7 +189,6 @@ export async function processDroppedFiles(
 			source: "MORA",
 			fileRequest: {
 				fileBlake3: blake3Hash,
-				fileSHA1: sha1Hash,
 				mimeType: file.type,
 				fileSizeInBytes: file.size,
 				container: file.type,
@@ -309,4 +305,104 @@ export function buildMusicUploadRequest(state: UploadMusicState) {
 	}
 
 	return albums;
+}
+
+function splitFile(file: File, partSize: number) {
+	const parts = [];
+	let start = 0;
+	let partNumber = 1;
+
+	while (start < file.size) {
+		const end = Math.min(start + partSize, file.size);
+		parts.push({ partNumber, blob: file.slice(start, end) });
+		start = end;
+		partNumber++;
+	}
+	return parts;
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+function backoffDelay(attempt: number, baseMs = 400, maxMs = 10_000) {
+	const exp = Math.min(maxMs, baseMs * 2 ** (attempt - 1));
+	const jitter = Math.random() * 0.3 * exp;
+	return Math.floor(exp + jitter);
+}
+
+async function uploadPartWithRetry(
+	url: string,
+	blob: Blob,
+	partNumber: number,
+	maxRetries = 5,
+	signal: AbortSignal,
+) {
+	let attempt = 1;
+	while (true) {
+		try {
+			const res = await fetch(url, { method: "PUT", body: blob, signal });
+			if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+			const etag = res.headers.get("ETag");
+			if (!etag) throw new Error("Missing ETag (check S3 CORS ExposeHeaders)");
+
+			return { PartNumber: partNumber, ETag: etag };
+		} catch (err: any) {
+			if (signal?.aborted) throw err;
+
+			if (attempt >= maxRetries) {
+				throw new Error(
+					`Part ${partNumber} failed after ${maxRetries} attempts: ${err.message}`,
+				);
+			}
+
+			const delay = backoffDelay(attempt);
+			console.warn(
+				`Upload part ${partNumber} failed (attempt ${attempt}): ${err.message}. Retrying in ${delay}ms...`,
+			);
+			await sleep(delay);
+			attempt++;
+		}
+	}
+}
+
+export async function multipartFileRequest(
+	file: File,
+	uploadInfo: components["schemas"]["MultipartUploadInfo"],
+	signal: AbortSignal,
+	onPartDone?: (info: {
+		partNumber: number;
+		loaded: number;
+		total: number;
+	}) => void,
+): Promise<components["schemas"]["CompleteMultipartUploadPart"][]> {
+	const partSize = uploadInfo.partSizeInBytes;
+	const parts = splitFile(file, Number(partSize));
+
+	const results = new Array(parts.length);
+	let nextIndex = 0;
+
+	async function worker() {
+		while (true) {
+			const i = nextIndex++;
+			if (i >= parts.length) return;
+
+			const { partNumber, blob } = parts[i];
+			const url = uploadInfo.parts[partNumber - 1];
+
+			const out = await uploadPartWithRetry(
+				url.url,
+				blob,
+				partNumber,
+				5,
+				signal,
+			);
+
+			results[i] = out;
+			onPartDone?.({ partNumber, loaded: blob.size, total: blob.size });
+		}
+	}
+
+	await Promise.all(Array.from({ length: 4 }, () => worker()));
+
+	return results.sort((a, b) => a.PartNumber - b.PartNumber);
 }

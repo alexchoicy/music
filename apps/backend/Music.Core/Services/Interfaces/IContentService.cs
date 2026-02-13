@@ -9,4 +9,6 @@ public interface IContentService : IStorageService
         string mimeType,
         long fileSizeInBytes,
         CancellationToken cancellationToken = default);
+
+    public Task CompleteMultipartUploadAsync(List<CompleteMultipartUploadRequest> requests, CancellationToken cancellationToken = default);
 }

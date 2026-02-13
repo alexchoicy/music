@@ -438,10 +438,6 @@ namespace Music.Infrastructure.Migrations
                     b.Property<int>("FileObjectVariant")
                         .HasColumnType("integer");
 
-                    b.Property<string>("FileSHA1")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<decimal?>("FrameRate")
                         .HasColumnType("numeric");
 

@@ -34,3 +34,17 @@ public sealed record MultipartUploadInfo
     public required long PartSizeInBytes { get; init; }
     public required IReadOnlyList<MultipartUploadPartInfo> Parts { get; init; }
 }
+
+
+public sealed class CompleteMultipartUploadRequest
+{
+    public required string Blake3Id { get; init; }
+    public required string UploadId { get; init; }
+    public required List<CompleteMultipartUploadPart> Parts { get; init; }
+}
+
+public sealed class CompleteMultipartUploadPart
+{
+    public required int PartNumber { get; init; }
+    public required string ETag { get; init; }
+}

@@ -17,8 +17,6 @@ public class FileObject
     public required string OriginalBlake3Hash { get; set; } // I have this idea because this file will be changed with metadata after upload
     public required string CurrentBlake3Hash { get; set; }
 
-    public required string FileSHA1 { get; set; } // Bro becuase B2 only support this
-
     public required FileObjectType Type { get; set; }
 
     public required FileObjectVariant FileObjectVariant { get; set; }

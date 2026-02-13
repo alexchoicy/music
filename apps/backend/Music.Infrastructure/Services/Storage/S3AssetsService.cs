@@ -10,7 +10,7 @@ public class S3AssetsService(IOptions<StorageOptions> options, AssetsS3Client cl
 {
     private readonly string bucket = options.Value.Assets!.S3!.BucketName;
 
-    public string CreateUploadUrlAsync(string objectPath, string mimeType, string sha1, CancellationToken cancellationToken = default)
+    public string CreateUploadUrlAsync(string objectPath, string mimeType, CancellationToken cancellationToken = default)
     {
 
         GetPreSignedUrlRequest request = new()
@@ -21,8 +21,6 @@ public class S3AssetsService(IOptions<StorageOptions> options, AssetsS3Client cl
             ContentType = mimeType,
             Expires = DateTime.UtcNow.AddMinutes(30), // I dunno
         };
-
-        request.Headers["x-amz-checksum-sha1"] = sha1;
 
         string url = client.GetPreSignedURL(request);
         return url;

@@ -56,7 +56,6 @@ public class StorageService(IOptions<StorageOptions> options) : IStorageService
             StoragePath = storagePath,
             OriginalBlake3Hash = model.FileBlake3,
             CurrentBlake3Hash = model.FileBlake3,
-            FileSHA1 = model.FileSHA1,
             Type = FileObjectType.Original,
             SizeInBytes = model.FileSizeInBytes,
             MimeType = model.MimeType,

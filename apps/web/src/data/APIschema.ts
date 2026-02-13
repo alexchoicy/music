@@ -210,6 +210,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/uploads/complete-multipart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CompleteMultipartUploadRequest"][];
+                    "text/json": components["schemas"]["CompleteMultipartUploadRequest"][];
+                    "application/*+json": components["schemas"]["CompleteMultipartUploadRequest"][];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -247,6 +288,16 @@ export interface components {
         };
         /** @enum {unknown} */
         AlbumType: "Album" | "Single" | "Compilation" | "Live" | "Soundtrack" | "Remix" | "Other";
+        CompleteMultipartUploadPart: {
+            /** Format: int32 */
+            partNumber: number | string;
+            eTag: string;
+        };
+        CompleteMultipartUploadRequest: {
+            blake3Id: string;
+            uploadId: string;
+            parts: components["schemas"]["CompleteMultipartUploadPart"][];
+        };
         CreateAlbumImageUploadItemResult: {
             blake3Id: string;
             fileName: string;
@@ -300,7 +351,6 @@ export interface components {
         };
         FileRequest: {
             fileBlake3: string;
-            fileSHA1: string;
             mimeType: string;
             /** Format: int64 */
             fileSizeInBytes: number | string;
