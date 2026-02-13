@@ -45,6 +45,7 @@ export async function getImageFileRequestFromMetadata(
 
 type ProcessedFileData = {
 	file: File;
+	blake3Hash: string;
 	metadata: IAudioMetadata;
 };
 
@@ -346,18 +347,20 @@ async function uploadPartWithRetry(
 			if (!etag) throw new Error("Missing ETag (check S3 CORS ExposeHeaders)");
 
 			return { PartNumber: partNumber, ETag: etag };
-		} catch (err: any) {
-			if (signal?.aborted) throw err;
+		} catch (error: unknown) {
+			if (signal?.aborted) throw error;
+
+			const message = error instanceof Error ? error.message : String(error);
 
 			if (attempt >= maxRetries) {
 				throw new Error(
-					`Part ${partNumber} failed after ${maxRetries} attempts: ${err.message}`,
+					`Part ${partNumber} failed after ${maxRetries} attempts: ${message}`,
 				);
 			}
 
 			const delay = backoffDelay(attempt);
 			console.warn(
-				`Upload part ${partNumber} failed (attempt ${attempt}): ${err.message}. Retrying in ${delay}ms...`,
+				`Upload part ${partNumber} failed (attempt ${attempt}): ${message}. Retrying in ${delay}ms...`,
 			);
 			await sleep(delay);
 			attempt++;

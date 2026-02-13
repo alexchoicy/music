@@ -55,7 +55,7 @@ function CreatePageContent() {
 		const requestJson = buildMusicUploadRequest(state);
 
 		const albumCoverMap = Object.fromEntries(
-			Object.entries(state.albumCovers).map(([LocalID, file]) => [
+			Object.entries(state.albumCovers).map(([_, file]) => [
 				file.file.fileBlake3,
 				file.localFile,
 			]),

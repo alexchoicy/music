@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircleIcon } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import PartyCombobox from "@/components/combobox/partyCombobox";
 import {
 	Alert,
@@ -190,6 +190,8 @@ export function CreateTrackEditDialog({
 		}
 	}, [form, track, parties, disc, variantTracks]);
 
+	const editForm = useId();
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="top-[calc(50%+1.25rem*var(--nested-dialogs))] scale-[calc(1-0.1*var(--nested-dialogs))]  data-nested-dialog-open:after:inset-0 data-nested-dialog-open:after:rounded-[inherit] data-nested-dialog-open:after:bg-black/5 ">
@@ -198,7 +200,7 @@ export function CreateTrackEditDialog({
 				</DialogHeader>
 				<div className="no-scrollbar -mx-4 max-h-[50vh] overflow-y-auto p-4">
 					<form
-						id="edit-track-form"
+						id={editForm}
 						onSubmit={(e) => {
 							e.preventDefault();
 							form.handleSubmit();
@@ -499,7 +501,7 @@ export function CreateTrackEditDialog({
 																						type: "RemoveVariant",
 																						payload: {
 																							variantId: variantTrack.id,
-																							trackId: trackId!,
+																							trackId: trackId || "",
 																						},
 																					})
 																				}
@@ -530,7 +532,7 @@ export function CreateTrackEditDialog({
 							</Button>
 						}
 					/>
-					<Button type="submit" form="edit-track-form">
+					<Button type="submit" form={editForm}>
 						Submit
 					</Button>
 				</DialogFooter>
