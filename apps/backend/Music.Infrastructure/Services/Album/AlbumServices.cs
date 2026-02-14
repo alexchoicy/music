@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
+using Music.Core.Exceptions;
 using Music.Core.Enums;
 using Music.Core.Models;
 using Music.Core.Services.Interfaces;
@@ -16,6 +17,213 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
     private readonly IContentService _contentService = contentService;
     private readonly IAssetsService _assetsService = assetsService;
     private readonly ILogger<AlbumService> _logger = logger;
+
+    public async Task<AlbumDetailsModel> GetByIdAsync(
+        int albumId,
+        CancellationToken cancellationToken = default)
+    {
+        Core.Entities.Album? album = await _dbContext.Albums
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(a => a.Credits)
+                .ThenInclude(c => c.Party)
+            .Include(a => a.Discs)
+                .ThenInclude(d => d.Tracks)
+                .ThenInclude(at => at.Track!)
+                .ThenInclude(t => t.Credits)
+                .ThenInclude(tc => tc.Party)
+            .Include(a => a.Discs)
+                .ThenInclude(d => d.Tracks)
+                .ThenInclude(at => at.Track!)
+                .ThenInclude(t => t.Variants)
+                .ThenInclude(v => v.Sources)
+                .ThenInclude(s => s.File!)
+                .ThenInclude(f => f.FileObjects)
+            .FirstOrDefaultAsync(a => a.Id == albumId, cancellationToken);
+
+        if (album is null)
+            throw new EntityNotFoundException($"Album {albumId} not found");
+
+        List<AlbumDiscDetailsModel> discs = album.Discs
+            .OrderBy(d => d.DiscNumber)
+            .Select(d => new AlbumDiscDetailsModel
+            {
+                DiscNumber = d.DiscNumber,
+                Subtitle = d.Subtitle,
+                Tracks = d.Tracks
+                    .OrderBy(at => at.TrackNumber)
+                    .Select(at =>
+                    {
+                        Track track = at.Track!;
+
+                        List<TrackVariantDetailsModel> variants = track.Variants
+                            .OrderBy(v => v.VariantType)
+                            .Select(v => new TrackVariantDetailsModel
+                            {
+                                VariantType = v.VariantType,
+                                Sources = v.Sources
+                                    .OrderByDescending(s => s.Pinned)
+                                    .ThenBy(s => s.Rank)
+                                     .Select(s => new TrackSourceDetailsModel
+                                     {
+                                         Source = s.Source,
+                                         Rank = s.Rank,
+                                         Pinned = s.Pinned,
+                                         File = BuildTrackSourceFiles(s.File)
+                                     })
+                                     .ToList()
+                            })
+                             .ToList();
+
+                        return new AlbumTrackDetailsModel
+                        {
+                            TrackId = track.Id,
+                            TrackNumber = at.TrackNumber,
+                            Title = track.Title,
+                            DurationInMs = track.DurationInMs,
+                            Credits = track.Credits
+                                .Where(c => c.Party is not null)
+                                .OrderBy(c => c.Party!.Name)
+                                .Select(c => new TrackPartyCreditModel
+                                {
+                                    PartyId = c.PartyId,
+                                    Name = c.Party!.Name,
+                                    Type = c.Party!.Type,
+                                    CreditType = c.Credit,
+                                })
+                                .ToList(),
+                            TrackVariants = variants,
+                        };
+                    })
+                    .ToList()
+            })
+            .ToList();
+
+        int totalTrackCount = discs.Sum(d => d.Tracks.Count);
+        int totalDurationInMs = discs.SelectMany(d => d.Tracks).Sum(t => t.DurationInMs);
+
+        return new AlbumDetailsModel
+        {
+            AlbumId = album.Id,
+            Title = album.Title,
+            Type = album.Type,
+            ReleaseDate = album.ReleaseDate,
+            TotalTrackCount = totalTrackCount,
+            TotalDurationInMs = totalDurationInMs,
+            Credits = album.Credits
+                .Select(c => new AlbumPartyCreditModel
+                {
+                    PartyId = c.PartyId,
+                    Name = c.Party!.Name,
+                    Type = c.Party!.Type,
+                    CreditType = c.Credit,
+                })
+                .ToList(),
+            Discs = discs,
+        };
+    }
+
+    private static TrackSourceFileVariantsModel BuildTrackSourceFiles(StoredFile? storedFile)
+    {
+        if (storedFile?.FileObjects is null)
+            throw new InvalidOperationException("Track source file is missing file objects");
+
+        FileObject? original = storedFile.FileObjects
+            .FirstOrDefault(fo => fo.FileObjectVariant == FileObjectVariant.Original);
+
+        if (original is null)
+            throw new InvalidOperationException("Track source file is missing Original file object variant");
+
+        FileObject? opus96 = storedFile.FileObjects
+            .FirstOrDefault(fo => fo.FileObjectVariant == FileObjectVariant.Opus96);
+
+        return new TrackSourceFileVariantsModel
+        {
+            Original = ToDetailsModel(original),
+            Opus96 = opus96 is null ? null : ToDetailsModel(opus96),
+        };
+    }
+
+    private static FileObjectDetailsModel ToDetailsModel(FileObject fo)
+    {
+        return new FileObjectDetailsModel
+        {
+            Id = fo.Id,
+            ProcessingStatus = fo.ProcessingStatus,
+            StoragePath = fo.StoragePath,
+            Type = fo.Type,
+            FileObjectVariant = fo.FileObjectVariant,
+            SizeInBytes = fo.SizeInBytes,
+            MimeType = fo.MimeType,
+            Container = fo.Container,
+            Extension = fo.Extension,
+            Codec = fo.Codec,
+            Width = fo.Width,
+            Height = fo.Height,
+            AudioSampleRate = fo.AudioSampleRate,
+            Bitrate = fo.Bitrate,
+            FrameRate = fo.FrameRate,
+            DurationInMs = fo.DurationInMs,
+            OriginalFileName = fo.OriginalFileName,
+            CreatedAt = fo.CreatedAt,
+            UpdatedAt = fo.UpdatedAt,
+        };
+    }
+
+    public async Task<IReadOnlyList<AlbumListItemModel>> GetAllForListAsync(
+        CancellationToken cancellationToken = default)
+    {
+        List<Core.Entities.Album> albums = await _dbContext.Albums
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(a => a.Credits)
+                .ThenInclude(c => c.Party)
+            .Include(a => a.Discs)
+                .ThenInclude(d => d.Tracks)
+                .ThenInclude(at => at.Track)
+            .Include(a => a.Images)
+                .ThenInclude(i => i.File)
+                .ThenInclude(f => f!.FileObjects)
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        return albums
+            .Select(a =>
+            {
+
+                return new AlbumListItemModel
+                {
+                    AlbumId = a.Id,
+                    Title = a.Title,
+                    Description = a.Description,
+                    Type = a.Type,
+                    ReleaseDate = a.ReleaseDate,
+                    CreatedAt = a.CreatedAt,
+                    UpdatedAt = a.UpdatedAt,
+                    CoverVariants = a.Images.FirstOrDefault().File?.FileObjects
+                        .Select(fo => new AlbumCoverVariantModel
+                        {
+                            Variant = fo.FileObjectVariant,
+                            Url = _assetsService.GetUrl(fo.StoragePath)
+                        })
+                        .ToList() ?? [],
+                    Artists = a.Credits
+                        .Where(c => c.Credit == AlbumCreditType.Artist)
+                        .OrderBy(c => c.Party!.Name)
+                        .Select(c => new AlbumListArtistModel
+                        {
+                            PartyId = c.PartyId,
+                            Name = c.Party!.Name,
+                        })
+                        .ToList(),
+                    TrackCount = a.Discs.Sum(d => d.Tracks.Count),
+                    TotalDurationInMs = a.Discs
+                        .SelectMany(d => d.Tracks)
+                        .Sum(at => at.Track?.DurationInMs ?? 0),
+                };
+            })
+            .ToList();
+    }
 
     public async Task<IReadOnlyList<CreateAlbumResult>> CreateAlbumAsync(
         IReadOnlyList<CreateAlbumModel> albums,

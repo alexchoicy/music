@@ -1,5 +1,22 @@
+import { queryOptions } from "@tanstack/react-query";
 import type { components } from "@/data/APIschema";
 import { $APIFetch } from "../APIFetchClient";
+
+export const albumQueries = {
+	list: () =>
+		queryOptions({
+			queryKey: ["albums"],
+			queryFn: async () => {
+				const result = await $APIFetch<
+					components["schemas"]["AlbumListItemModel"][]
+				>("/albums", {
+					method: "GET",
+				});
+				if (!result.ok) return [];
+				return result.data;
+			},
+		}),
+};
 
 export const albumMutations = {
 	create: {

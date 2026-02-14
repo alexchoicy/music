@@ -6,4 +6,6 @@ public interface IAssetsService : IStorageService
     string objectPath,
     string mimeType,
     CancellationToken cancellationToken = default);
+
+    public string GetUrl(string objectPath, CancellationToken cancellationToken = default);
 }

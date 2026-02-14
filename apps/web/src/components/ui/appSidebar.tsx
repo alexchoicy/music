@@ -43,7 +43,7 @@ export function AppSidebar() {
 						<SidebarMenuItem>
 							<SidebarMenuButton
 								render={
-									<Link to="/">
+									<Link to="/albums">
 										<Album />
 										Albums
 									</Link>

@@ -10,13 +10,34 @@ using Music.Api.Mappers;
 namespace Music.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("albums")]
 public class AlbumController(IAlbumService albumService) : ControllerBase
 {
     private readonly IAlbumService _albumService = albumService;
 
+    [HttpGet("{id:int}")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(AlbumDetailsModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById(
+        [FromRoute][Required] int id,
+        CancellationToken cancellationToken)
+    {
+        AlbumDetailsModel album = await _albumService.GetByIdAsync(id, cancellationToken);
+        return Ok(album);
+    }
+
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(IReadOnlyList<AlbumListItemModel>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllForList(CancellationToken cancellationToken)
+    {
+        IReadOnlyList<AlbumListItemModel> list = await _albumService.GetAllForListAsync(cancellationToken);
+        return Ok(list);
+    }
+
     [HttpPost]
-    [Authorize]
     [ProducesResponseType(typeof(IReadOnlyList<CreateAlbumResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(IReadOnlyList<CreateAlbumResult>), StatusCodes.Status207MultiStatus)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

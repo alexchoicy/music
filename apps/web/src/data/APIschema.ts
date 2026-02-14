@@ -4,6 +4,52 @@
  */
 
 export interface paths {
+    "/albums/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AlbumDetailsModel"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/albums": {
         parameters: {
             query?: never;
@@ -11,7 +57,26 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AlbumListItemModel"][];
+                    };
+                };
+            };
+        };
         put?: never;
         post: {
             parameters: {
@@ -117,6 +182,78 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/{id}/play": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Found */
+                302: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -255,6 +392,10 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AlbumCoverVariantModel: {
+            variant: components["schemas"]["FileObjectVariant"];
+            url: string;
+        };
         AlbumCreditRequest: {
             /** Format: int32 */
             partyId: number | string;
@@ -262,6 +403,26 @@ export interface components {
         };
         /** @enum {unknown} */
         AlbumCreditType: "Artist";
+        AlbumDetailsModel: {
+            /** Format: int32 */
+            albumId: number | string;
+            title: string;
+            type: components["schemas"]["AlbumType"];
+            /** Format: date-time */
+            releaseDate?: null | string;
+            /** Format: int32 */
+            totalTrackCount: number | string;
+            /** Format: int32 */
+            totalDurationInMs: number | string;
+            credits: components["schemas"]["AlbumPartyCreditModel"][];
+            discs: components["schemas"]["AlbumDiscDetailsModel"][];
+        };
+        AlbumDiscDetailsModel: {
+            /** Format: int32 */
+            discNumber: number | string;
+            subtitle?: string;
+            tracks: components["schemas"]["AlbumTrackDetailsModel"][];
+        };
         AlbumDiscRequest: {
             /** Format: int32 */
             discNumber: number | string;
@@ -272,6 +433,48 @@ export interface components {
             file: components["schemas"]["FileRequest"];
             description?: string;
             fileCroppedArea?: null | components["schemas"]["FileCroppedArea"];
+        };
+        AlbumListArtistModel: {
+            /** Format: int32 */
+            partyId: number | string;
+            name: string;
+        };
+        AlbumListItemModel: {
+            /** Format: int32 */
+            albumId: number | string;
+            title: string;
+            description?: string;
+            type: components["schemas"]["AlbumType"];
+            /** Format: date-time */
+            releaseDate?: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            coverVariants?: components["schemas"]["AlbumCoverVariantModel"][];
+            artists: components["schemas"]["AlbumListArtistModel"][];
+            /** Format: int32 */
+            trackCount?: number | string;
+            /** Format: int32 */
+            totalDurationInMs?: number | string;
+        };
+        AlbumPartyCreditModel: {
+            /** Format: int32 */
+            partyId: number | string;
+            name: string;
+            type: components["schemas"]["PartyType"];
+            creditType: components["schemas"]["AlbumCreditType"];
+        };
+        AlbumTrackDetailsModel: {
+            /** Format: int32 */
+            trackId: number | string;
+            /** Format: int32 */
+            trackNumber: number | string;
+            title: string;
+            /** Format: int32 */
+            durationInMs: number | string;
+            credits: components["schemas"]["TrackPartyCreditModel"][];
+            trackVariants: components["schemas"]["TrackVariantDetailsModel"][];
         };
         AlbumTrackRequest: {
             /** Format: int32 */
@@ -349,6 +552,40 @@ export interface components {
             /** Format: int32 */
             y: number | string;
         };
+        FileObjectDetailsModel: {
+            /** Format: uuid */
+            id: string;
+            processingStatus: components["schemas"]["FileProcessingStatus"];
+            storagePath: string;
+            type: components["schemas"]["FileObjectType"];
+            fileObjectVariant: components["schemas"]["FileObjectVariant"];
+            /** Format: int64 */
+            sizeInBytes: number | string;
+            mimeType: string;
+            container: string;
+            extension: string;
+            codec?: null | string;
+            /** Format: int32 */
+            width?: null | number | string;
+            /** Format: int32 */
+            height?: null | number | string;
+            /** Format: int32 */
+            audioSampleRate?: null | number | string;
+            /** Format: int32 */
+            bitrate?: null | number | string;
+            /** Format: double */
+            frameRate?: null | number | string;
+            /** Format: int32 */
+            durationInMs?: null | number | string;
+            originalFileName: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        FileObjectType: number;
+        FileObjectVariant: number;
+        FileProcessingStatus: number;
         FileRequest: {
             fileBlake3: string;
             mimeType: string;
@@ -425,11 +662,33 @@ export interface components {
         };
         /** @enum {unknown} */
         TrackCreditType: "Artist";
+        TrackPartyCreditModel: {
+            /** Format: int32 */
+            partyId: number | string;
+            name: string;
+            type: components["schemas"]["PartyType"];
+            creditType: components["schemas"]["TrackCreditType"];
+        };
         /** @enum {unknown} */
         TrackSource: "MORA" | "OTOTOY" | "CD" | "BluRay" | "Vinyl" | "YouTube" | "SoundCloud" | "OTHER";
+        TrackSourceDetailsModel: {
+            source: components["schemas"]["TrackSource"];
+            /** Format: int32 */
+            rank: number | string;
+            pinned: boolean;
+            file: components["schemas"]["TrackSourceFileVariantsModel"];
+        };
+        TrackSourceFileVariantsModel: {
+            original: components["schemas"]["FileObjectDetailsModel"];
+            opus96?: null | components["schemas"]["FileObjectDetailsModel"];
+        };
         TrackSourceRequest: {
             source: components["schemas"]["TrackSource"];
             file: components["schemas"]["FileRequest"];
+        };
+        TrackVariantDetailsModel: {
+            variantType: components["schemas"]["TrackVariantType"];
+            sources: components["schemas"]["TrackSourceDetailsModel"][];
         };
         TrackVariantRequest: {
             variantType: components["schemas"]["TrackVariantType"];

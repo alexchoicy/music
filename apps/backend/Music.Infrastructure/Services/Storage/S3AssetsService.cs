@@ -25,6 +25,11 @@ public class S3AssetsService(IOptions<StorageOptions> options, AssetsS3Client cl
         string url = client.GetPreSignedURL(request);
         return url;
     }
+
+    public string GetUrl(string objectPath, CancellationToken cancellationToken = default)
+    {
+        return $"{options.Value.Assets.S3!.AccessURL}/{objectPath}";
+    }
 }
 
 
