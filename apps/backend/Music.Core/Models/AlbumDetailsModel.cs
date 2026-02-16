@@ -75,8 +75,7 @@ public sealed class FileObjectDetailsModel
 {
     public required Guid Id { get; init; }
 
-    public required FileProcessingStatus ProcessingStatus { get; init; }
-    public required string StoragePath { get; init; } = string.Empty;
+    public required string Url { get; init; }
 
     public required FileObjectType Type { get; init; }
     public required FileObjectVariant FileObjectVariant { get; init; }

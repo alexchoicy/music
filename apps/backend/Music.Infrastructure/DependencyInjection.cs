@@ -14,6 +14,7 @@ using Music.Infrastructure.Services.Party;
 using Music.Infrastructure.Services.Storage;
 using Music.Infrastructure.Entities;
 using Amazon.S3;
+using Music.Infrastructure.Services.Files;
 
 namespace Music.Infrastructure;
 
@@ -49,13 +50,12 @@ public static class DependencyInjection
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPartyService, PartyService>();
         services.AddScoped<IAlbumService, AlbumService>();
+        services.AddScoped<IFileUrlService, FileUrlService>();
 
         StorageOptions storage = configuration
             .GetSection("Storage")
             .Get<StorageOptions>()
             ?? throw new InvalidOperationException("Storage config missing");
-
-        Console.WriteLine($"Storage Provider - Content: {storage.Content.Provider}, Assets: {storage.Assets.Provider}, {storage.Content.Provider == StorageProvider.S3}");
 
         if (storage.Assets.Provider == StorageProvider.S3)
         {

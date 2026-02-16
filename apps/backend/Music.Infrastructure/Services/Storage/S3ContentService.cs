@@ -5,10 +5,11 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Music.Infrastructure.Data;
 using Music.Core.Entities;
+using Microsoft.Extensions.Configuration;
 
 namespace Music.Infrastructure.Services.Storage;
 
-public class S3ContentService(IOptions<StorageOptions> options, Content3Client client, AppDbContext context) : StorageService(options), IContentService
+public class S3ContentService(IOptions<StorageOptions> options, Content3Client client, AppDbContext context, IOptions<BaseOptions> baseOptions) : StorageService(options), IContentService
 {
     private readonly string bucket = options.Value.Content!.S3!.BucketName;
 
@@ -85,6 +86,25 @@ public class S3ContentService(IOptions<StorageOptions> options, Content3Client c
             PartSizeInBytes = partSizeInBytes,
             Parts = parts
         };
+    }
+
+    public string GetPlayPresignedUrlAsync(string objectPath, CancellationToken cancellationToken = default)
+    {
+        GetPreSignedUrlRequest presignRequest = new()
+        {
+            BucketName = bucket,
+            Key = objectPath,
+            Verb = HttpVerb.GET,
+            Expires = DateTime.UtcNow.AddMinutes(30)
+        };
+
+        string url = client.GetPreSignedURL(presignRequest);
+        return url;
+    }
+
+    public string GetUrl(Guid id)
+    {
+        return $"{baseOptions.Value.ApiUrl}/files/{id}";
     }
 }
 

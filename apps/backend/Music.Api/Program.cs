@@ -51,6 +51,7 @@ builder.Services.AddCors(options =>
 // Config
 // call with "IOptions<StorageOptions>" injection
 builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Storage"));
+builder.Services.Configure<BaseOptions>(builder.Configuration.GetSection("Base"));
 
 ConfigValidation.Validation(builder.Configuration);
 // Checked in Validation

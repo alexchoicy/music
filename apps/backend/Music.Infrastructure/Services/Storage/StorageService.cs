@@ -22,18 +22,18 @@ public class StorageService(IOptions<StorageOptions> options) : IStorageService
         return mimeType.Split('/').LastOrDefault() ?? string.Empty;
     }
 
-    public string GetStoragePath(MediaFolderOptions variant, string blake3Hash, string extension)
+    public string GetStoragePath(MediaFolderOptions variant, string blake3Hash, string mimeType)
     {
         if (string.IsNullOrWhiteSpace(blake3Hash))
             throw new ArgumentException("Value cannot be null or empty.", nameof(blake3Hash));
         string folder = variant.GetFolder(_options.MediaFolders).TrimEnd('/');
 
-        if (string.IsNullOrWhiteSpace(extension))
+        if (string.IsNullOrWhiteSpace(mimeType))
         {
             return $"{folder}/{blake3Hash}";
         }
 
-        string ext = GetExtensionFromMimeType(extension);
+        string ext = GetExtensionFromMimeType(mimeType);
 
         return $"{folder}/{blake3Hash}.{ext}";
     }

@@ -6,7 +6,7 @@ namespace Music.Core.Services.Interfaces;
 
 public interface IStorageService
 {
-    public string GetStoragePath(MediaFolderOptions variant, string blake3Hash, string extension);
+    public string GetStoragePath(MediaFolderOptions variant, string blake3Hash, string mimeType);
     public (StoredFile storedFile, FileObject fileObject) CreateStoredFileWithObject(
         CreateFileModel model,
         FileType fileType,

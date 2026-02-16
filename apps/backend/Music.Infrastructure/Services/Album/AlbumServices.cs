@@ -123,7 +123,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         };
     }
 
-    private static TrackSourceFileVariantsModel BuildTrackSourceFiles(StoredFile? storedFile)
+    private TrackSourceFileVariantsModel BuildTrackSourceFiles(StoredFile? storedFile)
     {
         if (storedFile?.FileObjects is null)
             throw new InvalidOperationException("Track source file is missing file objects");
@@ -144,13 +144,12 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         };
     }
 
-    private static FileObjectDetailsModel ToDetailsModel(FileObject fo)
+    private FileObjectDetailsModel ToDetailsModel(FileObject fo)
     {
         return new FileObjectDetailsModel
         {
             Id = fo.Id,
-            ProcessingStatus = fo.ProcessingStatus,
-            StoragePath = fo.StoragePath,
+            Url = _contentService.GetUrl(fo.Id),
             Type = fo.Type,
             FileObjectVariant = fo.FileObjectVariant,
             SizeInBytes = fo.SizeInBytes,
