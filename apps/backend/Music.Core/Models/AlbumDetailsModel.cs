@@ -12,6 +12,8 @@ public sealed class AlbumDetailsModel
     public required int TotalTrackCount { get; init; }
     public required int TotalDurationInMs { get; init; }
 
+    public string? CoverImageUrl { get; init; }
+
     public required IReadOnlyList<AlbumPartyCreditModel> Credits { get; init; } = [];
     public required IReadOnlyList<AlbumDiscDetailsModel> Discs { get; init; } = [];
 }

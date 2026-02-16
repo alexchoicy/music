@@ -16,6 +16,19 @@ export const albumQueries = {
 				return result.data;
 			},
 		}),
+	item: (albumId: string) =>
+		queryOptions({
+			queryKey: ["albums", albumId],
+			queryFn: async () => {
+				const result = await $APIFetch<
+					components["schemas"]["AlbumDetailsModel"]
+				>(`/albums/${albumId}`, {
+					method: "GET",
+				});
+				if (!result.ok) throw new Error("Failed to fetch album");
+				return result.data;
+			},
+		}),
 };
 
 export const albumMutations = {

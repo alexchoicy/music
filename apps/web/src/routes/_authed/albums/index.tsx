@@ -12,18 +12,24 @@ export const Route = createFileRoute("/_authed/albums/")({
 	},
 });
 
+//HEY COOL
 function RouteComponent() {
-	const { data: albums } = useSuspenseQuery(albumQueries.list());
-
 	return (
 		<AppLayout>
 			<Suspense fallback={<div>Loading...</div>}>
-				<div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-					{albums.map((album) => (
-						<AlbumCard key={album.albumId} album={album} />
-					))}
-				</div>
+				<AlbumsContent />
 			</Suspense>
 		</AppLayout>
+	);
+}
+
+function AlbumsContent() {
+	const { data: albums } = useSuspenseQuery(albumQueries.list());
+	return (
+		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+			{albums.map((album) => (
+				<AlbumCard key={album.albumId} album={album} />
+			))}
+		</div>
 	);
 }

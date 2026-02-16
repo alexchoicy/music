@@ -39,6 +39,9 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
                 .ThenInclude(v => v.Sources)
                 .ThenInclude(s => s.File!)
                 .ThenInclude(f => f.FileObjects)
+            .Include(a => a.Images)
+                .ThenInclude(i => i.File)
+                .ThenInclude(f => f!.FileObjects)
             .FirstOrDefaultAsync(a => a.Id == albumId, cancellationToken);
 
         if (album is null)
@@ -102,11 +105,20 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         int totalTrackCount = discs.Sum(d => d.Tracks.Count);
         int totalDurationInMs = discs.SelectMany(d => d.Tracks).Sum(t => t.DurationInMs);
 
+        List<AlbumCoverVariantModel>? coverImageUrl = album.Images.FirstOrDefault()?.File?.FileObjects
+            .Select(file => new AlbumCoverVariantModel
+            {
+                Variant = file.FileObjectVariant,
+                Url = _assetsService.GetUrl(file.StoragePath)
+            })
+            .ToList() ?? [];
+
         return new AlbumDetailsModel
         {
             AlbumId = album.Id,
             Title = album.Title,
             Type = album.Type,
+            CoverImageUrl = coverImageUrl[0].Url ?? null,
             ReleaseDate = album.ReleaseDate,
             TotalTrackCount = totalTrackCount,
             TotalDurationInMs = totalDurationInMs,
@@ -199,11 +211,11 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
                     ReleaseDate = a.ReleaseDate,
                     CreatedAt = a.CreatedAt,
                     UpdatedAt = a.UpdatedAt,
-                    CoverVariants = a.Images.FirstOrDefault().File?.FileObjects
-                        .Select(fo => new AlbumCoverVariantModel
+                    CoverVariants = a.Images.FirstOrDefault()?.File?.FileObjects
+                        .Select(file => new AlbumCoverVariantModel
                         {
-                            Variant = fo.FileObjectVariant,
-                            Url = _assetsService.GetUrl(fo.StoragePath)
+                            Variant = file.FileObjectVariant,
+                            Url = _assetsService.GetUrl(file.StoragePath)
                         })
                         .ToList() ?? [],
                     Artists = a.Credits

@@ -188,43 +188,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/files/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": string;
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/files/{id}/play": {
         parameters: {
             query?: never;
@@ -414,6 +377,7 @@ export interface components {
             totalTrackCount: number | string;
             /** Format: int32 */
             totalDurationInMs: number | string;
+            coverImageUrl?: null | string;
             credits: components["schemas"]["AlbumPartyCreditModel"][];
             discs: components["schemas"]["AlbumDiscDetailsModel"][];
         };
@@ -555,8 +519,7 @@ export interface components {
         FileObjectDetailsModel: {
             /** Format: uuid */
             id: string;
-            processingStatus: components["schemas"]["FileProcessingStatus"];
-            storagePath: string;
+            url: string;
             type: components["schemas"]["FileObjectType"];
             fileObjectVariant: components["schemas"]["FileObjectVariant"];
             /** Format: int64 */
@@ -585,7 +548,6 @@ export interface components {
         };
         FileObjectType: number;
         FileObjectVariant: number;
-        FileProcessingStatus: number;
         FileRequest: {
             fileBlake3: string;
             mimeType: string;

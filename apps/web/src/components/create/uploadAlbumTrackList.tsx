@@ -2,7 +2,6 @@ import { Clock } from "lucide-react";
 import { useMusicUploadState } from "@/contexts/uploadMusicContext";
 import { UploadAlbumTrackListItem } from "./uploadAlbumTrackListItem";
 
-// uploadAlbumTrackList.tsx - Lookup from state
 type UploadAlbumTrackListProps = {
 	discIds: string[];
 	openTrackEdit: (trackId: string) => void;

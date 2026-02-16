@@ -10,7 +10,7 @@ type AlbumCardProps = {
 export function AlbumCard({ album }: AlbumCardProps) {
 	return (
 		<Link to="/albums/$id" params={{ id: album.albumId.toString() }}>
-			<Card className="relative mx-auto w-full max-w-70 pt-0">
+			<Card className="relative mx-auto w-full max-w-96 pt-0">
 				{album.coverVariants ? (
 					<div className="relative aspect-square overflow-hidden bg-muted">
 						<img
@@ -29,7 +29,7 @@ export function AlbumCard({ album }: AlbumCardProps) {
 					<h3 className="line-clamp-2 text-balance font-semibold leading-tight">
 						{album.title}
 					</h3>
-					<p className="text-sm text-muted-foreground line-clamp-1">
+					<p className="text-sm text-muted-foreground line-clamp-3">
 						{album.artists.map((artist) => artist.name).join(", ")}
 					</p>
 					<p className="text-xs text-muted-foreground">
