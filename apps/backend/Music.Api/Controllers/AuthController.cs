@@ -52,4 +52,19 @@ public class AuthController(IAuthService authService, IConfiguration configurati
             },
         });
     }
+
+    [HttpGet]
+    [Authorize]
+    public ActionResult<string> GetProtectedResource()
+    {
+        return Ok();
+    }
+
+    [HttpPost("logout")]
+    [Authorize]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete(AuthCookieName);
+        return Ok();
+    }
 }

@@ -1,4 +1,3 @@
-import { redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 
@@ -12,12 +11,11 @@ const getServerHeaders = createServerFn().handler(async () => {
 	return getRequestHeader("cookie");
 });
 
-const isBrowser = typeof window !== "undefined";
+const isBrowser = !import.meta.env.SSR;
 
 export async function $APIFetch<T>(
 	endpoint: string,
 	options: RequestInit = {},
-	authRedirect: boolean = true,
 ): Promise<APIFetchResult<T>> {
 	const url = `${API_Endpoint}${endpoint}`;
 	const cookieString = isBrowser ? undefined : await getServerHeaders();
@@ -31,12 +29,7 @@ export async function $APIFetch<T>(
 		credentials: "include",
 	});
 
-	if (response.status === 401 && authRedirect) {
-		if (isBrowser) {
-			window.location.href = "/login";
-		} else {
-			throw redirect({ to: "/login" });
-		}
+	if (response.status === 401) {
 		return {
 			ok: false,
 			status: response.status,

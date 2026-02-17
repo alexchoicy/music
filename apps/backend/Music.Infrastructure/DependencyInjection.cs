@@ -15,6 +15,7 @@ using Music.Infrastructure.Services.Storage;
 using Music.Infrastructure.Entities;
 using Amazon.S3;
 using Music.Infrastructure.Services.Files;
+using Music.Infrastructure.Services.Me;
 
 namespace Music.Infrastructure;
 
@@ -51,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<IPartyService, PartyService>();
         services.AddScoped<IAlbumService, AlbumService>();
         services.AddScoped<IFileUrlService, FileUrlService>();
+        services.AddScoped<IMeService, MeService>();
 
         StorageOptions storage = configuration
             .GetSection("Storage")
