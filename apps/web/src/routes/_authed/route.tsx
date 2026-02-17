@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { SidebarProvider } from "@/components/shadcn/sidebar";
 import { AppSidebar } from "@/components/ui/appSidebar";
+import { AudioPlayerProvider } from "@/contexts/audioPlayerContext";
 import { authQueries } from "@/lib/queries/auth.queries";
 
 export const Route = createFileRoute("/_authed")({
@@ -15,9 +16,11 @@ export const Route = createFileRoute("/_authed")({
 
 function RouteComponent() {
 	return (
-		<SidebarProvider>
-			<AppSidebar />
-			<Outlet />
-		</SidebarProvider>
+		<AudioPlayerProvider>
+			<SidebarProvider>
+				<AppSidebar />
+				<Outlet />
+			</SidebarProvider>
+		</AudioPlayerProvider>
 	);
 }

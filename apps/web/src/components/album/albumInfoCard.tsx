@@ -7,9 +7,10 @@ import { Button } from "../shadcn/button";
 
 type AlbumInfoCardProps = {
 	album: components["schemas"]["AlbumDetailsModel"];
+	handlePlay: (trackId?: number) => void;
 };
 
-export function AlbumInfoCard({ album }: AlbumInfoCardProps) {
+export function AlbumInfoCard({ album, handlePlay }: AlbumInfoCardProps) {
 	const year = useMemo<number | null>(() => {
 		if (!album.releaseDate) return null;
 		const date = new Date(album.releaseDate);
@@ -64,6 +65,7 @@ export function AlbumInfoCard({ album }: AlbumInfoCardProps) {
 						<Button
 							size="lg"
 							className="rounded-full h-12 px-8 text-base font-semibold cursor-pointer"
+							onClick={() => handlePlay()}
 						>
 							<Play className="mr-2 h-5 w-5 fill-current" />
 							Play

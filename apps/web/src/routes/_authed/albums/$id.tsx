@@ -12,7 +12,9 @@ import {
 	CardTitle,
 } from "@/components/shadcn/card";
 import { AppLayout } from "@/components/ui/appLayout";
+import { useAudioPlayer } from "@/contexts/audioPlayerContext";
 import { albumQueries } from "@/lib/queries/album.queries";
+import { buildAudioPlayerItem } from "@/lib/utils/music";
 
 export const Route = createFileRoute("/_authed/albums/$id")({
 	component: RouteComponent,
@@ -41,9 +43,21 @@ function AlbumContent() {
 		disc.tracks.flatMap((track) => track.credits.map((credit) => credit.name)),
 	);
 
+	const { playWithPlaylist, playWithPlaylistByTrackId } = useAudioPlayer();
+
+	const handlePlay = (trackId?: number) => {
+		const items = buildAudioPlayerItem(album);
+
+		if (trackId) {
+			playWithPlaylistByTrackId(items, trackId);
+		} else {
+			playWithPlaylist(items);
+		}
+	};
+
 	return (
 		<div className="flex flex-col gap-4">
-			<AlbumInfoCard album={album} />
+			<AlbumInfoCard album={album} handlePlay={handlePlay} />
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 				<Card className="lg:col-span-2">
 					<AlbumTrackList album={album} />
