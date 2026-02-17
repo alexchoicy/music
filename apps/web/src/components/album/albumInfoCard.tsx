@@ -1,4 +1,4 @@
-import { ListPlus, Play } from "lucide-react";
+import { Download, ListPlus, Play } from "lucide-react";
 import { useMemo } from "react";
 import type { components } from "@/data/APIschema";
 import { getHHMMFromMs } from "@/lib/utils/display";
@@ -35,7 +35,7 @@ export function AlbumInfoCard({ album }: AlbumInfoCardProps) {
 
 			<div className="absolute inset-0 ring-1 ring-white/10"></div>
 
-			<div className="relative p-6 sm:p-8 flex gap-6">
+			<div className="relative p-6 sm:p-8 grid gap-6 lg:flex">
 				<img
 					src={album.coverImageUrl || ""}
 					className=" rounded-2xl shadow-xl w-48 h-48 object-cover"
@@ -60,7 +60,7 @@ export function AlbumInfoCard({ album }: AlbumInfoCardProps) {
 						<span className="opacity-60">•</span>
 						<span>{printTime}</span>
 					</div>
-					<div className="flex items-center gap-4 pt-2">
+					<div className="grid lg:flex items-center gap-4 pt-2">
 						<Button
 							size="lg"
 							className="rounded-full h-12 px-8 text-base font-semibold cursor-pointer"
@@ -75,6 +75,12 @@ export function AlbumInfoCard({ album }: AlbumInfoCardProps) {
 						>
 							<ListPlus className="mr-2 h-5 w-5" />
 							Add to Playlist
+						</Button>
+						<Button
+							variant="outline"
+							className="rounded-full h-12 px-6 cursor-pointer bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+						>
+							<Download className="h-5 w-5" />
 						</Button>
 					</div>
 				</div>
