@@ -6,10 +6,13 @@ import {
 	useRef,
 	useState,
 } from "react";
+import WaveSurfer from "wavesurfer.js";
 import type { AudioPlayerItem } from "@/models/audioPlayer";
 
 type AudioPlayerApi = {
 	audioRef: React.RefObject<HTMLMediaElement | null>;
+	waveContainerRef: React.RefObject<HTMLDivElement | null>;
+
 	trackInfo: Record<number, AudioPlayerItem>;
 	playlist: number[];
 	cursor: number;
@@ -30,6 +33,8 @@ export function AudioPlayerProvider({
 	children: React.ReactNode;
 }) {
 	const audioRef = useRef<HTMLMediaElement | null>(null);
+	const waveContainerRef = useRef<HTMLDivElement | null>(null);
+	const waveRef = useRef<WaveSurfer | null>(null);
 
 	const [isPlaying, setIsPlaying] = useState(false);
 
@@ -45,6 +50,61 @@ export function AudioPlayerProvider({
 
 	const [currentTime, setCurrentTime] = useState(0);
 
+	const playlistRef = useRef<number[]>([]);
+	const isPlayingRef = useRef<boolean>(false);
+
+	useEffect(() => {
+		playlistRef.current = playlist;
+	}, [playlist]);
+
+	useEffect(() => {
+		isPlayingRef.current = isPlaying;
+	}, [isPlaying]);
+
+	useEffect(() => {
+		if (!audioRef.current || !waveContainerRef.current) return;
+
+		if (waveRef.current) return;
+
+		const ws = WaveSurfer.create({
+			container: waveContainerRef.current,
+			backend: "MediaElement",
+			media: audioRef.current,
+			height: 64,
+			normalize: true,
+			dragToSeek: true,
+			fetchParams: { credentials: "include" },
+		});
+
+		waveRef.current = ws;
+
+		const onPlay = () => setIsPlaying(true);
+		const onPause = () => setIsPlaying(false);
+
+		const onFinish = () => {
+			setCursor((prev) => {
+				const len = playlistRef.current.length;
+				if (len === 0) return 0;
+				if (prev < len - 1) return prev + 1;
+				setIsPlaying(false);
+				return prev;
+			});
+		};
+
+		ws.on("play", onPlay);
+		ws.on("pause", onPause);
+		ws.on("finish", onFinish);
+
+		return () => {
+			ws.un("play", onPlay);
+			ws.un("pause", onPause);
+			ws.un("finish", onFinish);
+
+			ws.destroy();
+			waveRef.current = null;
+		};
+	}, []);
+
 	useEffect(() => {
 		const currentTrackId = playlist[cursor];
 		const currentTrack = trackInfo[currentTrackId];
@@ -53,17 +113,18 @@ export function AudioPlayerProvider({
 		const source = currentTrack.sources[0]; //TODO: check if backend handled the order by pinned + rank
 		if (!source) {
 			console.warn("No source found for track:", currentTrack);
-			setCursor((prev) => prev + 1); // skip to next track
+			setCursor((prev) => prev + 1);
 			return;
 		}
 
-		audioRef.current!.src = `${source.file.original.url}/play`;
-		audioRef.current!.play().catch((e) => {});
+		const url = `${source.file.original.url}/play`;
 	}, [trackInfo, playlist, cursor]);
 
 	const api = useMemo(() => {
 		return {
 			audioRef,
+			waveContainerRef,
+
 			isPlaying,
 			trackInfo,
 			playlist,
