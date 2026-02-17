@@ -100,18 +100,18 @@ export function CreateAlbumEditDialog({
 		},
 		onSubmit: ({ value }) => {
 			if (!albumId || !album) return;
-			const newMatchKey = makeMatchingKey(
-				value.title,
-				value.albumCredits,
-				value.unsolvedAlbumCredits,
-			);
-
 			const newAlbumCredits = partyList.map(
 				(party) =>
 					({
 						partyId: party.partyId,
 						credit: "Artist",
 					}) satisfies components["schemas"]["AlbumCreditRequest"],
+			);
+
+			const newMatchKey = makeMatchingKey(
+				value.title,
+				newAlbumCredits,
+				value.unsolvedAlbumCredits,
 			);
 
 			dispatch({
@@ -148,6 +148,8 @@ export function CreateAlbumEditDialog({
 				languageId: album.languageId || "",
 				discs: discs || [],
 			});
+
+			console.log("Album credits:", discs);
 
 			if (parties) {
 				const convertedPartyList: PartyList[] = [];
@@ -210,8 +212,8 @@ export function CreateAlbumEditDialog({
 											name="unsolvedAlbumCredits"
 											children={(field) => {
 												if (
-													!field.state.value ||
-													field.state.value.length === 0 ||
+													(!field.state.value ||
+														field.state.value.length === 0) &&
 													partyList.length > 0
 												) {
 													return;
@@ -345,45 +347,42 @@ export function CreateAlbumEditDialog({
 											mode="array"
 											children={(field) => {
 												return (
-													<div className="grid">
-														{field.state.value.map((_, index) => (
-															<FieldGroup
-																className="gap-2"
-																key={`disc-${albumId}`}
-															>
-																<form.Field
-																	key={`disc-${albumId}`}
-																	name={`${field.name}[${index}]`}
-																	children={(subField) => {
-																		return (
-																			<Field orientation="horizontal">
-																				<FieldLabel
-																					htmlFor={subField.name}
-																					className="w-auto"
-																				>
-																					{`${subField.state.value.discNumber}`}
-																				</FieldLabel>
-																				<Input
-																					id={subField.name}
-																					name={subField.name}
-																					value={
-																						subField.state.value.subtitle || ""
-																					}
-																					onBlur={subField.handleBlur}
-																					onChange={(e) =>
-																						subField.handleChange({
-																							...subField.state.value,
-																							subtitle: e.target.value,
-																						})
-																					}
-																				/>
-																			</Field>
-																		);
-																	}}
-																/>
-															</FieldGroup>
+													// <div className="grid">
+													<FieldGroup className="gap-2">
+														{field.state.value.map((disc, index) => (
+															<form.Field
+																key={`disc-${disc.id}`}
+																name={`${field.name}[${index}]`}
+																children={(subField) => {
+																	return (
+																		<Field orientation="horizontal">
+																			<FieldLabel
+																				htmlFor={subField.name}
+																				className="w-auto"
+																			>
+																				{`${subField.state.value.discNumber}`}
+																			</FieldLabel>
+																			<Input
+																				id={subField.name}
+																				name={subField.name}
+																				value={
+																					subField.state.value.subtitle || ""
+																				}
+																				onBlur={subField.handleBlur}
+																				onChange={(e) =>
+																					subField.handleChange({
+																						...subField.state.value,
+																						subtitle: e.target.value,
+																					})
+																				}
+																			/>
+																		</Field>
+																	);
+																}}
+															/>
 														))}
-													</div>
+													</FieldGroup>
+													// </div>
 												);
 											}}
 										/>

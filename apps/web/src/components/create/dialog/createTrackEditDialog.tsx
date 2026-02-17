@@ -151,6 +151,7 @@ export function CreateTrackEditDialog({
 						unsolvedTrackCredits: value.unsolvedTrackCredits,
 						trackCredits: newTrackCredits,
 					},
+					discNumber: value.discNumber,
 					variantTrack: value.variantTracks,
 				},
 			});
@@ -298,8 +299,8 @@ export function CreateTrackEditDialog({
 											name="unsolvedTrackCredits"
 											children={(field) => {
 												if (
-													!field.state.value ||
-													field.state.value.length === 0 ||
+													(!field.state.value ||
+														field.state.value.length === 0) &&
 													partyList.length > 0
 												) {
 													return;

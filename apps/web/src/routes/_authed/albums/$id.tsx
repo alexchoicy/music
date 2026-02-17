@@ -48,7 +48,7 @@ function AlbumContent() {
 				<Card className="lg:col-span-2">
 					<AlbumTrackList album={album} />
 				</Card>
-				<Card>
+				<Card className="h-max">
 					<CardHeader>
 						<CardTitle>Parties</CardTitle>
 					</CardHeader>
