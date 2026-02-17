@@ -1,5 +1,5 @@
 export function checkIfMC(title: string, filename: string): boolean {
-	const mcIndicators = ["mc", "m.c.", "m.c", "ＭＣ"];
+	const mcIndicators = ["mc", "m.c.", "m.c", "ＭＣ", "talk"];
 	const lowerTitle = title.toLowerCase();
 	const lowerFilename = filename.toLowerCase();
 	return mcIndicators.some(
