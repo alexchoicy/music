@@ -53,6 +53,8 @@ public static class DependencyInjection
         services.AddScoped<IAlbumService, AlbumService>();
         services.AddScoped<IFileUrlService, FileUrlService>();
         services.AddScoped<IMeService, MeService>();
+        services.AddSingleton<IStorageBackgroundTaskQueue, StorageBackgroundTaskQueue>();
+        services.AddHostedService<StorageBackgroundWorker>();
 
         StorageOptions storage = configuration
             .GetSection("Storage")

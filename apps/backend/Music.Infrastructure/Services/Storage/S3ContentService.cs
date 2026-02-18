@@ -1,16 +1,20 @@
 using Microsoft.Extensions.Options;
 using Music.Core.Models;
-using Music.Core.Services.Interfaces;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Music.Infrastructure.Data;
 using Music.Core.Entities;
-using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Music.Core.Services.Interfaces;
 
 namespace Music.Infrastructure.Services.Storage;
 
-public class S3ContentService(IOptions<StorageOptions> options, Content3Client client, AppDbContext context, IOptions<BaseOptions> baseOptions) : StorageService(options),
+public class S3ContentService(
+    IOptions<StorageOptions> options,
+    Content3Client client,
+    AppDbContext context,
+    IOptions<BaseOptions> baseOptions,
+    IStorageBackgroundTaskQueue backgroundTaskQueue) : StorageService(options, backgroundTaskQueue), IContentService
 {
     private readonly string bucket = options.Value.Content!.S3!.BucketName;
 
@@ -49,6 +53,7 @@ public class S3ContentService(IOptions<StorageOptions> options, Content3Client c
             if (primarySource is not null)
             {
                 //TODO: generate Peak for waveform and a opus
+                RunBackgroundProcessAudioUploadFile(fileObject.Id);
             }
         }
 

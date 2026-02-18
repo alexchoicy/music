@@ -8,9 +8,12 @@ using System.Collections.Immutable;
 
 namespace Music.Infrastructure.Services.Storage;
 
-public class StorageService(IOptions<StorageOptions> options) : IStorageService
+public class StorageService(
+    IOptions<StorageOptions> options,
+    IStorageBackgroundTaskQueue? backgroundTaskQueue = null) : IStorageService
 {
     private readonly StorageOptions _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+    private readonly IStorageBackgroundTaskQueue? _backgroundTaskQueue = backgroundTaskQueue;
 
     private static string GetExtensionFromMimeType(string mimeType)
     {
@@ -73,5 +76,10 @@ public class StorageService(IOptions<StorageOptions> options) : IStorageService
         };
 
         return (storedFile, fileObject);
+    }
+
+    public void RunBackgroundProcessAudioUploadFile(Guid fileObjectId)
+    {
+        _backgroundTaskQueue?.QueueAudioUploadProcessing(fileObjectId);
     }
 }

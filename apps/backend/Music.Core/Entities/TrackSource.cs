@@ -18,6 +18,10 @@ public class TrackSource
 
     public required Core.Enums.TrackSource Source { get; set; }
 
+    // peak json file object path.
+    // {AssetsPeak_path}/{TrackSourceId}_{sample}_{bit}.json, e.g. 1_z256_b8.json
+    // public string? PeakPath { get; set; }
+
     // null = by system
     public string? UploadedByUserId { get; set; }
 

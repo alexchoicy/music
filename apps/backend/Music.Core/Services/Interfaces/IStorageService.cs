@@ -12,4 +12,6 @@ public interface IStorageService
         FileType fileType,
         string storagePath,
         string userId);
+
+    public void RunBackgroundProcessAudioUploadFile(Guid fileObjectId);
 }
