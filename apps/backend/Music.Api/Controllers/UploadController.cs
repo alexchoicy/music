@@ -8,14 +8,13 @@ namespace Music.Api.Controllers;
 [Route("uploads")]
 public class UploadController(S3ContentService s3ContentService) : ControllerBase
 {
-
-    [HttpPost("complete-multipart")]
+    // audio only, for extra/concert do it in other methods
+    [HttpPost("audio/complete-multipart")]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> CompleteMultipartUpload([FromBody] List<CompleteMultipartUploadRequest> request)
+    public async Task<IActionResult> CompleteAudioMultipartUpload([FromBody] List<CompleteMultipartUploadRequest> request)
     {
-
-        await s3ContentService.CompleteMultipartUploadAsync(request);
+        await s3ContentService.CompleteAudioMultipartUploadAsync(request);
 
         return Ok();
     }

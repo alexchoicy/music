@@ -12,16 +12,16 @@ public sealed class FilesController(IFileUrlService fileUrlService) : Controller
 {
     private readonly IFileUrlService _fileUrlService = fileUrlService;
 
-    // [HttpGet("{id:guid}")]
-    // [Produces("application/json")]
-    // [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    // public async Task<IActionResult> GetUrl(
-    //     [FromRoute][Required] Guid id,
-    //     CancellationToken cancellationToken)
-    // {
-    //     string url = await _fileUrlService.GetFileUrlAsync(id, cancellationToken);
-    //     return Ok(url);
-    // }
+    [HttpGet("{id:guid}")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUrl(
+        [FromRoute][Required] Guid id,
+        CancellationToken cancellationToken)
+    {
+        string url = await _fileUrlService.GetFilePlayUrlAsync(id, cancellationToken);
+        return Ok(url);
+    }
 
     [HttpGet("{id:guid}/play")]
     [ProducesResponseType(StatusCodes.Status302Found)]

@@ -6,7 +6,7 @@ export const uploadMutations = {
 		mutationFn: async (
 			data: components["schemas"]["CompleteMultipartUploadRequest"][],
 		) => {
-			const result = await $APIFetch("/uploads/complete-multipart", {
+			const result = await $APIFetch("/uploads/audio/complete-multipart", {
 				method: "POST",
 				body: JSON.stringify(data),
 			});

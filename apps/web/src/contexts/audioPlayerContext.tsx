@@ -16,8 +16,13 @@ type AudioPlayerApi = {
 	trackInfo: Record<number, AudioPlayerItem>;
 	playlist: number[];
 	cursor: number;
+	currentTrack: AudioPlayerItem | null;
+	isPrev: boolean;
+	isNext: boolean;
 	isPlaying: boolean;
 	toggle: () => Promise<void>;
+	goPrev: () => void;
+	goNext: () => void;
 	playWithPlaylist: (items: AudioPlayerItem[]) => void;
 	playWithPlaylistByTrackId: (
 		items: AudioPlayerItem[],
@@ -48,10 +53,9 @@ export function AudioPlayerProvider({
 	// current index in the playlist
 	const [cursor, setCursor] = useState<number>(0);
 
-	const [currentTime, setCurrentTime] = useState(0);
-
 	const playlistRef = useRef<number[]>([]);
-	const isPlayingRef = useRef<boolean>(false);
+	const currentPlayingUrlRef = useRef<string>("");
+	const isPlayingRef = useRef<boolean>(isPlaying);
 
 	useEffect(() => {
 		playlistRef.current = playlist;
@@ -70,10 +74,10 @@ export function AudioPlayerProvider({
 			container: waveContainerRef.current,
 			backend: "MediaElement",
 			media: audioRef.current,
-			height: 64,
+			height: 32,
 			normalize: true,
 			dragToSeek: true,
-			fetchParams: { credentials: "include" },
+			// fetchParams: { credentials: "include" },
 		});
 
 		waveRef.current = ws;
@@ -85,7 +89,14 @@ export function AudioPlayerProvider({
 			setCursor((prev) => {
 				const len = playlistRef.current.length;
 				if (len === 0) return 0;
+				console.log(
+					"track finished, playlist length:",
+					len,
+					"current cursor:",
+					prev,
+				);
 				if (prev < len - 1) return prev + 1;
+				console.log("playlist finished");
 				setIsPlaying(false);
 				return prev;
 			});
@@ -106,21 +117,107 @@ export function AudioPlayerProvider({
 	}, []);
 
 	useEffect(() => {
-		const currentTrackId = playlist[cursor];
-		const currentTrack = trackInfo[currentTrackId];
-		if (!currentTrack) return;
+		let cancelled = false;
+		const controller = new AbortController();
 
-		const source = currentTrack.sources[0]; //TODO: check if backend handled the order by pinned + rank
-		if (!source) {
-			console.warn("No source found for track:", currentTrack);
-			setCursor((prev) => prev + 1);
-			return;
-		}
+		const run = async () => {
+			const audioElement = audioRef.current;
+			if (!audioElement) return;
 
-		const url = `${source.file.original.url}/play`;
+			const currentTrackId = playlist[cursor];
+			const currentTrack = trackInfo[currentTrackId];
+			if (!currentTrack) return;
+
+			const source = currentTrack.sources[0]; //TODO: check if backend handled the order by pinned + rank
+			if (!source) {
+				console.warn("No source found for track:", currentTrack);
+				setCursor((prev) => prev + 1);
+				return;
+			}
+
+			const requestUrl = `${source.file.original.url}`;
+			let playUrl = requestUrl;
+
+			try {
+				const response = await fetch(requestUrl, {
+					method: "GET",
+					credentials: "include",
+					signal: controller.signal,
+				});
+
+				if (!response.ok) {
+					throw new Error(`Failed to resolve play url: ${response.status}`);
+				}
+
+				const rawBody = (await response.text()).trim();
+				if (rawBody.length > 0) {
+					playUrl =
+						rawBody.startsWith('"') && rawBody.endsWith('"')
+							? rawBody.slice(1, -1)
+							: rawBody;
+				}
+			} catch (e) {
+				if (!cancelled) {
+					console.warn(
+						"Failed to pre-resolve play url, fallback to endpoint:",
+						e,
+					);
+				}
+			}
+
+			if (cancelled) return;
+
+			console.log("resolved play url:", playUrl);
+
+			if (currentPlayingUrlRef.current !== playUrl) {
+				currentPlayingUrlRef.current = playUrl;
+
+				audioElement.src = playUrl;
+				// audioElement.load();
+
+				// TODO:!!!! this things will request the file again, create the peak data when upload. "audiowaveform"
+				waveRef.current?.load(playUrl);
+			}
+
+			if (isPlayingRef.current) {
+				try {
+					await audioElement.play();
+				} catch (e) {
+					console.error("audio play failed:", e);
+					setIsPlaying(false);
+				}
+			}
+		};
+
+		run();
+
+		return () => {
+			cancelled = true;
+			controller.abort();
+		};
 	}, [trackInfo, playlist, cursor]);
 
+	useEffect(() => {
+		const audioElement = audioRef.current;
+		if (!audioElement) return;
+
+		if (isPlaying) {
+			audioElement.play().catch((e) => {
+				console.error("play failed:", e);
+				setIsPlaying(false);
+			});
+		} else {
+			audioElement.pause();
+		}
+	}, [isPlaying]);
+
 	const api = useMemo(() => {
+		const currentTrackId = playlist[cursor];
+		const currentTrack =
+			typeof currentTrackId === "number" ? trackInfo[currentTrackId] : null;
+		const isPrev = playlist.length > 0 && cursor > 0;
+		const isNext = playlist.length > 0 && cursor < playlist.length - 1;
+
 		return {
 			audioRef,
 			waveContainerRef,
@@ -129,6 +226,9 @@ export function AudioPlayerProvider({
 			trackInfo,
 			playlist,
 			cursor,
+			currentTrack,
+			isPrev,
+			isNext,
 
 			addToPlaylist: (item: AudioPlayerItem) => {
 				setTrackInfo((prev) => ({ ...prev, [item.trackId]: item }));
@@ -171,6 +271,16 @@ export function AudioPlayerProvider({
 				} else {
 					a.pause();
 				}
+			},
+
+			goPrev: () => {
+				if (!isPrev) return;
+				setCursor((prev) => Math.max(0, prev - 1));
+			},
+
+			goNext: () => {
+				if (!isNext) return;
+				setCursor((prev) => Math.min(playlist.length - 1, prev + 1));
 			},
 		};
 	}, [isPlaying, cursor, trackInfo, playlist]);

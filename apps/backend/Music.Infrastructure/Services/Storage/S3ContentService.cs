@@ -6,18 +6,22 @@ using Amazon.S3.Model;
 using Music.Infrastructure.Data;
 using Music.Core.Entities;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 
 namespace Music.Infrastructure.Services.Storage;
 
-public class S3ContentService(IOptions<StorageOptions> options, Content3Client client, AppDbContext context, IOptions<BaseOptions> baseOptions) : StorageService(options), IContentService
+public class S3ContentService(IOptions<StorageOptions> options, Content3Client client, AppDbContext context, IOptions<BaseOptions> baseOptions) : StorageService(options),
 {
     private readonly string bucket = options.Value.Content!.S3!.BucketName;
 
-    public async Task CompleteMultipartUploadAsync(List<Core.Models.CompleteMultipartUploadRequest> requests, CancellationToken cancellationToken = default)
+    public async Task CompleteAudioMultipartUploadAsync(List<Core.Models.CompleteMultipartUploadRequest> requests, CancellationToken cancellationToken = default)
     {
         foreach (Core.Models.CompleteMultipartUploadRequest request in requests)
         {
-            FileObject fileObject = context.FileObjects.First(fo => fo.OriginalBlake3Hash == request.Blake3Id);
+            FileObject fileObject = await context.FileObjects
+                .Include(fileobject => fileobject.File)
+                .ThenInclude(f => f!.TrackSources)
+                .FirstAsync(fileobject => fileobject.OriginalBlake3Hash == request.Blake3Id, cancellationToken);
 
             List<PartETag> partETags =
                     request.Parts.Select(p => new PartETag
@@ -36,6 +40,16 @@ public class S3ContentService(IOptions<StorageOptions> options, Content3Client c
 
             await client.CompleteMultipartUploadAsync(completeRequest, cancellationToken);
             fileObject.ProcessingStatus = Core.Enums.FileProcessingStatus.Completed;
+
+            TrackSource? primarySource = fileObject.File?.TrackSources
+                .OrderByDescending(ts => ts.Pinned)
+                .ThenBy(ts => ts.Rank)
+                .FirstOrDefault();
+
+            if (primarySource is not null)
+            {
+                //TODO: generate Peak for waveform and a opus
+            }
         }
 
         await context.SaveChangesAsync(cancellationToken);
