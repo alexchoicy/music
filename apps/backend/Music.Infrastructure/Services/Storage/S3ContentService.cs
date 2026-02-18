@@ -14,7 +14,7 @@ public class S3ContentService(
     Content3Client client,
     AppDbContext context,
     IOptions<BaseOptions> baseOptions,
-    IStorageBackgroundTaskQueue backgroundTaskQueue) : StorageService(options, backgroundTaskQueue), IContentService
+    IBackgroundTaskQueue backgroundTaskQueue) : StorageService(options, backgroundTaskQueue), IContentService
 {
     private readonly string bucket = options.Value.Content!.S3!.BucketName;
 
@@ -52,8 +52,14 @@ public class S3ContentService(
 
             if (primarySource is not null)
             {
+                TrackUploadProcessWorkerModel workerModel = new()
+                {
+                    FileObjectId = fileObject.Id,
+                    TrackSourceId = primarySource.Id,
+                };
+
                 //TODO: generate Peak for waveform and a opus
-                RunBackgroundProcessAudioUploadFile(fileObject.Id);
+                RunBackgroundProcessAudioUploadFile(workerModel);
             }
         }
 

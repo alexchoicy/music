@@ -16,6 +16,7 @@ using Music.Infrastructure.Entities;
 using Amazon.S3;
 using Music.Infrastructure.Services.Files;
 using Music.Infrastructure.Services.Me;
+using Music.Infrastructure.Services.Worker;
 
 namespace Music.Infrastructure;
 
@@ -53,8 +54,8 @@ public static class DependencyInjection
         services.AddScoped<IAlbumService, AlbumService>();
         services.AddScoped<IFileUrlService, FileUrlService>();
         services.AddScoped<IMeService, MeService>();
-        services.AddSingleton<IStorageBackgroundTaskQueue, StorageBackgroundTaskQueue>();
-        services.AddHostedService<StorageBackgroundWorker>();
+        services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+        services.AddHostedService<BackgroundWorker>();
 
         StorageOptions storage = configuration
             .GetSection("Storage")

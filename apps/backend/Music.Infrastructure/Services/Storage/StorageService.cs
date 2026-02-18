@@ -10,10 +10,10 @@ namespace Music.Infrastructure.Services.Storage;
 
 public class StorageService(
     IOptions<StorageOptions> options,
-    IStorageBackgroundTaskQueue? backgroundTaskQueue = null) : IStorageService
+    IBackgroundTaskQueue? backgroundTaskQueue = null) : IStorageService
 {
     private readonly StorageOptions _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
-    private readonly IStorageBackgroundTaskQueue? _backgroundTaskQueue = backgroundTaskQueue;
+    private readonly IBackgroundTaskQueue? _backgroundTaskQueue = backgroundTaskQueue;
 
     private static string GetExtensionFromMimeType(string mimeType)
     {
@@ -78,8 +78,8 @@ public class StorageService(
         return (storedFile, fileObject);
     }
 
-    public void RunBackgroundProcessAudioUploadFile(Guid fileObjectId)
+    public void RunBackgroundProcessAudioUploadFile(WorkerModel workerModel)
     {
-        _backgroundTaskQueue?.QueueAudioUploadProcessing(fileObjectId);
+        _backgroundTaskQueue?.QueueAudioUploadProcessing(workerModel);
     }
 }
