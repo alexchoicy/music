@@ -12,7 +12,7 @@ import type { AudioPlayerItem } from "@/models/audioPlayer";
 type AudioPlayerApi = {
 	audioRef: React.RefObject<HTMLMediaElement | null>;
 	waveContainerRef: React.RefObject<HTMLDivElement | null>;
-
+	shouldHidePlayer: boolean;
 	trackInfo: Record<number, AudioPlayerItem>;
 	playlist: number[];
 	cursor: number;
@@ -96,7 +96,6 @@ export function AudioPlayerProvider({
 					prev,
 				);
 				if (prev < len - 1) return prev + 1;
-				console.log("playlist finished");
 				setIsPlaying(false);
 				return prev;
 			});
@@ -218,9 +217,12 @@ export function AudioPlayerProvider({
 		const isPrev = playlist.length > 0 && cursor > 0;
 		const isNext = playlist.length > 0 && cursor < playlist.length - 1;
 
+		const shouldHidePlayer = playlist.length === 0 || !currentTrack;
+
 		return {
 			audioRef,
 			waveContainerRef,
+			shouldHidePlayer,
 
 			isPlaying,
 			trackInfo,

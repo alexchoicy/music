@@ -1,35 +1,34 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Suspense } from "react";
-import { AlbumCard } from "@/components/albumCard";
+import { PartyCard } from "@/components/partyCard";
 import { AppLayout } from "@/components/ui/appLayout";
-import { albumQueries } from "@/lib/queries/album.queries";
+import { partyQueries } from "@/lib/queries/party.queries";
 
-export const Route = createFileRoute("/_authed/albums/")({
+export const Route = createFileRoute("/_authed/parties/")({
 	component: RouteComponent,
 	loader: ({ context }) => {
-		context.queryClient.ensureQueryData(albumQueries.list());
+		context.queryClient.ensureQueryData(partyQueries.getParties());
 	},
 });
 
-//HEY COOL
 function RouteComponent() {
 	return (
 		<AppLayout>
 			<Suspense fallback={<div>Loading...</div>}>
-				<AlbumsContent />
+				<PartiesContent />
 			</Suspense>
 		</AppLayout>
 	);
 }
 
-function AlbumsContent() {
-	const { data: albums } = useSuspenseQuery(albumQueries.list());
+function PartiesContent() {
+	const { data: parties } = useSuspenseQuery(partyQueries.getParties());
 
 	return (
 		<div className="grid p-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-			{albums.map((album) => (
-				<AlbumCard key={album.albumId} album={album} />
+			{parties.map((party) => (
+				<PartyCard key={party.partyId} party={party} />
 			))}
 		</div>
 	);

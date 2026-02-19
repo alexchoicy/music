@@ -1,16 +1,18 @@
 import { Link } from "@tanstack/react-router";
 import type { components } from "@/data/APIschema";
+import { cn } from "@/lib/utils/style";
 import { Badge } from "./shadcn/badge";
 import { Card } from "./shadcn/card";
 
 type AlbumCardProps = {
 	album: components["schemas"]["AlbumListItemModel"];
+	className?: string;
 };
 
-export function AlbumCard({ album }: AlbumCardProps) {
+export function AlbumCard({ album, className }: AlbumCardProps) {
 	return (
 		<Link to="/albums/$id" params={{ id: album.albumId.toString() }}>
-			<Card className="relative mx-auto w-full max-w-96 pt-0">
+			<Card className={cn("relative mx-auto w-full max-w-96 pt-0", className)}>
 				{album.coverVariants ? (
 					<div className="relative aspect-square overflow-hidden bg-muted">
 						<img

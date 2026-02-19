@@ -48,4 +48,25 @@ public class PartyController(IPartyService partyService) : ControllerBase
         IReadOnlyList<PartyListModel> list = await _partyService.GetAllForListAsync(@params ?? new PartyListParams());
         return Ok(list);
     }
+
+    [HttpGet]
+    [Authorize]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(IReadOnlyList<PartyModel>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllParties()
+    {
+        IReadOnlyList<PartyModel> parties = await _partyService.GetAllPartiesAsync();
+        return Ok(parties);
+    }
+
+    [HttpGet("{id:int}")]
+    [Authorize]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(PartyDetailModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetParty(int id, CancellationToken cancellationToken)
+    {
+        PartyDetailModel? party = await _partyService.GetPartyByIdAsync(id, cancellationToken);
+        return Ok(party);
+    }
 }

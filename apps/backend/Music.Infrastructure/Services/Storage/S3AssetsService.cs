@@ -39,7 +39,7 @@ public class S3AssetsService : StorageService, IAssetsService
         return url;
     }
 
-    public string GetUrl(string objectPath, CancellationToken cancellationToken = default)
+    public string GetUrl(string objectPath)
     {
         return $"{_accessUrl}/{objectPath}";
     }

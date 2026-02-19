@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import {
 	ListMusic,
 	Music,
@@ -15,6 +16,7 @@ export function AudioPlayer() {
 	const {
 		waveContainerRef,
 		currentTrack,
+		shouldHidePlayer,
 		isPrev,
 		isNext,
 		isPlaying,
@@ -24,7 +26,11 @@ export function AudioPlayer() {
 	} = useAudioPlayer();
 
 	return (
-		<div className="w-full bg-background/95 p-2 border-t">
+		<div
+			className={clsx("w-full bg-background/95 p-2 border-t", {
+				hidden: shouldHidePlayer,
+			})}
+		>
 			<div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr_1fr] gap-4 items-center">
 				{/*album info*/}
 				<div className="flex items-center gap-3 min-w-0 hover:bg-accent p-2">
@@ -102,9 +108,6 @@ export function AudioPlayer() {
 				<div className="flex items-center justify-end gap-2">
 					<Button variant="ghost" size="icon" className="h-16 w-16">
 						<ListMusic className="h-16 w-16 " />
-						{isPlaying && (
-							<div className="absolute top-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-background" />
-						)}
 					</Button>
 				</div>
 			</div>

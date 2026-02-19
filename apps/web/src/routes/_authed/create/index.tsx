@@ -128,7 +128,7 @@ function CreatePageContent() {
 				</Button>
 			}
 		>
-			<div className="space-y-6">
+			<div className="space-y-6 p-6">
 				<MusicDropBox
 					isProcessing={isProcessing}
 					setIsProcessing={setIsProcessing}

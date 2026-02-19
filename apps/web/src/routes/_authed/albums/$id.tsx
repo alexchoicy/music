@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { User } from "lucide-react";
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { AlbumInfoCard } from "@/components/album/albumInfoCard";
 import { AlbumTrackList } from "@/components/album/albumTrackList";
 import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
@@ -39,9 +39,16 @@ function AlbumContent() {
 	const { id } = Route.useParams();
 	const { data: album } = useSuspenseQuery(albumQueries.item(id));
 
-	const trackParties = album.discs.flatMap((disc) =>
-		disc.tracks.flatMap((track) => track.credits.map((credit) => credit.name)),
-	);
+	const trackParties = useMemo(() => {
+		return Array.from(
+			new Map(
+				album.discs
+					.flatMap((d) => d.tracks)
+					.flatMap((t) => t.credits)
+					.map((c) => [c.partyId, c]),
+			).values(),
+		);
+	}, [album]);
 
 	const { playWithPlaylist, playWithPlaylistByTrackId } = useAudioPlayer();
 
@@ -56,7 +63,7 @@ function AlbumContent() {
 	};
 
 	return (
-		<div className="flex flex-col gap-4">
+		<div className="flex flex-col gap-4 p-6">
 			<AlbumInfoCard album={album} handlePlay={handlePlay} />
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 				<Card className="lg:col-span-2">
@@ -68,23 +75,26 @@ function AlbumContent() {
 					</CardHeader>
 					<CardContent className="space-y-2">
 						{trackParties.length > 0 &&
-							Array.from(new Set(trackParties)).map((party) => (
-								<div
-									key={party}
-									className="flex items-center gap-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer p-2"
+							trackParties.map((party) => (
+								<Link
+									key={party.partyId}
+									to="/parties/$id"
+									params={{ id: party.partyId.toString() }}
 								>
-									<Avatar>
-										{/*<AvatarImage :src="artist.image" />*/}
-										<AvatarFallback>
-											<User className="size-fit" />
-										</AvatarFallback>
-									</Avatar>
-									<div className="flex-1 min-w-0">
-										<h4 className="text-muted-foreground truncate font-medium">
-											{party}
-										</h4>
+									<div className="flex items-center gap-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer p-2">
+										<Avatar>
+											{/*<AvatarImage :src="artist.image" />*/}
+											<AvatarFallback>
+												<User className="size-fit" />
+											</AvatarFallback>
+										</Avatar>
+										<div className="flex-1 min-w-0">
+											<h4 className="text-muted-foreground truncate font-medium">
+												{party.name}
+											</h4>
+										</div>
 									</div>
-								</div>
+								</Link>
 							))}
 					</CardContent>
 				</Card>

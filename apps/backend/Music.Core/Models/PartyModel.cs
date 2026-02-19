@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Music.Core.Enums;
 
 namespace Music.Core.Models;
@@ -39,4 +40,33 @@ public sealed class PartyListModel
     public required string PartyName { get; init; } = string.Empty;
     public required string PartyNormalizedName { get; init; } = string.Empty;
     public required IReadOnlyList<PartyAliasModel> PartyAliases { get; init; } = [];
+}
+
+
+
+public sealed class PartyModel
+{
+    public required int PartyId { get; init; }
+    public required string PartyName { get; init; } = string.Empty;
+    public IReadOnlyList<PartyImageModel>? AvatarImages { get; init; }
+    public PartyType Type { get; set; } = PartyType.Individual;
+
+}
+
+public sealed class PartyDetailModel
+{
+    public required int PartyId { get; init; }
+    public required string PartyName { get; init; } = string.Empty;
+    public IReadOnlyList<PartyImageModel>? IconUrl { get; init; }
+    public IReadOnlyList<PartyImageModel>? BannerUrl { get; init; }
+    public PartyType Type { get; set; } = PartyType.Individual;
+    public LanguageModel? Language { get; init; }
+    public required IReadOnlyList<AlbumListItemModel> PartyAlbums { get; init; } = [];
+    public required IReadOnlyList<AlbumListItemModel> PartyPartOfAlbums { get; init; } = [];
+}
+
+public sealed class PartyImageModel
+{
+    public required FileObjectVariant Variant { get; init; }
+    public required string Url { get; init; } = string.Empty;
 }

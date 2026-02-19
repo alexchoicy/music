@@ -20,8 +20,8 @@ function RouteComponent() {
 		<AudioPlayerProvider>
 			<SidebarProvider>
 				<AppSidebar />
-				<div className="grid h-screen min-h-0 w-full grid-rows-[1fr_auto]">
-					<div className="min-h-0 overflow-y-auto">
+				<div className="grid h-screen min-h-0 min-w-0 flex-1 grid-rows-[1fr_auto] overflow-x-hidden">
+					<div className="min-h-0 min-w-0 overflow-y-auto overflow-x-hidden">
 						<Outlet />
 					</div>
 

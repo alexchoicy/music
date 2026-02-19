@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Music.Core.Enums;
 
 public enum FileObjectType
@@ -8,6 +10,7 @@ public enum FileObjectType
     Cropped // <-- display this for cover/banner.
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum FileObjectVariant
 { // this thing is for UI
     Original,

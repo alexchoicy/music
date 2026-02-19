@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Download, ListPlus, Play } from "lucide-react";
 import { useMemo } from "react";
 import type { components } from "@/data/APIschema";
@@ -48,7 +49,18 @@ export function AlbumInfoCard({ album, handlePlay }: AlbumInfoCardProps) {
 					</Badge>
 					<div className="text-2xl font-semibold">{album.title}</div>
 					<div className="text-white/80 text-lg">
-						{album.credits.map((credit) => credit.name).join(" | ")}
+						{album.credits.map((artist, i) => (
+							<span key={artist.partyId} className="inline">
+								{i > 0 && <span className="px-1">|</span>}
+								<Link
+									to="/parties/$id"
+									params={{ id: artist.partyId.toString() }}
+									className="hover:underline"
+								>
+									{artist.name}
+								</Link>
+							</span>
+						))}
 					</div>
 					<div className="flex items-center gap-2 text-base text-white/70">
 						{year != null && (

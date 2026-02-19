@@ -8,9 +8,9 @@ type AppLayoutProps = {
 
 export function AppLayout({ header, children }: AppLayoutProps) {
 	return (
-		<div className="grid min-h-0 w-full grid-rows-[auto_1fr]">
+		<div className="grid min-h-0 min-w-0 w-full grid-rows-[auto_1fr]">
 			<AppHeader>{header}</AppHeader>
-			<main className="min-h-0 p-6">{children}</main>
+			<main className="min-h-0 min-w-0">{children}</main>
 		</div>
 	);
 }

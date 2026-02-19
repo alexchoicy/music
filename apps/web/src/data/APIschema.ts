@@ -188,6 +188,113 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": string;
+                        "application/json": string;
+                        "text/json": string;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/files/{id}/play": {
         parameters: {
             query?: never;
@@ -278,7 +385,26 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PartyModel"][];
+                    };
+                };
+            };
+        };
         put?: never;
         post: {
             parameters: {
@@ -358,7 +484,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/uploads/complete-multipart": {
+    "/parties/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PartyDetailModel"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/uploads/audio/complete-multipart": {
         parameters: {
             query?: never;
             header?: never;
@@ -595,7 +767,8 @@ export interface components {
             updatedAt: string;
         };
         FileObjectType: number;
-        FileObjectVariant: number;
+        /** @enum {unknown} */
+        FileObjectVariant: "Original" | "CroppedOriginal" | "Cover600" | "Banner1200x400" | "Thumbnail640x360" | "Opus96";
         FileRequest: {
             fileBlake3: string;
             mimeType: string;
@@ -617,6 +790,11 @@ export interface components {
             /** Format: int32 */
             durationInMs?: null | number | string;
             originalFileName: string;
+        };
+        LanguageModel: {
+            /** Format: int32 */
+            languageId: number | string;
+            name: string;
         };
         LoginRequest: {
             username: string;
@@ -641,6 +819,21 @@ export interface components {
             aliasName: string;
             aliasNormalizedName: string;
         };
+        PartyDetailModel: {
+            /** Format: int32 */
+            partyId: number | string;
+            partyName: string;
+            iconUrl?: null | components["schemas"]["PartyImageModel"][];
+            bannerUrl?: null | components["schemas"]["PartyImageModel"][];
+            type?: components["schemas"]["PartyType"];
+            language?: null | components["schemas"]["LanguageModel"];
+            partyAlbums: components["schemas"]["AlbumListItemModel"][];
+            partyPartOfAlbums: components["schemas"]["AlbumListItemModel"][];
+        };
+        PartyImageModel: {
+            variant: components["schemas"]["FileObjectVariant"];
+            url: string;
+        };
         PartyImageRequest: {
             imageType: components["schemas"]["PartyImageType"];
             image: components["schemas"]["FileRequest"];
@@ -655,8 +848,14 @@ export interface components {
             partyNormalizedName: string;
             partyAliases: components["schemas"]["PartyAliasModel"][];
         };
-        /** @enum {unknown} */
-        PartyType: "Individual" | "Group" | "Project";
+        PartyModel: {
+            /** Format: int32 */
+            partyId: number | string;
+            partyName: string;
+            avatarImages?: null | components["schemas"]["PartyImageModel"][];
+            type?: components["schemas"]["PartyType"];
+        };
+        PartyType: number;
         ProblemDetails: {
             type?: null | string;
             title?: null | string;

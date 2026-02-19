@@ -39,6 +39,7 @@ public class AuthController(IAuthService authService, IConfiguration configurati
             SameSite = SameSiteMode.Lax,
             Secure = true,
             IsEssential = true,
+            Expires = DateTimeOffset.UtcNow.AddDays(7),
         });
 
         return Ok(new LoginResponse
