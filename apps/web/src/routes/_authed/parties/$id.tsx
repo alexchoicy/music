@@ -7,19 +7,14 @@ import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { ScrollArea, ScrollBar } from "@/components/shadcn/scroll-area";
 import { AppLayout } from "@/components/ui/appLayout";
-import { useApiEndpoint } from "@/contexts/apiEndpointContext";
 import { partyQueries } from "@/lib/queries/party.queries";
-import { getApiEndpoint } from "@/lib/ServerFunction/getApiEndpoint";
 import { cn } from "@/lib/utils/style";
 
 export const Route = createFileRoute("/_authed/parties/$id")({
 	component: RouteComponent,
 	loader: async ({ context, params }) => {
 		const { id } = params;
-		const apiEndpoint = await getApiEndpoint();
-		await context.queryClient.ensureQueryData(
-			partyQueries.getParty(apiEndpoint, id),
-		);
+		await context.queryClient.ensureQueryData(partyQueries.getParty(id));
 	},
 });
 
@@ -51,10 +46,7 @@ export type TabValue =
 
 function PartyContent() {
 	const { id } = Route.useParams();
-	const apiEndpoint = useApiEndpoint();
-	const { data: party } = useSuspenseQuery(
-		partyQueries.getParty(apiEndpoint, id),
-	);
+	const { data: party } = useSuspenseQuery(partyQueries.getParty(id));
 
 	const [activeTab, setActiveTab] = useState<TabValue>("overall");
 

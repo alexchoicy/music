@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { twMerge } from "tailwind-merge";
-import { useApiEndpoint } from "@/contexts/apiEndpointContext";
 import {
 	useMusicUploadDispatch,
 	useMusicUploadState,
@@ -20,10 +19,7 @@ export function MusicDropBox({
 	isProcessing,
 	setIsProcessing,
 }: MusicDropBoxProps) {
-	const apiEndpoint = useApiEndpoint();
-	const { data: parties } = useQuery(
-		partyQueries.getPartySearchList(apiEndpoint, ""),
-	);
+	const { data: parties } = useQuery(partyQueries.getPartySearchList(""));
 
 	const dispatch = useMusicUploadDispatch();
 	const state = useMusicUploadState();

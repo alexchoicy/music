@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
-import { useApiEndpoint } from "@/contexts/apiEndpointContext";
 import { useMusicUploadState } from "@/contexts/uploadMusicContext";
 import { partyQueries } from "@/lib/queries/party.queries";
 import { getMMSSFromMs } from "@/lib/utils/display";
@@ -16,10 +15,7 @@ export function UploadAlbumTrackListItem({
 	trackId,
 	openEdit,
 }: UploadAlbumTrackListItemProps) {
-	const apiEndpoint = useApiEndpoint();
-	const { data: parties } = useQuery(
-		partyQueries.getPartySearchList(apiEndpoint, ""),
-	);
+	const { data: parties } = useQuery(partyQueries.getPartySearchList(""));
 
 	const state = useMusicUploadState();
 	const track = state.tracks[trackId];

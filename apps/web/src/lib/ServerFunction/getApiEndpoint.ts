@@ -1,12 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { setResponseHeaders } from "@tanstack/react-start/server";
 
 export const getApiEndpoint = createServerFn({ method: "GET" }).handler(() => {
-	setResponseHeaders(
-		new Headers({
-			"Cache-Control": "public, max-age=300, stale-while-revalidate=600",
-		}),
-	);
 	// biome-ignore lint/style/noNonNullAssertion: bro you should set it in the .env file
 	return process.env.API_BASE_URL!;
 });

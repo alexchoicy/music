@@ -3,12 +3,11 @@ import type { components } from "@/data/APIschema";
 import { $APIFetch } from "../APIFetchClient";
 
 export const meQueries = {
-	getMe: (apiEndpoint: string) =>
+	getMe: () =>
 		queryOptions({
-			queryKey: ["me", apiEndpoint],
+			queryKey: ["me"],
 			queryFn: async () => {
 				const response = await $APIFetch<components["schemas"]["UserDto"]>(
-					apiEndpoint,
 					"/me",
 					{
 						method: "GET",

@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
+import { getApiEndpoint } from "@/lib/ServerFunction/getApiEndpoint";
 
 // const API_Endpoint = import.meta.env.VITE_API_ENDPOINT;
 
@@ -13,11 +14,21 @@ const getServerHeaders = createServerFn().handler(async () => {
 
 const isBrowser = !import.meta.env.SSR;
 
+let apiEndpointPromise: Promise<string> | null = null;
+
+function getResolvedApiEndpoint() {
+	if (!apiEndpointPromise) {
+		apiEndpointPromise = getApiEndpoint();
+	}
+
+	return apiEndpointPromise;
+}
+
 export async function $APIFetch<T>(
-	API_Endpoint: string,
 	endpoint: string,
 	options: RequestInit = {},
 ): Promise<APIFetchResult<T>> {
+	const API_Endpoint = await getResolvedApiEndpoint();
 	const url = `${API_Endpoint}${endpoint}`;
 	const cookieString = isBrowser ? undefined : await getServerHeaders();
 	const response = await fetch(url, {

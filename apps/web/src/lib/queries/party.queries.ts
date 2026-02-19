@@ -3,14 +3,13 @@ import type { components } from "@/data/APIschema";
 import { $APIFetch } from "../APIFetchClient";
 
 export const partyQueries = {
-	getPartySearchList: (apiEndpoint: string, query?: string) =>
+	getPartySearchList: (query?: string) =>
 		queryOptions({
-			queryKey: ["parties", "searchList", apiEndpoint, query],
+			queryKey: ["parties", "searchList", query],
 			queryFn: async () => {
 				const result = await $APIFetch<
 					components["schemas"]["PartyListModel"][]
 				>(
-					apiEndpoint,
 					"/parties/list?" +
 						new URLSearchParams({
 							Search: query || "",
@@ -23,12 +22,11 @@ export const partyQueries = {
 				return result.data;
 			},
 		}),
-	getParties: (apiEndpoint: string) =>
+	getParties: () =>
 		queryOptions({
-			queryKey: ["parties", apiEndpoint],
+			queryKey: ["parties"],
 			queryFn: async () => {
 				const result = await $APIFetch<components["schemas"]["PartyModel"][]>(
-					apiEndpoint,
 					"/parties",
 					{
 						method: "GET",
@@ -38,13 +36,13 @@ export const partyQueries = {
 				return result.data;
 			},
 		}),
-	getParty: (apiEndpoint: string, id: string) =>
+	getParty: (id: string) =>
 		queryOptions({
-			queryKey: ["parties", apiEndpoint, id],
+			queryKey: ["parties", id],
 			queryFn: async () => {
 				const result = await $APIFetch<
 					components["schemas"]["PartyDetailModel"]
-				>(apiEndpoint, `/parties/${id}`, {
+				>(`/parties/${id}`, {
 					method: "GET",
 				});
 				if (!result.ok) throw new Error("Failed to fetch party");
@@ -54,9 +52,9 @@ export const partyQueries = {
 };
 
 export const partyMutations = {
-	create: (apiEndpoint: string) => ({
+	create: () => ({
 		mutationFn: async (data: components["schemas"]["CreatePartyRequest"]) => {
-			const result = await $APIFetch(apiEndpoint, "/parties", {
+			const result = await $APIFetch("/parties", {
 				method: "POST",
 				body: JSON.stringify(data),
 			});

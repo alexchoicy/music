@@ -3,10 +3,9 @@ import type { components } from "@/data/APIschema";
 import { $APIFetch } from "../APIFetchClient";
 
 export const authMutations = {
-	login: (apiEndpoint: string) => ({
+	login: () => ({
 		mutationFn: async (data: components["schemas"]["LoginRequest"]) => {
 			const result = await $APIFetch<components["schemas"]["LoginResponse"]>(
-				apiEndpoint,
 				"/auth/login",
 				{
 					method: "POST",
@@ -22,11 +21,11 @@ export const authMutations = {
 };
 
 export const authQueries = {
-	checkAuth: (apiEndpoint: string) =>
+	checkAuth: () =>
 		queryOptions({
-			queryKey: ["auth", "check", apiEndpoint],
+			queryKey: ["auth", "check"],
 			queryFn: async () => {
-				const result = await $APIFetch(apiEndpoint, "/auth", {
+				const result = await $APIFetch("/auth", {
 					method: "GET",
 				});
 				return result.ok;

@@ -8,7 +8,6 @@ import { MusicDropBox } from "@/components/create/musicDropBox";
 import { UploadAlbumCard } from "@/components/create/uploadAlbumCard";
 import { Button } from "@/components/shadcn/button";
 import { AppLayout } from "@/components/ui/appLayout";
-import { useApiEndpoint } from "@/contexts/apiEndpointContext";
 import {
 	MusicUploadProvider,
 	useMusicUploadDispatch,
@@ -35,7 +34,6 @@ function RouteComponent() {
 }
 function CreatePageContent() {
 	const [isProcessing, setIsProcessing] = useState(false);
-	const apiEndpoint = useApiEndpoint();
 
 	const [editingAlbumDialogAlbumId, setEditingAlbumDialogAlbumId] =
 		useState<LocalID | null>(null);
@@ -46,12 +44,10 @@ function CreatePageContent() {
 	const state = useMusicUploadState();
 	const dispatch = useMusicUploadDispatch();
 
-	const { mutateAsync: createAlbum } = useMutation(
-		albumMutations.create(apiEndpoint),
-	);
+	const { mutateAsync: createAlbum } = useMutation(albumMutations.create());
 
 	const { mutateAsync: completeMultipartUpload } = useMutation(
-		uploadMutations.complete(apiEndpoint),
+		uploadMutations.complete(),
 	);
 
 	const onUpload = async () => {

@@ -50,7 +50,6 @@ type PartyList = components["schemas"]["PartyListModel"];
 type PartyType = components["schemas"]["PartyType"];
 
 type Props = {
-	apiEndpoint: string;
 	parties: PartyList[];
 	selectedValues: PartyList[];
 	setSelectedValues: React.Dispatch<React.SetStateAction<PartyList[]>>;
@@ -68,7 +67,6 @@ function isCreatable(item: PartyItem): item is CreatablePartyItem {
 }
 
 export default function PartyCombobox({
-	apiEndpoint,
 	parties,
 	selectedValues,
 	setSelectedValues,
@@ -87,7 +85,7 @@ export default function PartyCombobox({
 
 	const newPartyInput = useId();
 	const queryClient = useQueryClient();
-	const { mutateAsync } = useMutation(partyMutations.create(apiEndpoint));
+	const { mutateAsync } = useMutation(partyMutations.create());
 
 	useEffect(() => {
 		return () => {

@@ -37,7 +37,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/shadcn/select";
-import { useApiEndpoint } from "@/contexts/apiEndpointContext";
 import {
 	useMusicUploadDispatch,
 	useMusicUploadState,
@@ -62,12 +61,9 @@ export function CreateTrackEditDialog({
 	open,
 	onOpenChange,
 }: CreateTrackEditDialogProps) {
-	const apiEndpoint = useApiEndpoint();
 	const state = useMusicUploadState();
 	const dispatch = useMusicUploadDispatch();
-	const { data: parties } = useQuery(
-		partyQueries.getPartySearchList(apiEndpoint, ""),
-	);
+	const { data: parties } = useQuery(partyQueries.getPartySearchList(""));
 
 	const [partyList, setPartyList] = useState<PartyList[]>([]);
 
@@ -337,7 +333,6 @@ export function CreateTrackEditDialog({
 										/>
 
 										<PartyCombobox
-											apiEndpoint={apiEndpoint}
 											parties={parties || []}
 											selectedValues={partyList}
 											setSelectedValues={setPartyList}
