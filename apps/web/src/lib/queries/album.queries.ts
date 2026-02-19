@@ -3,26 +3,26 @@ import type { components } from "@/data/APIschema";
 import { $APIFetch } from "../APIFetchClient";
 
 export const albumQueries = {
-	list: () =>
+	list: (apiEndpoint: string) =>
 		queryOptions({
-			queryKey: ["albums"],
+			queryKey: ["albums", apiEndpoint],
 			queryFn: async () => {
 				const result = await $APIFetch<
 					components["schemas"]["AlbumListItemModel"][]
-				>("/albums", {
+				>(apiEndpoint, "/albums", {
 					method: "GET",
 				});
 				if (!result.ok) return [];
 				return result.data;
 			},
 		}),
-	item: (albumId: string) =>
+	item: (apiEndpoint: string, albumId: string) =>
 		queryOptions({
-			queryKey: ["albums", albumId],
+			queryKey: ["albums", apiEndpoint, albumId],
 			queryFn: async () => {
 				const result = await $APIFetch<
 					components["schemas"]["AlbumDetailsModel"]
-				>(`/albums/${albumId}`, {
+				>(apiEndpoint, `/albums/${albumId}`, {
 					method: "GET",
 				});
 				if (!result.ok) throw new Error("Failed to fetch album");
@@ -32,11 +32,11 @@ export const albumQueries = {
 };
 
 export const albumMutations = {
-	create: {
+	create: (apiEndpoint: string) => ({
 		mutationFn: async (data: components["schemas"]["CreateAlbumRequest"][]) => {
 			const result = await $APIFetch<
 				components["schemas"]["CreateAlbumResult"][]
-			>("/albums", {
+			>(apiEndpoint, "/albums", {
 				method: "POST",
 				body: JSON.stringify(data),
 			});
@@ -47,5 +47,5 @@ export const albumMutations = {
 
 			return result;
 		},
-	},
+	}),
 };

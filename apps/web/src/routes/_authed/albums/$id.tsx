@@ -12,16 +12,21 @@ import {
 	CardTitle,
 } from "@/components/shadcn/card";
 import { AppLayout } from "@/components/ui/appLayout";
+import { useApiEndpoint } from "@/contexts/apiEndpointContext";
 import { useAudioPlayer } from "@/contexts/audioPlayerContext";
 import { albumQueries } from "@/lib/queries/album.queries";
+import { getApiEndpoint } from "@/lib/ServerFunction/getApiEndpoint";
 import { buildAudioPlayerItem } from "@/lib/utils/music";
 
 export const Route = createFileRoute("/_authed/albums/$id")({
 	component: RouteComponent,
-	loader: ({ context, params }) => {
+	loader: async ({ context, params }) => {
 		const { id } = params;
+		const apiEndpoint = await getApiEndpoint();
 
-		context.queryClient.ensureQueryData(albumQueries.item(id));
+		await context.queryClient.ensureQueryData(
+			albumQueries.item(apiEndpoint, id),
+		);
 	},
 });
 
@@ -37,7 +42,8 @@ function RouteComponent() {
 
 function AlbumContent() {
 	const { id } = Route.useParams();
-	const { data: album } = useSuspenseQuery(albumQueries.item(id));
+	const apiEndpoint = useApiEndpoint();
+	const { data: album } = useSuspenseQuery(albumQueries.item(apiEndpoint, id));
 
 	const trackParties = useMemo(() => {
 		return Array.from(

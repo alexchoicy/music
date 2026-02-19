@@ -2,9 +2,11 @@ using Microsoft.Extensions.Options;
 using Music.Core.Models;
 using Amazon.S3;
 using Amazon.S3.Model;
+using System.ComponentModel.DataAnnotations;
 using Music.Infrastructure.Data;
 using Music.Core.Entities;
 using Microsoft.EntityFrameworkCore;
+using Music.Core.Exceptions;
 using Music.Core.Services.Interfaces;
 
 namespace Music.Infrastructure.Services.Storage;
@@ -18,14 +20,26 @@ public class S3ContentService(
 {
     private readonly string bucket = options.Value.Content!.S3!.BucketName;
 
-    public async Task CompleteAudioMultipartUploadAsync(List<Core.Models.CompleteMultipartUploadRequest> requests, CancellationToken cancellationToken = default)
+    public async Task CompleteAudioMultipartUploadAsync(
+        List<Core.Models.CompleteMultipartUploadRequest> requests,
+        string userId,
+        CancellationToken cancellationToken = default)
     {
         foreach (Core.Models.CompleteMultipartUploadRequest request in requests)
         {
+            if (request.Parts.Count == 0)
+                throw new ValidationException($"Multipart upload for {request.Blake3Id} has no parts.");
+
             FileObject fileObject = await context.FileObjects
                 .Include(fileobject => fileobject.File)
                 .ThenInclude(f => f!.TrackSources)
-                .FirstAsync(fileobject => fileobject.OriginalBlake3Hash == request.Blake3Id, cancellationToken);
+                .FirstOrDefaultAsync(
+                    fileobject => fileobject.OriginalBlake3Hash == request.Blake3Id
+                        && fileobject.CreatedByUserId == userId
+                        && fileobject.ProcessingStatus == Core.Enums.FileProcessingStatus.Pending,
+                    cancellationToken)
+                ?? throw new EntityNotFoundException(
+                    $"No pending upload found for file hash {request.Blake3Id}.");
 
             List<PartETag> partETags =
                     request.Parts.Select(p => new PartETag

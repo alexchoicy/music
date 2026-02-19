@@ -563,6 +563,15 @@ export interface paths {
                         "application/json": unknown;
                     };
                 };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -855,7 +864,8 @@ export interface components {
             avatarImages?: null | components["schemas"]["PartyImageModel"][];
             type?: components["schemas"]["PartyType"];
         };
-        PartyType: number;
+        /** @enum {unknown} */
+        PartyType: "Individual" | "Group" | "Project";
         ProblemDetails: {
             type?: null | string;
             title?: null | string;

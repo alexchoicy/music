@@ -261,7 +261,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
             try
             {
-                CreateAlbumUploadResult uploadResults = await CreateSingleAlbum(album, userId);
+                CreateAlbumUploadResult uploadResults = await CreateSingleAlbum(album, userId, cancellationToken);
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 
@@ -314,7 +314,10 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         return false;
     }
 
-    private async Task<CreateAlbumUploadResult> CreateSingleAlbum(CreateAlbumModel album, string userId)
+    private async Task<CreateAlbumUploadResult> CreateSingleAlbum(
+        CreateAlbumModel album,
+        string userId,
+        CancellationToken cancellationToken)
     {
         var newAlbum = new Core.Entities.Album
         {
@@ -344,18 +347,22 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         if (album.AlbumImage is not null)
         {
-            uploadResults.AlbumImage = await CreateAlbumImage(album.AlbumImage, newAlbum, userId);
+            uploadResults.AlbumImage = await CreateAlbumImage(album.AlbumImage, newAlbum, userId, cancellationToken);
         }
 
         foreach (AlbumDiscModel albumDisc in album.Discs)
         {
-            uploadResults.Tracks.AddRange(await CreateDisc(albumDisc, newAlbum, userId));
+            uploadResults.Tracks.AddRange(await CreateDisc(albumDisc, newAlbum, userId, cancellationToken));
         }
 
         return uploadResults;
     }
 
-    private async Task<List<CreateAlbumTrackUploadItemResult>> CreateDisc(AlbumDiscModel albumDisc, Core.Entities.Album album, string userId)
+    private async Task<List<CreateAlbumTrackUploadItemResult>> CreateDisc(
+        AlbumDiscModel albumDisc,
+        Core.Entities.Album album,
+        string userId,
+        CancellationToken cancellationToken)
     {
         AlbumDisc newAlbumDisc = new()
         {
@@ -370,14 +377,18 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         foreach (AlbumTrackModel albumTrack in albumDisc.Tracks)
         {
-            sourceResults.AddRange(await CreateTrack(albumTrack, newAlbumDisc, userId));
+            sourceResults.AddRange(await CreateTrack(albumTrack, newAlbumDisc, userId, cancellationToken));
         }
 
         return sourceResults;
     }
 
 
-    private async Task<CreateAlbumImageUploadItemResult> CreateAlbumImage(AlbumImageModel imageModel, Core.Entities.Album album, string userId)
+    private async Task<CreateAlbumImageUploadItemResult> CreateAlbumImage(
+        AlbumImageModel imageModel,
+        Core.Entities.Album album,
+        string userId,
+        CancellationToken cancellationToken)
     {
         string imagePath = _assetsService.GetStoragePath(
             MediaFolderOptions.AssetsCover,
@@ -410,11 +421,15 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         {
             Blake3Id = imageModel.File.FileBlake3,
             FileName = imageModel.File.OriginalFileName,
-            UploadUrl = _assetsService.CreateUploadUrlAsync(imagePath, fileObject.MimeType, CancellationToken.None)
+            UploadUrl = _assetsService.CreateUploadUrlAsync(imagePath, fileObject.MimeType, cancellationToken)
         };
     }
 
-    private async Task<List<CreateAlbumTrackUploadItemResult>> CreateTrack(AlbumTrackModel albumTrack, AlbumDisc albumDisc, string userId)
+    private async Task<List<CreateAlbumTrackUploadItemResult>> CreateTrack(
+        AlbumTrackModel albumTrack,
+        AlbumDisc albumDisc,
+        string userId,
+        CancellationToken cancellationToken)
     {
         Track track = new()
         {
@@ -450,13 +465,17 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         foreach (TrackVariantModel trackVariant in albumTrack.TrackVariants)
         {
-            sourceResults.AddRange(await CreateTrackVariant(trackVariant, track, userId));
+            sourceResults.AddRange(await CreateTrackVariant(trackVariant, track, userId, cancellationToken));
         }
 
         return sourceResults;
     }
 
-    private async Task<List<CreateAlbumTrackUploadItemResult>> CreateTrackVariant(TrackVariantModel variantModel, Track track, string userId)
+    private async Task<List<CreateAlbumTrackUploadItemResult>> CreateTrackVariant(
+        TrackVariantModel variantModel,
+        Track track,
+        string userId,
+        CancellationToken cancellationToken)
     {
         var newTrackVariant = new TrackVariant
         {
@@ -470,13 +489,17 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         foreach (TrackSourceModel trackSource in variantModel.Sources)
         {
-            sourceResults.Add(await CreateTrackSource(trackSource, newTrackVariant, userId));
+            sourceResults.Add(await CreateTrackSource(trackSource, newTrackVariant, userId, cancellationToken));
         }
 
         return sourceResults;
     }
 
-    private async Task<CreateAlbumTrackUploadItemResult> CreateTrackSource(TrackSourceModel sourceModel, TrackVariant trackVariant, string userId)
+    private async Task<CreateAlbumTrackUploadItemResult> CreateTrackSource(
+        TrackSourceModel sourceModel,
+        TrackVariant trackVariant,
+        string userId,
+        CancellationToken cancellationToken)
     {
         string path = _contentService.GetStoragePath(
             MediaFolderOptions.OriginalMusic,
@@ -506,7 +529,11 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         {
             Blake3Id = sourceModel.File.FileBlake3,
             FileName = sourceModel.File.OriginalFileName,
-            MultipartUploadInfo = await _contentService.CreateMultipartUploadAsync(path, fileObject.MimeType, fileObject.SizeInBytes, CancellationToken.None)
+            MultipartUploadInfo = await _contentService.CreateMultipartUploadAsync(
+                path,
+                fileObject.MimeType,
+                fileObject.SizeInBytes,
+                cancellationToken)
         };
     }
 

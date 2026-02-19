@@ -290,9 +290,12 @@ export function buildMusicUploadRequest(state: UploadMusicState) {
 			});
 		}
 
-		const albumImageRequest: components["schemas"]["AlbumImageRequest"] = {
-			file: albumCover.file,
-		};
+		const albumImageRequest: components["schemas"]["AlbumImageRequest"] | undefined =
+			albumCover
+				? {
+					file: albumCover.file,
+				}
+				: undefined;
 
 		albums.push({
 			title: album.title,
@@ -300,7 +303,7 @@ export function buildMusicUploadRequest(state: UploadMusicState) {
 			type: album.type,
 			releaseDate: album.releaseDate ? album.releaseDate : undefined,
 			albumCredits: album.albumCredits,
-			albumImage: albumCover ? albumImageRequest : undefined,
+			albumImage: albumImageRequest,
 			discs,
 		});
 	}

@@ -41,6 +41,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/shadcn/select";
+import { useApiEndpoint } from "@/contexts/apiEndpointContext";
 import {
 	useMusicUploadDispatch,
 	useMusicUploadState,
@@ -67,9 +68,12 @@ export function CreateAlbumEditDialog({
 	open,
 	onOpenChange,
 }: CreateAlbumEditDialogProps) {
+	const apiEndpoint = useApiEndpoint();
 	const state = useMusicUploadState();
 	const dispatch = useMusicUploadDispatch();
-	const { data: parties } = useQuery(partyQueries.getPartySearchList(""));
+	const { data: parties } = useQuery(
+		partyQueries.getPartySearchList(apiEndpoint, ""),
+	);
 
 	const [partyList, setPartyList] = useState<PartyList[]>([]);
 	const [openCalendar, setOpenCalendar] = useState(false);
@@ -245,6 +249,7 @@ export function CreateAlbumEditDialog({
 											}}
 										/>
 										<PartyCombobox
+											apiEndpoint={apiEndpoint}
 											parties={parties || []}
 											selectedValues={partyList}
 											setSelectedValues={setPartyList}

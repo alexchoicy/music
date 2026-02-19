@@ -18,23 +18,28 @@ import {
 } from "@/components/shadcn/field";
 import { Input } from "@/components/shadcn/input";
 import { authMutations, authQueries } from "@/lib/queries/auth.queries";
+import { getApiEndpoint } from "@/lib/ServerFunction/getApiEndpoint";
 
 export const Route = createFileRoute("/_public/login/")({
 	loader: async ({ context }) => {
+		const apiEndpoint = await getApiEndpoint();
 		const status = await context.queryClient.fetchQuery({
-			...authQueries.checkAuth(),
+			...authQueries.checkAuth(apiEndpoint),
 			staleTime: 0,
 		});
 		if (status) throw redirect({ to: "/" });
+
+		return { apiEndpoint };
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
 	const navigate = useNavigate();
+	const { apiEndpoint } = Route.useLoaderData();
 
 	const { mutateAsync: loginSubmit, isError } = useMutation({
-		...authMutations.login,
+		...authMutations.login(apiEndpoint),
 		onError: () => {
 			form.setFieldMeta("password", (prev) => ({
 				...prev,

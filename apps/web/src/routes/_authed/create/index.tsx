@@ -8,6 +8,7 @@ import { MusicDropBox } from "@/components/create/musicDropBox";
 import { UploadAlbumCard } from "@/components/create/uploadAlbumCard";
 import { Button } from "@/components/shadcn/button";
 import { AppLayout } from "@/components/ui/appLayout";
+import { useApiEndpoint } from "@/contexts/apiEndpointContext";
 import {
 	MusicUploadProvider,
 	useMusicUploadDispatch,
@@ -34,6 +35,7 @@ function RouteComponent() {
 }
 function CreatePageContent() {
 	const [isProcessing, setIsProcessing] = useState(false);
+	const apiEndpoint = useApiEndpoint();
 
 	const [editingAlbumDialogAlbumId, setEditingAlbumDialogAlbumId] =
 		useState<LocalID | null>(null);
@@ -44,10 +46,12 @@ function CreatePageContent() {
 	const state = useMusicUploadState();
 	const dispatch = useMusicUploadDispatch();
 
-	const { mutateAsync: createAlbum } = useMutation(albumMutations.create);
+	const { mutateAsync: createAlbum } = useMutation(
+		albumMutations.create(apiEndpoint),
+	);
 
 	const { mutateAsync: completeMultipartUpload } = useMutation(
-		uploadMutations.complete,
+		uploadMutations.complete(apiEndpoint),
 	);
 
 	const onUpload = async () => {
@@ -75,43 +79,50 @@ function CreatePageContent() {
 
 				// upload album cover
 				if (album.createAlbumUploadResults?.albumImage) {
-					fetch(album.createAlbumUploadResults.albumImage.uploadUrl, {
-						method: "PUT",
-						body: albumCoverMap[
-							album.createAlbumUploadResults.albumImage.blake3Id
-						],
-					});
+					const imageUploadResponse = await fetch(
+						album.createAlbumUploadResults.albumImage.uploadUrl,
+						{
+							method: "PUT",
+							body: albumCoverMap[
+								album.createAlbumUploadResults.albumImage.blake3Id
+							],
+						},
+					);
+
+					if (!imageUploadResponse.ok) {
+						throw new Error(
+							`cover upload failed for ${album.createAlbumUploadResults.albumImage.blake3Id}`,
+						);
+					}
 				}
 
 				const trackUploads = album.createAlbumUploadResults?.tracks || [];
 
-				await pMap(
+				const trackUploadResults = await pMap(
 					trackUploads,
 					async (
 						trackUpload: components["schemas"]["CreateAlbumTrackUploadItemResult"],
 					) => {
-						try {
-							const trackFile = state.trackVariants[trackUpload.blake3Id];
-							if (!trackFile) {
-								console.error("missing track file", trackUpload.blake3Id);
-								return;
-							}
-							const result = await multipartFileRequest(
-								trackFile.file,
-								trackUpload.multipartUploadInfo,
-							);
-
-							completedResults.push({
-								blake3Id: trackUpload.blake3Id,
-								uploadId: trackUpload.multipartUploadInfo.uploadId,
-								parts: result,
-							});
-						} catch (e) {
-							console.error("track upload failed", trackUpload.blake3Id, e);
+						const trackFile = state.trackVariants[trackUpload.blake3Id];
+						if (!trackFile) {
+							throw new Error(`missing track file ${trackUpload.blake3Id}`);
 						}
+
+						const parts = await multipartFileRequest(
+							trackFile.file,
+							trackUpload.multipartUploadInfo,
+						);
+
+						return {
+							blake3Id: trackUpload.blake3Id,
+							uploadId: trackUpload.multipartUploadInfo.uploadId,
+							parts,
+						};
 					},
 					{ concurrency: 4 },
 				);
+
+				completedResults.push(...trackUploadResults);
 			}
 
 			await completeMultipartUpload(completedResults);

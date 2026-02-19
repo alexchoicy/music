@@ -10,7 +10,10 @@ public interface IContentService : IStorageService
         long fileSizeInBytes,
         CancellationToken cancellationToken = default);
 
-    public Task CompleteAudioMultipartUploadAsync(List<CompleteMultipartUploadRequest> requests, CancellationToken cancellationToken = default);
+    public Task CompleteAudioMultipartUploadAsync(
+        List<CompleteMultipartUploadRequest> requests,
+        string userId,
+        CancellationToken cancellationToken = default);
 
     public string GetPlayPresignedUrlAsync(string objectPath, CancellationToken cancellationToken = default);
 

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Disc3 } from "lucide-react";
+import { useApiEndpoint } from "@/contexts/apiEndpointContext";
 import { useMusicUploadState } from "@/contexts/uploadMusicContext";
 import { partyQueries } from "@/lib/queries/party.queries";
 import { checkIfVariousArtists } from "@/lib/utils/music";
@@ -14,7 +15,10 @@ export function UploadAlbumDetail({
 	openAlbumEdit: (albumId: string) => void;
 }) {
 	const state = useMusicUploadState();
-	const { data: parties } = useQuery(partyQueries.getPartySearchList(""));
+	const apiEndpoint = useApiEndpoint();
+	const { data: parties } = useQuery(
+		partyQueries.getPartySearchList(apiEndpoint, ""),
+	);
 
 	const album = state.albums[albumId];
 	const albumCover = state.albumCovers[albumId];

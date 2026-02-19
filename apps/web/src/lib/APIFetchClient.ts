@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 
-const API_Endpoint = import.meta.env.VITE_API_ENDPOINT;
+// const API_Endpoint = import.meta.env.VITE_API_ENDPOINT;
 
 export type APIFetchResult<T> =
 	| { ok: true; status: number; data: T }
@@ -14,6 +14,7 @@ const getServerHeaders = createServerFn().handler(async () => {
 const isBrowser = !import.meta.env.SSR;
 
 export async function $APIFetch<T>(
+	API_Endpoint: string,
 	endpoint: string,
 	options: RequestInit = {},
 ): Promise<APIFetchResult<T>> {
