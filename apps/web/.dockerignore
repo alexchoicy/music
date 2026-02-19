@@ -1,0 +1,8 @@
+node_modules
+.output
+
+.env
+.env.*
+
+.tanstack
+vscode

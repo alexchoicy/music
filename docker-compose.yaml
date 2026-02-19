@@ -1,0 +1,23 @@
+services:
+  backend:
+    build:
+      context: apps/backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./docker/.env.backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command=Warning
+    volumes:
+      - ./docker/appsettings.backend.Production.json:/app/appsettings.Production.json:ro
+    ports:
+      - "5000:8080"
+
+  web:
+    build:
+      context: apps/web
+      dockerfile: Dockerfile
+    env_file:
+      - ./docker/.env.web
+    ports:
+      - "3000:3000"

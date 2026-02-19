@@ -1,0 +1,82 @@
+{
+	"Logging": {
+		// default
+		"LogLevel": {
+			"Default": "Information",
+			"Microsoft.AspNetCore": "Warning"
+		}
+	},
+	"AllowedHosts": "*", // .net hostname filiter
+	"Base": {
+		//Checked
+		// used to generate links
+		"ApiUrl": "http://localhost:5287", // your api url
+		"WebUrl": "http://localhost:3000" // your web url
+	},
+	"Database": {
+		//Checked by db init
+		//postgresql connection string
+		// You should set in .env / User Secret
+		"DBConnectionString": "Host=;Database=;Username=;Password=;"
+	},
+	"Cors": {
+		// It should fine right?
+		// add your domains
+		"AllowedOrigins": ["http://localhost:3000"]
+	},
+	"Cookies": {
+		// Checked
+		"Name": "AlexCoolMusicAppToken"
+	},
+	"JWT": {
+		// Checked
+		// You should set in .env / User Secret
+		"SecretKey": "",
+		"Issuer": "Music.Api",
+		"Audience": "Music.Api.Users"
+	},
+	"DefaultAccount": {
+		// Checked by db init
+		"ADMIN": "" // You should set in .env / User Secret
+	},
+	"Storage": {
+		"TempDir": "temp", // a temp folder for processing files
+		"MediaFolders": {
+			// folder path for item inside the system
+			"OriginalMusic": "media/originals/music", // original music files
+			"OriginalVideo": "media/originals/video", // concert recordings
+			"OriginalExtra": "media/originals/extra", // extra files by party or albums
+			"DerivedMusic": "media/derivatives/music", // derivated music files,
+			"DerivedVideo": "media/derivatives/video", // derivated video files
+			// extra will not be processed
+			"AssetsCover": "assets/cover", // cover, party avatar, party banner.
+			"AssetsParty": "assets/party", // In app resolve to /avatars and /banners
+			"AssetsPeak": "assets/peak" // music peak files for visualizer
+		},
+		"Content": {
+			"Provider": "S3", // Checked
+			"S3": {
+				// For music, extra files by party or albums, concerts video, etc.
+				"AccessURL": "", // CDN URL
+				"BucketName": "music-media-bucket",
+				"Region": "auto",
+				"Endpoint": "", // Optional, for custom S3-compatible services,
+				"AccessKey": "", // You should set in .env / User Secret
+				"SecretKey": "" // You should set in .env / User Secret
+			}
+		},
+		// cover, party avatar, party banner.
+		"Assets": {
+			"Provider": "S3", // Checked
+			"S3": {
+				// This is assumed a public bucket //TODO: maybe a option later
+				"AccessURL": "", // CDN
+				"BucketName": "music-static-bucket",
+				"Region": "auto",
+				"Endpoint": "", // Optional, for custom S3-compatible services,
+				"AccessKey": "", // You should set in .env / User Secret
+				"SecretKey": "" // You should set in .env / User Secret
+			}
+		}
+	}
+}
