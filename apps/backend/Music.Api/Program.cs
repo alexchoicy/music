@@ -110,15 +110,15 @@ builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
+// if (app.Environment.IsDevelopment())
+// {
+app.MapOpenApi();
 
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/openapi/v1.json", "v1");
-    });
-}
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/openapi/v1.json", "v1");
+});
+// }
 
 using (IServiceScope scope = app.Services.CreateScope())
 {
@@ -133,8 +133,6 @@ using (IServiceScope scope = app.Services.CreateScope())
     //Create a "Unknown" party for works
     await PartySeed.SeedAsync(dbContext);
 }
-
-app.UseHttpsRedirection();
 
 app.UseExceptionHandler();
 
