@@ -87,7 +87,7 @@ export function AppSidebar() {
 					<SidebarMenuItem>
 						<SidebarMenuButton
 							render={
-								<Link to="/">
+								<Link to="/settings">
 									<Settings />
 									Settings
 								</Link>

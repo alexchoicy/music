@@ -9,6 +9,7 @@ using System.Security.Claims;
 namespace Music.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("parties")]
 public class PartyController(IPartyService partyService) : ControllerBase
 {

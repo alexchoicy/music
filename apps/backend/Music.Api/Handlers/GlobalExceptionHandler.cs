@@ -18,6 +18,7 @@ public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetails
         {
             EntityNotFoundException => (StatusCodes.Status404NotFound, exception.Message),
             ValidationException => (StatusCodes.Status400BadRequest, exception.Message),
+            ConflictException => (StatusCodes.Status409Conflict, exception.Message),
             DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "Concurrency conflict"),
             _ => (StatusCodes.Status500InternalServerError, "Unexpected error")
         };

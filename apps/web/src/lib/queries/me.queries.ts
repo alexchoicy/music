@@ -7,13 +7,16 @@ export const meQueries = {
 		queryOptions({
 			queryKey: ["me"],
 			queryFn: async () => {
-				const response = await $APIFetch<components["schemas"]["UserDto"]>(
+				const result = await $APIFetch<components["schemas"]["UserDto"]>(
 					"/me",
 					{
 						method: "GET",
 					},
 				);
-				return response;
+				if (!result.ok) {
+					throw new Error("Failed to fetch current user");
+				}
+				return result.data;
 			},
 			retry: 0,
 			staleTime: 1000 * 60 * 5,
