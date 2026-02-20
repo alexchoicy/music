@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer } from "react";
+import type { components } from "@/data/APIschema";
 import type {
 	Disc,
 	LocalID,
@@ -41,6 +42,14 @@ export type Action =
 				editTrack: Partial<UploadMusicState["tracks"][LocalID]>;
 				variantTrack: TrackVariant[];
 				discNumber: number;
+			};
+	  }
+	| {
+			type: "ReplaceAllTrackParty";
+			payload: {
+				albumId: LocalID;
+				party: components["schemas"]["TrackCreditRequest"][];
+				clear: boolean;
 			};
 	  }
 	| {
@@ -393,6 +402,35 @@ function reducer(state: UploadMusicState, action: Action): UploadMusicState {
 				trackVariants: newTrackVariants,
 				discs: newDiscs,
 				albums: newAlbums,
+			};
+		}
+		case "ReplaceAllTrackParty": {
+			const { albumId, party, clear } = action.payload;
+
+			const album = state.albums[albumId];
+			if (!album) return state;
+
+			const newTracks = { ...state.tracks };
+
+			for (const discId of album.OrderedAlbumDiscsIds) {
+				const disc = state.discs[discId];
+				if (!disc) continue;
+
+				for (const trackId of disc.OrderedTrackIds) {
+					const track = state.tracks[trackId];
+					if (!track) continue;
+
+					newTracks[trackId] = {
+						...track,
+						trackCredits: party,
+						unsolvedTrackCredits: clear ? [] : track.unsolvedTrackCredits,
+					};
+				}
+			}
+
+			return {
+				...state,
+				tracks: newTracks,
 			};
 		}
 		case "ProcessUpload":

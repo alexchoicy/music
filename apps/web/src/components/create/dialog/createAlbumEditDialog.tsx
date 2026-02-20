@@ -41,6 +41,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/shadcn/select";
+import { Switch } from "@/components/shadcn/switch";
 import {
 	useMusicUploadDispatch,
 	useMusicUploadState,
@@ -73,6 +74,10 @@ export function CreateAlbumEditDialog({
 
 	const [partyList, setPartyList] = useState<PartyList[]>([]);
 	const [openCalendar, setOpenCalendar] = useState(false);
+
+	const [trackArtistsList, setTrackArtistsList] = useState<PartyList[]>([]);
+	const [clearUnsolvedTrackCredits, setClearUnsolvedTrackCredits] =
+		useState(false);
 
 	const album = albumId ? state.albums[albumId] : null;
 	// const albumCover = albumId ? state.albumCovers[albumId] : null;
@@ -132,12 +137,32 @@ export function CreateAlbumEditDialog({
 				},
 			});
 
+			if (trackArtistsList.length > 0 || clearUnsolvedTrackCredits) {
+				dispatch({
+					type: "ReplaceAllTrackParty",
+					payload: {
+						albumId,
+						party: trackArtistsList.map(
+							(party) =>
+								({
+									partyId: party.partyId,
+									credit: "Artist",
+								}) satisfies components["schemas"]["TrackCreditRequest"],
+						),
+						clear: clearUnsolvedTrackCredits,
+					},
+				});
+			}
+
 			onOpenChange(false);
 		},
 	});
 
 	useEffect(() => {
 		if (album) {
+			setTrackArtistsList([]);
+			setClearUnsolvedTrackCredits(false);
+
 			form.reset({
 				title: album.title || "",
 				type: album.type || "Album",
@@ -148,8 +173,6 @@ export function CreateAlbumEditDialog({
 				languageId: album.languageId || "",
 				discs: discs || [],
 			});
-
-			console.log("Album credits:", discs);
 
 			if (parties) {
 				const convertedPartyList: PartyList[] = [];
@@ -252,6 +275,35 @@ export function CreateAlbumEditDialog({
 									</div>
 								</Field>
 
+								<Field>
+									<FieldLabel htmlFor="album-description">
+										Replace All Tracks Artists
+									</FieldLabel>
+									<div className="flex flex-col gap-2">
+										<PartyCombobox
+											parties={parties || []}
+											selectedValues={trackArtistsList}
+											setSelectedValues={setTrackArtistsList}
+										/>
+
+										<Alert variant="destructive">
+											<AlertCircleIcon />
+											<AlertTitle>Warning</AlertTitle>
+											<AlertDescription>
+												This will clear all unsolved track credits.
+											</AlertDescription>
+											<AlertAction>
+												<Switch
+													checked={clearUnsolvedTrackCredits}
+													onCheckedChange={(value) =>
+														setClearUnsolvedTrackCredits(value)
+													}
+												/>
+											</AlertAction>
+										</Alert>
+									</div>
+								</Field>
+
 								<form.Field
 									name="type"
 									children={(field) => {
@@ -347,7 +399,6 @@ export function CreateAlbumEditDialog({
 											mode="array"
 											children={(field) => {
 												return (
-													// <div className="grid">
 													<FieldGroup className="gap-2">
 														{field.state.value.map((disc, index) => (
 															<form.Field
@@ -382,7 +433,6 @@ export function CreateAlbumEditDialog({
 															/>
 														))}
 													</FieldGroup>
-													// </div>
 												);
 											}}
 										/>
