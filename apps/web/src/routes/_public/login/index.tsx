@@ -20,18 +20,22 @@ import { Input } from "@/components/shadcn/input";
 import { authMutations, authQueries } from "@/lib/queries/auth.queries";
 
 export const Route = createFileRoute("/_public/login/")({
-	loader: async ({ context }) => {
+	validateSearch: (search) => ({
+		redirect: (search.redirect as string) || "/",
+	}),
+	beforeLoad: async ({ context, search }) => {
 		const status = await context.queryClient.fetchQuery({
 			...authQueries.checkAuth(),
 			staleTime: 0,
 		});
-		if (status) throw redirect({ to: "/" });
+		if (status) throw redirect({ to: search.redirect });
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
 	const navigate = useNavigate();
+	const { redirect } = Route.useSearch();
 
 	const { mutateAsync: loginSubmit, isError } = useMutation({
 		...authMutations.login(),
@@ -61,7 +65,7 @@ function RouteComponent() {
 
 			await loginSubmit(data);
 			if (!isError) {
-				navigate({ to: "/", replace: true });
+				navigate({ to: redirect });
 			}
 		},
 	});

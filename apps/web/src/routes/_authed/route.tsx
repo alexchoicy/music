@@ -6,11 +6,15 @@ import { AudioPlayerProvider } from "@/contexts/audioPlayerContext";
 import { authQueries } from "@/lib/queries/auth.queries";
 
 export const Route = createFileRoute("/_authed")({
-	loader: async ({ context }) => {
+	beforeLoad: async ({ context, location }) => {
 		const status = await context.queryClient.fetchQuery(
 			authQueries.checkAuth(),
 		);
-		if (!status) throw redirect({ to: "/login" });
+		if (!status)
+			throw redirect({
+				to: "/login",
+				search: { redirect: location.href },
+			});
 	},
 	component: RouteComponent,
 });
