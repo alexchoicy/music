@@ -13,8 +13,14 @@ using Music.Infrastructure.Data;
 using Music.Infrastructure.Data.Seed;
 using Music.Infrastructure.Entities;
 using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
 
 builder.Services.AddProblemDetails(configure =>
 {
@@ -142,6 +148,8 @@ builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+
 // Configure the HTTP request pipeline.
 // if (app.Environment.IsDevelopment())
 // {
@@ -149,6 +157,7 @@ app.MapOpenApi();
 
 app.UseSwaggerUI(options =>
 {
+    options.RoutePrefix = "swagger";
     options.SwaggerEndpoint("/openapi/v1.json", "v1");
 });
 // }
