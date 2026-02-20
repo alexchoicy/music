@@ -20,6 +20,38 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
     private readonly IAssetsService _assetsService = assetsService;
     private readonly ILogger<AlbumService> _logger = logger;
 
+    public async Task<AlbumSimpleModel> GetSimpleByIdAsync(
+        int albumId,
+        CancellationToken cancellationToken = default)
+    {
+        Core.Entities.Album? album = await _dbContext.Albums
+            .AsNoTracking()
+            .Include(a => a.Credits)
+                .ThenInclude(c => c.Party)
+            .Include(a => a.Images)
+                .ThenInclude(i => i.File)
+                .ThenInclude(f => f!.FileObjects)
+            .FirstOrDefaultAsync(a => a.Id == albumId, cancellationToken);
+
+        if (album is null)
+            throw new EntityNotFoundException($"Album {albumId} not found");
+
+        return new AlbumSimpleModel
+        {
+            Title = album.Title,
+            Credits = album.Credits
+                .Where(c => c.Party is not null)
+                .Select(c => c.Party!.Name)
+                .Distinct()
+                .OrderBy(name => name)
+                .ToList(),
+            CoverUrl = album.Images.FirstOrDefault()?.File?.FileObjects
+                .OrderBy(fo => fo.FileObjectVariant)
+                .Select(fo => _assetsService.GetUrl(fo.StoragePath))
+                .FirstOrDefault() ?? string.Empty
+        };
+    }
+
     public async Task<AlbumDetailsModel> GetByIdAsync(
         int albumId,
         CancellationToken cancellationToken = default)

@@ -5,14 +5,16 @@ using Microsoft.AspNetCore.Authorization;
 using Music.Api.Dtos.Responses;
 using Music.Core.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace Music.Api.Controllers;
 
 [ApiController]
 [Route("auth")]
-public class AuthController(IAuthService authService, IConfiguration configuration) : ControllerBase
+public class AuthController(IAuthService authService, ITokenService tokenService, IConfiguration configuration) : ControllerBase
 {
     private readonly IAuthService _authService = authService;
+    private readonly ITokenService _tokenService = tokenService;
     private readonly string AuthCookieName = configuration.GetValue<string>("Cookies:Name") ?? "AlexCoolMusicAppToken";
     private readonly string AuthCookieDomain = configuration.GetValue<string>("Cookies:Domain") ?? "localhost";
 
@@ -62,6 +64,20 @@ public class AuthController(IAuthService authService, IConfiguration configurati
     public ActionResult<string> GetProtectedResource()
     {
         return Ok();
+    }
+
+    [HttpPost("bot-token")]
+    [Authorize(Policy = "RequireAdminRole")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public ActionResult<string> CreateBotToken()
+    {
+        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new ValidationException("Missing user identifier claim.");
+
+        string token = _tokenService.GenerateBotToken(userId);
+        return Ok(token);
     }
 
     [HttpPost("logout")]

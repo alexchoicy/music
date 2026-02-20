@@ -85,6 +85,17 @@ builder.Services.AddAuthentication(options =>
 
             string? accessType = jwt.Claims.FirstOrDefault(c => c.Type == "access_type")?.Value;
 
+            if (string.IsNullOrEmpty(accessType))
+            {
+                Console.WriteLine("Missing access_type claim");
+                return false;
+            }
+
+            if (accessType == TokenUseType.Machine.ToString())
+            {
+                return true;
+            }
+
             //TODO add app token check here
             if (!expires.HasValue)
             {
@@ -120,6 +131,9 @@ builder.Services.AddAuthorization(options =>
         policy.RequireClaim("access_type",
             TokenUseType.UserAccess.ToString(),
             TokenUseType.ContentAccess.ToString()));
+
+    options.AddPolicy("BotAllowed", policy =>
+        policy.RequireClaim("access_type", TokenUseType.Machine.ToString()));
 
     options.DefaultPolicy = options.GetPolicy("UserAllowed")!;
 });

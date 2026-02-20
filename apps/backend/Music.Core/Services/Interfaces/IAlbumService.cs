@@ -5,6 +5,10 @@ namespace Music.Core.Services.Interfaces;
 
 public interface IAlbumService
 {
+    Task<AlbumSimpleModel> GetSimpleByIdAsync(
+        int albumId,
+        CancellationToken cancellationToken = default);
+
     Task<AlbumDetailsModel> GetByIdAsync(
         int albumId,
         CancellationToken cancellationToken = default);

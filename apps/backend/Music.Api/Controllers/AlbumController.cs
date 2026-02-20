@@ -11,13 +11,26 @@ using Music.Core.Enums;
 namespace Music.Api.Controllers;
 
 [ApiController]
-[Authorize]
 [Route("albums")]
 public class AlbumController(IAlbumService albumService) : ControllerBase
 {
     private readonly IAlbumService _albumService = albumService;
 
+    [HttpGet("{id:int}/simple")]
+    [Authorize(Policy = "BotAllowed")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(AlbumSimpleModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetSimpleById(
+        [FromRoute][Required] int id,
+        CancellationToken cancellationToken)
+    {
+        AlbumSimpleModel album = await _albumService.GetSimpleByIdAsync(id, cancellationToken);
+        return Ok(album);
+    }
+
     [HttpGet("{id:int}")]
+    [Authorize]
     [Produces("application/json")]
     [ProducesResponseType(typeof(AlbumDetailsModel), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -30,6 +43,7 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
     }
 
     [HttpGet]
+    [Authorize]
     [Produces("application/json")]
     [ProducesResponseType(typeof(IReadOnlyList<AlbumListItemModel>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllForList(CancellationToken cancellationToken)
@@ -58,6 +72,7 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     [ProducesResponseType(typeof(IReadOnlyList<CreateAlbumResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(IReadOnlyList<CreateAlbumResult>), StatusCodes.Status207MultiStatus)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
