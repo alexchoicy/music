@@ -14,6 +14,7 @@ public class AuthController(IAuthService authService, IConfiguration configurati
 {
     private readonly IAuthService _authService = authService;
     private readonly string AuthCookieName = configuration.GetValue<string>("Cookies:Name") ?? "AlexCoolMusicAppToken";
+    private readonly string AuthCookieDomain = configuration.GetValue<string>("Cookies:Domain") ?? "localhost";
 
     [HttpPost("login")]
     [AllowAnonymous]
@@ -40,7 +41,7 @@ public class AuthController(IAuthService authService, IConfiguration configurati
             Secure = true,
             IsEssential = true,
             Expires = DateTimeOffset.UtcNow.AddDays(7),
-            Domain = Request.Host.Host,
+            Domain = AuthCookieDomain,
             Path = "/",
         });
 
