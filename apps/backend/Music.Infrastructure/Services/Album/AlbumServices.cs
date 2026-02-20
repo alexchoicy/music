@@ -26,6 +26,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
     {
         Core.Entities.Album? album = await _dbContext.Albums
             .AsNoTracking()
+            .AsSplitQuery()
             .Include(a => a.Credits)
                 .ThenInclude(c => c.Party)
             .Include(a => a.Images)

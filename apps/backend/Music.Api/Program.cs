@@ -152,7 +152,6 @@ builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 
-app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
 // if (app.Environment.IsDevelopment())
@@ -178,6 +177,8 @@ using (IServiceScope scope = app.Services.CreateScope())
     //Create a "Unknown" party for works
     await PartySeed.SeedAsync(dbContext);
 }
+
+app.UseExceptionHandler();
 
 app.UseCors();
 
