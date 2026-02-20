@@ -4,6 +4,14 @@ import { getSimpleAlbum } from "@/lib/ServerFunction/getSimpleAlbum";
 
 export const Route = createFileRoute("/bot/albums/$id")({
 	beforeLoad: async ({ params }) => {
+		if (!import.meta.env.SSR) {
+			throw redirect({
+				to: "/albums/$id",
+				params: { id: params.id },
+				replace: true,
+			});
+		}
+
 		const isBot = await checkBotHeader();
 		if (!isBot) {
 			throw redirect({

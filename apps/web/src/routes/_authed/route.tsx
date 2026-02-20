@@ -9,7 +9,8 @@ import { checkBotHeader } from "@/lib/ServerFunction/checkBotHeader";
 export const Route = createFileRoute("/_authed")({
 	beforeLoad: async ({ context, location }) => {
 		const albumMatch = location.pathname.match(/^\/albums\/([^/]+)\/?$/);
-		if (albumMatch) {
+
+		if (albumMatch && import.meta.env.SSR) {
 			const isBot = await checkBotHeader();
 
 			if (isBot) {
