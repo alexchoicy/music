@@ -40,6 +40,8 @@ public class AuthController(IAuthService authService, IConfiguration configurati
             Secure = true,
             IsEssential = true,
             Expires = DateTimeOffset.UtcNow.AddDays(7),
+            Domain = Request.Host.Host,
+            Path = "/",
         });
 
         return Ok(new LoginResponse
