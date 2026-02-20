@@ -11,8 +11,8 @@ using Music.Core.Models;
 using Music.Infrastructure;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Data.Seed;
-using Music.Core.Entities;
 using Music.Infrastructure.Entities;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,7 +73,26 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["JWT:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]!)
-        )
+        ),
+        RequireExpirationTime = false,
+        LifetimeValidator = (notBefore, expires, token, parameters) =>
+        {
+            if (token is not JsonWebToken jwt)
+            {
+                Console.WriteLine("Invalid token format");
+                return false;
+            }
+
+            string? accessType = jwt.Claims.FirstOrDefault(c => c.Type == "access_type")?.Value;
+
+            //TODO add app token check here
+            if (!expires.HasValue)
+            {
+                return false;
+            }
+
+            return expires.Value > DateTime.UtcNow;
+        },
     };
 
     options.Events = new JwtBearerEvents

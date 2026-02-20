@@ -3,7 +3,6 @@ using System.Security.Claims;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Music.Core.Enums;
-using Music.Core.Entities;
 using Music.Core.Services.Interfaces;
 using Music.Core.Models;
 
@@ -43,6 +42,7 @@ public class TokenService : ITokenService
             SigningCredentials = creds,
             Issuer = _config["JWT:Issuer"],
             Audience = _config["JWT:Audience"],
+            Expires = DateTime.UtcNow.AddDays(7),
         };
 
         JwtSecurityTokenHandler tokenHandler = new();
