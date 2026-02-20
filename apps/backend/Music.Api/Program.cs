@@ -19,7 +19,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto |
+    ForwardedHeaders.XForwardedHost |
+    ForwardedHeaders.XForwardedPrefix;
+
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
 });
 
 builder.Services.AddProblemDetails(configure =>
@@ -157,7 +162,6 @@ app.MapOpenApi();
 
 app.UseSwaggerUI(options =>
 {
-    options.RoutePrefix = "swagger";
     options.SwaggerEndpoint("/openapi/v1.json", "v1");
 });
 // }
