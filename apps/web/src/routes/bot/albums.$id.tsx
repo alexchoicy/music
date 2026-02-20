@@ -1,7 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { checkBotHeader } from "@/lib/ServerFunction/checkBotHeader";
 import { getSimpleAlbum } from "@/lib/ServerFunction/getSimpleAlbum";
 
 export const Route = createFileRoute("/bot/albums/$id")({
+	beforeLoad: async ({ params }) => {
+		const isBot = await checkBotHeader();
+		if (!isBot) {
+			throw redirect({
+				to: "/albums/$id",
+				params: { id: params.id },
+				replace: true,
+			});
+		}
+	},
 	component: RouteComponent,
 	loader: async ({ params }) => {
 		const { id } = params;

@@ -13,19 +13,8 @@ using Music.Infrastructure.Data;
 using Music.Infrastructure.Data.Seed;
 using Music.Infrastructure.Entities;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto |
-    ForwardedHeaders.XForwardedHost |
-    ForwardedHeaders.XForwardedPrefix;
-
-    options.KnownNetworks.Clear();
-    options.KnownProxies.Clear();
-});
 
 builder.Services.AddProblemDetails(configure =>
 {
@@ -41,7 +30,17 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, ct) =>
+    {
+        document.Servers =
+        [
+            new() { Url = builder.Configuration["Base:ApiUrl"]! }
+        ];
+        return Task.CompletedTask;
+    });
+});
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -179,8 +178,6 @@ using (IServiceScope scope = app.Services.CreateScope())
     //Create a "Unknown" party for works
     await PartySeed.SeedAsync(dbContext);
 }
-
-app.UseExceptionHandler();
 
 app.UseCors();
 

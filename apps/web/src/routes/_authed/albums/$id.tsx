@@ -14,22 +14,10 @@ import {
 import { AppLayout } from "@/components/ui/appLayout";
 import { useAudioPlayer } from "@/contexts/audioPlayerContext";
 import { albumQueries } from "@/lib/queries/album.queries";
-import { checkBotHeader } from "@/lib/ServerFunction/checkBotHeader";
 import { buildAudioPlayerItem } from "@/lib/utils/music";
 
 export const Route = createFileRoute("/_authed/albums/$id")({
 	component: RouteComponent,
-	loader: async ({ context, params }) => {
-		const { id } = params;
-
-		const isBot = await checkBotHeader();
-
-		if (isBot) {
-			throw redirect({ to: "/bot/albums/$id", params: { id: id } });
-		}
-
-		await context.queryClient.ensureQueryData(albumQueries.item(id));
-	},
 });
 
 function RouteComponent() {

@@ -19,8 +19,6 @@ export const getSimpleAlbum = createServerFn({ method: "GET" })
 			},
 		);
 
-		console.log("Fetching album with ID:", res);
-
 		if (!res.ok) {
 			throw new Error("Failed to fetch album");
 		}
