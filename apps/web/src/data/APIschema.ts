@@ -134,6 +134,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/albums/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    variant: components["schemas"]["FileObjectVariant"];
+                };
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AlbumTrackDownloadItemModel"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/login": {
         parameters: {
             query?: never;
@@ -668,6 +725,18 @@ export interface components {
             durationInMs: number | string;
             credits: components["schemas"]["TrackPartyCreditModel"][];
             trackVariants: components["schemas"]["TrackVariantDetailsModel"][];
+        };
+        AlbumTrackDownloadItemModel: {
+            /** Format: int32 */
+            trackId: number | string;
+            /** Format: int32 */
+            discNumber: number | string;
+            /** Format: int32 */
+            trackNumber: number | string;
+            trackTitle: string;
+            variant: components["schemas"]["FileObjectVariant"];
+            fileName: string;
+            url: string;
         };
         AlbumTrackRequest: {
             /** Format: int32 */

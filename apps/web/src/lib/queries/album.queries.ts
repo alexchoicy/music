@@ -31,6 +31,23 @@ export const albumQueries = {
 		}),
 };
 
+export async function downloadAlbumTracks(
+	albumId: number | string,
+	variant: components["schemas"]["FileObjectVariant"],
+) {
+	const result = await $APIFetch<
+		components["schemas"]["AlbumTrackDownloadItemModel"][]
+	>(`/albums/${albumId}/download?variant=${variant}`, {
+		method: "GET",
+	});
+
+	if (!result.ok) {
+		throw new Error("Failed to download album tracks");
+	}
+
+	return result.data;
+}
+
 export const albumMutations = {
 	create: () => ({
 		mutationFn: async (data: components["schemas"]["CreateAlbumRequest"][]) => {

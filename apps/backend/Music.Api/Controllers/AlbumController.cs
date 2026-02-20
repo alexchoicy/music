@@ -6,6 +6,7 @@ using Music.Api.Dtos.Responses;
 using Music.Core.Models;
 using System.ComponentModel.DataAnnotations;
 using Music.Api.Mappers;
+using Music.Core.Enums;
 
 namespace Music.Api.Controllers;
 
@@ -35,6 +36,25 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
     {
         IReadOnlyList<AlbumListItemModel> list = await _albumService.GetAllForListAsync(cancellationToken);
         return Ok(list);
+    }
+
+    [HttpGet("{id:int}/download")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(IReadOnlyList<AlbumTrackDownloadItemModel>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetDownloadUrls(
+        [FromRoute][Required] int id,
+        [FromQuery][Required] FileObjectVariant variant,
+        CancellationToken cancellationToken)
+    {
+        if (variant != FileObjectVariant.Original && variant != FileObjectVariant.Opus96)
+            throw new ValidationException("Only Original and Opus96 variants are supported for album downloads.");
+
+        IReadOnlyList<AlbumTrackDownloadItemModel> downloadUrls = await _albumService
+            .GetAlbumDownloadUrlsAsync(id, variant, cancellationToken);
+
+        return Ok(downloadUrls);
     }
 
     [HttpPost]

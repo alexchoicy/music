@@ -8,6 +8,8 @@ using Music.Core.Services.Interfaces;
 using Music.Core.Utils;
 using Music.Infrastructure.Data;
 using Music.Core.Entities;
+using System.Text.RegularExpressions;
+using System.ComponentModel.DataAnnotations;
 
 namespace Music.Infrastructure.Services.Album;
 
@@ -235,6 +237,150 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
             })
             .ToList();
     }
+
+    public async Task<IReadOnlyList<AlbumTrackDownloadItemModel>> GetAlbumDownloadUrlsAsync(
+        int albumId,
+        FileObjectVariant variant,
+        CancellationToken cancellationToken = default)
+    {
+        Core.Entities.Album? album = await _dbContext.Albums
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(a => a.Discs)
+                .ThenInclude(d => d.Tracks)
+                .ThenInclude(at => at.Track!)
+                .ThenInclude(t => t.Variants)
+                .ThenInclude(v => v.Sources)
+                .ThenInclude(s => s.File!)
+                .ThenInclude(f => f.FileObjects)
+            .FirstOrDefaultAsync(a => a.Id == albumId, cancellationToken);
+
+        if (album is null)
+            throw new EntityNotFoundException($"Album {albumId} not found");
+
+        List<AlbumTrackDownloadItemModel> downloads = [];
+
+        IEnumerable<AlbumDisc> orderedDiscs = album.Discs.OrderBy(d => d.DiscNumber);
+
+        foreach (AlbumDisc disc in orderedDiscs)
+        {
+            IEnumerable<AlbumTrack> orderedTracks = disc.Tracks.OrderBy(t => t.TrackNumber);
+
+            foreach (AlbumTrack albumTrack in orderedTracks)
+            {
+                Track? track = albumTrack.Track;
+
+                if (track is null)
+                    continue;
+
+                Core.Entities.TrackSource? selectedSource = track.Variants
+                    .SelectMany(v => v.Sources)
+                    .Where(s => s.Pinned || s.Rank == 0)
+                    .OrderByDescending(s => s.Pinned)
+                    .ThenBy(s => s.Rank)
+                    .ThenBy(s => s.Id)
+                    .FirstOrDefault();
+
+                if (selectedSource?.File?.FileObjects is null)
+                    continue;
+
+                FileObject? fileObject = selectedSource.File.FileObjects
+                    .FirstOrDefault(fo => fo.FileObjectVariant == variant);
+
+                if (fileObject is null)
+                    continue;
+
+                string fileName = BuildDownloadFileName(
+                    disc.DiscNumber,
+                    albumTrack.TrackNumber,
+                    track.Title,
+                    fileObject.Extension);
+
+                downloads.Add(new AlbumTrackDownloadItemModel
+                {
+                    TrackId = track.Id,
+                    DiscNumber = disc.DiscNumber,
+                    TrackNumber = albumTrack.TrackNumber,
+                    TrackTitle = track.Title,
+                    Variant = variant,
+                    FileName = fileName,
+                    Url = _contentService.GetDownloadPresignedUrl(fileObject.StoragePath, fileName, cancellationToken)
+                });
+            }
+        }
+
+        return downloads;
+    }
+
+    public async Task<AlbumTrackDownloadItemModel> GetTrackDownloadUrlAsync(
+        int trackId,
+        FileObjectVariant variant,
+        CancellationToken cancellationToken = default)
+    {
+        AlbumTrack? albumTrack = await _dbContext.AlbumTracks
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Where(at => at.TrackId == trackId)
+            .OrderBy(at => at.AlbumDisc!.AlbumId)
+            .ThenBy(at => at.AlbumDisc!.DiscNumber)
+            .ThenBy(at => at.TrackNumber)
+            .Include(at => at.AlbumDisc)
+            .Include(at => at.Track!)
+                .ThenInclude(t => t.Variants)
+                .ThenInclude(v => v.Sources)
+                .ThenInclude(s => s.File!)
+                .ThenInclude(f => f.FileObjects)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (albumTrack?.Track is null || albumTrack.AlbumDisc is null)
+            throw new EntityNotFoundException($"Track {trackId} not found");
+
+        Track track = albumTrack.Track;
+
+        Core.Entities.TrackSource? selectedSource = track.Variants
+            .SelectMany(v => v.Sources)
+            .Where(s => s.Pinned || s.Rank == 0)
+            .OrderByDescending(s => s.Pinned)
+            .ThenBy(s => s.Rank)
+            .ThenBy(s => s.Id)
+            .FirstOrDefault();
+
+        if (selectedSource?.File?.FileObjects is null)
+            throw new ValidationException("No downloadable source is available for this track.");
+
+        FileObject? fileObject = selectedSource.File.FileObjects
+            .FirstOrDefault(fo => fo.FileObjectVariant == variant);
+
+        if (fileObject is null)
+            throw new ValidationException("Requested download variant is not available for this track.");
+
+        string fileName = BuildDownloadFileName(
+            albumTrack.AlbumDisc.DiscNumber,
+            albumTrack.TrackNumber,
+            track.Title,
+            fileObject.Extension);
+
+        return new AlbumTrackDownloadItemModel
+        {
+            TrackId = track.Id,
+            DiscNumber = albumTrack.AlbumDisc.DiscNumber,
+            TrackNumber = albumTrack.TrackNumber,
+            TrackTitle = track.Title,
+            Variant = variant,
+            FileName = fileName,
+            Url = _contentService.GetDownloadPresignedUrl(fileObject.StoragePath, fileName, cancellationToken)
+        };
+    }
+
+    private static string BuildDownloadFileName(
+        int discNumber,
+        int trackNumber,
+        string trackTitle,
+        string extension)
+    {
+        return $"{discNumber}-{trackNumber}-{trackTitle}.{extension}";
+    }
+
 
     public async Task<IReadOnlyList<CreateAlbumResult>> CreateAlbumAsync(
         IReadOnlyList<CreateAlbumModel> albums,

@@ -141,6 +141,24 @@ public class S3ContentService(
         return url;
     }
 
+    public string GetDownloadPresignedUrl(string objectPath, string fileName, CancellationToken cancellationToken = default)
+    {
+        GetPreSignedUrlRequest presignRequest = new()
+        {
+            BucketName = bucket,
+            Key = objectPath,
+            Verb = HttpVerb.GET,
+            Expires = DateTime.UtcNow.AddMinutes(30),
+            ResponseHeaderOverrides = new ResponseHeaderOverrides
+            {
+                ContentDisposition = $"attachment; filename=\"{fileName.Replace("\"", "")}\""
+            }
+        };
+
+        string url = client.GetPreSignedURL(presignRequest);
+        return url;
+    }
+
     public string GetUrl(Guid id)
     {
         return $"{baseOptions.Value.ApiUrl}/files/{id}";
