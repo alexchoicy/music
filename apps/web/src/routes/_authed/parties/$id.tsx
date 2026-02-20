@@ -50,20 +50,24 @@ function PartyContent() {
 
 	const [activeTab, setActiveTab] = useState<TabValue>("overall");
 
-	const leftTabs: { value: TabValue; label: string }[] = [
-		{ value: "overall", label: "Overall" },
-		{ value: "albums", label: "Albums" },
-		{ value: "single", label: "Singles" },
-		{ value: "featured", label: "Featured In" },
+	const albums = party.partyAlbums.filter((item) => item.type === "Album");
+	const single = party.partyAlbums.filter((item) => item.type === "Single");
+
+	const leftTabs: { value: TabValue; label: string; display: boolean }[] = [
+		{ value: "overall", label: "Overall", display: true },
+		{ value: "albums", label: "Albums", display: albums.length > 0 },
+		{ value: "single", label: "Singles", display: single.length > 0 },
+		{
+			value: "featured",
+			label: "Featured In",
+			display: party.partyPartOfAlbums.length > 0,
+		},
 	];
 
 	const rightTabs: { value: TabValue; label: string }[] = [
 		{ value: "family", label: "Family" },
 		{ value: "info", label: "Info" },
 	];
-
-	const albums = party.partyAlbums.filter((item) => item.type === "Album");
-	const single = party.partyAlbums.filter((item) => item.type === "Single");
 
 	return (
 		<div>
@@ -109,26 +113,29 @@ function PartyContent() {
 				<ScrollArea className="w-full">
 					<div className="flex w-max min-w-full justify-between">
 						<div className="flex items-center">
-							{leftTabs.map((tab) => (
-								<button
-									key={tab.value}
-									type="button"
-									role="tab"
-									aria-selected={activeTab === tab.value}
-									onClick={() => setActiveTab(tab.value)}
-									className={cn(
-										"relative px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap",
-										activeTab === tab.value
-											? "text-foreground"
-											: "text-muted-foreground hover:text-foreground",
-									)}
-								>
-									{tab.label}
-									{activeTab === tab.value && (
-										<span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
-									)}
-								</button>
-							))}
+							{leftTabs.map((tab) => {
+								if (!tab.display) return null;
+								return (
+									<button
+										key={tab.value}
+										type="button"
+										role="tab"
+										aria-selected={activeTab === tab.value}
+										onClick={() => setActiveTab(tab.value)}
+										className={cn(
+											"relative px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap",
+											activeTab === tab.value
+												? "text-foreground"
+												: "text-muted-foreground hover:text-foreground",
+										)}
+									>
+										{tab.label}
+										{activeTab === tab.value && (
+											<span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+										)}
+									</button>
+								);
+							})}
 						</div>
 						<div className="flex items-center">
 							{rightTabs.map((tab) => (
@@ -166,9 +173,13 @@ function PartyContent() {
 						featured={party.partyPartOfAlbums}
 					/>
 				)}
-				{activeTab === "albums" && <AlbumDisplayTab albums={albums} />}
-				{activeTab === "single" && <AlbumDisplayTab albums={single} />}
-				{activeTab === "featured" && (
+				{activeTab === "albums" && albums.length > 0 && (
+					<AlbumDisplayTab albums={albums} />
+				)}
+				{activeTab === "single" && single.length > 0 && (
+					<AlbumDisplayTab albums={single} />
+				)}
+				{activeTab === "featured" && party.partyPartOfAlbums.length > 0 && (
 					<AlbumDisplayTab albums={party.partyPartOfAlbums} />
 				)}
 			</div>
