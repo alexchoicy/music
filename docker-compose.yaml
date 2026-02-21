@@ -10,6 +10,7 @@ services:
       - Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command=Warning
     volumes:
       - ./docker/appsettings.backend.Production.json:/app/appsettings.Production.json:ro
+      - backend-temp:/app/temp
     ports:
       - "5000:8080"
     deploy:
@@ -28,3 +29,6 @@ services:
       - ./docker/.env.web
     ports:
       - "3000:3000"
+
+volumes:
+  backend-temp:
