@@ -55,13 +55,16 @@ public sealed class BackgroundWorker(
     {
         string? filePath = null;
         string? newPath = null;
+        string? waveformPath = null;
 
         using IServiceScope scope = scopeFactory.CreateScope();
         IContentService contentService = scope.ServiceProvider.GetRequiredService<IContentService>();
+        IAssetsService assetsService = scope.ServiceProvider.GetRequiredService<IAssetsService>();
         AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         IMediaProbeService mediaProbeService = scope.ServiceProvider.GetRequiredService<IMediaProbeService>();
         IMediaFFmpegService mediaFFmpegService = scope.ServiceProvider.GetRequiredService<IMediaFFmpegService>();
         IHashService hashService = scope.ServiceProvider.GetRequiredService<IHashService>();
+        IWaveformService waveformService = scope.ServiceProvider.GetRequiredService<IWaveformService>();
 
         StorageOptions storageOptions = scope.ServiceProvider
             .GetRequiredService<IOptions<StorageOptions>>()
@@ -74,14 +77,9 @@ public sealed class BackgroundWorker(
             ?? throw new EntityNotFoundException($"File object with ID {job.FileObjectId} not found."
         );
 
-        Core.Entities.TrackSource trackSource = await dbContext.TrackSources.FirstOrDefaultAsync(
-            ts => ts.Id == job.TrackSourceId, cancellationToken)
-            ?? throw new EntityNotFoundException($"Track source for file object ID {fileObject.Id} not found."
-        );
-
         try
         {
-            string fileName = $"track_{fileObject.Id}";
+            string fileName = $"track_{fileObject.Id}.{fileObject.Extension}";
             filePath = Path.Combine(tempDir, fileName);
 
             await contentService.DownloadFileToTemp(
@@ -91,11 +89,42 @@ public sealed class BackgroundWorker(
 
             MediaProbeResult? probeResult = await mediaProbeService.ProbeAsync(filePath);
 
-            int bitRate = probeResult?.Format.BitRate ?? fileObject.Bitrate ?? 0;
+            int bitRate = probeResult?.Format?.BitRate ?? fileObject.Bitrate ?? 0;
 
             if (bitRate == 0)
             {
                 throw new InvalidOperationException($"Unable to determine bitrate for file object ID {fileObject.Id}.");
+            }
+
+            waveformPath = Path.Combine(tempDir, $"{fileName}_waveform.json");
+
+            bool waveformSuccess = await waveformService.GenerateWaveformJsonAsync(filePath, waveformPath);
+
+            if (waveformSuccess)
+            {
+                string waveformStoragePath = contentService.GetWaveformStoragePath(fileObject.FileId);
+
+                await assetsService.UploadFileFromTempAsync(waveformStoragePath, waveformPath, cancellationToken);
+
+                string waveformHash = hashService.ComputeBlake3Hash(waveformPath);
+
+                FileObject waveformFileObject = new()
+                {
+                    FileId = fileObject.FileId,
+                    FileObjectVariant = FileObjectVariant.WaveformB8Pixel20,
+                    StoragePath = waveformStoragePath,
+                    OriginalBlake3Hash = waveformHash,
+                    CurrentBlake3Hash = waveformHash,
+                    Type = FileObjectType.GeneratedAsset,
+                    SizeInBytes = new FileInfo(waveformPath).Length,
+                    MimeType = "application/json",
+                    Container = "application/json",
+                    Extension = "json",
+                    OriginalFileName = $"{fileObject.OriginalFileName}.{DateTime.UtcNow}.waveform.json",
+                };
+
+                dbContext.FileObjects.Add(waveformFileObject);
+                await dbContext.SaveChangesAsync(cancellationToken);
             }
 
             if (!MediaFiles.ShouldTranscodeToOpus96(bitRate))
@@ -136,10 +165,9 @@ public sealed class BackgroundWorker(
                 Extension = "opus",
                 Codec = "OPUS",
                 AudioSampleRate = newProbeResult?.Streams?.FirstOrDefault(s => s.CodecType == "audio")?.SampleRate ?? 0,
-                Bitrate = newProbeResult?.Format.BitRate ?? fileObject.Bitrate ?? 0,
+                Bitrate = newProbeResult?.Format?.BitRate ?? fileObject.Bitrate ?? 0,
                 DurationInMs = newProbeResult?.Streams?.FirstOrDefault(s => s.CodecType == "audio")?.Duration != null
-                    ? (int)newProbeResult.Streams.First(s => s.CodecType == "audio").Duration * 1000
-                    : 0,
+                    ? (int)(newProbeResult.Streams.First(s => s.CodecType == "audio").Duration * 1000) : fileObject.DurationInMs,
                 OriginalFileName = $"{fileObject.OriginalFileName}.{DateTime.UtcNow}.opus",
             };
 
@@ -153,6 +181,7 @@ public sealed class BackgroundWorker(
         {
             TryDeleteTempFile(filePath, logger);
             TryDeleteTempFile(newPath, logger);
+            TryDeleteTempFile(waveformPath, logger);
         }
     }
 

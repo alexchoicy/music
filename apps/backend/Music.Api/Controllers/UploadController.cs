@@ -23,7 +23,6 @@ public class UploadController(IContentService contentService) : ControllerBase
     //     TrackUploadProcessWorkerModel workerModel = new()
     //     {
     //         FileObjectId = request.FileObjectId,
-    //         TrackSourceId = request.TrackSourceId
     //     };
 
     //     contentService.RunBackgroundProcessAudioUploadFile(workerModel);

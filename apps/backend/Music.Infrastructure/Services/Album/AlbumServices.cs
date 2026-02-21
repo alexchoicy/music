@@ -184,10 +184,14 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         FileObject? opus96 = storedFile.FileObjects
             .FirstOrDefault(fo => fo.FileObjectVariant == FileObjectVariant.Opus96);
 
+        FileObject? waveformB8Pixel20 = storedFile.FileObjects
+            .FirstOrDefault(fo => fo.FileObjectVariant == FileObjectVariant.WaveformB8Pixel20);
+
         return new TrackSourceFileVariantsModel
         {
             Original = ToDetailsModel(original),
             Opus96 = opus96 is null ? null : ToDetailsModel(opus96),
+            WaveformB8Pixel20 = waveformB8Pixel20 is null ? null : ToAssetDetailsModel(waveformB8Pixel20),
         };
     }
 
@@ -197,6 +201,31 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         {
             Id = fo.Id,
             Url = _contentService.GetUrl(fo.Id),
+            Type = fo.Type,
+            FileObjectVariant = fo.FileObjectVariant,
+            SizeInBytes = fo.SizeInBytes,
+            MimeType = fo.MimeType,
+            Container = fo.Container,
+            Extension = fo.Extension,
+            Codec = fo.Codec,
+            Width = fo.Width,
+            Height = fo.Height,
+            AudioSampleRate = fo.AudioSampleRate,
+            Bitrate = fo.Bitrate,
+            FrameRate = fo.FrameRate,
+            DurationInMs = fo.DurationInMs,
+            OriginalFileName = fo.OriginalFileName,
+            CreatedAt = fo.CreatedAt,
+            UpdatedAt = fo.UpdatedAt,
+        };
+    }
+
+    private FileObjectDetailsModel ToAssetDetailsModel(FileObject fo)
+    {
+        return new FileObjectDetailsModel
+        {
+            Id = fo.Id,
+            Url = _assetsService.GetUrl(fo.StoragePath),
             Type = fo.Type,
             FileObjectVariant = fo.FileObjectVariant,
             SizeInBytes = fo.SizeInBytes,

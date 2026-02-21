@@ -15,4 +15,5 @@ public enum MediaFolderOptions
     AssetsCover,
     PartyCover,
     PartyBanner,
+    AssetsPeak
 }

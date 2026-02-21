@@ -70,7 +70,6 @@ public class S3ContentService(
                 TrackUploadProcessWorkerModel workerModel = new()
                 {
                     FileObjectId = fileObject.Id,
-                    TrackSourceId = primarySource.Id,
                 };
 
                 //TODO: generate Peak for waveform and a opus
@@ -181,12 +180,21 @@ public class S3ContentService(
         if (!fileInfo.Exists)
             throw new FileNotFoundException("Temp file not found.", sourcePath);
 
+        string mimeType = fileInfo.Extension.TrimStart('.').ToLowerInvariant() switch
+        {
+            "opus" => "audio/opus",
+            "json" => "application/json",
+            "mp4" => "video/mp4",
+            _ => "application/octet-stream"
+        };
+
         if (fileInfo.Length < multipartThreshold)
         {
             PutObjectRequest put = new()
             {
                 BucketName = bucket,
                 Key = objectPath,
+                ContentType = mimeType,
                 FilePath = sourcePath,
                 UseChunkEncoding = false,
                 DisablePayloadSigning = true,
@@ -198,7 +206,8 @@ public class S3ContentService(
             new InitiateMultipartUploadRequest
             {
                 BucketName = bucket,
-                Key = objectPath
+                Key = objectPath,
+                ContentType = mimeType
             },
             cancellationToken);
 

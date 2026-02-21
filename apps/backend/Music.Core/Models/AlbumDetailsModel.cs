@@ -71,6 +71,7 @@ public sealed class TrackSourceFileVariantsModel
 {
     public required FileObjectDetailsModel Original { get; init; }
     public FileObjectDetailsModel? Opus96 { get; init; }
+    public FileObjectDetailsModel? WaveformB8Pixel20 { get; init; }
 }
 
 public sealed class FileObjectDetailsModel

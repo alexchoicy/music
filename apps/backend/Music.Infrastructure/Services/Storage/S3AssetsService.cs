@@ -43,6 +43,32 @@ public class S3AssetsService : StorageService, IAssetsService
     {
         return $"{_accessUrl}/{objectPath}";
     }
+
+    public async Task UploadFileFromTempAsync(string objectPath, string sourcePath, CancellationToken cancellationToken = default)
+    {
+        FileInfo fileInfo = new(sourcePath);
+        if (!fileInfo.Exists)
+            throw new FileNotFoundException("Temp file not found.", sourcePath);
+
+        string mimeType = fileInfo.Extension.TrimStart('.').ToLowerInvariant() switch
+        {
+            "opus" => "audio/opus",
+            "json" => "application/json",
+            "mp4" => "video/mp4",
+            _ => "application/octet-stream"
+        };
+
+        PutObjectRequest request = new()
+        {
+            BucketName = _bucket,
+            Key = objectPath,
+            FilePath = sourcePath,
+            ContentType = mimeType,
+            DisablePayloadSigning = true
+        };
+
+        await _client.PutObjectAsync(request, cancellationToken);
+    }
 }
 
 

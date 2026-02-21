@@ -17,8 +17,10 @@ using Amazon.S3;
 using Music.Infrastructure.Services.Files;
 using Music.Infrastructure.Services.Me;
 using Music.Infrastructure.Services.Worker;
+using Music.Infrastructure.Services.Migrations;
 using Music.Core.Services.FFmpeg;
 using Music.Infrastructure.Services.FFmpeg;
+using Music.Infrastructure.Services.Audio;
 
 namespace Music.Infrastructure;
 
@@ -56,12 +58,14 @@ public static class DependencyInjection
         services.AddScoped<IAlbumService, AlbumService>();
         services.AddScoped<IFileUrlService, FileUrlService>();
         services.AddScoped<IMeService, MeService>();
+        services.AddScoped<IMigrationService, MigrationService>();
         services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         services.AddHostedService<BackgroundWorker>();
 
         services.AddScoped<IMediaProbeService, MediaProbeService>();
         services.AddScoped<IMediaFFmpegService, MediaFFmpegService>();
         services.AddScoped<IHashService, HashService>();
+        services.AddScoped<IWaveformService, WaveformService>();
 
         StorageOptions storage = configuration
             .GetSection("Storage")

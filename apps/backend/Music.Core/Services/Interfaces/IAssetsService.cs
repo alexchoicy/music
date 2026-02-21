@@ -7,5 +7,7 @@ public interface IAssetsService : IStorageService
     string mimeType,
     CancellationToken cancellationToken = default);
 
+    public Task UploadFileFromTempAsync(string objectPath, string sourcePath, CancellationToken cancellationToken = default);
+
     public string GetUrl(string objectPath);
 }

@@ -17,6 +17,7 @@ public static class MediaFoldersExtensions
             MediaFolderOptions.AssetsCover => folders.AssetsCover,
             MediaFolderOptions.PartyCover => folders.AssetsParty + "/cover",
             MediaFolderOptions.PartyBanner => folders.AssetsParty + "/banner",
+            MediaFolderOptions.AssetsPeak => folders.AssetsPeak,
             _ => throw new ArgumentOutOfRangeException(nameof(variant), variant, null)
         };
 }

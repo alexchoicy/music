@@ -540,6 +540,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/migrations/audio/missing-opus96": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Opus96BackfillResultModel"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/parties": {
         parameters: {
             query?: never;
@@ -1105,7 +1158,7 @@ export interface components {
         };
         FileObjectType: number;
         /** @enum {unknown} */
-        FileObjectVariant: "Original" | "CroppedOriginal" | "Cover600" | "Banner1200x400" | "Thumbnail640x360" | "Opus96";
+        FileObjectVariant: "Original" | "CroppedOriginal" | "Cover600" | "Banner1200x400" | "Thumbnail640x360" | "Opus96" | "WaveformB8Pixel20";
         FileRequest: {
             fileBlake3: string;
             mimeType: string;
@@ -1151,6 +1204,18 @@ export interface components {
             /** Format: int32 */
             partNumber: number | string;
             url: string;
+        };
+        Opus96BackfillResultModel: {
+            /** Format: int32 */
+            scannedTrackSources: number | string;
+            /** Format: int32 */
+            eligibleTrackSources: number | string;
+            /** Format: int32 */
+            uniqueOriginalFileObjects: number | string;
+            /** Format: int32 */
+            queuedJobs: number | string;
+            /** Format: int32 */
+            skippedTrackSources: number | string;
         };
         PartyAliasModel: {
             aliasName: string;
@@ -1230,6 +1295,7 @@ export interface components {
         TrackSourceFileVariantsModel: {
             original: components["schemas"]["FileObjectDetailsModel"];
             opus96?: null | components["schemas"]["FileObjectDetailsModel"];
+            waveformB8Pixel20?: null | components["schemas"]["FileObjectDetailsModel"];
         };
         TrackSourceRequest: {
             source: components["schemas"]["TrackSource"];

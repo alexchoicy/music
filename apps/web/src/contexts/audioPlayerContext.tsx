@@ -1,5 +1,6 @@
 import {
 	createContext,
+	useCallback,
 	useContext,
 	useEffect,
 	useMemo,
@@ -7,6 +8,7 @@ import {
 	useState,
 } from "react";
 import WaveSurfer from "wavesurfer.js";
+import type { AudioWaveformJson } from "@/data/AudioWaveForm";
 import type { AudioPlayerItem } from "@/models/audioPlayer";
 
 type AudioPlayerApi = {
@@ -115,6 +117,24 @@ export function AudioPlayerProvider({
 		};
 	}, []);
 
+	const getWaveFormData = useCallback(
+		async (url: string, signal?: AbortSignal): Promise<number[] | null> => {
+			try {
+				const response = await fetch(url, {
+					method: "GET",
+					signal,
+				});
+				if (!response.ok) return null;
+				const responseData: AudioWaveformJson = await response.json();
+				return responseData.data;
+			} catch (error) {
+				console.error("Error fetching waveform data:", error);
+				return null;
+			}
+		},
+		[],
+	);
+
 	useEffect(() => {
 		let cancelled = false;
 		const controller = new AbortController();
@@ -169,13 +189,21 @@ export function AudioPlayerProvider({
 			console.log("resolved play url:", playUrl);
 
 			if (currentPlayingUrlRef.current !== playUrl) {
+				const waveformUrl = source.file.waveformB8Pixel20?.url;
+				const waveformData = waveformUrl
+					? await getWaveFormData(waveformUrl, controller.signal)
+					: null;
+
 				currentPlayingUrlRef.current = playUrl;
-
+				const durationSeconds = currentTrack.durationInMs / 1000;
 				audioElement.src = playUrl;
-				// audioElement.load();
 
-				// TODO:!!!! this things will request the file again, create the peak data when upload. "audiowaveform"
-				waveRef.current?.load(playUrl);
+				if (waveformData) {
+					waveRef.current?.load(playUrl, [waveformData], durationSeconds);
+				} else {
+					// this things will request the file again, create the peak data when upload. "audiowaveform"
+					waveRef.current?.load(playUrl);
+				}
 			}
 
 			if (isPlayingRef.current) {
@@ -194,7 +222,7 @@ export function AudioPlayerProvider({
 			cancelled = true;
 			controller.abort();
 		};
-	}, [trackInfo, playlist, cursor]);
+	}, [trackInfo, playlist, cursor, getWaveFormData]);
 
 	useEffect(() => {
 		const audioElement = audioRef.current;

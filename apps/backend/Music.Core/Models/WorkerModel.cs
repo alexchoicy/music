@@ -17,5 +17,4 @@ public class WorkerModel
 public class TrackUploadProcessWorkerModel : WorkerModel
 {
     public required Guid FileObjectId { get; init; }
-    public required int TrackSourceId { get; init; }
 }

@@ -41,6 +41,14 @@ public class StorageService(
         return $"{folder}/{blake3Hash}.{ext}";
     }
 
+    public string GetWaveformStoragePath(int trackSourceId)
+    {
+        string folder = MediaFolderOptions.AssetsPeak.GetFolder(_options.MediaFolders).TrimEnd('/');
+
+        return $"{folder}/{trackSourceId}-B8-Pixel20.json";
+    }
+
+
     public (StoredFile storedFile, FileObject fileObject) CreateStoredFileWithObject(
         CreateFileModel model,
         FileType fileType,
@@ -84,4 +92,5 @@ public class StorageService(
     {
         _backgroundTaskQueue?.QueueAudioUploadProcessing(workerModel);
     }
+
 }
