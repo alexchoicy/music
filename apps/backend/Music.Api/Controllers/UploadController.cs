@@ -2,16 +2,35 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Music.Api.Dtos.Requests;
 using Music.Core.Models;
-using Music.Infrastructure.Services.Storage;
+using Music.Core.Services.Interfaces;
 
 namespace Music.Api.Controllers;
 
 [ApiController]
 [Authorize]
 [Route("uploads")]
-public class UploadController(S3ContentService s3ContentService) : ControllerBase
+public class UploadController(IContentService contentService) : ControllerBase
 {
+    // [HttpPost("audio/test-process")]
+    // [Produces("application/json")]
+    // [ProducesResponseType(StatusCodes.Status200OK)]
+    // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    // public IActionResult QueueAudioUploadProcess(
+    //     [FromBody] TrackUploadProcessTestRequest request)
+    // {
+    //     TrackUploadProcessWorkerModel workerModel = new()
+    //     {
+    //         FileObjectId = request.FileObjectId,
+    //         TrackSourceId = request.TrackSourceId
+    //     };
+
+    //     contentService.RunBackgroundProcessAudioUploadFile(workerModel);
+
+    //     return Ok();
+    // }
+
     // audio only, for extra/concert do it in other methods
     [HttpPost("audio/complete-multipart")]
     [Produces("application/json")]
@@ -24,7 +43,7 @@ public class UploadController(S3ContentService s3ContentService) : ControllerBas
         string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new ValidationException("Missing user identifier claim.");
 
-        await s3ContentService.CompleteAudioMultipartUploadAsync(request, userId, cancellationToken);
+        await contentService.CompleteAudioMultipartUploadAsync(request, userId, cancellationToken);
 
         return Ok();
     }

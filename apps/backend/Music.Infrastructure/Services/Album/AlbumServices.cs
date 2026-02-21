@@ -578,6 +578,8 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
             imageModel.File,
             FileType.Image,
             imagePath,
+            FileObjectType.Original,
+            FileObjectVariant.Original,
             userId);
 
         _dbContext.StoredFiles.Add(storedFile);
@@ -689,6 +691,8 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
             sourceModel.File,
             FileType.Audio,
             path,
+            FileObjectType.Original,
+            FileObjectVariant.Original,
             userId);
 
         _dbContext.StoredFiles.Add(storedFile);

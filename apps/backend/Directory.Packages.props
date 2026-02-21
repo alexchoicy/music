@@ -16,5 +16,6 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageVersion Include="AWSSDK.S3" Version="4.0.18.2" />
+    <PackageVersion Include="Blake3" Version="2.2.0" />
   </ItemGroup>
 </Project>

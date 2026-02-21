@@ -8,6 +8,7 @@ using Music.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Music.Core.Exceptions;
 using Music.Core.Services.Interfaces;
+using Amazon.S3.Transfer;
 
 namespace Music.Infrastructure.Services.Storage;
 
@@ -162,6 +163,91 @@ public class S3ContentService(
     public string GetUrl(Guid id)
     {
         return $"{baseOptions.Value.ApiUrl}/files/{id}";
+    }
+
+    public async Task DownloadFileToTemp(string objectPath, string destinationPath, CancellationToken cancellationToken = default)
+    {
+        TransferUtility transferUtility = new(client);
+
+        await transferUtility.DownloadAsync(destinationPath, bucket, objectPath, cancellationToken);
+    }
+
+    public async Task UploadFileFromTempAsync(string objectPath, string sourcePath, CancellationToken cancellationToken = default)
+    {
+        const long multipartThreshold = 64L * 1024 * 1024;
+        const long partSize = 10L * 1024 * 1024;
+
+        FileInfo fileInfo = new(sourcePath);
+        if (!fileInfo.Exists)
+            throw new FileNotFoundException("Temp file not found.", sourcePath);
+
+        if (fileInfo.Length < multipartThreshold)
+        {
+            PutObjectRequest put = new()
+            {
+                BucketName = bucket,
+                Key = objectPath,
+                FilePath = sourcePath,
+                UseChunkEncoding = false,
+                DisablePayloadSigning = true,
+            };
+            await client.PutObjectAsync(put, cancellationToken);
+            return;
+        }
+        InitiateMultipartUploadResponse init = await client.InitiateMultipartUploadAsync(
+            new InitiateMultipartUploadRequest
+            {
+                BucketName = bucket,
+                Key = objectPath
+            },
+            cancellationToken);
+
+        List<PartETag> etags = [];
+
+        try
+        {
+            long position = 0;
+            int partNumber = 1;
+            while (position < fileInfo.Length)
+            {
+                long currentPartSize = Math.Min(partSize, fileInfo.Length - position);
+                UploadPartRequest part = new()
+                {
+                    BucketName = bucket,
+                    Key = objectPath,
+                    UploadId = init.UploadId,
+                    PartNumber = partNumber,
+                    FilePath = sourcePath,
+                    FilePosition = position,
+                    PartSize = currentPartSize,
+                    UseChunkEncoding = false,
+                    DisablePayloadSigning = true,
+                    IsLastPart = position + currentPartSize >= fileInfo.Length
+                };
+                UploadPartResponse uploaded = await client.UploadPartAsync(part, cancellationToken);
+                etags.Add(new PartETag(partNumber, uploaded.ETag));
+                position += currentPartSize;
+                partNumber++;
+            }
+
+            await client.CompleteMultipartUploadAsync(new Amazon.S3.Model.CompleteMultipartUploadRequest
+            {
+                BucketName = bucket,
+                Key = objectPath,
+                UploadId = init.UploadId,
+                PartETags = etags
+            }, cancellationToken);
+        }
+        catch
+        {
+            await client.AbortMultipartUploadAsync(new AbortMultipartUploadRequest
+            {
+                BucketName = bucket,
+                Key = objectPath,
+                UploadId = init.UploadId
+            }, cancellationToken);
+            throw;
+        }
     }
 }
 

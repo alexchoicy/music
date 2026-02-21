@@ -45,6 +45,8 @@ public class StorageService(
         CreateFileModel model,
         FileType fileType,
         string storagePath,
+        FileObjectType fileObjectType,
+        FileObjectVariant fileObjectVariant,
         string userId)
     {
         StoredFile storedFile = new()
@@ -55,11 +57,11 @@ public class StorageService(
         FileObject fileObject = new()
         {
             File = storedFile,
-            FileObjectVariant = FileObjectVariant.Original,
+            FileObjectVariant = fileObjectVariant,
             StoragePath = storagePath,
             OriginalBlake3Hash = model.FileBlake3,
             CurrentBlake3Hash = model.FileBlake3,
-            Type = FileObjectType.Original,
+            Type = fileObjectType,
             SizeInBytes = model.FileSizeInBytes,
             MimeType = model.MimeType,
             Container = model.Container,
@@ -72,7 +74,7 @@ public class StorageService(
             FrameRate = model.FrameRate,
             Width = model.Width,
             Height = model.Height,
-            CreatedByUserId = userId
+            CreatedByUserId = userId,
         };
 
         return (storedFile, fileObject);

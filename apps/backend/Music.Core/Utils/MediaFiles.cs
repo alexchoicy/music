@@ -1,5 +1,6 @@
 
 using System.Collections.Immutable;
+using Music.Core.Models;
 
 namespace Music.Core.Utils;
 
@@ -15,5 +16,12 @@ public static class MediaFiles
             { "audio/flac", "flac" },
             { "audio/wav",  "wav" },
             { "audio/ogg",  "ogg" },
+            { "audio/opus", "opus" }
     });
+
+    public static bool ShouldTranscodeToOpus96(int bitrate)
+    {
+        const int threshold = 96_000;
+        return bitrate is > threshold;
+    }
 }

@@ -17,5 +17,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="Blake3" />
   </ItemGroup>
 </Project>

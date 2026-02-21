@@ -11,6 +11,8 @@ public interface IStorageService
         CreateFileModel model,
         FileType fileType,
         string storagePath,
+        FileObjectType fileObjectType,
+        FileObjectVariant fileObjectVariant,
         string userId);
 
     public void RunBackgroundProcessAudioUploadFile(WorkerModel model);
