@@ -21,4 +21,21 @@ COPY --from=build /app/publish ./
 ENV HTTP_PORTS=8080
 EXPOSE 8080
 
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    ffmpeg \
+    software-properties-common \
+    ; \
+    add-apt-repository -y ppa:chris-needham/ppa; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends audiowaveform; \
+    apt-get purge -y software-properties-common; \
+    apt-get autoremove -y; \
+    rm -rf /var/lib/apt/lists/*
+
 ENTRYPOINT ["dotnet", "Music.Api.dll"]

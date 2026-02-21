@@ -12,6 +12,13 @@ services:
       - ./docker/appsettings.backend.Production.json:/app/appsettings.Production.json:ro
     ports:
       - "5000:8080"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   web:
     build:
