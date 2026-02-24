@@ -54,6 +54,7 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
 
     [HttpGet("{id:int}/download")]
     [Produces("application/json")]
+    [Authorize]
     [ProducesResponseType(typeof(IReadOnlyList<AlbumTrackDownloadItemModel>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
