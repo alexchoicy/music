@@ -7,6 +7,7 @@ import { CreateTrackEditDialog } from "@/components/create/dialog/createTrackEdi
 import { MusicDropBox } from "@/components/create/musicDropBox";
 import { UploadAlbumCard } from "@/components/create/uploadAlbumCard";
 import { Button } from "@/components/shadcn/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/shadcn/tabs";
 import { AppLayout } from "@/components/ui/appLayout";
 import {
 	MusicUploadProvider,
@@ -127,40 +128,65 @@ function CreatePageContent() {
 			dispatch({ type: "Reset" });
 		}
 	};
+
+	type CreationTab = "albums" | "concert";
+	const [creationTab, setCreationTab] = useState<CreationTab>("albums");
+
 	return (
 		<AppLayout
 			header={
-				<Button disabled={isProcessing} onClick={onUpload}>
-					Upload
-				</Button>
+				<>
+					<div>
+						<Tabs
+							value={creationTab}
+							onValueChange={(value: CreationTab) => setCreationTab(value)}
+						>
+							<TabsList>
+								<TabsTrigger value="albums">Albums</TabsTrigger>
+								<TabsTrigger value="concert">Concerts</TabsTrigger>
+							</TabsList>
+						</Tabs>
+					</div>
+					<div className="flex justify-end">
+						<Button disabled={isProcessing} onClick={onUpload}>
+							Upload
+						</Button>
+					</div>
+				</>
 			}
 		>
-			<div className="space-y-6 p-6">
-				<MusicDropBox
-					isProcessing={isProcessing}
-					setIsProcessing={setIsProcessing}
-				/>
-				<div className="space-y-6">
-					{Object.values(state.albums).map((album) => (
-						<UploadAlbumCard
-							albumId={album.id}
-							key={album.id}
-							openAlbumEdit={(id) => setEditingAlbumDialogAlbumId(id)}
-							openTrackEdit={(id) => setEditingTrackDialogTrackId(id)}
+			{creationTab === "albums" && (
+				<>
+					<div className="space-y-6 p-6">
+						<MusicDropBox
+							isProcessing={isProcessing}
+							setIsProcessing={setIsProcessing}
 						/>
-					))}
-				</div>
-			</div>
-			<CreateAlbumEditDialog
-				albumId={editingAlbumDialogAlbumId}
-				open={!!editingAlbumDialogAlbumId}
-				onOpenChange={(open) => !open && setEditingAlbumDialogAlbumId(null)}
-			/>
-			<CreateTrackEditDialog
-				trackId={editingTrackDialogTrackId}
-				open={!!editingTrackDialogTrackId}
-				onOpenChange={(open) => !open && setEditingTrackDialogTrackId(null)}
-			/>
+						<div className="space-y-6">
+							{Object.values(state.albums).map((album) => (
+								<UploadAlbumCard
+									albumId={album.id}
+									key={album.id}
+									openAlbumEdit={(id) => setEditingAlbumDialogAlbumId(id)}
+									openTrackEdit={(id) => setEditingTrackDialogTrackId(id)}
+								/>
+							))}
+						</div>
+					</div>
+					<CreateAlbumEditDialog
+						albumId={editingAlbumDialogAlbumId}
+						open={!!editingAlbumDialogAlbumId}
+						onOpenChange={(open) => !open && setEditingAlbumDialogAlbumId(null)}
+					/>
+					<CreateTrackEditDialog
+						trackId={editingTrackDialogTrackId}
+						open={!!editingTrackDialogTrackId}
+						onOpenChange={(open) => !open && setEditingTrackDialogTrackId(null)}
+					/>
+				</>
+			)}
+
+			{creationTab === "concert" && <div>ASAB</div>}
 		</AppLayout>
 	);
 }
