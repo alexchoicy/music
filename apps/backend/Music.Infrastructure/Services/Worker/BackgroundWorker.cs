@@ -150,6 +150,8 @@ public sealed class BackgroundWorker(
 
             MediaProbeResult? newProbeResult = await mediaProbeService.ProbeAsync(newPath);
 
+            ProbeStream? audioStream = newProbeResult?.Streams?.FirstOrDefault(s => s.CodecType == "audio");
+
 
             FileObject newFileObject = new()
             {
@@ -164,10 +166,10 @@ public sealed class BackgroundWorker(
                 Container = "audio/opus",
                 Extension = "opus",
                 Codec = "OPUS",
-                AudioSampleRate = newProbeResult?.Streams?.FirstOrDefault(s => s.CodecType == "audio")?.SampleRate ?? 0,
+                AudioSampleRate = audioStream?.SampleRate ?? 0,
                 Bitrate = newProbeResult?.Format?.BitRate ?? fileObject.Bitrate ?? 0,
-                DurationInMs = newProbeResult?.Streams?.FirstOrDefault(s => s.CodecType == "audio")?.Duration != null
-                    ? (int)(newProbeResult.Streams.First(s => s.CodecType == "audio").Duration * 1000) : fileObject.DurationInMs,
+                DurationInMs = audioStream?.Duration != null
+                    ? (int)(audioStream.Duration * 1000) : fileObject.DurationInMs,
                 OriginalFileName = $"{fileObject.OriginalFileName}.{DateTime.UtcNow}.opus",
             };
 
