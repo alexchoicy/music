@@ -1,52 +1,34 @@
 services:
   backend:
     build:
-      context: .
-      dockerfile: apps/backend/Dockerfile
+      context: apps/backend
+      dockerfile: Dockerfile
     env_file:
       - ./docker/.env.backend
     environment:
-      - PORT=3001
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command=Warning
     volumes:
-      - ./docker/appConfig.yaml:/app/apps/config/appConfig.yaml
-      - ./docker/data/library:/app/data/library/data
-      - ./docker/cache:/app/data/library/cache
+      - ./docker/appsettings.backend.Production.json:/app/appsettings.Production.json:ro
+      - backend-temp:/app/temp
     ports:
-      - "5001:3001"
-    depends_on:
-      - db
-    networks:
-      - music
+      - "5000:8080"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   web:
     build:
-      context: .
-      dockerfile: apps/web/Dockerfile
+      context: apps/web
+      dockerfile: Dockerfile
     env_file:
       - ./docker/.env.web
     ports:
-      - "5000:3000"
-    depends_on:
-      - backend
-    networks:
-      - music
-
-  db:
-    image: postgres
-    environment:
-      - POSTGRES_DB=musicPROD
-      - POSTGRES_USER=music
-      - POSTGRES_PASSWORD=music
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - music
+      - "3000:3000"
 
 volumes:
-  pgdata:
-
-networks:
-  music:
-    driver: bridge
+  backend-temp:

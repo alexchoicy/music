@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Music/">
+    <Project Path="Music.Api/Music.Api.csproj" />
+    <Project Path="Music.Core/Music.Core.csproj" />
+    <Project Path="Music.Infrastructure/Music.Infrastructure.csproj" />
+  </Folder>
+</Solution>

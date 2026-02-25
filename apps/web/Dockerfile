@@ -1,34 +1,42 @@
-FROM node:22-alpine AS base
-
-ENV PNPM_HOME=/pnpm
+FROM node:24-slim AS base
+ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV NODE_ENV=production
+ENV CI=true
 RUN corepack enable
 
 FROM base AS deps
 WORKDIR /app
-RUN apk add --no-cache libc6-compat
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY apps/web ./apps
-COPY packages ./packages
-RUN pnpm dlx turbo prune --scope=web --docker
 
-FROM deps AS build
+COPY package.json pnpm-lock.yaml ./
+
+RUN pnpm install --frozen-lockfile
+
+
+FROM base AS prod-deps
 WORKDIR /app
-RUN apk add --no-cache libc6-compat
-COPY --from=deps /app/out/json .
-RUN pnpm install
 
-COPY --from=deps /app/out/full/ .
-RUN pnpm dlx turbo run build
+COPY package.json pnpm-lock.yaml ./
 
-FROM base AS runner
+RUN pnpm install --prod --frozen-lockfile
+
+
+FROM base AS build
 WORKDIR /app
-ENV NODE_ENV=production
 
-RUN addgroup --system --gid 1001 music
-RUN adduser --system --uid 1001 music
-COPY --from=build --chown=1001:1001 /app/apps/.output ./
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 
-USER music
+RUN pnpm run build
 
-CMD ["node", "server/index.mjs"]
+FROM base AS runtime
+
+WORKDIR /app
+
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/.output ./.output
+COPY --from=build /app/package.json ./package.json
+
+EXPOSE 3000
+
+CMD ["pnpm", "start"]

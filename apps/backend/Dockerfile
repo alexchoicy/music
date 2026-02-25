@@ -1,36 +1,41 @@
-FROM node:22-alpine AS base
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
 
-ENV PNPM_HOME=/pnpm
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+COPY Music.slnx .
+COPY Directory.Packages.props .
+COPY Music.Api/Music.Api.csproj Music.Api/
+COPY Music.Core/Music.Core.csproj Music.Core/
+COPY Music.Infrastructure/Music.Infrastructure.csproj Music.Infrastructure/
+RUN dotnet restore ./Music.Api/Music.Api.csproj
 
-FROM base AS deps
+COPY Music.Api/. ./Music.Api/
+COPY Music.Core/. ./Music.Core/
+COPY Music.Infrastructure/. ./Music.Infrastructure/
+
+RUN dotnet publish ./Music.Api/Music.Api.csproj -c Release -o /app/publish --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
-RUN apk add --no-cache libc6-compat
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY apps/backend ./apps
-COPY packages ./packages
-RUN pnpm dlx turbo prune --scope=backend --docker
+COPY --from=build /app/publish ./
 
-FROM deps AS build
-WORKDIR /app
-RUN apk add --no-cache libc6-compat
-COPY --from=deps /app/out/json .
-RUN pnpm install
+ENV HTTP_PORTS=8080
+EXPOSE 8080
 
-COPY --from=deps /app/out/full/ .
-RUN pnpm dlx turbo run build
 
-FROM base AS runner
-WORKDIR /app
-ENV NODE_ENV=production
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN addgroup --system --gid 1001 music
-RUN adduser --system --uid 1001 music
-COPY --from=build --chown=1001:1001 /app ./
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    ffmpeg \
+    software-properties-common \
+    ; \
+    add-apt-repository -y ppa:chris-needham/ppa; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends audiowaveform; \
+    apt-get purge -y software-properties-common; \
+    apt-get autoremove -y; \
+    rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app/apps
-RUN mkdir -p /app/data/library
-USER music
-
-CMD ["node", "dist/main.js"]
+ENTRYPOINT ["dotnet", "Music.Api.dll"]
