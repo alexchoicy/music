@@ -1,3 +1,37 @@
+FROM ubuntu:24.04 AS audiowaveform
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    cmake \
+    g++ \
+    git \
+    make \
+    libboost-filesystem1.83-dev \
+    libboost-program-options1.83-dev \
+    libboost-regex1.83-dev \
+    libgd-dev \
+    libid3tag0-dev \
+    libmad0-dev \
+    libsndfile1-dev \
+    ; \
+    rm -rf /var/lib/apt/lists/*
+
+ARG AUDIOWAVEFORM_VERSION=1.10.2
+
+RUN set -eux; \
+    git clone --depth 1 --branch ${AUDIOWAVEFORM_VERSION} https://github.com/bbc/audiowaveform.git /tmp/audiowaveform; \
+    mkdir /tmp/audiowaveform/build; \
+    cmake -S /tmp/audiowaveform -B /tmp/audiowaveform/build \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DENABLE_TESTS=0; \
+    make -C /tmp/audiowaveform/build -j$(nproc); \
+    make -C /tmp/audiowaveform/build install; \
+    rm -rf /tmp/audiowaveform
+
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
@@ -16,11 +50,6 @@ RUN dotnet publish ./Music.Api/Music.Api.csproj -c Release -o /app/publish --no-
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
-COPY --from=build /app/publish ./
-
-ENV HTTP_PORTS=8080
-EXPOSE 8080
-
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -29,13 +58,21 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
     ca-certificates \
     ffmpeg \
-    software-properties-common \
+    libboost-filesystem1.83.0 \
+    libboost-program-options1.83.0 \
+    libboost-regex1.83.0 \
+    libgd3 \
+    libid3tag0 \
+    libmad0 \
+    libsndfile1 \
     ; \
-    add-apt-repository -y ppa:chris-needham/ppa; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends audiowaveform; \
-    apt-get purge -y software-properties-common; \
-    apt-get autoremove -y; \
     rm -rf /var/lib/apt/lists/*
+
+COPY --from=audiowaveform /usr/local/bin/audiowaveform /usr/local/bin/
+
+COPY --from=build /app/publish ./
+
+ENV HTTP_PORTS=8080
+EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "Music.Api.dll"]
