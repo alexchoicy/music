@@ -27,6 +27,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<TrackSource> TrackSources { get; set; }
     public DbSet<StoredFile> StoredFiles { get; set; }
     public DbSet<FileObject> FileObjects { get; set; }
+    public DbSet<Concert> Concerts { get; set; }
+    public DbSet<ConcertCover> ConcertCovers { get; set; }
+    public DbSet<ConcertAlbum> ConcertAlbums { get; set; }
+    public DbSet<ConcertParty> ConcertParties { get; set; }
+    public DbSet<ConcertFile> ConcertFiles { get; set; }
 
 
 
@@ -93,6 +98,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
                     break;
                 case Album album:
                     album.NormalizedTitle = StringUtils.NormalizeString(album.Title);
+                    break;
+                case Concert concert:
+                    concert.NormalizedTitle = StringUtils.NormalizeString(concert.Title);
                     break;
                 case Track track:
                     track.NormalizedTitle = StringUtils.NormalizeString(track.Title);

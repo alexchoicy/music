@@ -68,6 +68,12 @@ RUN set -eux; \
     ; \
     rm -rf /var/lib/apt/lists/*
 
+ARG SHAKA_PACKAGER_VERSION=v3.4.2
+RUN curl -fsSL \
+    "https://github.com/shaka-project/shaka-packager/releases/download/${SHAKA_PACKAGER_VERSION}/packager-linux-x64" \
+    -o /usr/local/bin/packager \
+    && chmod +x /usr/local/bin/packager
+
 COPY --from=audiowaveform /usr/local/bin/audiowaveform /usr/local/bin/
 
 COPY --from=build /app/publish ./
