@@ -15,17 +15,17 @@ public class StorageService(
     private readonly StorageOptions _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
     private readonly IBackgroundTaskQueue? _backgroundTaskQueue = backgroundTaskQueue;
 
-    private static string GetExtensionFromMimeType(string mimeType)
+    private static string GetExtensionFromMimeType(string mimeType, string fileName = "")
     {
         if (MediaFiles.MimeToExt.TryGetValue(mimeType, out string? ext))
         {
             return ext;
         }
 
-        return mimeType.Split('/').LastOrDefault() ?? string.Empty;
+        return fileName.Split('/').LastOrDefault() ?? string.Empty;
     }
 
-    public string GetStoragePath(MediaFolderOptions variant, string blake3Hash, string mimeType)
+    public string GetStoragePath(MediaFolderOptions variant, string blake3Hash, string mimeType, string fileName = "")
     {
         if (string.IsNullOrWhiteSpace(blake3Hash))
             throw new ArgumentException("Value cannot be null or empty.", nameof(blake3Hash));

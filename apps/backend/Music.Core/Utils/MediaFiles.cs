@@ -16,7 +16,11 @@ public static class MediaFiles
             { "audio/flac", "flac" },
             { "audio/wav",  "wav" },
             { "audio/ogg",  "ogg" },
-            { "audio/opus", "opus" }
+            { "audio/opus", "opus" },
+
+            { "video/mp4", "mp4" },
+            { "video/webm", "webm" },
+            { "video/x-matroska", "mkv" },
     });
 
     public static bool ShouldTranscodeToOpus96(int bitrate)

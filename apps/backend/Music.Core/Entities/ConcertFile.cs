@@ -12,10 +12,8 @@ public class ConcertFile
     public int FileId { get; set; }
     public StoredFile? File { get; set; }
 
-    public ConcertFileType Type { get; set; } = ConcertFileType.Performance;
-
     public required string Title { get; set; }
-
+    public ConcertFileType Type { get; set; } = ConcertFileType.Performance;
     public int Order { get; set; } = 0;
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

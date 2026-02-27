@@ -4,7 +4,7 @@ namespace Music.Core.Services.Interfaces;
 
 public interface IConcertService
 {
-    Task CreateConcertAsync(
+    Task<CreateConcertUploadResult> CreateConcertAsync(
         CreateConcertModel concert,
         string userId,
         CancellationToken cancellationToken = default);

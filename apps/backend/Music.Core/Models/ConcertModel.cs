@@ -21,11 +21,11 @@ public sealed class CreateConcertPartyModel
 
 public sealed class CreateConcertFileModel
 {
-    public required string LocalId { get; init; }
     public required string Title { get; init; }
     public required ConcertFileType Type { get; init; }
     public int Order { get; init; } = 0;
 
+    public required string SimpleBlake3Hash { get; init; } //First 10mb + last 10mb,
     public required string MimeType { get; init; }
     public required long FileSizeInBytes { get; init; }
     public required string OriginalFileName { get; init; }
@@ -33,9 +33,9 @@ public sealed class CreateConcertFileModel
 
 public sealed record CreateConcertUploadItemResult
 {
-    public required string LocalId { get; init; }
     public required string FileName { get; init; }
     public required Guid FileObjectId { get; init; }
+    public required string SimpleBlake3Hash { get; init; }
     public required MultipartUploadInfo MultipartUploadInfo { get; init; }
 }
 
