@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import pMap from "p-map";
 import { useState } from "react";
+import { UploadConcertContent } from "@/components/create/concert/UploadConertContent";
 import { CreateAlbumEditDialog } from "@/components/create/dialog/createAlbumEditDialog";
 import { CreateTrackEditDialog } from "@/components/create/dialog/createTrackEditDialog";
 import { MusicDropBox } from "@/components/create/musicDropBox";
@@ -136,7 +137,7 @@ function CreatePageContent() {
 		<AppLayout
 			header={
 				<>
-					<div>
+					<div className="flex justify-center">
 						<Tabs
 							value={creationTab}
 							onValueChange={(value: CreationTab) => setCreationTab(value)}
@@ -186,7 +187,7 @@ function CreatePageContent() {
 				</>
 			)}
 
-			{creationTab === "concert" && <div>ASAB</div>}
+			{creationTab === "concert" && <UploadConcertContent />}
 		</AppLayout>
 	);
 }

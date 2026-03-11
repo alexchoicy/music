@@ -185,6 +185,7 @@ public class S3ContentService(
             "opus" => "audio/opus",
             "json" => "application/json",
             "mp4" => "video/mp4",
+            "mpd" => "application/dash+xml",
             _ => "application/octet-stream"
         };
 

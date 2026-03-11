@@ -420,6 +420,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/concerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateConcertModel"];
+                    "text/json": components["schemas"]["CreateConcertModel"];
+                    "application/*+json": components["schemas"]["CreateConcertModel"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CreateConcertUploadResult"];
+                        "application/json": components["schemas"]["CreateConcertUploadResult"];
+                        "text/json": components["schemas"]["CreateConcertUploadResult"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/files/{id}": {
         parameters: {
             query?: never;
@@ -1070,6 +1113,10 @@ export interface components {
             uploadId: string;
             parts: components["schemas"]["CompleteMultipartUploadPart"][];
         };
+        /** @enum {unknown} */
+        ConcertFileType: "Performance" | "BehindTheScenes" | "Extra" | "Other";
+        /** @enum {unknown} */
+        ConcertPartyRole: "MainArtist" | "Guest";
         CreateAlbumImageUploadItemResult: {
             blake3Id: string;
             fileName: string;
@@ -1102,6 +1149,42 @@ export interface components {
             albumTitle: string;
             albumImage?: null | components["schemas"]["CreateAlbumImageUploadItemResult"];
             tracks?: components["schemas"]["CreateAlbumTrackUploadItemResult"][];
+        };
+        CreateConcertFileModel: {
+            title: string;
+            type: components["schemas"]["ConcertFileType"];
+            /** Format: int32 */
+            order?: number | string;
+            simpleBlake3Hash: string;
+            mimeType: string;
+            /** Format: int64 */
+            fileSizeInBytes: number | string;
+            originalFileName: string;
+        };
+        CreateConcertModel: {
+            title: string;
+            description?: string;
+            /** Format: date-time */
+            date?: null | string;
+            linkedAlbumIds?: (number | string)[];
+            linkedParties?: components["schemas"]["CreateConcertPartyModel"][];
+            files?: components["schemas"]["CreateConcertFileModel"][];
+        };
+        CreateConcertPartyModel: {
+            /** Format: int32 */
+            partyId: number | string;
+            role: components["schemas"]["ConcertPartyRole"];
+        };
+        CreateConcertUploadItemResult: {
+            fileName: string;
+            /** Format: uuid */
+            fileObjectId: string;
+            simpleBlake3Hash: string;
+            multipartUploadInfo: components["schemas"]["MultipartUploadInfo"];
+        };
+        CreateConcertUploadResult: {
+            concertTitle: string;
+            files?: components["schemas"]["CreateConcertUploadItemResult"][];
         };
         CreatePartyRequest: {
             name: string;

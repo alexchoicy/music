@@ -49,26 +49,23 @@ public sealed class ConcertService(
                 CreatedByUserId = userId,
                 CreatedAt = DateTimeOffset.UtcNow,
                 ConcertAlbums =
-                [
-                    .. concert.LinkedAlbumIds
+                    concert.LinkedAlbumIds
                         .Distinct()
                         .Select(albumId => new ConcertAlbum
-                    {
-                        AlbumId = albumId
-                    })
-                ],
-
+                        {
+                            AlbumId = albumId
+                        }).ToList()
+                ,
                 ConcertParties =
-                [
-                    .. concert.LinkedParties
+                    concert.LinkedParties
                         .GroupBy(party => new { party.PartyId, party.Role })
                         .Select(group => group.First())
                         .Select(party => new ConcertParty
-                    {
-                        PartyId = party.PartyId,
-                        Role = party.Role
-                    })
-                ]
+                        {
+                            PartyId = party.PartyId,
+                            Role = party.Role
+                        }).ToList()
+
             };
 
             List<ConcertFile> concertFiles = new List<ConcertFile>();
