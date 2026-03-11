@@ -12,3 +12,5 @@ export type AudioPlayerItem = {
 
 	sources: components["schemas"]["TrackSourceDetailsModel"][];
 };
+
+export type RepeatMode = "off" | "one" | "all";

@@ -20,9 +20,10 @@ import {
 
 type AlbumTrackListProps = {
 	track: components["schemas"]["AlbumTrackDetailsModel"];
+	handlePlay: (trackId?: number) => void;
 };
 
-export function AlbumTrackListItem({ track }: AlbumTrackListProps) {
+export function AlbumTrackListItem({ track, handlePlay }: AlbumTrackListProps) {
 	const [isDownloading, setIsDownloading] = useState(false);
 
 	const printTime = useMemo(() => {
@@ -53,19 +54,33 @@ export function AlbumTrackListItem({ track }: AlbumTrackListProps) {
 		}
 	};
 
+	const playTrack = () => {
+		handlePlay(Number(track.trackId));
+	};
+
+	const handleRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+		if (event.target !== event.currentTarget) return;
+		if (event.key !== "Enter" && event.key !== " ") return;
+		event.preventDefault();
+		playTrack();
+	};
+
 	return (
-		<div className="group grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 px-4 py-3 hover:bg-secondary">
+		// biome-ignore lint/a11y/useSemanticElements: button!
+		<div
+			className="group grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 px-4 py-3 hover:bg-secondary cursor-pointer"
+			onClick={playTrack}
+			role="button"
+			onKeyDown={handleRowKeyDown}
+			tabIndex={0}
+		>
 			<div className="flex w-8 items-center justify-center">
 				<div className="group-hover:hidden w-8 flex items-center text-center justify-center shrink-0">
 					{track.trackNumber}
 				</div>
-				<Button
-					variant="ghost"
-					size="icon"
-					className="hidden h-8 w-8 items-center justify-center p-0 group-hover:flex"
-				>
+				<div className="hidden h-8 w-8 items-center justify-center p-0 group-hover:flex">
 					<Play className="size-fit" />
-				</Button>
+				</div>
 			</div>
 			<div className="min-w-0">
 				<div className="font-medium text-base">{track.title}</div>
@@ -84,6 +99,7 @@ export function AlbumTrackListItem({ track }: AlbumTrackListProps) {
 								variant="ghost"
 								size="icon"
 								className=" flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+								onClick={(event) => event.stopPropagation()}
 							>
 								<MoreVertical className="size-fit" />
 							</Button>
@@ -103,7 +119,10 @@ export function AlbumTrackListItem({ track }: AlbumTrackListProps) {
 								<DropdownMenuPortal>
 									<DropdownMenuSubContent>
 										<DropdownMenuItem
-											onClick={handleDownload}
+											onClick={(event) => {
+												event.stopPropagation();
+												handleDownload();
+											}}
 											disabled={isDownloading}
 										>
 											Original
