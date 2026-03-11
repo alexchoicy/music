@@ -1,13 +1,13 @@
-name: Backend Docker Build
+name: Web Docker Build
 
 on:
   push:
     branches: ["master"]
     paths:
-      - "apps/backend/**"
+      - "apps/web/**"
     tags:
       - "v*.*.*"
-      - "backend@v*.*.*"
+      - "web@v*.*.*"
   workflow_dispatch:
 
 permissions:
@@ -18,7 +18,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}-backend
+  IMAGE_NAME: ${{ github.repository }}-web
 
 jobs:
   build:
@@ -30,7 +30,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to the Container registry
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -46,14 +46,14 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
             type=sha
             type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-            type=match,pattern=^backend@v(.*)$,group=1,enable=${{ startsWith(github.ref, 'refs/tags/backend@v') }}
+            type=match,pattern=^web@v(.*)$,group=1,enable=${{ startsWith(github.ref, 'refs/tags/web@v') }}
 
-      - name: Build and push backend image
+      - name: Build and push web image
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: apps/backend
-          file: apps/backend/Dockerfile
+          context: apps/web
+          file: apps/web/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
