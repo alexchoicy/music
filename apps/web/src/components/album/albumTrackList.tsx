@@ -3,9 +3,10 @@ import { AlbumTrackListItem } from "./AlbumTrackListItem";
 
 type AlbumTrackListProps = {
 	album: components["schemas"]["AlbumDetailsModel"];
+	handlePlay: (trackId?: number) => void;
 };
 
-export function AlbumTrackList({ album }: AlbumTrackListProps) {
+export function AlbumTrackList({ album, handlePlay }: AlbumTrackListProps) {
 	return (
 		<div>
 			<div className="grid grid-cols-[auto_1fr_auto_auto] gap-4 px-4 py-3 border-b text-sm font-medium text-muted-foreground">
@@ -28,7 +29,11 @@ export function AlbumTrackList({ album }: AlbumTrackListProps) {
 							</div>
 
 							{disc.tracks.map((track) => (
-								<AlbumTrackListItem key={track.trackId} track={track} />
+								<AlbumTrackListItem
+									key={track.trackId}
+									track={track}
+									handlePlay={handlePlay}
+								/>
 							))}
 						</div>
 					);

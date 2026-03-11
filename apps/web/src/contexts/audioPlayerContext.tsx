@@ -9,20 +9,21 @@ import {
 } from "react";
 import WaveSurfer from "wavesurfer.js";
 import type { AudioWaveformJson } from "@/data/AudioWaveForm";
-import type { AudioPlayerItem } from "@/models/audioPlayer";
+import type { AudioPlayerItem, RepeatMode } from "@/models/audioPlayer";
 
 type AudioPlayerApi = {
 	audioRef: React.RefObject<HTMLMediaElement | null>;
 	waveContainerRef: React.RefObject<HTMLDivElement | null>;
 	shouldHidePlayer: boolean;
-	trackInfo: Record<number, AudioPlayerItem>;
 	playlist: number[];
 	cursor: number;
 	currentTrack: AudioPlayerItem | null;
 	isPrev: boolean;
 	isNext: boolean;
 	isPlaying: boolean;
+	currentTime: number;
 	toggle: () => Promise<void>;
+	toggleRepeat: () => void;
 	goPrev: () => void;
 	goNext: () => void;
 	playWithPlaylist: (items: AudioPlayerItem[]) => void;
@@ -30,9 +31,32 @@ type AudioPlayerApi = {
 		items: AudioPlayerItem[],
 		trackId: number,
 	) => void;
+	setRepeatMode?: (mode: RepeatMode) => void;
+	repeatMode?: RepeatMode;
+	volume: number;
+	setVolume: (volume: number) => void;
 };
 
 const AudioPlayerContext = createContext<AudioPlayerApi | null>(null);
+
+type PlaybackStatus = "idle" | "loading" | "playing" | "paused";
+
+function getTrackChangeStatus(status: PlaybackStatus): PlaybackStatus {
+	return status === "playing" || status === "loading" ? "loading" : "paused";
+}
+
+function getInitialCursor(items: AudioPlayerItem[], trackId?: number) {
+	if (items.length === 0) {
+		return 0;
+	}
+
+	if (trackId == null) {
+		return 0;
+	}
+
+	const matchedIndex = items.findIndex((item) => item.trackId === trackId);
+	return matchedIndex >= 0 ? matchedIndex : 0;
+}
 
 export function AudioPlayerProvider({
 	children,
@@ -43,125 +67,93 @@ export function AudioPlayerProvider({
 	const waveContainerRef = useRef<HTMLDivElement | null>(null);
 	const waveRef = useRef<WaveSurfer | null>(null);
 
-	const [isPlaying, setIsPlaying] = useState(false);
+	// simple race guard thingy
+	const loadRequestRef = useRef(0);
+	const playRequestRef = useRef(0);
 
-	// trackId -> trackInfo
-	const [trackInfo, setTrackInfo] = useState<Record<number, AudioPlayerItem>>(
-		{},
-	);
-	// order of playlist by trackIds
-	const [playlist, setPlaylist] = useState<number[]>([]);
+	const [queue, setQueue] = useState<AudioPlayerItem[]>([]);
+	const [cursor, setCursor] = useState(0);
+	const [status, setStatus] = useState<PlaybackStatus>("idle");
+	const [readyCursor, setReadyCursor] = useState<number | null>(null);
+	const [currentTime, setCurrentTime] = useState(0);
+	const [volume, setVolume] = useState(1);
+	const [repeatMode, setRepeatMode] = useState<RepeatMode>("off");
 
-	// current index in the playlist
-	const [cursor, setCursor] = useState<number>(0);
+	const currentTrack = queue[cursor] ?? null;
+	const isPlaying = status === "playing" || status === "loading";
+	const shouldHidePlayer = queue.length === 0 || currentTrack == null;
+	const isPrev = cursor > 0;
+	const isNext = cursor < queue.length - 1;
 
-	const playlistRef = useRef<number[]>([]);
-	const currentPlayingUrlRef = useRef<string>("");
-	const isPlayingRef = useRef<boolean>(isPlaying);
+	const playlist = useMemo(() => {
+		return queue.map((item) => item.trackId);
+	}, [queue]);
 
-	useEffect(() => {
-		playlistRef.current = playlist;
-	}, [playlist]);
-
-	useEffect(() => {
-		isPlayingRef.current = isPlaying;
-	}, [isPlaying]);
-
-	useEffect(() => {
-		if (!audioRef.current || !waveContainerRef.current) return;
-
-		if (waveRef.current) return;
-
-		const ws = WaveSurfer.create({
-			container: waveContainerRef.current,
-			backend: "MediaElement",
-			media: audioRef.current,
-			height: 32,
-			normalize: true,
-			dragToSeek: true,
-			// fetchParams: { credentials: "include" },
-		});
-
-		waveRef.current = ws;
-
-		const onPlay = () => setIsPlaying(true);
-		const onPause = () => setIsPlaying(false);
-
-		const onFinish = () => {
-			setCursor((prev) => {
-				const len = playlistRef.current.length;
-				if (len === 0) return 0;
-				console.log(
-					"track finished, playlist length:",
-					len,
-					"current cursor:",
-					prev,
-				);
-				if (prev < len - 1) return prev + 1;
-				setIsPlaying(false);
-				return prev;
-			});
-		};
-
-		ws.on("play", onPlay);
-		ws.on("pause", onPause);
-		ws.on("finish", onFinish);
-
-		return () => {
-			ws.un("play", onPlay);
-			ws.un("pause", onPause);
-			ws.un("finish", onFinish);
-
-			ws.destroy();
-			waveRef.current = null;
-		};
+	const setVolumeClamped = useCallback((nextVolume: number) => {
+		setVolume(Math.min(1, Math.max(0, nextVolume)));
 	}, []);
 
-	const getWaveFormData = useCallback(
-		async (url: string, signal?: AbortSignal): Promise<number[] | null> => {
-			try {
-				const response = await fetch(url, {
-					method: "GET",
-					signal,
-				});
-				if (!response.ok) return null;
-				const responseData: AudioWaveformJson = await response.json();
-				return responseData.data;
-			} catch (error) {
-				console.error("Error fetching waveform data:", error);
-				return null;
+	const moveToCursor = useCallback(
+		(nextCursor: number) => {
+			if (nextCursor < 0 || nextCursor >= queue.length) {
+				return false;
 			}
+
+			setCursor(nextCursor);
+			setCurrentTime(0);
+			setReadyCursor(null);
+			setStatus((prev) => {
+				return getTrackChangeStatus(prev);
+			});
+			return true;
+		},
+		[queue.length],
+	);
+
+	const autoSkipToNextTrack = useCallback(() => {
+		switch (repeatMode) {
+			case "off":
+				return moveToCursor(cursor + 1);
+			case "one": {
+				const audioElement = audioRef.current;
+				if (!audioElement) {
+					return false;
+				}
+				audioElement.currentTime = 0;
+				setCurrentTime(0);
+				setStatus("loading");
+				return true;
+			}
+			case "all":
+				moveToCursor((cursor + 1) % queue.length);
+				return true;
+		}
+	}, [cursor, queue.length, repeatMode, moveToCursor]);
+
+	const skipToNextTrack = useCallback(() => {
+		return moveToCursor(cursor + 1);
+	}, [cursor, moveToCursor]);
+
+	const startPlaylist = useCallback(
+		(items: AudioPlayerItem[], trackId?: number) => {
+			const nextCursor = getInitialCursor(items, trackId);
+
+			setQueue(items);
+			setCursor(nextCursor);
+			setCurrentTime(0);
+			setReadyCursor(null);
+			setStatus(items.length > 0 ? "loading" : "idle");
 		},
 		[],
 	);
 
-	useEffect(() => {
-		let cancelled = false;
-		const controller = new AbortController();
-
-		const run = async () => {
-			const audioElement = audioRef.current;
-			if (!audioElement) return;
-
-			const currentTrackId = playlist[cursor];
-			const currentTrack = trackInfo[currentTrackId];
-			if (!currentTrack) return;
-
-			const source = currentTrack.sources[0]; //TODO: check if backend handled the order by pinned + rank
-			if (!source) {
-				console.warn("No source found for track:", currentTrack);
-				setCursor((prev) => prev + 1);
-				return;
-			}
-
-			const requestUrl = `${source.file.original.url}`;
-			let playUrl = requestUrl;
-
+	const resolvePlayUrl = useCallback(
+		async (requestUrl: string, signal: AbortSignal) => {
 			try {
 				const response = await fetch(requestUrl, {
 					method: "GET",
 					credentials: "include",
-					signal: controller.signal,
+					signal,
 				});
 
 				if (!response.ok) {
@@ -169,151 +161,354 @@ export function AudioPlayerProvider({
 				}
 
 				const rawBody = (await response.text()).trim();
-				if (rawBody.length > 0) {
-					playUrl =
-						rawBody.startsWith('"') && rawBody.endsWith('"')
-							? rawBody.slice(1, -1)
-							: rawBody;
+				return rawBody.length > 0 ? rawBody : requestUrl;
+			} catch (error) {
+				if (error instanceof DOMException && error.name === "AbortError") {
+					throw error;
 				}
-			} catch (e) {
-				if (!cancelled) {
-					console.warn(
-						"Failed to pre-resolve play url, fallback to endpoint:",
-						e,
-					);
+
+				console.warn(
+					"Failed to pre-resolve play url, fallback to endpoint:",
+					error,
+				);
+				return requestUrl;
+			}
+		},
+		[],
+	);
+
+	const getWaveFormData = useCallback(
+		async (url: string, signal: AbortSignal): Promise<number[] | null> => {
+			try {
+				const response = await fetch(url, {
+					method: "GET",
+					signal,
+				});
+
+				if (!response.ok) {
+					return null;
 				}
+
+				const responseData: AudioWaveformJson = await response.json();
+				return responseData.data;
+			} catch (error) {
+				if (error instanceof DOMException && error.name === "AbortError") {
+					throw error;
+				}
+
+				console.error("Error fetching waveform data:", error);
+				return null;
+			}
+		},
+		[],
+	);
+
+	const toggle = useCallback(async () => {
+		if (!currentTrack) {
+			return;
+		}
+
+		setStatus((previousStatus) => {
+			if (previousStatus === "playing" || previousStatus === "loading") {
+				return "paused";
 			}
 
-			if (cancelled) return;
+			return "loading";
+		});
+	}, [currentTrack]);
 
-			console.log("resolved play url:", playUrl);
-
-			if (currentPlayingUrlRef.current !== playUrl) {
-				const waveformUrl = source.file.waveformB8Pixel20?.url;
-				const waveformData = waveformUrl
-					? await getWaveFormData(waveformUrl, controller.signal)
-					: null;
-
-				currentPlayingUrlRef.current = playUrl;
-				const durationSeconds = currentTrack.durationInMs / 1000;
-				audioElement.src = playUrl;
-
-				if (waveformData) {
-					waveRef.current?.load(playUrl, [waveformData], durationSeconds);
-				} else {
-					// this things will request the file again, create the peak data when upload. "audiowaveform"
-					waveRef.current?.load(playUrl);
-				}
+	const toggleRepeat = useCallback(() => {
+		setRepeatMode((prevMode) => {
+			switch (prevMode) {
+				case "off":
+					return "all";
+				case "all":
+					return "one";
+				case "one":
+					return "off";
 			}
+		});
+	}, []);
 
-			if (isPlayingRef.current) {
-				try {
-					await audioElement.play();
-				} catch (e) {
-					console.error("audio play failed:", e);
-					setIsPlaying(false);
-				}
-			}
-		};
+	const goPrev = useCallback(() => {
+		void moveToCursor(cursor - 1);
+	}, [cursor, moveToCursor]);
 
-		run();
+	const goNext = useCallback(() => {
+		void moveToCursor(cursor + 1);
+	}, [cursor, moveToCursor]);
 
-		return () => {
-			cancelled = true;
-			controller.abort();
-		};
-	}, [trackInfo, playlist, cursor, getWaveFormData]);
+	const playWithPlaylist = useCallback(
+		(items: AudioPlayerItem[]) => {
+			startPlaylist(items);
+		},
+		[startPlaylist],
+	);
+
+	const playWithPlaylistByTrackId = useCallback(
+		(items: AudioPlayerItem[], trackId: number) => {
+			startPlaylist(items, trackId);
+		},
+		[startPlaylist],
+	);
 
 	useEffect(() => {
 		const audioElement = audioRef.current;
-		if (!audioElement) return;
+		const waveContainer = waveContainerRef.current;
 
-		if (isPlaying) {
-			audioElement.play().catch((e) => {
-				console.error("play failed:", e);
-				setIsPlaying(false);
-			});
-		} else {
-			audioElement.pause();
+		if (!audioElement || !waveContainer || waveRef.current) {
+			return;
 		}
-	}, [isPlaying]);
 
-	const api = useMemo(() => {
-		const currentTrackId = playlist[cursor];
-		const currentTrack =
-			typeof currentTrackId === "number" ? trackInfo[currentTrackId] : null;
-		const isPrev = playlist.length > 0 && cursor > 0;
-		const isNext = playlist.length > 0 && cursor < playlist.length - 1;
+		const wave = WaveSurfer.create({
+			container: waveContainer,
+			backend: "MediaElement",
+			media: audioElement,
+			height: 32,
+			normalize: true,
+			dragToSeek: true,
+		});
 
-		const shouldHidePlayer = playlist.length === 0 || !currentTrack;
+		waveRef.current = wave;
 
+		return () => {
+			wave.destroy();
+			waveRef.current = null;
+		};
+	}, []);
+
+	useEffect(() => {
+		const audioElement = audioRef.current;
+		if (!audioElement) {
+			return;
+		}
+
+		const handlePlay = () => {
+			setStatus("playing");
+		};
+
+		const handleTimeUpdate = () => {
+			setCurrentTime(audioElement.currentTime);
+		};
+
+		const handlePause = () => {
+			if (audioElement.ended) {
+				return;
+			}
+
+			setStatus((previousStatus) => {
+				if (previousStatus === "idle" || previousStatus === "loading") {
+					return previousStatus;
+				}
+
+				return "paused";
+			});
+		};
+
+		const handleEnded = () => {
+			if (!autoSkipToNextTrack()) {
+				setStatus("paused");
+			}
+		};
+
+		const handleError = () => {
+			console.warn("Audio playback error, skipping to next track");
+			if (!skipToNextTrack()) {
+				setStatus("paused");
+			}
+		};
+
+		audioElement.addEventListener("play", handlePlay);
+		audioElement.addEventListener("pause", handlePause);
+		audioElement.addEventListener("timeupdate", handleTimeUpdate);
+		audioElement.addEventListener("ended", handleEnded);
+		audioElement.addEventListener("error", handleError);
+
+		return () => {
+			audioElement.removeEventListener("play", handlePlay);
+			audioElement.removeEventListener("pause", handlePause);
+			audioElement.removeEventListener("timeupdate", handleTimeUpdate);
+			audioElement.removeEventListener("ended", handleEnded);
+			audioElement.removeEventListener("error", handleError);
+		};
+	}, [skipToNextTrack, autoSkipToNextTrack]);
+
+	useEffect(() => {
+		const audioElement = audioRef.current;
+		if (!audioElement) {
+			return;
+		}
+
+		audioElement.volume = volume;
+	}, [volume]);
+
+	useEffect(() => {
+		const audioElement = audioRef.current;
+		if (!audioElement) {
+			return;
+		}
+
+		const requestId = loadRequestRef.current + 1;
+		loadRequestRef.current = requestId;
+
+		const controller = new AbortController();
+		const source = currentTrack?.sources[0];
+
+		if (!currentTrack) {
+			audioElement.pause();
+			setCurrentTime(0);
+			setReadyCursor(null);
+			return () => {
+				controller.abort();
+			};
+		}
+
+		audioElement.pause();
+
+		if (!source) {
+			console.warn("No source found for track:", currentTrack);
+			if (!skipToNextTrack()) {
+				setStatus("paused");
+			}
+			return () => {
+				controller.abort();
+			};
+		}
+
+		const loadTrack = async () => {
+			try {
+				const waveformUrl = source.file.waveformB8Pixel20?.url;
+				const [playUrl, waveformData] = await Promise.all([
+					resolvePlayUrl(source.file.original.url, controller.signal),
+					waveformUrl
+						? getWaveFormData(waveformUrl, controller.signal)
+						: Promise.resolve(null),
+				]);
+
+				if (controller.signal.aborted || loadRequestRef.current !== requestId) {
+					return;
+				}
+
+				audioElement.currentTime = 0;
+				setCurrentTime(0);
+				audioElement.src = playUrl;
+				audioElement.load();
+
+				if (waveformData) {
+					waveRef.current?.load(
+						playUrl,
+						[waveformData],
+						currentTrack.durationInMs / 1000,
+					);
+				} else {
+					waveRef.current?.load(playUrl);
+				}
+
+				setReadyCursor(cursor);
+			} catch (error) {
+				if (error instanceof DOMException && error.name === "AbortError") {
+					return;
+				}
+
+				console.warn("Failed to load track, skipping to next track", error);
+				if (!skipToNextTrack()) {
+					setStatus("paused");
+				}
+			}
+		};
+		void loadTrack();
+
+		return () => {
+			controller.abort();
+		};
+	}, [currentTrack, cursor, getWaveFormData, resolvePlayUrl, skipToNextTrack]);
+
+	useEffect(() => {
+		const audioElement = audioRef.current;
+		if (!audioElement) {
+			return;
+		}
+
+		if (!currentTrack || readyCursor !== cursor) {
+			playRequestRef.current += 1;
+			return;
+		}
+
+		if (status === "loading" || status === "playing") {
+			if (!audioElement.paused) {
+				return;
+			}
+
+			const playRequestId = playRequestRef.current + 1;
+			playRequestRef.current = playRequestId;
+
+			audioElement.play().catch((error) => {
+				if (playRequestRef.current !== playRequestId) {
+					return;
+				}
+
+				if (error instanceof DOMException && error.name === "AbortError") {
+					return;
+				}
+
+				console.error("play failed:", error);
+				setStatus((previousStatus) => {
+					if (previousStatus === "loading" || previousStatus === "playing") {
+						return "paused";
+					}
+
+					return previousStatus;
+				});
+			});
+			return;
+		}
+
+		playRequestRef.current += 1;
+		audioElement.pause();
+	}, [currentTrack, cursor, readyCursor, status]);
+
+	const api = useMemo<AudioPlayerApi>(() => {
 		return {
 			audioRef,
 			waveContainerRef,
 			shouldHidePlayer,
-
-			isPlaying,
-			trackInfo,
 			playlist,
 			cursor,
 			currentTrack,
 			isPrev,
 			isNext,
-
-			addToPlaylist: (item: AudioPlayerItem) => {
-				setTrackInfo((prev) => ({ ...prev, [item.trackId]: item }));
-				setPlaylist((prev) => [...prev, item.trackId]);
-			},
-
-			playWithPlaylist: (items: AudioPlayerItem[]) => {
-				setPlaylist(items.map((i) => i.trackId));
-				setTrackInfo(Object.fromEntries(items.map((i) => [i.trackId, i])));
-				setCursor(0);
-				setIsPlaying(true);
-
-				console.log("playWithPlaylist:");
-			},
-
-			playWithPlaylistByTrackId: (
-				items: AudioPlayerItem[],
-				trackId: number,
-			) => {
-				setPlaylist(items.map((i) => i.trackId));
-				setTrackInfo(Object.fromEntries(items.map((i) => [i.trackId, i])));
-				setCursor(items.findIndex((i) => i.trackId === trackId));
-				setIsPlaying(true);
-
-				console.log("playWithPlaylistByTrackId:", {
-					trackId,
-					foundIndex: items.findIndex((i) => i.trackId === trackId),
-				});
-			},
-
-			toggle: async () => {
-				const a = audioRef.current;
-				if (!a) return;
-				if (a.paused) {
-					try {
-						await a.play();
-					} catch (e) {
-						console.error("toggle play failed:", e);
-					}
-				} else {
-					a.pause();
-				}
-			},
-
-			goPrev: () => {
-				if (!isPrev) return;
-				setCursor((prev) => Math.max(0, prev - 1));
-			},
-
-			goNext: () => {
-				if (!isNext) return;
-				setCursor((prev) => Math.min(playlist.length - 1, prev + 1));
-			},
+			isPlaying,
+			currentTime,
+			volume,
+			setVolume: setVolumeClamped,
+			toggle,
+			toggleRepeat,
+			goPrev,
+			goNext,
+			playWithPlaylist,
+			playWithPlaylistByTrackId,
+			repeatMode,
+			setRepeatMode,
 		};
-	}, [isPlaying, cursor, trackInfo, playlist]);
+	}, [
+		currentTrack,
+		cursor,
+		goNext,
+		goPrev,
+		isNext,
+		isPlaying,
+		isPrev,
+		currentTime,
+		playWithPlaylist,
+		playWithPlaylistByTrackId,
+		playlist,
+		setVolumeClamped,
+		shouldHidePlayer,
+		toggle,
+		toggleRepeat,
+		volume,
+		repeatMode,
+	]);
 
 	return (
 		<AudioPlayerContext.Provider value={api}>
