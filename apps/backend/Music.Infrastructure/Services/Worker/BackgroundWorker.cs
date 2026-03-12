@@ -171,6 +171,7 @@ public sealed class BackgroundWorker(
                 DurationInMs = audioStream?.Duration != null
                     ? (int)(audioStream.Duration * 1000) : fileObject.DurationInMs,
                 OriginalFileName = $"{fileObject.OriginalFileName}.{DateTime.UtcNow}.opus",
+                ProcessingStatus = FileProcessingStatus.Completed
             };
 
             await contentService.UploadFileFromTempAsync(newStoragePath, newPath, cancellationToken);
