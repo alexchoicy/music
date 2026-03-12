@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { User } from "lucide-react";
-import { Suspense, useMemo } from "react";
+import { Suspense, useCallback, useMemo } from "react";
 import { AlbumInfoCard } from "@/components/album/albumInfoCard";
 import { AlbumTrackList } from "@/components/album/albumTrackList";
 import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
@@ -12,7 +12,7 @@ import {
 	CardTitle,
 } from "@/components/shadcn/card";
 import { AppLayout } from "@/components/ui/appLayout";
-import { useAudioPlayer } from "@/contexts/audioPlayerContext";
+import { useAudioPlayerActions } from "@/contexts/audioPlayerContext";
 import { albumQueries } from "@/lib/queries/album.queries";
 import { buildAudioPlayerItem } from "@/lib/utils/music";
 
@@ -45,17 +45,23 @@ function AlbumContent() {
 		);
 	}, [album]);
 
-	const { playWithPlaylist, playWithPlaylistByTrackId } = useAudioPlayer();
+	const { playWithPlaylist, playWithPlaylistByTrackId } =
+		useAudioPlayerActions();
 
-	const handlePlay = (trackId?: number) => {
-		const items = buildAudioPlayerItem(album);
+	const audioPlayerItems = useMemo(() => {
+		return buildAudioPlayerItem(album);
+	}, [album]);
 
-		if (trackId) {
-			playWithPlaylistByTrackId(items, trackId);
-		} else {
-			playWithPlaylist(items);
-		}
-	};
+	const handlePlay = useCallback(
+		(trackId?: number) => {
+			if (trackId) {
+				playWithPlaylistByTrackId(audioPlayerItems, trackId);
+			} else {
+				playWithPlaylist(audioPlayerItems);
+			}
+		},
+		[playWithPlaylist, audioPlayerItems, playWithPlaylistByTrackId],
+	);
 
 	return (
 		<div className="flex flex-col gap-4 p-6">

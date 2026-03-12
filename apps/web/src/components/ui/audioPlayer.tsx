@@ -10,36 +10,91 @@ import {
 	SkipBack,
 	SkipForward,
 } from "lucide-react";
-import { useState } from "react";
-import { useAudioPlayer } from "@/contexts/audioPlayerContext";
+import { useCallback, useEffect, useRef } from "react";
+import {
+	useAudioPlayerActions,
+	useAudioPlayerAvailability,
+	useAudioPlayerRefs,
+	useAudioPlayerStatus,
+} from "@/contexts/audioPlayerContext";
 import { getMMSSFromMs } from "@/lib/utils/display";
 import { Button } from "../shadcn/button";
 
-export function AudioPlayer() {
-	const {
-		waveContainerRef,
-		currentTrack,
-		shouldHidePlayer,
-		isPrev,
-		isNext,
-		isPlaying,
-		goPrev,
-		goNext,
-		toggle,
-		toggleRepeat,
-		repeatMode,
-		currentTime,
-	} = useAudioPlayer();
-	const [showRemainingTime, setShowRemainingTime] = useState(false);
+const AUDIO_TIME_EVENTS = [
+	"timeupdate",
+	"loadedmetadata",
+	"durationchange",
+	"seeking",
+	"seeked",
+	"ended",
+] as const;
 
-	const currentTimeInMs = currentTime * 1000;
-	const remainingTimeInMs = Math.max(
-		(currentTrack?.durationInMs ?? 0) - currentTimeInMs,
-		0,
+function AudioPlayerTimeToggle({ durationInMs }: { durationInMs: number }) {
+	// turn out do it in DOM is the correct way
+	const { audioRef } = useAudioPlayerRefs();
+	const showRemainingTimeRef = useRef(false);
+	const minusRef = useRef<HTMLSpanElement | null>(null);
+	const labelRef = useRef<HTMLSpanElement | null>(null);
+
+	const refreshTimeLabel = useCallback(() => {
+		const currentTimeInMs = (audioRef.current?.currentTime ?? 0) * 1000;
+		const remainingTimeInMs = Math.max(durationInMs - currentTimeInMs, 0);
+
+		if (minusRef.current) {
+			minusRef.current.style.opacity = showRemainingTimeRef.current ? "1" : "0";
+		}
+
+		if (labelRef.current) {
+			labelRef.current.textContent = showRemainingTimeRef.current
+				? getMMSSFromMs(remainingTimeInMs)
+				: getMMSSFromMs(currentTimeInMs);
+		}
+	}, [audioRef, durationInMs]);
+
+	useEffect(() => {
+		refreshTimeLabel();
+
+		const audioElement = audioRef.current;
+		if (!audioElement) return;
+
+		for (const eventName of AUDIO_TIME_EVENTS) {
+			audioElement.addEventListener(eventName, refreshTimeLabel);
+		}
+
+		return () => {
+			for (const eventName of AUDIO_TIME_EVENTS) {
+				audioElement.removeEventListener(eventName, refreshTimeLabel);
+			}
+		};
+	}, [audioRef, refreshTimeLabel]);
+
+	return (
+		<button
+			type="button"
+			className={clsx(
+				"tabular-nums text-right justify-self-end cursor-pointer select-none transition-colors",
+			)}
+			onClick={() => {
+				showRemainingTimeRef.current = !showRemainingTimeRef.current;
+				refreshTimeLabel();
+			}}
+		>
+			<span className="inline-flex items-center justify-end">
+				<span className="inline-block w-[1ch] text-center" ref={minusRef}>
+					-
+				</span>
+				<span ref={labelRef}>{getMMSSFromMs(0)}</span>
+			</span>
+		</button>
 	);
-	const rightTimeLabel = showRemainingTime
-		? getMMSSFromMs(remainingTimeInMs)
-		: getMMSSFromMs(currentTimeInMs);
+}
+
+export function AudioPlayer() {
+	const { waveContainerRef } = useAudioPlayerRefs();
+	const { currentTrack, shouldHidePlayer, hasPrev, hasNext } =
+		useAudioPlayerAvailability();
+	const { isPlaying, repeatMode } = useAudioPlayerStatus();
+	const { goPrev, goNext, toggle, toggleRepeat } = useAudioPlayerActions();
 
 	return (
 		<div
@@ -88,7 +143,7 @@ export function AudioPlayer() {
 								variant="ghost"
 								size="icon"
 								className="h-8 w-8"
-								disabled={!isPrev}
+								disabled={!hasPrev}
 								onClick={goPrev}
 							>
 								<SkipBack className="h-4 w-4" />
@@ -98,9 +153,7 @@ export function AudioPlayer() {
 								size="icon"
 								className="h-8 w-8"
 								disabled={!currentTrack}
-								onClick={() => {
-									void toggle();
-								}}
+								onClick={toggle}
 							>
 								{isPlaying ? (
 									<Pause className="h-4 w-4" />
@@ -112,7 +165,7 @@ export function AudioPlayer() {
 								variant="ghost"
 								size="icon"
 								className="h-8 w-8"
-								disabled={!isNext}
+								disabled={!hasNext}
 								onClick={goNext}
 							>
 								<SkipForward className="h-4 w-4" />
@@ -132,27 +185,9 @@ export function AudioPlayer() {
 								)}
 							</Button>
 						</div>
-						<button
-							type="button"
-							className={clsx(
-								"tabular-nums text-right justify-self-end cursor-pointer select-none transition-colors",
-							)}
-							onClick={() => {
-								setShowRemainingTime((prev) => !prev);
-							}}
-						>
-							<span className="inline-flex items-center justify-end">
-								<span
-									className={clsx(
-										"inline-block w-[1ch] text-center",
-										showRemainingTime ? "opacity-100" : "opacity-0",
-									)}
-								>
-									-
-								</span>
-								<span>{rightTimeLabel}</span>
-							</span>
-						</button>
+						<AudioPlayerTimeToggle
+							durationInMs={currentTrack?.durationInMs ?? 0}
+						/>
 					</div>
 					<div className="w-full mx-auto" ref={waveContainerRef}></div>
 				</div>

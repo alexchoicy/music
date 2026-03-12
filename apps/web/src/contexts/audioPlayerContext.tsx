@@ -3,26 +3,95 @@ import {
 	useCallback,
 	useContext,
 	useEffect,
+	useEffectEvent,
 	useMemo,
+	useReducer,
 	useRef,
-	useState,
 } from "react";
+import { toast } from "sonner";
 import WaveSurfer from "wavesurfer.js";
 import type { AudioWaveformJson } from "@/data/AudioWaveForm";
 import type { AudioPlayerItem, RepeatMode } from "@/models/audioPlayer";
 
-type AudioPlayerApi = {
+async function resolvePlayUrl(requestUrl: string, signal: AbortSignal) {
+	try {
+		const response = await fetch(requestUrl, {
+			method: "GET",
+			credentials: "include",
+			signal,
+		});
+
+		if (!response.ok) {
+			throw new Error(`Failed to resolve play url: ${response.status}`);
+		}
+
+		const rawBody = (await response.text()).trim();
+		return rawBody.length > 0 ? rawBody : requestUrl;
+	} catch (error) {
+		if (error instanceof DOMException && error.name === "AbortError") {
+			throw error;
+		}
+
+		console.warn(
+			"Failed to pre-resolve play url, fallback to endpoint:",
+			error,
+		);
+		return requestUrl;
+	}
+}
+
+async function getWaveformData(
+	url: string,
+	signal: AbortSignal,
+): Promise<number[] | null> {
+	try {
+		const response = await fetch(url, {
+			method: "GET",
+			signal,
+		});
+
+		if (!response.ok) {
+			return null;
+		}
+
+		const data: AudioWaveformJson = await response.json();
+		return data.data;
+	} catch (error) {
+		if (error instanceof DOMException && error.name === "AbortError") {
+			throw error;
+		}
+
+		console.error("Error fetching waveform data:", error);
+		return null;
+	}
+}
+
+type AudioPlayerRefs = {
 	audioRef: React.RefObject<HTMLMediaElement | null>;
 	waveContainerRef: React.RefObject<HTMLDivElement | null>;
+};
+
+type AudioPlayerAvailability = {
 	shouldHidePlayer: boolean;
 	playlist: number[];
 	cursor: number;
 	currentTrack: AudioPlayerItem | null;
-	isPrev: boolean;
-	isNext: boolean;
+	hasPrev: boolean;
+	hasNext: boolean;
+};
+
+type AudioPlayerStatus = {
+	status: PlaybackStatus;
 	isPlaying: boolean;
-	currentTime: number;
-	toggle: () => Promise<void>;
+	repeatMode: RepeatMode;
+};
+
+type AudioPlayerVolume = {
+	volume: number;
+};
+
+type AudioPlayerActions = {
+	toggle: () => void;
 	toggleRepeat: () => void;
 	goPrev: () => void;
 	goNext: () => void;
@@ -31,31 +100,149 @@ type AudioPlayerApi = {
 		items: AudioPlayerItem[],
 		trackId: number,
 	) => void;
-	setRepeatMode?: (mode: RepeatMode) => void;
-	repeatMode?: RepeatMode;
-	volume: number;
 	setVolume: (volume: number) => void;
 };
 
-const AudioPlayerContext = createContext<AudioPlayerApi | null>(null);
+const AudioPlayerContext = createContext<AudioPlayerRefs | null>(null);
+const AudioPlayerAvailabilityContext =
+	createContext<AudioPlayerAvailability | null>(null);
+const AudioPlayerStatusContext = createContext<AudioPlayerStatus | null>(null);
+const AudioPlayerVolumeContext = createContext<AudioPlayerVolume | null>(null);
+const AudioPlayerActionsContext = createContext<AudioPlayerActions | null>(
+	null,
+);
 
 type PlaybackStatus = "idle" | "loading" | "playing" | "paused";
 
-function getTrackChangeStatus(status: PlaybackStatus): PlaybackStatus {
-	return status === "playing" || status === "loading" ? "loading" : "paused";
-}
+type PlayerState = {
+	queue: AudioPlayerItem[];
+	cursor: number;
+	status: PlaybackStatus;
+	volume: number;
+	repeatMode: RepeatMode;
+};
 
-function getInitialCursor(items: AudioPlayerItem[], trackId?: number) {
-	if (items.length === 0) {
-		return 0;
+type Action =
+	| { type: "NewPlayList"; items: AudioPlayerItem[]; trackId?: number }
+	| { type: "Toggle" }
+	| { type: "ToggleRepeat" }
+	| { type: "GoPrev" }
+	| { type: "GoNext" }
+	| { type: "SetVolume"; volume: number }
+	| { type: "SetStatus"; status: PlaybackStatus }
+	| { type: "SetCursor"; cursor: number };
+
+const initialState: PlayerState = {
+	queue: [],
+	cursor: 0,
+	status: "idle",
+	volume: 1,
+	repeatMode: "off",
+};
+
+function playerReducer(state: PlayerState, action: Action): PlayerState {
+	switch (action.type) {
+		case "NewPlayList": {
+			const { items, trackId } = action;
+			const nextCursor =
+				trackId == null
+					? 0
+					: Math.max(
+							0,
+							items.findIndex((item) => item.trackId === trackId),
+						);
+
+			return {
+				...state,
+				queue: items,
+				cursor: nextCursor,
+				status: items.length > 0 ? "loading" : "idle",
+			};
+		}
+		case "Toggle": {
+			if (state.queue.length === 0) {
+				return state;
+			}
+
+			return {
+				...state,
+				status:
+					state.status === "playing" || state.status === "loading"
+						? "paused"
+						: "loading",
+			};
+		}
+		case "ToggleRepeat": {
+			const nextMode: RepeatMode =
+				state.repeatMode === "off"
+					? "all"
+					: state.repeatMode === "all"
+						? "one"
+						: "off";
+
+			return {
+				...state,
+				repeatMode: nextMode,
+			};
+		}
+		case "GoPrev": {
+			const nextCursor = state.cursor - 1;
+			if (nextCursor < 0) return state;
+
+			const nextStatus =
+				state.status === "playing" || state.status === "loading"
+					? "loading"
+					: "paused";
+
+			return {
+				...state,
+				cursor: nextCursor,
+				status: nextStatus,
+			};
+		}
+		case "GoNext": {
+			const nextCursor = state.cursor + 1;
+			if (nextCursor >= state.queue.length) return state;
+
+			const nextStatus =
+				state.status === "playing" || state.status === "loading"
+					? "loading"
+					: "paused";
+
+			return {
+				...state,
+				cursor: nextCursor,
+				status: nextStatus,
+			};
+		}
+		case "SetVolume": {
+			const volume = Math.min(1, Math.max(0, action.volume));
+			if (volume === state.volume) return state;
+			return { ...state, volume };
+		}
+		case "SetStatus": {
+			if (state.status === action.status) return state;
+			return { ...state, status: action.status };
+		}
+		case "SetCursor": {
+			if (action.cursor < 0 || action.cursor >= state.queue.length) {
+				return state;
+			}
+
+			const nextStatus =
+				state.status === "playing" || state.status === "loading"
+					? "loading"
+					: "paused";
+
+			return {
+				...state,
+				cursor: action.cursor,
+				status: nextStatus,
+			};
+		}
+		default:
+			return state;
 	}
-
-	if (trackId == null) {
-		return 0;
-	}
-
-	const matchedIndex = items.findIndex((item) => item.trackId === trackId);
-	return matchedIndex >= 0 ? matchedIndex : 0;
 }
 
 export function AudioPlayerProvider({
@@ -63,207 +250,111 @@ export function AudioPlayerProvider({
 }: {
 	children: React.ReactNode;
 }) {
+	const [state, dispatch] = useReducer(playerReducer, initialState);
+
+	const stateRef = useRef(state);
+
+	useEffect(() => {
+		stateRef.current = state;
+	}, [state]);
+
 	const audioRef = useRef<HTMLMediaElement | null>(null);
 	const waveContainerRef = useRef<HTMLDivElement | null>(null);
 	const waveRef = useRef<WaveSurfer | null>(null);
 
-	// simple race guard thingy
-	const loadRequestRef = useRef(0);
-	const playRequestRef = useRef(0);
-
-	const [queue, setQueue] = useState<AudioPlayerItem[]>([]);
-	const [cursor, setCursor] = useState(0);
-	const [status, setStatus] = useState<PlaybackStatus>("idle");
-	const [readyCursor, setReadyCursor] = useState<number | null>(null);
-	const [currentTime, setCurrentTime] = useState(0);
-	const [volume, setVolume] = useState(1);
-	const [repeatMode, setRepeatMode] = useState<RepeatMode>("off");
-
-	const currentTrack = queue[cursor] ?? null;
-	const isPlaying = status === "playing" || status === "loading";
-	const shouldHidePlayer = queue.length === 0 || currentTrack == null;
-	const isPrev = cursor > 0;
-	const isNext = cursor < queue.length - 1;
-
-	const playlist = useMemo(() => {
-		return queue.map((item) => item.trackId);
-	}, [queue]);
-
-	const setVolumeClamped = useCallback((nextVolume: number) => {
-		setVolume(Math.min(1, Math.max(0, nextVolume)));
+	const audioPlayerRefsValue = useMemo<AudioPlayerRefs>(() => {
+		return {
+			audioRef,
+			waveContainerRef,
+		};
 	}, []);
 
-	const moveToCursor = useCallback(
-		(nextCursor: number) => {
-			if (nextCursor < 0 || nextCursor >= queue.length) {
-				return false;
-			}
+	const currentTrack = state.queue[state.cursor] ?? null;
 
-			setCursor(nextCursor);
-			setCurrentTime(0);
-			setReadyCursor(null);
-			setStatus((prev) => {
-				return getTrackChangeStatus(prev);
-			});
-			return true;
-		},
-		[queue.length],
-	);
+	const playerAvailabilityValue = useMemo<AudioPlayerAvailability>(() => {
+		return {
+			shouldHidePlayer: state.queue.length === 0 || currentTrack == null,
+			playlist: state.queue.map((item) => item.trackId),
+			cursor: state.cursor,
+			currentTrack,
+			hasPrev: state.cursor > 0,
+			hasNext: state.cursor < state.queue.length - 1,
+		};
+	}, [state.queue, state.cursor, currentTrack]);
 
-	const autoSkipToNextTrack = useCallback(() => {
-		switch (repeatMode) {
-			case "off":
-				return moveToCursor(cursor + 1);
-			case "one": {
-				const audioElement = audioRef.current;
-				if (!audioElement) {
-					return false;
-				}
-				audioElement.currentTime = 0;
-				setCurrentTime(0);
-				setStatus("loading");
-				return true;
-			}
-			case "all":
-				moveToCursor((cursor + 1) % queue.length);
-				return true;
-		}
-	}, [cursor, queue.length, repeatMode, moveToCursor]);
+	const playerStatusValue = useMemo<AudioPlayerStatus>(() => {
+		return {
+			status: state.status,
+			isPlaying: state.status === "playing" || state.status === "loading",
+			repeatMode: state.repeatMode,
+		};
+	}, [state.status, state.repeatMode]);
 
-	const skipToNextTrack = useCallback(() => {
-		return moveToCursor(cursor + 1);
-	}, [cursor, moveToCursor]);
+	const playerVolumeValue = useMemo<AudioPlayerVolume>(() => {
+		return {
+			volume: state.volume,
+		};
+	}, [state.volume]);
 
-	const startPlaylist = useCallback(
-		(items: AudioPlayerItem[], trackId?: number) => {
-			const nextCursor = getInitialCursor(items, trackId);
-
-			setQueue(items);
-			setCursor(nextCursor);
-			setCurrentTime(0);
-			setReadyCursor(null);
-			setStatus(items.length > 0 ? "loading" : "idle");
-		},
-		[],
-	);
-
-	const resolvePlayUrl = useCallback(
-		async (requestUrl: string, signal: AbortSignal) => {
-			try {
-				const response = await fetch(requestUrl, {
-					method: "GET",
-					credentials: "include",
-					signal,
-				});
-
-				if (!response.ok) {
-					throw new Error(`Failed to resolve play url: ${response.status}`);
-				}
-
-				const rawBody = (await response.text()).trim();
-				return rawBody.length > 0 ? rawBody : requestUrl;
-			} catch (error) {
-				if (error instanceof DOMException && error.name === "AbortError") {
-					throw error;
-				}
-
-				console.warn(
-					"Failed to pre-resolve play url, fallback to endpoint:",
-					error,
-				);
-				return requestUrl;
-			}
-		},
-		[],
-	);
-
-	const getWaveFormData = useCallback(
-		async (url: string, signal: AbortSignal): Promise<number[] | null> => {
-			try {
-				const response = await fetch(url, {
-					method: "GET",
-					signal,
-				});
-
-				if (!response.ok) {
-					return null;
-				}
-
-				const responseData: AudioWaveformJson = await response.json();
-				return responseData.data;
-			} catch (error) {
-				if (error instanceof DOMException && error.name === "AbortError") {
-					throw error;
-				}
-
-				console.error("Error fetching waveform data:", error);
-				return null;
-			}
-		},
-		[],
-	);
-
-	const toggle = useCallback(async () => {
-		if (!currentTrack) {
-			return;
-		}
-
-		setStatus((previousStatus) => {
-			if (previousStatus === "playing" || previousStatus === "loading") {
-				return "paused";
-			}
-
-			return "loading";
-		});
-	}, [currentTrack]);
+	const toggle = useCallback(() => {
+		dispatch({ type: "Toggle" });
+	}, []);
 
 	const toggleRepeat = useCallback(() => {
-		setRepeatMode((prevMode) => {
-			switch (prevMode) {
-				case "off":
-					return "all";
-				case "all":
-					return "one";
-				case "one":
-					return "off";
-			}
-		});
+		dispatch({ type: "ToggleRepeat" });
 	}, []);
 
 	const goPrev = useCallback(() => {
-		void moveToCursor(cursor - 1);
-	}, [cursor, moveToCursor]);
+		dispatch({ type: "GoPrev" });
+	}, []);
 
 	const goNext = useCallback(() => {
-		void moveToCursor(cursor + 1);
-	}, [cursor, moveToCursor]);
+		dispatch({ type: "GoNext" });
+	}, []);
 
-	const playWithPlaylist = useCallback(
-		(items: AudioPlayerItem[]) => {
-			startPlaylist(items);
-		},
-		[startPlaylist],
-	);
+	const playWithPlaylist = useCallback((items: AudioPlayerItem[]) => {
+		dispatch({ type: "NewPlayList", items });
+	}, []);
 
 	const playWithPlaylistByTrackId = useCallback(
 		(items: AudioPlayerItem[], trackId: number) => {
-			startPlaylist(items, trackId);
+			dispatch({ type: "NewPlayList", items, trackId });
 		},
-		[startPlaylist],
+		[],
 	);
 
-	useEffect(() => {
-		const audioElement = audioRef.current;
-		const waveContainer = waveContainerRef.current;
+	const setVolume = useCallback((volume: number) => {
+		dispatch({ type: "SetVolume", volume });
+	}, []);
 
-		if (!audioElement || !waveContainer || waveRef.current) {
+	const playerActionsValue = useMemo<AudioPlayerActions>(() => {
+		return {
+			toggle,
+			toggleRepeat,
+			goPrev,
+			goNext,
+			playWithPlaylist,
+			playWithPlaylistByTrackId,
+			setVolume,
+		};
+	}, [
+		toggle,
+		toggleRepeat,
+		goPrev,
+		goNext,
+		playWithPlaylist,
+		playWithPlaylistByTrackId,
+		setVolume,
+	]);
+
+	useEffect(() => {
+		if (!audioRef.current || !waveContainerRef.current || waveRef.current) {
 			return;
 		}
 
 		const wave = WaveSurfer.create({
-			container: waveContainer,
-			backend: "MediaElement",
-			media: audioElement,
+			container: waveContainerRef.current,
+			media: audioRef.current,
 			height: 32,
 			normalize: true,
 			dragToSeek: true,
@@ -277,99 +368,125 @@ export function AudioPlayerProvider({
 		};
 	}, []);
 
-	useEffect(() => {
+	const onPlay = useEffectEvent(() => {
+		dispatch({ type: "SetStatus", status: "playing" });
+	});
+
+	const onPause = useEffectEvent(() => {
 		const audioElement = audioRef.current;
-		if (!audioElement) {
+		if (!audioElement || audioElement.ended) return;
+
+		const currentStatus = stateRef.current.status;
+		if (currentStatus === "idle" || currentStatus === "loading") {
 			return;
 		}
 
-		const handlePlay = () => {
-			setStatus("playing");
-		};
+		dispatch({ type: "SetStatus", status: "paused" });
+	});
 
-		const handleTimeUpdate = () => {
-			setCurrentTime(audioElement.currentTime);
-		};
+	const onEnded = useEffectEvent(() => {
+		const audioElement = audioRef.current;
+		if (!audioElement) return;
 
-		const handlePause = () => {
-			if (audioElement.ended) {
-				return;
-			}
+		const snapshot = stateRef.current;
 
-			setStatus((previousStatus) => {
-				if (previousStatus === "idle" || previousStatus === "loading") {
-					return previousStatus;
-				}
+		if (snapshot.queue.length === 0) {
+			dispatch({ type: "SetStatus", status: "paused" });
+			return;
+		}
 
-				return "paused";
+		if (snapshot.repeatMode === "one") {
+			audioElement.currentTime = 0;
+			dispatch({ type: "SetStatus", status: "loading" });
+			return;
+		}
+
+		if (snapshot.repeatMode === "all") {
+			dispatch({
+				type: "SetCursor",
+				cursor: (snapshot.cursor + 1) % snapshot.queue.length,
 			});
-		};
+			return;
+		}
 
-		const handleEnded = () => {
-			if (!autoSkipToNextTrack()) {
-				setStatus("paused");
-			}
-		};
+		if (snapshot.cursor + 1 < snapshot.queue.length) {
+			dispatch({ type: "GoNext" });
+			return;
+		}
 
-		const handleError = () => {
-			console.warn("Audio playback error, skipping to next track");
-			if (!skipToNextTrack()) {
-				setStatus("paused");
-			}
-		};
+		dispatch({ type: "SetStatus", status: "paused" });
+	});
 
-		audioElement.addEventListener("play", handlePlay);
-		audioElement.addEventListener("pause", handlePause);
-		audioElement.addEventListener("timeupdate", handleTimeUpdate);
-		audioElement.addEventListener("ended", handleEnded);
-		audioElement.addEventListener("error", handleError);
+	const onError = useEffectEvent(() => {
+		console.warn("Audio playback error, skipping to next track");
+
+		const snapshot = stateRef.current;
+		if (snapshot.cursor + 1 < snapshot.queue.length) {
+			dispatch({ type: "GoNext" });
+			return;
+		}
+
+		dispatch({ type: "SetStatus", status: "paused" });
+	});
+
+	useEffect(() => {
+		const audioElement = audioRef.current;
+		if (!audioElement) return;
+
+		audioElement.addEventListener("play", onPlay);
+		audioElement.addEventListener("pause", onPause);
+		audioElement.addEventListener("ended", onEnded);
+		audioElement.addEventListener("error", onError);
 
 		return () => {
-			audioElement.removeEventListener("play", handlePlay);
-			audioElement.removeEventListener("pause", handlePause);
-			audioElement.removeEventListener("timeupdate", handleTimeUpdate);
-			audioElement.removeEventListener("ended", handleEnded);
-			audioElement.removeEventListener("error", handleError);
+			audioElement.removeEventListener("play", onPlay);
+			audioElement.removeEventListener("pause", onPause);
+			audioElement.removeEventListener("ended", onEnded);
+			audioElement.removeEventListener("error", onError);
 		};
-	}, [skipToNextTrack, autoSkipToNextTrack]);
+	}, []);
 
 	useEffect(() => {
 		const audioElement = audioRef.current;
-		if (!audioElement) {
-			return;
-		}
+		if (!audioElement) return;
 
-		audioElement.volume = volume;
-	}, [volume]);
+		audioElement.volume = state.volume;
+	}, [state.volume]);
+
+	const loadRequestRef = useRef(0);
+	const playRequestRef = useRef(0);
+	const loadedTrackIdRef = useRef<number | null>(null);
 
 	useEffect(() => {
 		const audioElement = audioRef.current;
-		if (!audioElement) {
-			return;
-		}
+		if (!audioElement) return;
 
 		const requestId = loadRequestRef.current + 1;
 		loadRequestRef.current = requestId;
+		loadedTrackIdRef.current = null;
 
 		const controller = new AbortController();
-		const source = currentTrack?.sources[0];
 
 		if (!currentTrack) {
 			audioElement.pause();
-			setCurrentTime(0);
-			setReadyCursor(null);
+			audioElement.removeAttribute("src");
+			audioElement.load();
 			return () => {
 				controller.abort();
 			};
 		}
 
-		audioElement.pause();
+		const source = currentTrack.sources[0];
 
 		if (!source) {
-			console.warn("No source found for track:", currentTrack);
-			if (!skipToNextTrack()) {
-				setStatus("paused");
+			toast.error(`No source found for track:${currentTrack.albumTitle}`);
+
+			if (state.cursor + 1 < state.queue.length) {
+				dispatch({ type: "GoNext" });
+			} else {
+				dispatch({ type: "SetStatus", status: "paused" });
 			}
+
 			return () => {
 				controller.abort();
 			};
@@ -378,10 +495,11 @@ export function AudioPlayerProvider({
 		const loadTrack = async () => {
 			try {
 				const waveformUrl = source.file.waveformB8Pixel20?.url;
+
 				const [playUrl, waveformData] = await Promise.all([
 					resolvePlayUrl(source.file.original.url, controller.signal),
 					waveformUrl
-						? getWaveFormData(waveformUrl, controller.signal)
+						? getWaveformData(waveformUrl, controller.signal)
 						: Promise.resolve(null),
 				]);
 
@@ -389,30 +507,58 @@ export function AudioPlayerProvider({
 					return;
 				}
 
+				audioElement.pause();
 				audioElement.currentTime = 0;
-				setCurrentTime(0);
 				audioElement.src = playUrl;
 				audioElement.load();
 
-				if (waveformData) {
-					waveRef.current?.load(
-						playUrl,
-						[waveformData],
-						currentTrack.durationInMs / 1000,
-					);
-				} else {
-					waveRef.current?.load(playUrl);
+				if (waveRef.current) {
+					if (waveformData && currentTrack.durationInMs > 0) {
+						await waveRef.current.load(
+							playUrl,
+							[waveformData],
+							currentTrack.durationInMs / 1000,
+						);
+					} else {
+						await waveRef.current.load(playUrl);
+					}
 				}
 
-				setReadyCursor(cursor);
+				if (controller.signal.aborted || loadRequestRef.current !== requestId) {
+					return;
+				}
+				loadedTrackIdRef.current = currentTrack.trackId;
+
+				const latestStatus = stateRef.current.status;
+				if (latestStatus === "loading" || latestStatus === "playing") {
+					const playRequestId = playRequestRef.current + 1;
+					playRequestRef.current = playRequestId;
+
+					audioElement.play().catch((error) => {
+						if (playRequestRef.current !== playRequestId) return;
+
+						if (error instanceof DOMException && error.name === "AbortError") {
+							return;
+						}
+
+						console.error("play failed:", error);
+						toast.error(`Failed to play track:${currentTrack.albumTitle}`);
+
+						dispatch({ type: "SetStatus", status: "paused" });
+					});
+				}
 			} catch (error) {
 				if (error instanceof DOMException && error.name === "AbortError") {
 					return;
 				}
 
 				console.warn("Failed to load track, skipping to next track", error);
-				if (!skipToNextTrack()) {
-					setStatus("paused");
+
+				const snapshot = stateRef.current;
+				if (snapshot.cursor + 1 < snapshot.queue.length) {
+					dispatch({ type: "GoNext" });
+				} else {
+					dispatch({ type: "SetStatus", status: "paused" });
 				}
 			}
 		};
@@ -421,107 +567,102 @@ export function AudioPlayerProvider({
 		return () => {
 			controller.abort();
 		};
-	}, [currentTrack, cursor, getWaveFormData, resolvePlayUrl, skipToNextTrack]);
+	}, [currentTrack, state.cursor, state.queue.length]);
 
 	useEffect(() => {
 		const audioElement = audioRef.current;
-		if (!audioElement) {
+		if (!audioElement || !currentTrack) return;
+
+		if (loadedTrackIdRef.current !== currentTrack.trackId) {
 			return;
 		}
 
-		if (!currentTrack || readyCursor !== cursor) {
+		if (state.status === "paused" || state.status === "idle") {
 			playRequestRef.current += 1;
+			if (!audioElement.paused) {
+				audioElement.pause();
+			}
 			return;
 		}
 
-		if (status === "loading" || status === "playing") {
-			if (!audioElement.paused) {
-				return;
-			}
+		if (state.status === "loading" || state.status === "playing") {
+			if (!audioElement.paused) return;
 
 			const playRequestId = playRequestRef.current + 1;
 			playRequestRef.current = playRequestId;
 
 			audioElement.play().catch((error) => {
-				if (playRequestRef.current !== playRequestId) {
-					return;
-				}
+				if (playRequestRef.current !== playRequestId) return;
 
 				if (error instanceof DOMException && error.name === "AbortError") {
 					return;
 				}
 
 				console.error("play failed:", error);
-				setStatus((previousStatus) => {
-					if (previousStatus === "loading" || previousStatus === "playing") {
-						return "paused";
-					}
-
-					return previousStatus;
-				});
+				dispatch({ type: "SetStatus", status: "paused" });
 			});
-			return;
 		}
-
-		playRequestRef.current += 1;
-		audioElement.pause();
-	}, [currentTrack, cursor, readyCursor, status]);
-
-	const api = useMemo<AudioPlayerApi>(() => {
-		return {
-			audioRef,
-			waveContainerRef,
-			shouldHidePlayer,
-			playlist,
-			cursor,
-			currentTrack,
-			isPrev,
-			isNext,
-			isPlaying,
-			currentTime,
-			volume,
-			setVolume: setVolumeClamped,
-			toggle,
-			toggleRepeat,
-			goPrev,
-			goNext,
-			playWithPlaylist,
-			playWithPlaylistByTrackId,
-			repeatMode,
-			setRepeatMode,
-		};
-	}, [
-		currentTrack,
-		cursor,
-		goNext,
-		goPrev,
-		isNext,
-		isPlaying,
-		isPrev,
-		currentTime,
-		playWithPlaylist,
-		playWithPlaylistByTrackId,
-		playlist,
-		setVolumeClamped,
-		shouldHidePlayer,
-		toggle,
-		toggleRepeat,
-		volume,
-		repeatMode,
-	]);
+	}, [currentTrack, state.status]);
 
 	return (
-		<AudioPlayerContext.Provider value={api}>
-			{children}
-			<audio ref={audioRef} preload="metadata">
-				<track kind="captions" />
-			</audio>
-		</AudioPlayerContext.Provider>
+		<AudioPlayerContext value={audioPlayerRefsValue}>
+			<AudioPlayerAvailabilityContext value={playerAvailabilityValue}>
+				<AudioPlayerStatusContext value={playerStatusValue}>
+					<AudioPlayerVolumeContext value={playerVolumeValue}>
+						<AudioPlayerActionsContext value={playerActionsValue}>
+							{children}
+							<audio ref={audioRef} preload="metadata">
+								<track kind="captions" />
+							</audio>
+						</AudioPlayerActionsContext>
+					</AudioPlayerVolumeContext>
+				</AudioPlayerStatusContext>
+			</AudioPlayerAvailabilityContext>
+		</AudioPlayerContext>
 	);
 }
 
-export function useAudioPlayer() {
+export function useAudioPlayerRefs() {
 	const ctx = useContext(AudioPlayerContext);
-	if (!ctx) throw new Error("usePlayer must be used inside <PlayerProvider />");
+	if (!ctx)
+		throw new Error(
+			"useAudioPlayerRefs must be used inside <AudioPlayerProvider />",
+		);
+	return ctx;
+}
+
+export function useAudioPlayerAvailability() {
+	const ctx = useContext(AudioPlayerAvailabilityContext);
+	if (!ctx)
+		throw new Error(
+			"useAudioPlayerAvailability must be used inside <AudioPlayerProvider />",
+		);
+	return ctx;
+}
+
+export function useAudioPlayerStatus() {
+	const ctx = useContext(AudioPlayerStatusContext);
+	if (!ctx)
+		throw new Error(
+			"useAudioPlayerStatus must be used inside <AudioPlayerProvider />",
+		);
+	return ctx;
+}
+
+export function useAudioPlayerVolume() {
+	const ctx = useContext(AudioPlayerVolumeContext);
+	if (!ctx)
+		throw new Error(
+			"useAudioPlayerVolume must be used inside <AudioPlayerProvider />",
+		);
+	return ctx;
+}
+
+export function useAudioPlayerActions() {
+	const ctx = useContext(AudioPlayerActionsContext);
+	if (!ctx)
+		throw new Error(
+			"useAudioPlayerActions must be used inside <AudioPlayerProvider />",
+		);
 	return ctx;
 }
