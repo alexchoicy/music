@@ -3,6 +3,10 @@ name: Backend CI
 permissions:
   contents: read
 
+concurrency:
+  group: backend-test-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     branches: ["master", "main"]
