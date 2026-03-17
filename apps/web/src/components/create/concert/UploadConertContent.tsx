@@ -1,5 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useId, useMemo, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+	type Dispatch,
+	type SetStateAction,
+	useCallback,
+	useEffect,
+	useId,
+	useMemo,
+	useState,
+} from "react";
 import ConcertAlbumCombobox from "@/components/combobox/concertAlbumCombobox";
 import PartyCombobox from "@/components/combobox/partyCombobox";
 import {
@@ -18,6 +26,7 @@ import { Input } from "@/components/shadcn/input";
 import { Textarea } from "@/components/shadcn/textarea";
 import type { components } from "@/data/APIschema";
 import { albumQueries } from "@/lib/queries/album.queries";
+import { concertMutations } from "@/lib/queries/concert.queries";
 import { partyQueries } from "@/lib/queries/party.queries";
 import { FileDropBox } from "./fileDropBox";
 
@@ -26,9 +35,18 @@ type AlbumListItem = components["schemas"]["AlbumListItemModel"];
 type CreateConcertModel = components["schemas"]["CreateConcertModel"];
 type CreateConcertPartyModel = components["schemas"]["CreateConcertPartyModel"];
 
-export function UploadConcertContent() {
+type UploadConcertContentProps = {
+	setIsProcessing: Dispatch<SetStateAction<boolean>>;
+	onUploadReady: (uploadAction: (() => Promise<void>) | null) => void;
+};
+
+export function UploadConcertContent({
+	setIsProcessing,
+	onUploadReady,
+}: UploadConcertContentProps) {
 	const { data: parties = [] } = useQuery(partyQueries.getPartySearchList(""));
 	const { data: albums = [] } = useQuery(albumQueries.list());
+	const { mutateAsync: createConcert } = useMutation(concertMutations.create());
 	const titleFieldId = useId();
 	const descriptionFieldId = useId();
 
@@ -37,9 +55,6 @@ export function UploadConcertContent() {
 	const [mainParties, setMainParties] = useState<PartyList[]>([]);
 	const [guestParties, setGuestParties] = useState<PartyList[]>([]);
 	const [selectedAlbums, setSelectedAlbums] = useState<AlbumListItem[]>([]);
-
-	// Simple Blake 3 + File.
-	const [uploadFiles, setUploadFiles] = useState<Record<string, File>>();
 
 	useEffect(() => {
 		const mainPartyIds = new Set(
@@ -101,14 +116,30 @@ export function UploadConcertContent() {
 		() => ({
 			title: title.trim(),
 			description: description.trim() || undefined,
-			linkedAlbumIds:
-				selectedAlbums.length > 0
-					? selectedAlbums.map((album) => album.albumId)
-					: undefined,
-			linkedParties: linkedParties.length > 0 ? linkedParties : undefined,
+			linkedAlbumIds: selectedAlbums.map((album) => album.albumId),
+			linkedParties,
+			files: [],
 		}),
 		[description, linkedParties, selectedAlbums, title],
 	);
+
+	const onUpload = useCallback(async () => {
+		setIsProcessing(true);
+
+		try {
+			await createConcert(createConcertModel);
+		} finally {
+			setIsProcessing(false);
+		}
+	}, [createConcert, createConcertModel, setIsProcessing]);
+
+	useEffect(() => {
+		onUploadReady(onUpload);
+
+		return () => {
+			onUploadReady(null);
+		};
+	}, [onUpload, onUploadReady]);
 
 	return (
 		<div className="grid gap-2 p-6 lg:grid-cols-5">
