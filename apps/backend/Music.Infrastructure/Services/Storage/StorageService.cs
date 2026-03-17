@@ -90,7 +90,7 @@ public class StorageService(
 
     public void RunBackgroundProcessAudioUploadFile(WorkerModel workerModel)
     {
-        _backgroundTaskQueue?.QueueAudioUploadProcessing(workerModel);
+        _backgroundTaskQueue?.QueueWorkerAsync(workerModel);
     }
 
 }

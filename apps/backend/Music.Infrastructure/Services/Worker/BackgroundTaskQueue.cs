@@ -20,7 +20,7 @@ public sealed class BackgroundTaskQueue : IBackgroundTaskQueue
         _queue = Channel.CreateBounded<WorkerModel>(options);
     }
 
-    public void QueueAudioUploadProcessing(WorkerModel workerModel)
+    public void QueueWorkerAsync(WorkerModel workerModel)
     {
         if (!_queue.Writer.TryWrite(workerModel))
         {
@@ -28,7 +28,7 @@ public sealed class BackgroundTaskQueue : IBackgroundTaskQueue
         }
     }
 
-    public ValueTask<WorkerModel> DequeueAudioUploadProcessingAsync(CancellationToken cancellationToken)
+    public ValueTask<WorkerModel> DequeueWorkerAsync(CancellationToken cancellationToken)
     {
         return _queue.Reader.ReadAsync(cancellationToken);
     }

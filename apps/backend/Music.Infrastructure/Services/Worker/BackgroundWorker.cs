@@ -25,7 +25,7 @@ public sealed class BackgroundWorker(
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            WorkerModel workerModel = await queue.DequeueAudioUploadProcessingAsync(stoppingToken);
+            WorkerModel workerModel = await queue.DequeueWorkerAsync(stoppingToken);
             try
             {
                 // TODO: run waveform/opus generation here.
@@ -121,6 +121,7 @@ public sealed class BackgroundWorker(
                     Container = "application/json",
                     Extension = "json",
                     OriginalFileName = $"{fileObject.OriginalFileName}.{DateTime.UtcNow}.waveform.json",
+                    ProcessingStatus = FileProcessingStatus.Completed
                 };
 
                 dbContext.FileObjects.Add(waveformFileObject);

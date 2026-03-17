@@ -4,6 +4,6 @@ namespace Music.Core.Services.Interfaces;
 
 public interface IBackgroundTaskQueue
 {
-    void QueueAudioUploadProcessing(WorkerModel workerModel);
-    ValueTask<WorkerModel> DequeueAudioUploadProcessingAsync(CancellationToken cancellationToken);
+    void QueueWorkerAsync(WorkerModel workerModel);
+    ValueTask<WorkerModel> DequeueWorkerAsync(CancellationToken cancellationToken);
 }
