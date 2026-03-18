@@ -9,20 +9,27 @@ public sealed class HashService : IHashService
     {
         if (string.IsNullOrWhiteSpace(sourcePath))
             throw new ArgumentException("Value cannot be null or empty.", nameof(sourcePath));
-        await using FileStream fileStream = new(
+
+        await using var fileStream = new FileStream(
             sourcePath,
-            FileMode.Open,
-            FileAccess.Read,
-            FileShare.Read,
-            bufferSize: 81920,
-            FileOptions.Asynchronous | FileOptions.SequentialScan);
+            new FileStreamOptions
+            {
+                Mode = FileMode.Open,
+                Access = FileAccess.Read,
+                Share = FileShare.Read,
+                Options = FileOptions.Asynchronous | FileOptions.SequentialScan
+            });
+
         using var hasher = Hasher.New();
-        byte[] buffer = new byte[81920];
+
+        byte[] buffer = new byte[256 * 1024];
         int bytesRead;
-        while ((bytesRead = await fileStream.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken)) > 0)
+
+        while ((bytesRead = await fileStream.ReadAsync(buffer.AsMemory(), cancellationToken)) > 0)
         {
             hasher.Update(buffer.AsSpan(0, bytesRead));
         }
+
         return hasher.Finalize().ToString();
     }
 }

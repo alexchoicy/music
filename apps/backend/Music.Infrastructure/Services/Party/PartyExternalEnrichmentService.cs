@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -171,7 +172,7 @@ public sealed class PartyExternalEnrichmentService(
                 await response.Content.CopyToAsync(fileStream, cancellationToken);
             }
 
-            string blake3Hash = _hashService.ComputeBlake3Hash(tempPath);
+            string blake3Hash = await _hashService.ComputeBlake3HashAsync(tempPath, cancellationToken);
             string storagePath = _assetsService.GetStoragePath(
                 imageType == PartyImageType.Avatar ? MediaFolderOptions.PartyCover : MediaFolderOptions.PartyBanner,
                 blake3Hash,
@@ -289,9 +290,35 @@ public sealed class PartyExternalEnrichmentService(
     {
         string requestUrl = $"https://api.fxtwitter.com/{Uri.EscapeDataString(twitterName)}";
 
-        var response = await FetchClient<FxTwitterResponse>(requestUrl, cancellationToken);
+        FxTwitterResponse? response = await FetchClient<FxTwitterResponse>(requestUrl, cancellationToken);
 
-        return response?.User;
+        if (response?.User is null)
+            return null;
+
+        return new FxTwitterProfile()
+        {
+            AvatarUrl = FixUrl(response.User.AvatarUrl ?? ""),
+            BannerUrl = response.User.BannerUrl //this don't need it return the best quality by default.
+        };
+    }
+
+    private static readonly Regex AvatarSuffixReplaceRegex = new(
+        @"_(?:normal|bigger|mini|400x400)(\.[a-zA-Z0-9]+)$",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    public static string FixUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return url;
+
+        try
+        {
+            return AvatarSuffixReplaceRegex.Replace(url, "$1");
+        }
+        catch (Exception)
+        {
+            return url;
+        }
     }
 
 
