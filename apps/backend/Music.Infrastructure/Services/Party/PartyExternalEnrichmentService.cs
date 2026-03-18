@@ -398,7 +398,6 @@ public sealed class PartyExternalEnrichmentService(
 
     public async Task<MusicBrainzSearchArtist?> SearchMusicBrainzByPartyName(string partyName, string normalizedPartyName, CancellationToken cancellationToken = default)
     {
-        Console.WriteLine($"partyName : {partyName}");
         string searchUrl = $"https://musicbrainz.org/ws/2/artist/?query={Uri.EscapeDataString(partyName)}&fmt=json&limit=5&dismax=true";
 
         MusicBrainzSearchResponse? searchResult = await FetchClient<MusicBrainzSearchResponse>(
