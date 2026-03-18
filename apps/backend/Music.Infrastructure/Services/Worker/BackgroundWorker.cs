@@ -34,6 +34,9 @@ public sealed class BackgroundWorker(
                     case TrackUploadProcessWorkerModel trackUploadWorker:
                         await ProcessTrackUploadAsync(trackUploadWorker, scopeFactory, logger, stoppingToken);
                         break;
+                    case PartyInfoEnrichmentWorkerModel partyExternalEnrichmentWorker:
+                        await ProcessPartyExternalEnrichmentAsync(partyExternalEnrichmentWorker, scopeFactory, stoppingToken);
+                        break;
                     default:
                         logger.LogWarning("Unknown worker type {WorkerType}", workerModel.GetType().Name);
                         break;
@@ -44,6 +47,18 @@ public sealed class BackgroundWorker(
                 logger.LogError(ex, "Storage background processing failed for file object.");
             }
         }
+    }
+
+    private static async Task ProcessPartyExternalEnrichmentAsync(
+        PartyInfoEnrichmentWorkerModel job,
+        IServiceScopeFactory scopeFactory,
+        CancellationToken cancellationToken)
+    {
+        using IServiceScope scope = scopeFactory.CreateScope();
+        IPartyExternalEnrichmentService partyExternalEnrichmentService =
+            scope.ServiceProvider.GetRequiredService<IPartyExternalEnrichmentService>();
+
+        await partyExternalEnrichmentService.EnrichPartyAsync(job.PartyId, cancellationToken);
     }
 
 
@@ -106,7 +121,7 @@ public sealed class BackgroundWorker(
 
                 await assetsService.UploadFileFromTempAsync(waveformStoragePath, waveformPath, cancellationToken);
 
-                string waveformHash = hashService.ComputeBlake3Hash(waveformPath);
+                string waveformHash = await hashService.ComputeBlake3HashAsync(waveformPath, cancellationToken);
 
                 FileObject waveformFileObject = new()
                 {
@@ -142,7 +157,7 @@ public sealed class BackgroundWorker(
                 throw new InvalidOperationException($"FFmpeg failed to convert file object ID {fileObject.Id} to Opus.");
             }
 
-            string newHash = hashService.ComputeBlake3Hash(newPath);
+            string newHash = await hashService.ComputeBlake3HashAsync(newPath, cancellationToken);
 
             string newStoragePath = contentService.GetStoragePath(
                 MediaFolderOptions.DerivedMusic,
