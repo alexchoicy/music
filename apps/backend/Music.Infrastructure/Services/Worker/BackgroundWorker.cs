@@ -121,7 +121,7 @@ public sealed class BackgroundWorker(
 
                 await assetsService.UploadFileFromTempAsync(waveformStoragePath, waveformPath, cancellationToken);
 
-                string waveformHash = hashService.ComputeBlake3Hash(waveformPath);
+                string waveformHash = await hashService.ComputeBlake3HashAsync(waveformPath, cancellationToken);
 
                 FileObject waveformFileObject = new()
                 {
@@ -157,7 +157,7 @@ public sealed class BackgroundWorker(
                 throw new InvalidOperationException($"FFmpeg failed to convert file object ID {fileObject.Id} to Opus.");
             }
 
-            string newHash = hashService.ComputeBlake3Hash(newPath);
+            string newHash = await hashService.ComputeBlake3HashAsync(newPath, cancellationToken);
 
             string newStoragePath = contentService.GetStoragePath(
                 MediaFolderOptions.DerivedMusic,
