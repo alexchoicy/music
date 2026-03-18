@@ -476,7 +476,7 @@ public sealed class PartyExternalEnrichmentService(
         {
             await Task.Delay(delayMs, cancellationToken);
             using HttpRequestMessage request = new(HttpMethod.Get, requestUri);
-            request.Headers.TryAddWithoutValidation("User-Agent", _externalOptions.MusicBrainz.UserAgent);
+            request.Headers.TryAddWithoutValidation("User-Agent", _externalOptions.UserAgent);
             request.Headers.TryAddWithoutValidation("Accept", "application/json");
 
             using HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
