@@ -34,6 +34,9 @@ public sealed class BackgroundWorker(
                     case TrackUploadProcessWorkerModel trackUploadWorker:
                         await ProcessTrackUploadAsync(trackUploadWorker, scopeFactory, logger, stoppingToken);
                         break;
+                    case PartyInfoEnrichmentWorkerModel partyExternalEnrichmentWorker:
+                        await ProcessPartyExternalEnrichmentAsync(partyExternalEnrichmentWorker, scopeFactory, stoppingToken);
+                        break;
                     default:
                         logger.LogWarning("Unknown worker type {WorkerType}", workerModel.GetType().Name);
                         break;
@@ -44,6 +47,18 @@ public sealed class BackgroundWorker(
                 logger.LogError(ex, "Storage background processing failed for file object.");
             }
         }
+    }
+
+    private static async Task ProcessPartyExternalEnrichmentAsync(
+        PartyInfoEnrichmentWorkerModel job,
+        IServiceScopeFactory scopeFactory,
+        CancellationToken cancellationToken)
+    {
+        using IServiceScope scope = scopeFactory.CreateScope();
+        IPartyExternalEnrichmentService partyExternalEnrichmentService =
+            scope.ServiceProvider.GetRequiredService<IPartyExternalEnrichmentService>();
+
+        await partyExternalEnrichmentService.EnrichPartyAsync(job.PartyId, cancellationToken);
     }
 
 

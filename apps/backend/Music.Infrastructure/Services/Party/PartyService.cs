@@ -5,13 +5,16 @@ using Music.Core.Utils;
 using Music.Infrastructure.Data;
 using Music.Core.Entities;
 using Music.Core.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Music.Infrastructure.Services.Party;
 
-public class PartyService(AppDbContext dbContext, IAssetsService assetsService) : IPartyService
+public class PartyService(AppDbContext dbContext, IAssetsService assetsService, IBackgroundTaskQueue backgroundTaskQueue, ILogger<PartyService> logger) : IPartyService
 {
     private readonly AppDbContext _dbContext = dbContext;
     private readonly IAssetsService _assetsService = assetsService;
+    private readonly IBackgroundTaskQueue _backgroundTaskQueue = backgroundTaskQueue;
+    private readonly ILogger<PartyService> _logger = logger;
 
     public async Task<bool> CreatePartyAsync(CreatePartyModel request, string userId)
     {
@@ -27,6 +30,21 @@ public class PartyService(AppDbContext dbContext, IAssetsService assetsService) 
         _dbContext.Parties.Add(party);
 
         int changes = await _dbContext.SaveChangesAsync();
+
+        if (changes > 0)
+        {
+            try
+            {
+                _backgroundTaskQueue.QueueWorkerAsync(new PartyInfoEnrichmentWorkerModel
+                {
+                    PartyId = party.Id
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Unable to queue external enrichment for party {PartyId}", party.Id);
+            }
+        }
 
         return changes > 0;
     }

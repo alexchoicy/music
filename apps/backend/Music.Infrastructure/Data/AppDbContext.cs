@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<Language> Languages { get; set; }
 
     public DbSet<Party> Parties { get; set; }
+    public DbSet<PartyExternalInfo> PartyExternalInfos { get; set; }
     public DbSet<PartyAlias> PartyAliases { get; set; }
     public DbSet<PartyMembership> PartyMemberships { get; set; }
     public DbSet<PartyImage> PartyImages { get; set; }

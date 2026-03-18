@@ -50,11 +50,14 @@ public class S3AssetsService : StorageService, IAssetsService
         if (!fileInfo.Exists)
             throw new FileNotFoundException("Temp file not found.", sourcePath);
 
+        // BROROROOROROR I HAVE THIS MIME SOLVER ANYWHERE REFACTOR !!!!!!
         string mimeType = fileInfo.Extension.TrimStart('.').ToLowerInvariant() switch
         {
             "opus" => "audio/opus",
             "json" => "application/json",
             "mp4" => "video/mp4",
+            "jpg" => "image/jpeg",
+            "png" => "image/png",
             _ => "application/octet-stream"
         };
 

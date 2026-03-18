@@ -10,6 +10,9 @@ public class Party
 
     public string NormalizedName { get; set; } = string.Empty;
 
+    public string? MusicBrainzId { get; set; }
+    public string? Country { get; set; }
+
     public DateTimeOffset ReleaseDate { get; set; }
 
     public int? LanguageId { get; set; }
@@ -31,4 +34,5 @@ public class Party
     public ICollection<PartyImage> Images { get; set; } = [];
 
     public ICollection<PartyAlias> Aliases { get; set; } = [];
+    public ICollection<PartyExternalInfo> PartyExternalInfos { get; set; } = [];
 }
