@@ -2,7 +2,7 @@ import type { components } from "@/data/APIschema";
 import { $APIFetch } from "../APIFetchClient";
 
 export const uploadMutations = {
-	complete: () => ({
+	audioComplete: () => ({
 		mutationFn: async (
 			data: components["schemas"]["CompleteMultipartUploadRequest"][],
 		) => {

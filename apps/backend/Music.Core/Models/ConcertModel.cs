@@ -8,9 +8,17 @@ public sealed class CreateConcertModel
     public string Description { get; init; } = string.Empty;
     public DateTimeOffset? Date { get; init; }
 
+    public CreateConcertImage? Image { get; init; }
+
     public IReadOnlyList<int> LinkedAlbumIds { get; init; } = [];
     public IReadOnlyList<CreateConcertPartyModel> LinkedParties { get; init; } = [];
     public IReadOnlyList<CreateConcertFileModel> Files { get; init; } = [];
+}
+
+public sealed class CreateConcertImage
+{
+    public required CreateFileModel File { get; init; }
+    public FileCroppedAreaModel? FileCroppedArea { get; init; }
 }
 
 public sealed class CreateConcertPartyModel
@@ -42,5 +50,12 @@ public sealed record CreateConcertUploadItemResult
 public sealed record CreateConcertUploadResult
 {
     public required string ConcertTitle { get; init; }
-    public List<CreateConcertUploadItemResult> Files { get; init; } = [];
+    public CreateConcertUploadImageResult? ConcertImage { get; set; }
+    public List<CreateConcertUploadItemResult> Files { get; set; } = [];
+}
+
+public sealed class CreateConcertUploadImageResult
+{
+    public required string Blake3Id { get; init; }
+    public required string UploadUrl { get; init; }
 }

@@ -15,7 +15,7 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { GripVerticalIcon, ImageIcon } from "lucide-react";
 import pMap from "p-map";
 import {
@@ -29,6 +29,7 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { toast } from "sonner";
 import ConcertAlbumCombobox from "@/components/combobox/concertAlbumCombobox";
 import PartyCombobox from "@/components/combobox/partyCombobox";
 import { Button } from "@/components/shadcn/button";
@@ -56,9 +57,16 @@ import { Textarea } from "@/components/shadcn/textarea";
 import type { components } from "@/data/APIschema";
 import { CONCERT_FILE_TYPE_OPTIONS } from "@/enums/concert";
 import { albumQueries } from "@/lib/queries/album.queries";
+import { concertMutations } from "@/lib/queries/concert.queries";
 import { partyQueries } from "@/lib/queries/party.queries";
-import { extFromFilename } from "@/lib/utils/file";
-import { hashBlake3Simple } from "@/lib/utils/hash";
+import { uploadMutations } from "@/lib/queries/upload.queries";
+import {
+	extFromFilename,
+	getDimensions,
+	resolveExtension,
+} from "@/lib/utils/file";
+import { hashBlake3Simple, hashFileStream } from "@/lib/utils/hash";
+import { multipartFileRequest } from "@/lib/utils/upload";
 import { FileDropBox } from "./fileDropBox";
 
 type PartyList = components["schemas"]["PartyListModel"];
@@ -86,6 +94,28 @@ type LocalConcertImage = {
 	file: File;
 	previewUrl: string;
 };
+
+async function buildConcertImageRequest(
+	concertImage: LocalConcertImage,
+): Promise<components["schemas"]["CreateConcertImage"]> {
+	const [{ blake3Hash }, dimensions] = await Promise.all([
+		hashFileStream(concertImage.file),
+		getDimensions(concertImage.file),
+	]);
+
+	return {
+		file: {
+			fileBlake3: blake3Hash,
+			mimeType: concertImage.file.type,
+			fileSizeInBytes: concertImage.file.size,
+			container: concertImage.file.type,
+			extension: resolveExtension(concertImage.file),
+			width: dimensions.width,
+			height: dimensions.height,
+			originalFileName: concertImage.file.name,
+		},
+	};
+}
 
 type UpdateConcertFile = <
 	K extends keyof Pick<LocalConcertFile, "title" | "type">,
@@ -206,10 +236,14 @@ function SortableConcertFileCard({
 export function UploadConcertContent({
 	isProcessing,
 	setIsProcessing,
-	onUploadReady: _onUploadReady,
+	onUploadReady,
 }: UploadConcertContentProps) {
 	const { data: parties = [] } = useQuery(partyQueries.getPartySearchList(""));
 	const { data: albums = [] } = useQuery(albumQueries.list());
+	const { mutateAsync: createConcert } = useMutation(concertMutations.create());
+	const { mutateAsync: completeMultipartUpload } = useMutation(
+		uploadMutations.audioComplete(),
+	);
 	const titleFieldId = useId();
 	const descriptionFieldId = useId();
 	const imageInputRef = useRef<HTMLInputElement>(null);
@@ -391,16 +425,142 @@ export function UploadConcertContent({
 	};
 
 	const onUpload = useCallback(async () => {
-		console.log(concertFiles);
-	}, [concertFiles]);
+		const normalizedTitle = title.trim();
+
+		if (normalizedTitle === "") {
+			toast.error("Concert name is required");
+			return;
+		}
+
+		if (orderedConcertFiles.length === 0) {
+			toast.error("Add at least one concert file");
+			return;
+		}
+
+		setIsProcessing(true);
+
+		try {
+			const imageRequest = concertImage
+				? await buildConcertImageRequest(concertImage)
+				: undefined;
+
+			const requestJson: components["schemas"]["CreateConcertModel"] = {
+				title: normalizedTitle,
+				description: description.trim(),
+				image: imageRequest,
+				linkedAlbumIds: Array.from(
+					new Set(selectedAlbums.map((album) => album.albumId)),
+				),
+				linkedParties: [
+					...mainParties.map((party) => ({
+						partyId: party.partyId,
+						role: "MainArtist" as const,
+					})),
+					...guestParties.map((party) => ({
+						partyId: party.partyId,
+						role: "Guest" as const,
+					})),
+				],
+				files: orderedConcertFiles.map((concertFile, index) => ({
+					title: concertFile.title.trim() || concertFile.originalFileName,
+					type: concertFile.type,
+					order: index,
+					simpleBlake3Hash: concertFile.simpleBlake3Hash,
+					mimeType: concertFile.mimeType,
+					fileSizeInBytes: concertFile.fileSizeInBytes,
+					originalFileName: concertFile.originalFileName,
+				})),
+			};
+
+			const result = await createConcert(requestJson);
+			const uploadResults = result.data;
+
+			if (concertImage) {
+				if (!uploadResults.concertImage) {
+					throw new Error("missing concert image upload target");
+				}
+
+				const imageUploadResponse = await fetch(
+					uploadResults.concertImage.uploadUrl,
+					{
+						method: "PUT",
+						body: concertImage.file,
+					},
+				);
+
+				if (!imageUploadResponse.ok) {
+					throw new Error("concert image upload failed");
+				}
+			}
+
+			const completedResults = await pMap(
+				uploadResults.files ?? [],
+				async (fileUpload) => {
+					const localConcertFile = concertFiles[fileUpload.simpleBlake3Hash];
+
+					if (!localConcertFile) {
+						throw new Error(
+							`missing concert file ${fileUpload.simpleBlake3Hash}`,
+						);
+					}
+
+					const parts = await multipartFileRequest(
+						localConcertFile.localFile,
+						fileUpload.multipartUploadInfo,
+					);
+
+					return {
+						blake3Id: fileUpload.simpleBlake3Hash,
+						uploadId: fileUpload.multipartUploadInfo.uploadId,
+						parts,
+					};
+				},
+				{ concurrency: 2 },
+			);
+
+			if (completedResults.length > 0) {
+				await completeMultipartUpload(completedResults);
+			}
+
+			setTitle("");
+			setDescription("");
+			setMainParties([]);
+			setGuestParties([]);
+			setSelectedAlbums([]);
+			setConcertFiles({});
+			setConcertImage(null);
+			if (imageInputRef.current) {
+				imageInputRef.current.value = "";
+			}
+
+			toast.success("Concert uploaded successfully");
+		} catch (error) {
+			console.error("Failed to upload concert", error);
+			toast.error("Failed to upload concert");
+		} finally {
+			setIsProcessing(false);
+		}
+	}, [
+		completeMultipartUpload,
+		concertFiles,
+		concertImage,
+		createConcert,
+		description,
+		guestParties,
+		mainParties,
+		orderedConcertFiles,
+		selectedAlbums,
+		setIsProcessing,
+		title,
+	]);
 
 	useEffect(() => {
-		_onUploadReady(onUpload);
+		onUploadReady(onUpload);
 
 		return () => {
-			_onUploadReady(null);
+			onUploadReady(null);
 		};
-	}, [onUpload, _onUploadReady]);
+	}, [onUpload, onUploadReady]);
 
 	return (
 		<div className="grid gap-2 p-6 lg:grid-cols-5">
@@ -461,7 +621,7 @@ export function UploadConcertContent({
 								id={titleFieldId}
 								value={title}
 								onChange={(event) => setTitle(event.target.value)}
-								placeholder="Tokyo Garden Theater Day 1"
+								placeholder=""
 							/>
 						</Field>
 
@@ -471,7 +631,7 @@ export function UploadConcertContent({
 								id={descriptionFieldId}
 								value={description}
 								onChange={(event) => setDescription(event.target.value)}
-								placeholder="Add a short note about the concert recording."
+								placeholder="."
 							/>
 						</Field>
 

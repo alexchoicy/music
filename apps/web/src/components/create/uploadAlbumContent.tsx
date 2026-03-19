@@ -47,7 +47,7 @@ export function UploadAlbumContent({
 	const { mutateAsync: createAlbum } = useMutation(albumMutations.create());
 
 	const { mutateAsync: completeMultipartUpload } = useMutation(
-		uploadMutations.complete(),
+		uploadMutations.audioComplete(),
 	);
 
 	const onUpload = useCallback(async () => {

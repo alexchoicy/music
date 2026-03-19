@@ -14,11 +14,13 @@ namespace Music.Infrastructure.Services.Concert;
 public sealed class ConcertService(
     AppDbContext dbContext,
     IContentService contentService,
+    IAssetsService assetsService,
     ILogger<ConcertService> logger) : IConcertService
 {
     private readonly AppDbContext _dbContext = dbContext;
     private readonly IContentService _contentService = contentService;
     private readonly ILogger<ConcertService> _logger = logger;
+    private readonly IAssetsService _assetsService = assetsService;
 
     public async Task<CreateConcertUploadResult> CreateConcertAsync(
         CreateConcertModel concert,
@@ -41,7 +43,7 @@ public sealed class ConcertService(
         try
         {
 
-            Core.Entities.Concert newConcert = new Core.Entities.Concert
+            Core.Entities.Concert newConcert = new()
             {
                 Title = concert.Title,
                 Description = concert.Description,
@@ -68,12 +70,17 @@ public sealed class ConcertService(
 
             };
 
-            List<ConcertFile> concertFiles = new List<ConcertFile>();
+            List<ConcertFile> concertFiles = [];
 
-            CreateConcertUploadResult uploadResult = new CreateConcertUploadResult
+            CreateConcertUploadResult uploadResult = new()
             {
                 ConcertTitle = concert.Title
             };
+
+            if (concert.Image is not null)
+            {
+                uploadResult.ConcertImage = await CreateConcertUploadImage(concert.Image, newConcert, userId, cancellationToken);
+            }
 
             foreach (var file in concert.Files)
             {
@@ -86,7 +93,7 @@ public sealed class ConcertService(
 
                 string extension = Path.GetExtension(path).TrimStart('.');
 
-                CreateFileModel createFileModel = new CreateFileModel
+                CreateFileModel createFileModel = new()
                 {
                     OriginalFileName = file.OriginalFileName,
                     FileBlake3 = file.SimpleBlake3Hash,
@@ -107,7 +114,7 @@ public sealed class ConcertService(
                 _dbContext.StoredFiles.Add(storedFile);
                 _dbContext.FileObjects.Add(fileObject);
 
-                ConcertFile concertFile = new ConcertFile
+                ConcertFile concertFile = new()
                 {
                     Title = file.Title,
                     Type = file.Type,
@@ -144,6 +151,41 @@ public sealed class ConcertService(
             _dbContext.ChangeTracker.Clear();
             throw;
         }
+    }
+
+    private async Task<CreateConcertUploadImageResult> CreateConcertUploadImage(CreateConcertImage concertImageModel, Core.Entities.Concert concert, string userId, CancellationToken cancellationToken)
+    {
+        string imagePath = _assetsService.GetStoragePath(
+            MediaFolderOptions.AssetsCover,
+            concertImageModel.File.FileBlake3,
+            concertImageModel.File.MimeType,
+            concertImageModel.File.OriginalFileName
+        );
+
+        (StoredFile? storedFile, FileObject? fileObject) = _assetsService.CreateStoredFileWithObject(concertImageModel.File,
+            FileType.Image,
+            imagePath,
+            FileObjectType.Original,
+            FileObjectVariant.Original,
+            userId
+            );
+
+        _dbContext.StoredFiles.Add(storedFile);
+        _dbContext.FileObjects.Add(fileObject);
+
+        ConcertCover concertCover = new()
+        {
+            Concert = concert,
+            File = storedFile,
+        };
+
+        _dbContext.Add(concertCover);
+
+        return new CreateConcertUploadImageResult
+        {
+            Blake3Id = concertImageModel.File.FileBlake3,
+            UploadUrl = _assetsService.CreateUploadUrlAsync(imagePath, fileObject.MimeType, cancellationToken)
+        };
     }
 
     private async Task<bool> ConcertExistsAsync(string title, CancellationToken cancellationToken)

@@ -487,7 +487,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
+                        "text/plain": string;
                         "application/json": string;
+                        "text/json": string;
                     };
                 };
             };
@@ -1161,11 +1163,16 @@ export interface components {
             fileSizeInBytes: number | string;
             originalFileName: string;
         };
+        CreateConcertImage: {
+            file: components["schemas"]["CreateFileModel"];
+            fileCroppedArea?: null | components["schemas"]["FileCroppedAreaModel"];
+        };
         CreateConcertModel: {
             title: string;
             description?: string;
             /** Format: date-time */
             date?: null | string;
+            image?: null | components["schemas"]["CreateConcertImage"];
             linkedAlbumIds?: (number | string)[];
             linkedParties?: components["schemas"]["CreateConcertPartyModel"][];
             files?: components["schemas"]["CreateConcertFileModel"][];
@@ -1174,6 +1181,10 @@ export interface components {
             /** Format: int32 */
             partyId: number | string;
             role: components["schemas"]["ConcertPartyRole"];
+        };
+        CreateConcertUploadImageResult: {
+            blake3Id: string;
+            uploadUrl: string;
         };
         CreateConcertUploadItemResult: {
             fileName: string;
@@ -1185,6 +1196,29 @@ export interface components {
         CreateConcertUploadResult: {
             concertTitle: string;
             files?: components["schemas"]["CreateConcertUploadItemResult"][];
+            concertImage: components["schemas"]["CreateConcertUploadImageResult"];
+        };
+        CreateFileModel: {
+            fileBlake3: string;
+            mimeType: string;
+            /** Format: int64 */
+            fileSizeInBytes: number | string;
+            container: string;
+            extension: string;
+            codec?: null | string;
+            /** Format: int32 */
+            width?: null | number | string;
+            /** Format: int32 */
+            height?: null | number | string;
+            /** Format: int32 */
+            audioSampleRate?: null | number | string;
+            /** Format: int32 */
+            bitrate?: null | number | string;
+            /** Format: double */
+            frameRate?: null | number | string;
+            /** Format: int32 */
+            durationInMs?: null | number | string;
+            originalFileName: string;
         };
         CreatePartyRequest: {
             name: string;
@@ -1200,6 +1234,16 @@ export interface components {
             role: components["schemas"]["Roles"];
         };
         FileCroppedArea: {
+            /** Format: int32 */
+            width: number | string;
+            /** Format: int32 */
+            height: number | string;
+            /** Format: int32 */
+            x: number | string;
+            /** Format: int32 */
+            y: number | string;
+        };
+        FileCroppedAreaModel: {
             /** Format: int32 */
             width: number | string;
             /** Format: int32 */
