@@ -14,7 +14,7 @@ public sealed class ConcertController(IConcertService concertService) : Controll
 {
     private readonly IConcertService _concertService = concertService;
 
-    [HttpPost]
+    [HttpPost("create")]
     [ProducesResponseType(typeof(CreateConcertUploadResult), StatusCodes.Status200OK)]
     public async Task<IActionResult> Create(
         [FromBody] CreateConcertModel request,
@@ -24,6 +24,20 @@ public sealed class ConcertController(IConcertService concertService) : Controll
             ?? throw new ValidationException("Missing user identifier claim.");
 
         CreateConcertUploadResult result = await _concertService.CreateConcertAsync(request, userId, cancellationToken);
+
+        return Ok(result);
+    }
+
+    [HttpPost("create-without-upload")]
+    [ProducesResponseType(typeof(CreateConcertWithoutUploadResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> CreateWithoutUpload(
+        [FromBody] CreateConcertModel request,
+        CancellationToken cancellationToken)
+    {
+        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new ValidationException("Missing user identifier claim.");
+
+        CreateConcertWithoutUploadResult result = await _concertService.CreateConcertWithoutUploadAsync(request, userId, cancellationToken);
 
         return Ok(result);
     }

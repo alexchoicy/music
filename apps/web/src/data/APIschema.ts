@@ -420,7 +420,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/concerts": {
+    "/concerts/create": {
         parameters: {
             query?: never;
             header?: never;
@@ -453,6 +453,49 @@ export interface paths {
                         "text/plain": components["schemas"]["CreateConcertUploadResult"];
                         "application/json": components["schemas"]["CreateConcertUploadResult"];
                         "text/json": components["schemas"]["CreateConcertUploadResult"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/concerts/create-without-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateConcertModel"];
+                    "text/json": components["schemas"]["CreateConcertModel"];
+                    "application/*+json": components["schemas"]["CreateConcertModel"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CreateConcertWithoutUploadResult"];
+                        "application/json": components["schemas"]["CreateConcertWithoutUploadResult"];
+                        "text/json": components["schemas"]["CreateConcertWithoutUploadResult"];
                     };
                 };
             };
@@ -526,6 +569,45 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/{id}/init": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["MultipartUploadInfo"];
+                        "application/json": components["schemas"]["MultipartUploadInfo"];
+                        "text/json": components["schemas"]["MultipartUploadInfo"];
+                    };
                 };
             };
         };
@@ -1195,8 +1277,20 @@ export interface components {
         };
         CreateConcertUploadResult: {
             concertTitle: string;
+            concertImage?: null | components["schemas"]["CreateConcertUploadImageResult"];
             files?: components["schemas"]["CreateConcertUploadItemResult"][];
-            concertImage: components["schemas"]["CreateConcertUploadImageResult"];
+        };
+        CreateConcertWithoutUploadItemResult: {
+            fileName: string;
+            /** Format: uuid */
+            fileObjectId: string;
+            simpleBlake3Hash: string;
+        };
+        CreateConcertWithoutUploadResult: {
+            token: string;
+            concertImage?: null | components["schemas"]["CreateConcertUploadImageResult"];
+            concertTitle: string;
+            files?: components["schemas"]["CreateConcertWithoutUploadItemResult"][];
         };
         CreateFileModel: {
             fileBlake3: string;

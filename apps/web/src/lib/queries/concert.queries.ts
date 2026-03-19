@@ -6,7 +6,23 @@ export const concertMutations = {
 		mutationFn: async (data: components["schemas"]["CreateConcertModel"]) => {
 			const result = await $APIFetch<
 				components["schemas"]["CreateConcertUploadResult"]
-			>("/concerts", {
+			>("/concerts/create", {
+				method: "POST",
+				body: JSON.stringify(data),
+			});
+
+			if (!result.ok) {
+				throw new Error("Failed to create concert");
+			}
+
+			return result;
+		},
+	}),
+	createWithoutUpload: () => ({
+		mutationFn: async (data: components["schemas"]["CreateConcertModel"]) => {
+			const result = await $APIFetch<
+				components["schemas"]["CreateConcertWithoutUploadResult"]
+			>("/concerts/create-without-upload", {
 				method: "POST",
 				body: JSON.stringify(data),
 			});

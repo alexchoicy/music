@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { UploadConcertContent } from "@/components/create/concert/UploadConertContent";
 import { UploadAlbumContent } from "@/components/create/uploadAlbumContent";
 import { Button } from "@/components/shadcn/button";
+import { Switch } from "@/components/shadcn/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/shadcn/tabs";
 import { AppLayout } from "@/components/ui/appLayout";
 import { MusicUploadProvider } from "@/contexts/uploadMusicContext";
@@ -19,6 +20,7 @@ function RouteComponent() {
 }
 function CreatePageContent() {
 	const [isProcessing, setIsProcessing] = useState(false);
+	const [isUploadExternal, setIsUploadExternal] = useState(false);
 
 	type CreationTab = "albums" | "concert";
 
@@ -60,7 +62,16 @@ function CreatePageContent() {
 							</TabsList>
 						</Tabs>
 					</div>
-					<div className="flex justify-end">
+					<div className="flex items-center justify-end gap-3">
+						<span className="text-sm text-muted-foreground">
+							{isUploadExternal ? "External" : "Local"}
+						</span>
+
+						<Switch
+							checked={isUploadExternal}
+							onCheckedChange={setIsUploadExternal}
+						/>
+
 						<Button
 							disabled={isProcessing || !uploadAction}
 							onClick={handleUpload}
@@ -81,6 +92,7 @@ function CreatePageContent() {
 
 			{creationTab === "concert" && (
 				<UploadConcertContent
+					isUploadExternal={isUploadExternal}
 					isProcessing={isProcessing}
 					setIsProcessing={setIsProcessing}
 					onUploadReady={onUploadReady}

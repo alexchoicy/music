@@ -15,12 +15,14 @@ public sealed class ConcertService(
     AppDbContext dbContext,
     IContentService contentService,
     IAssetsService assetsService,
+    ITokenService tokenService,
     ILogger<ConcertService> logger) : IConcertService
 {
     private readonly AppDbContext _dbContext = dbContext;
     private readonly IContentService _contentService = contentService;
     private readonly ILogger<ConcertService> _logger = logger;
     private readonly IAssetsService _assetsService = assetsService;
+    private readonly ITokenService _tokenService = tokenService;
 
     public async Task<CreateConcertUploadResult> CreateConcertAsync(
         CreateConcertModel concert,
@@ -152,6 +154,135 @@ public sealed class ConcertService(
             throw;
         }
     }
+
+    public async Task<CreateConcertWithoutUploadResult> CreateConcertWithoutUploadAsync(
+        CreateConcertModel concert,
+        string userId,
+        CancellationToken cancellationToken = default)
+    {
+        if (await ConcertExistsAsync(concert.Title, cancellationToken))
+        {
+            throw new ConflictException($"A concert with the title '{concert.Title}' already exists.");
+        }
+
+        if (await ConcertFileExistsAsync(concert.Files, cancellationToken))
+        {
+            throw new ConflictException("One or more files in the concert already exist in the system.");
+        }
+
+        await using IDbContextTransaction transaction = await _dbContext.Database
+            .BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+
+            Core.Entities.Concert newConcert = new()
+            {
+                Title = concert.Title,
+                Description = concert.Description,
+                Date = concert.Date,
+                CreatedByUserId = userId,
+                CreatedAt = DateTimeOffset.UtcNow,
+                ConcertAlbums =
+                    concert.LinkedAlbumIds
+                        .Distinct()
+                        .Select(albumId => new ConcertAlbum
+                        {
+                            AlbumId = albumId
+                        }).ToList()
+                ,
+                ConcertParties =
+                    concert.LinkedParties
+                        .GroupBy(party => new { party.PartyId, party.Role })
+                        .Select(group => group.First())
+                        .Select(party => new ConcertParty
+                        {
+                            PartyId = party.PartyId,
+                            Role = party.Role
+                        }).ToList()
+
+            };
+
+            List<ConcertFile> concertFiles = [];
+
+            CreateConcertWithoutUploadResult uploadResult = new()
+            {
+                Token = _tokenService.GenerateUploadToken(userId),
+                ConcertTitle = concert.Title
+            };
+
+            if (concert.Image is not null)
+            {
+                uploadResult.ConcertImage = await CreateConcertUploadImage(concert.Image, newConcert, userId, cancellationToken);
+            }
+
+            foreach (var file in concert.Files)
+            {
+                string path = _contentService.GetStoragePath(
+                    MediaFolderOptions.OriginalVideo,
+                    file.SimpleBlake3Hash,
+                    file.MimeType,
+                    file.OriginalFileName
+                );
+
+                string extension = Path.GetExtension(path).TrimStart('.');
+
+                CreateFileModel createFileModel = new()
+                {
+                    OriginalFileName = file.OriginalFileName,
+                    FileBlake3 = file.SimpleBlake3Hash,
+                    MimeType = file.MimeType,
+                    FileSizeInBytes = file.FileSizeInBytes,
+                    Container = file.MimeType,
+                    Extension = extension
+                };
+
+                (StoredFile storedFile, FileObject fileObject) = _contentService.CreateStoredFileWithObject(
+                    createFileModel,
+                    FileType.Video,
+                    path,
+                    FileObjectType.Original,
+                    FileObjectVariant.Original,
+                    userId);
+
+                _dbContext.StoredFiles.Add(storedFile);
+                _dbContext.FileObjects.Add(fileObject);
+
+                ConcertFile concertFile = new()
+                {
+                    Title = file.Title,
+                    Type = file.Type,
+                    Order = file.Order,
+                    File = storedFile,
+                    Concert = newConcert
+                };
+
+                concertFiles.Add(concertFile);
+
+                uploadResult.Files.Add(new CreateConcertWithoutUploadItemResult
+                {
+                    FileName = file.OriginalFileName,
+                    FileObjectId = fileObject.Id,
+                    SimpleBlake3Hash = file.SimpleBlake3Hash,
+                });
+            }
+
+            newConcert.ConcertFiles = concertFiles;
+            _dbContext.Concerts.Add(newConcert);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return uploadResult;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating concert {ConcertTitle}", concert.Title);
+            await transaction.RollbackAsync(cancellationToken);
+            _dbContext.ChangeTracker.Clear();
+            throw;
+        }
+    }
+
 
     private async Task<CreateConcertUploadImageResult> CreateConcertUploadImage(CreateConcertImage concertImageModel, Core.Entities.Concert concert, string userId, CancellationToken cancellationToken)
     {

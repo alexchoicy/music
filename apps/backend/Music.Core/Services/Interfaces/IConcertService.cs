@@ -8,4 +8,9 @@ public interface IConcertService
         CreateConcertModel concert,
         string userId,
         CancellationToken cancellationToken = default);
+
+    Task<CreateConcertWithoutUploadResult> CreateConcertWithoutUploadAsync(
+        CreateConcertModel concert,
+        string userId,
+        CancellationToken cancellationToken = default);
 }

@@ -72,7 +72,6 @@ public class S3ContentService(
                     FileObjectId = fileObject.Id,
                 };
 
-                //TODO: generate Peak for waveform and a opus
                 RunBackgroundProcessAudioUploadFile(workerModel);
             }
         }

@@ -8,5 +8,6 @@ namespace Music.Core.Services.Interfaces
         string GenerateUserToken(UserInfo user, IList<string> roles);
         string GenerateShareToken(string shareId);
         string GenerateBotToken(string userId);
+        string GenerateUploadToken(string userId);
     }
 }

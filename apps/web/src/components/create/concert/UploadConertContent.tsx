@@ -39,6 +39,15 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/shadcn/card";
+import { Checkbox } from "@/components/shadcn/checkbox";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/shadcn/dialog";
 import {
 	Field,
 	FieldDescription,
@@ -46,6 +55,7 @@ import {
 	FieldLabel,
 } from "@/components/shadcn/field";
 import { Input } from "@/components/shadcn/input";
+import { Label } from "@/components/shadcn/label";
 import {
 	Select,
 	SelectContent,
@@ -86,6 +96,7 @@ type LocalConcertFile = {
 
 type UploadConcertContentProps = {
 	isProcessing: boolean;
+	isUploadExternal: boolean;
 	setIsProcessing: Dispatch<SetStateAction<boolean>>;
 	onUploadReady: (uploadAction: (() => Promise<void>) | null) => void;
 };
@@ -235,12 +246,17 @@ function SortableConcertFileCard({
 
 export function UploadConcertContent({
 	isProcessing,
+	isUploadExternal,
 	setIsProcessing,
 	onUploadReady,
 }: UploadConcertContentProps) {
 	const { data: parties = [] } = useQuery(partyQueries.getPartySearchList(""));
 	const { data: albums = [] } = useQuery(albumQueries.list());
 	const { mutateAsync: createConcert } = useMutation(concertMutations.create());
+	const { mutateAsync: createConcertWithoutUpload } = useMutation(
+		concertMutations.createWithoutUpload(),
+	);
+
 	const { mutateAsync: completeMultipartUpload } = useMutation(
 		uploadMutations.audioComplete(),
 	);
@@ -259,6 +275,41 @@ export function UploadConcertContent({
 	const [concertFiles, setConcertFiles] = useState<
 		Record<string, LocalConcertFile>
 	>({});
+
+	const [open, setOpen] = useState(false);
+	const [confirmed, setConfirmed] = useState(false);
+	const [result, setResult] = useState<
+		components["schemas"]["CreateConcertWithoutUploadResult"] | null
+	>(null);
+
+	function handleOpenChange(nextOpen: boolean) {
+		if (nextOpen) {
+			setOpen(true);
+			return;
+		}
+
+		if (!confirmed) return;
+
+		setOpen(false);
+	}
+
+	function handleClose() {
+		if (!confirmed) return;
+		setOpen(false);
+		setConfirmed(false);
+		setResult(null);
+
+		setTitle("");
+		setDescription("");
+		setMainParties([]);
+		setGuestParties([]);
+		setSelectedAlbums([]);
+		setConcertFiles({});
+		setConcertImage(null);
+		if (imageInputRef.current) {
+			imageInputRef.current.value = "";
+		}
+	}
 
 	useEffect(() => {
 		return () => {
@@ -472,6 +523,33 @@ export function UploadConcertContent({
 				})),
 			};
 
+			if (isUploadExternal) {
+				const result = await createConcertWithoutUpload(requestJson);
+				const uploadResults = result.data;
+
+				if (concertImage) {
+					if (!uploadResults.concertImage) {
+						throw new Error("missing concert image upload target");
+					}
+
+					const imageUploadResponse = await fetch(
+						uploadResults.concertImage.uploadUrl,
+						{
+							method: "PUT",
+							body: concertImage.file,
+						},
+					);
+
+					if (!imageUploadResponse.ok) {
+						throw new Error("concert image upload failed");
+					}
+				}
+				setResult(uploadResults);
+				setOpen(true);
+
+				return;
+			}
+
 			const result = await createConcert(requestJson);
 			const uploadResults = result.data;
 
@@ -549,8 +627,10 @@ export function UploadConcertContent({
 		guestParties,
 		mainParties,
 		orderedConcertFiles,
+		createConcertWithoutUpload,
 		selectedAlbums,
 		setIsProcessing,
+		isUploadExternal,
 		title,
 	]);
 
@@ -561,151 +641,241 @@ export function UploadConcertContent({
 			onUploadReady(null);
 		};
 	}, [onUpload, onUploadReady]);
-
+	const codeText = `{
+  "I WILL MAKE A COOL RUST THING HERE": "asdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+}`;
 	return (
-		<div className="grid gap-2 p-6 lg:grid-cols-5">
-			<Card className="min-w-0 lg:col-span-3">
-				<CardHeader>
-					<CardTitle>Concert Details</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-6">
-					<div className="overflow-hidden rounded-xl border bg-sidebar/30 p-4 shadow-sm">
-						<div className="aspect-video overflow-hidden rounded-lg border bg-muted/40">
-							{concertImage ? (
-								<img
-									src={concertImage.previewUrl}
-									alt="Concert preview"
-									className="h-full w-full object-cover"
+		<>
+			<div className="grid gap-2 p-6 lg:grid-cols-5">
+				<Card className="min-w-0 lg:col-span-3">
+					<CardHeader>
+						<CardTitle>Concert Details</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-6">
+						<div className="overflow-hidden rounded-xl border bg-sidebar/30 p-4 shadow-sm">
+							<div className="aspect-video overflow-hidden rounded-lg border bg-muted/40">
+								{concertImage ? (
+									<img
+										src={concertImage.previewUrl}
+										alt="Concert preview"
+										className="h-full w-full object-cover"
+									/>
+								) : (
+									<div className="text-muted-foreground flex h-full w-full flex-col items-center justify-center gap-3 px-4 text-center">
+										<div className="bg-background flex h-12 w-12 items-center justify-center rounded-full border">
+											<ImageIcon className="h-6 w-6" />
+										</div>
+										<div className="space-y-1">
+											<p className="text-sm font-medium">16:9 preview</p>
+											<p className="text-xs">
+												Add a concert image to preview it locally.
+											</p>
+										</div>
+									</div>
+								)}
+							</div>
+							<div className="mt-4 flex items-center justify-between gap-3">
+								<div className="min-w-0">
+									<p className="text-sm font-medium">Concert Image</p>
+									<p className="text-muted-foreground truncate text-xs">
+										{concertImage?.file.name || "No image selected"}
+									</p>
+								</div>
+								<input
+									ref={imageInputRef}
+									type="file"
+									accept="image/*"
+									className="hidden"
+									onChange={handleConcertImageChange}
 								/>
-							) : (
-								<div className="text-muted-foreground flex h-full w-full flex-col items-center justify-center gap-3 px-4 text-center">
-									<div className="bg-background flex h-12 w-12 items-center justify-center rounded-full border">
-										<ImageIcon className="h-6 w-6" />
-									</div>
-									<div className="space-y-1">
-										<p className="text-sm font-medium">16:9 preview</p>
-										<p className="text-xs">
-											Add a concert image to preview it locally.
-										</p>
-									</div>
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => imageInputRef.current?.click()}
+								>
+									Upload Image
+								</Button>
+							</div>
+						</div>
+						<FieldGroup>
+							<Field>
+								<FieldLabel htmlFor={titleFieldId}>Concert Name</FieldLabel>
+								<Input
+									id={titleFieldId}
+									value={title}
+									onChange={(event) => setTitle(event.target.value)}
+									placeholder=""
+								/>
+							</Field>
+
+							<Field>
+								<FieldLabel htmlFor={descriptionFieldId}>
+									Description
+								</FieldLabel>
+								<Textarea
+									id={descriptionFieldId}
+									value={description}
+									onChange={(event) => setDescription(event.target.value)}
+									placeholder="."
+								/>
+							</Field>
+
+							<Field>
+								<FieldLabel>Main Parties</FieldLabel>
+								<FieldDescription>
+									Select one or more primary artists for this concert.
+								</FieldDescription>
+								<PartyCombobox
+									parties={parties}
+									selectedValues={mainParties}
+									setSelectedValues={setMainParties}
+								/>
+							</Field>
+
+							<Field>
+								<FieldLabel>Guests</FieldLabel>
+								<FieldDescription>
+									Artists picked as main parties are removed from guests.
+								</FieldDescription>
+								<PartyCombobox
+									parties={guestPartyOptions}
+									selectedValues={guestParties}
+									setSelectedValues={setGuestParties}
+								/>
+							</Field>
+
+							<Field>
+								<FieldLabel>Linked Albums</FieldLabel>
+								<FieldDescription>
+									Multi-select albums from `/albums` without creating new ones.
+								</FieldDescription>
+								<ConcertAlbumCombobox
+									albums={albums}
+									selectedValues={selectedAlbums}
+									setSelectedValues={setSelectedAlbums}
+								/>
+							</Field>
+						</FieldGroup>
+					</CardContent>
+				</Card>
+				<Card className="min-w-0 lg:col-span-2 lg:h-full">
+					<CardContent className="min-w-0 lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+						<div className="flex min-w-0 flex-col gap-5 lg:h-full lg:min-h-0">
+							<FileDropBox isProcessing={isProcessing} onDrop={onDrop} />
+							{orderedConcertFiles.length > 0 && (
+								<div className="flex min-h-0 min-w-0 flex-1 flex-col space-y-3 overflow-hidden">
+									<DndContext
+										sensors={sensors}
+										collisionDetection={closestCenter}
+										onDragEnd={handleDragEnd}
+									>
+										<SortableContext
+											items={orderedConcertFiles.map(
+												(concertFile) => concertFile.simpleBlake3Hash,
+											)}
+											strategy={verticalListSortingStrategy}
+										>
+											<div className="min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden pr-1">
+												{orderedConcertFiles.map((concertFile) => (
+													<SortableConcertFileCard
+														key={concertFile.simpleBlake3Hash}
+														concertFile={concertFile}
+														onUpdateConcertFile={updateConcertFile}
+													/>
+												))}
+											</div>
+										</SortableContext>
+									</DndContext>
 								</div>
 							)}
 						</div>
-						<div className="mt-4 flex items-center justify-between gap-3">
-							<div className="min-w-0">
-								<p className="text-sm font-medium">Concert Image</p>
-								<p className="text-muted-foreground truncate text-xs">
-									{concertImage?.file.name || "No image selected"}
-								</p>
-							</div>
-							<input
-								ref={imageInputRef}
-								type="file"
-								accept="image/*"
-								className="hidden"
-								onChange={handleConcertImageChange}
-							/>
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => imageInputRef.current?.click()}
-							>
-								Upload Image
-							</Button>
-						</div>
-					</div>
-					<FieldGroup>
-						<Field>
-							<FieldLabel htmlFor={titleFieldId}>Concert Name</FieldLabel>
-							<Input
-								id={titleFieldId}
-								value={title}
-								onChange={(event) => setTitle(event.target.value)}
-								placeholder=""
-							/>
-						</Field>
+					</CardContent>
+				</Card>
+			</div>
 
-						<Field>
-							<FieldLabel htmlFor={descriptionFieldId}>Description</FieldLabel>
-							<Textarea
-								id={descriptionFieldId}
-								value={description}
-								onChange={(event) => setDescription(event.target.value)}
-								placeholder="."
-							/>
-						</Field>
+			<Dialog
+				open={open}
+				onOpenChange={handleOpenChange}
+				disablePointerDismissal
+			>
+				<DialogContent showCloseButton={false} className="sm:max-w-2xl">
+					<DialogHeader>
+						<DialogTitle>Create concert</DialogTitle>
+						<DialogDescription>
+							Please make sure you uploaded everything before closing this
+							dialog.
+						</DialogDescription>
+					</DialogHeader>
 
-						<Field>
-							<FieldLabel>Main Parties</FieldLabel>
-							<FieldDescription>
-								Select one or more primary artists for this concert.
-							</FieldDescription>
-							<PartyCombobox
-								parties={parties}
-								selectedValues={mainParties}
-								setSelectedValues={setMainParties}
-							/>
-						</Field>
-
-						<Field>
-							<FieldLabel>Guests</FieldLabel>
-							<FieldDescription>
-								Artists picked as main parties are removed from guests.
-							</FieldDescription>
-							<PartyCombobox
-								parties={guestPartyOptions}
-								selectedValues={guestParties}
-								setSelectedValues={setGuestParties}
-							/>
-						</Field>
-
-						<Field>
-							<FieldLabel>Linked Albums</FieldLabel>
-							<FieldDescription>
-								Multi-select albums from `/albums` without creating new ones.
-							</FieldDescription>
-							<ConcertAlbumCombobox
-								albums={albums}
-								selectedValues={selectedAlbums}
-								setSelectedValues={setSelectedAlbums}
-							/>
-						</Field>
-					</FieldGroup>
-				</CardContent>
-			</Card>
-			<Card className="min-w-0 lg:col-span-2 lg:h-full">
-				<CardContent className="min-w-0 lg:flex lg:h-full lg:min-h-0 lg:flex-col">
-					<div className="flex min-w-0 flex-col gap-5 lg:h-full lg:min-h-0">
-						<FileDropBox isProcessing={isProcessing} onDrop={onDrop} />
-						{orderedConcertFiles.length > 0 && (
-							<div className="flex min-h-0 min-w-0 flex-1 flex-col space-y-3 overflow-hidden">
-								<DndContext
-									sensors={sensors}
-									collisionDetection={closestCenter}
-									onDragEnd={handleDragEnd}
-								>
-									<SortableContext
-										items={orderedConcertFiles.map(
-											(concertFile) => concertFile.simpleBlake3Hash,
-										)}
-										strategy={verticalListSortingStrategy}
-									>
-										<div className="min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden pr-1">
-											{orderedConcertFiles.map((concertFile) => (
-												<SortableConcertFileCard
-													key={concertFile.simpleBlake3Hash}
-													concertFile={concertFile}
-													onUpdateConcertFile={updateConcertFile}
-												/>
-											))}
+					<div className="min-w-0 space-y-4">
+						{result && (
+							<div className="min-w-0 max-w-full overflow-hidden rounded-xl border bg-zinc-950 text-zinc-100">
+								<div className="flex items-center justify-between border-b border-zinc-800 px-4 py-2">
+									<div className="flex min-w-0 items-center gap-2">
+										<div className="flex shrink-0 gap-1.5">
+											<span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+											<span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+											<span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
 										</div>
-									</SortableContext>
-								</DndContext>
+										<span className="truncate text-xs text-zinc-400">
+											concert-upload.rs
+										</span>
+									</div>
+
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										className="ml-4 shrink-0 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+										onClick={async () => {
+											await navigator.clipboard.writeText(codeText);
+										}}
+									>
+										Copy
+									</Button>
+								</div>
+
+								<div className="min-w-0 max-w-full overflow-x-auto">
+									<pre className="w-full min-w-0 p-4 text-sm leading-6">
+										<code className="block min-w-0 font-mono whitespace-pre">
+											{codeText}
+										</code>
+									</pre>
+								</div>
 							</div>
 						)}
+
+						<div className="min-w-0 rounded-xl border bg-background p-4">
+							<div className="flex items-start gap-3">
+								<Checkbox
+									id="confirm-upload"
+									checked={confirmed}
+									onCheckedChange={(checked) => setConfirmed(checked === true)}
+									className="mt-0.5 shrink-0"
+								/>
+
+								<div className="min-w-0 space-y-1">
+									<Label
+										htmlFor="confirm-upload"
+										className="cursor-pointer font-medium"
+									>
+										I confirm I uploaded everything
+									</Label>
+									<p className="text-sm leading-5 text-muted-foreground">
+										You cannot close this dialog until this checkbox is checked.
+									</p>
+								</div>
+							</div>
+						</div>
 					</div>
-				</CardContent>
-			</Card>
-		</div>
+
+					<DialogFooter>
+						<Button type="button" onClick={handleClose} disabled={!confirmed}>
+							Close
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		</>
 	);
 }

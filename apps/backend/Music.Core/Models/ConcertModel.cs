@@ -54,6 +54,21 @@ public sealed record CreateConcertUploadResult
     public List<CreateConcertUploadItemResult> Files { get; set; } = [];
 }
 
+public sealed record CreateConcertWithoutUploadItemResult
+{
+    public required string FileName { get; init; }
+    public required Guid FileObjectId { get; init; }
+    public required string SimpleBlake3Hash { get; init; }
+}
+
+public sealed record CreateConcertWithoutUploadResult
+{
+    public required string Token { get; init; } // a simple token that only for this upload
+    public CreateConcertUploadImageResult? ConcertImage { get; set; }
+    public required string ConcertTitle { get; init; }
+    public List<CreateConcertWithoutUploadItemResult> Files { get; set; } = [];
+}
+
 public sealed class CreateConcertUploadImageResult
 {
     public required string Blake3Id { get; init; }
