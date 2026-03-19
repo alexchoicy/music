@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Music.Infrastructure.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Music.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260318083903_external")]
+    partial class External
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -394,174 +397,6 @@ namespace Music.Infrastructure.Migrations
                     b.HasIndex("AlbumDiscId", "TrackNumber");
 
                     b.ToTable("AlbumTracks", (string)null);
-                });
-
-            modelBuilder.Entity("Music.Core.Entities.Concert", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedByUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset?>("Date")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("NormalizedTitle")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("Date");
-
-                    b.HasIndex("NormalizedTitle");
-
-                    b.HasIndex("UpdatedAt");
-
-                    b.ToTable("Concerts", (string)null);
-                });
-
-            modelBuilder.Entity("Music.Core.Entities.ConcertAlbum", b =>
-                {
-                    b.Property<int>("ConcertId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("AlbumId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("ConcertId", "AlbumId");
-
-                    b.HasIndex("AlbumId");
-
-                    b.ToTable("ConcertAlbums", (string)null);
-                });
-
-            modelBuilder.Entity("Music.Core.Entities.ConcertCover", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ConcertId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("CropHeight")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("CropWidth")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("CropX")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("CropY")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("FileId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConcertId")
-                        .IsUnique();
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("FileId");
-
-                    b.ToTable("ConcertCovers", (string)null);
-                });
-
-            modelBuilder.Entity("Music.Core.Entities.ConcertFile", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ConcertId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("FileId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConcertId");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("FileId");
-
-                    b.HasIndex("Type");
-
-                    b.HasIndex("ConcertId", "Order");
-
-                    b.ToTable("ConcertFiles", (string)null);
-                });
-
-            modelBuilder.Entity("Music.Core.Entities.ConcertParty", b =>
-                {
-                    b.Property<int>("ConcertId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PartyId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Role")
-                        .HasColumnType("integer");
-
-                    b.HasKey("ConcertId", "PartyId", "Role");
-
-                    b.HasIndex("PartyId");
-
-                    b.HasIndex("Role");
-
-                    b.HasIndex("ConcertId", "Role");
-
-                    b.ToTable("ConcertParties", (string)null);
                 });
 
             modelBuilder.Entity("Music.Core.Entities.FileObject", b =>
@@ -1303,91 +1138,6 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Track");
                 });
 
-            modelBuilder.Entity("Music.Core.Entities.Concert", b =>
-                {
-                    b.HasOne("Music.Infrastructure.Entities.User", null)
-                        .WithMany("CreatedConcerts")
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Music.Core.Entities.ConcertAlbum", b =>
-                {
-                    b.HasOne("Music.Core.Entities.Album", "Album")
-                        .WithMany()
-                        .HasForeignKey("AlbumId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Music.Core.Entities.Concert", "Concert")
-                        .WithMany("ConcertAlbums")
-                        .HasForeignKey("ConcertId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Album");
-
-                    b.Navigation("Concert");
-                });
-
-            modelBuilder.Entity("Music.Core.Entities.ConcertCover", b =>
-                {
-                    b.HasOne("Music.Core.Entities.Concert", "Concert")
-                        .WithOne("Cover")
-                        .HasForeignKey("Music.Core.Entities.ConcertCover", "ConcertId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Music.Core.Entities.StoredFile", "File")
-                        .WithMany("ConcertCovers")
-                        .HasForeignKey("FileId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Concert");
-
-                    b.Navigation("File");
-                });
-
-            modelBuilder.Entity("Music.Core.Entities.ConcertFile", b =>
-                {
-                    b.HasOne("Music.Core.Entities.Concert", "Concert")
-                        .WithMany("ConcertFiles")
-                        .HasForeignKey("ConcertId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Music.Core.Entities.StoredFile", "File")
-                        .WithMany("ConcertFiles")
-                        .HasForeignKey("FileId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Concert");
-
-                    b.Navigation("File");
-                });
-
-            modelBuilder.Entity("Music.Core.Entities.ConcertParty", b =>
-                {
-                    b.HasOne("Music.Core.Entities.Concert", "Concert")
-                        .WithMany("ConcertParties")
-                        .HasForeignKey("ConcertId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Music.Core.Entities.Party", "Party")
-                        .WithMany()
-                        .HasForeignKey("PartyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Concert");
-
-                    b.Navigation("Party");
-                });
-
             modelBuilder.Entity("Music.Core.Entities.FileObject", b =>
                 {
                     b.HasOne("Music.Infrastructure.Entities.User", null)
@@ -1563,17 +1313,6 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Tracks");
                 });
 
-            modelBuilder.Entity("Music.Core.Entities.Concert", b =>
-                {
-                    b.Navigation("ConcertAlbums");
-
-                    b.Navigation("ConcertFiles");
-
-                    b.Navigation("ConcertParties");
-
-                    b.Navigation("Cover");
-                });
-
             modelBuilder.Entity("Music.Core.Entities.Language", b =>
                 {
                     b.Navigation("Albums");
@@ -1600,10 +1339,6 @@ namespace Music.Infrastructure.Migrations
 
             modelBuilder.Entity("Music.Core.Entities.StoredFile", b =>
                 {
-                    b.Navigation("ConcertCovers");
-
-                    b.Navigation("ConcertFiles");
-
                     b.Navigation("FileObjects");
 
                     b.Navigation("TrackSources");
@@ -1626,8 +1361,6 @@ namespace Music.Infrastructure.Migrations
             modelBuilder.Entity("Music.Infrastructure.Entities.User", b =>
                 {
                     b.Navigation("CreatedAlbums");
-
-                    b.Navigation("CreatedConcerts");
 
                     b.Navigation("CreatedFileObjects");
 

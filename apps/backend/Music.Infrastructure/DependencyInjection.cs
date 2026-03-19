@@ -68,6 +68,8 @@ public static class DependencyInjection
         services.AddScoped<IMediaFFmpegService, MediaFFmpegService>();
         services.AddScoped<IHashService, HashService>();
         services.AddScoped<IWaveformService, WaveformService>();
+        services.AddScoped<IPartyExternalEnrichmentService, PartyExternalEnrichmentService>();
+        services.AddHttpClient();
 
         StorageOptions storage = configuration
             .GetSection("Storage")

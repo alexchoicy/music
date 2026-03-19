@@ -2,5 +2,5 @@ namespace Music.Core.Services.Interfaces;
 
 public interface IHashService
 {
-    public string ComputeBlake3Hash(string sourcePath);
+    public Task<string> ComputeBlake3HashAsync(string sourcePath, CancellationToken cancellationToken);
 }
