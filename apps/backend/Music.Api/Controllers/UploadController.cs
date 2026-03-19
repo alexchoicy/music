@@ -9,7 +9,7 @@ using Music.Core.Services.Interfaces;
 namespace Music.Api.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize("UploadAllowed")]
 [Route("uploads")]
 public class UploadController(IContentService contentService) : ControllerBase
 {

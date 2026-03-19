@@ -5,4 +5,5 @@ public enum TokenUseType
     UserAccess,
     ContentAccess,
     Machine,
+    Upload
 }

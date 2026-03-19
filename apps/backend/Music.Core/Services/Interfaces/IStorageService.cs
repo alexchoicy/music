@@ -6,7 +6,7 @@ namespace Music.Core.Services.Interfaces;
 
 public interface IStorageService
 {
-    public string GetStoragePath(MediaFolderOptions variant, string blake3Hash, string mimeType);
+    public string GetStoragePath(MediaFolderOptions variant, string blake3Hash, string mimeType, string fileName = "");
 
     public string GetWaveformStoragePath(int trackSourceId);
 

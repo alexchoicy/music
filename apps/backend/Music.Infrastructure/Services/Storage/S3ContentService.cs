@@ -72,7 +72,6 @@ public class S3ContentService(
                     FileObjectId = fileObject.Id,
                 };
 
-                //TODO: generate Peak for waveform and a opus
                 RunBackgroundProcessAudioUploadFile(workerModel);
             }
         }
@@ -185,6 +184,7 @@ public class S3ContentService(
             "opus" => "audio/opus",
             "json" => "application/json",
             "mp4" => "video/mp4",
+            "mpd" => "application/dash+xml",
             _ => "application/octet-stream"
         };
 

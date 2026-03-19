@@ -10,14 +10,14 @@ public sealed class MediaProbeResult
     [JsonPropertyName("streams")]
     public IReadOnlyList<ProbeStream>? Streams { get; init; }
 
-    public IReadOnlyList<ProbeStream> GetAudioStreams()
-    {
-        return Streams?.Where(s => s.CodecType == "audio").ToList() ?? [];
-    }
 }
 
 public sealed class ProbeStream
 {
+    [JsonPropertyName("index")]
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+    public int Index { get; init; }
+
     [JsonPropertyName("codec_name")]
     public string? CodecName { get; init; }
 
@@ -35,6 +35,16 @@ public sealed class ProbeStream
     [JsonPropertyName("duration")]
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public double? Duration { get; init; }
+
+    [JsonPropertyName("channels")]
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+    public int? ChannelCount { get; init; } // 6 = 5.1, 2 = stereo
+
+    [JsonPropertyName("r_frame_rate")]
+    public string RFrameRate { get; init; } = string.Empty; // convert it with support function to rounded fps
+
+    [JsonPropertyName("tags")]
+    public ProbeStreamTags? Tags { get; init; }
 }
 
 public sealed class ProbeFormat
@@ -42,4 +52,13 @@ public sealed class ProbeFormat
     [JsonPropertyName("bit_rate")]
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public int BitRate { get; init; }
+}
+
+public sealed class ProbeStreamTags
+{
+    [JsonPropertyName("language")]
+    public string? Language { get; init; }
+
+    [JsonPropertyName("title")]
+    public string? Title { get; init; }
 }

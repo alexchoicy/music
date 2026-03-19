@@ -21,6 +21,7 @@ using Music.Infrastructure.Services.Migrations;
 using Music.Core.Services.FFmpeg;
 using Music.Infrastructure.Services.FFmpeg;
 using Music.Infrastructure.Services.Audio;
+using Music.Infrastructure.Services.Concert;
 
 namespace Music.Infrastructure;
 
@@ -56,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPartyService, PartyService>();
         services.AddScoped<IAlbumService, AlbumService>();
+        services.AddScoped<IConcertService, ConcertService>();
         services.AddScoped<IFileUrlService, FileUrlService>();
         services.AddScoped<IMeService, MeService>();
         services.AddScoped<IMigrationService, MigrationService>();

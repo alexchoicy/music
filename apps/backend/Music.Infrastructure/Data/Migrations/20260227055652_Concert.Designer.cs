@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Music.Infrastructure.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Music.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260227055652_Concert")]
+    partial class Concert
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -692,17 +695,11 @@ namespace Music.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Country")
-                        .HasColumnType("text");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int?>("LanguageId")
                         .HasColumnType("integer");
-
-                    b.Property<string>("MusicBrainzId")
-                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -801,45 +798,6 @@ namespace Music.Infrastructure.Migrations
                     b.HasIndex("PartyId", "DeletedAt");
 
                     b.ToTable("PartyAliases", (string)null);
-                });
-
-            modelBuilder.Entity("Music.Core.Entities.PartyExternalInfo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ExternalIds")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<int>("PartyId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExternalIds");
-
-                    b.HasIndex("PartyId");
-
-                    b.HasIndex("Type");
-
-                    b.HasIndex("PartyId", "Type")
-                        .IsUnique();
-
-                    b.ToTable("PartyExternalInfo", (string)null);
                 });
 
             modelBuilder.Entity("Music.Core.Entities.PartyImage", b =>
@@ -1430,17 +1388,6 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Party");
                 });
 
-            modelBuilder.Entity("Music.Core.Entities.PartyExternalInfo", b =>
-                {
-                    b.HasOne("Music.Core.Entities.Party", "Party")
-                        .WithMany("PartyExternalInfos")
-                        .HasForeignKey("PartyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Party");
-                });
-
             modelBuilder.Entity("Music.Core.Entities.PartyImage", b =>
                 {
                     b.HasOne("Music.Core.Entities.StoredFile", "File")
@@ -1592,8 +1539,6 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("MemberOf");
 
                     b.Navigation("Members");
-
-                    b.Navigation("PartyExternalInfos");
 
                     b.Navigation("TrackCredits");
                 });

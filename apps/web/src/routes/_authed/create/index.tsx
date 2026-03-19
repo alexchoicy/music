@@ -1,27 +1,12 @@
-import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import pMap from "p-map";
-import { useState } from "react";
-import { CreateAlbumEditDialog } from "@/components/create/dialog/createAlbumEditDialog";
-import { CreateTrackEditDialog } from "@/components/create/dialog/createTrackEditDialog";
-import { MusicDropBox } from "@/components/create/musicDropBox";
-import { UploadAlbumCard } from "@/components/create/uploadAlbumCard";
+import { useCallback, useState } from "react";
+import { UploadConcertContent } from "@/components/create/concert/UploadConertContent";
+import { UploadAlbumContent } from "@/components/create/uploadAlbumContent";
 import { Button } from "@/components/shadcn/button";
+import { Switch } from "@/components/shadcn/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/shadcn/tabs";
 import { AppLayout } from "@/components/ui/appLayout";
-import {
-	MusicUploadProvider,
-	useMusicUploadDispatch,
-	useMusicUploadState,
-} from "@/contexts/uploadMusicContext";
-import type { components } from "@/data/APIschema";
-import { albumMutations } from "@/lib/queries/album.queries";
-import { uploadMutations } from "@/lib/queries/upload.queries";
-import {
-	buildMusicUploadRequest,
-	multipartFileRequest,
-} from "@/lib/utils/upload";
-import type { LocalID } from "@/models/uploadMusic";
+import { MusicUploadProvider } from "@/contexts/uploadMusicContext";
 
 export const Route = createFileRoute("/_authed/create/")({
 	component: RouteComponent,
@@ -35,108 +20,38 @@ function RouteComponent() {
 }
 function CreatePageContent() {
 	const [isProcessing, setIsProcessing] = useState(false);
-
-	const [editingAlbumDialogAlbumId, setEditingAlbumDialogAlbumId] =
-		useState<LocalID | null>(null);
-
-	const [editingTrackDialogTrackId, setEditingTrackDialogTrackId] =
-		useState<LocalID | null>(null);
-
-	const state = useMusicUploadState();
-	const dispatch = useMusicUploadDispatch();
-
-	const { mutateAsync: createAlbum } = useMutation(albumMutations.create());
-
-	const { mutateAsync: completeMultipartUpload } = useMutation(
-		uploadMutations.complete(),
-	);
-
-	const onUpload = async () => {
-		setIsProcessing(true);
-		const requestJson = buildMusicUploadRequest(state);
-
-		const albumCoverMap = Object.fromEntries(
-			Object.entries(state.albumCovers).map(([_, file]) => [
-				file.file.fileBlake3,
-				file.localFile,
-			]),
-		);
-
-		const completedResults: components["schemas"]["CompleteMultipartUploadRequest"][] =
-			[];
-
-		try {
-			const result = await createAlbum(requestJson);
-
-			for (const album of result.data) {
-				if (album.createAlbumUploadResults === undefined) {
-					console.error("createAlbumUploadResults is undefined");
-					continue;
-				}
-
-				// upload album cover
-				if (album.createAlbumUploadResults?.albumImage) {
-					const imageUploadResponse = await fetch(
-						album.createAlbumUploadResults.albumImage.uploadUrl,
-						{
-							method: "PUT",
-							body: albumCoverMap[
-								album.createAlbumUploadResults.albumImage.blake3Id
-							],
-						},
-					);
-
-					if (!imageUploadResponse.ok) {
-						throw new Error(
-							`cover upload failed for ${album.createAlbumUploadResults.albumImage.blake3Id}`,
-						);
-					}
-				}
-
-				const trackUploads = album.createAlbumUploadResults?.tracks || [];
-
-				const trackUploadResults = await pMap(
-					trackUploads,
-					async (
-						trackUpload: components["schemas"]["CreateAlbumTrackUploadItemResult"],
-					) => {
-						const trackFile = state.trackVariants[trackUpload.blake3Id];
-						if (!trackFile) {
-							throw new Error(`missing track file ${trackUpload.blake3Id}`);
-						}
-
-						const parts = await multipartFileRequest(
-							trackFile.file,
-							trackUpload.multipartUploadInfo,
-						);
-
-						return {
-							blake3Id: trackUpload.blake3Id,
-							uploadId: trackUpload.multipartUploadInfo.uploadId,
-							parts,
-						};
-					},
-					{ concurrency: 4 },
-				);
-
-				completedResults.push(...trackUploadResults);
-			}
-
-			await completeMultipartUpload(completedResults);
-		} finally {
-			setIsProcessing(false);
-			dispatch({ type: "Reset" });
-		}
-	};
+	const [isUploadExternal, setIsUploadExternal] = useState(false);
 
 	type CreationTab = "albums" | "concert";
+
 	const [creationTab, setCreationTab] = useState<CreationTab>("albums");
+	// magical upload handling
+	// onUploadReady will update the uploadAction
+	// the upload button will trigger the handleUpload(check if uploadAction exists)
+	const [uploadAction, setUploadAction] = useState<
+		(() => Promise<void>) | null
+	>(null);
+
+	const onUploadReady = useCallback(
+		(nextUploadAction: (() => Promise<void>) | null) => {
+			setUploadAction(() => nextUploadAction);
+		},
+		[],
+	);
+
+	const handleUpload = useCallback(() => {
+		if (!uploadAction) {
+			return;
+		}
+
+		void uploadAction();
+	}, [uploadAction]);
 
 	return (
 		<AppLayout
 			header={
 				<>
-					<div>
+					<div className="flex justify-center">
 						<Tabs
 							value={creationTab}
 							onValueChange={(value: CreationTab) => setCreationTab(value)}
@@ -147,8 +62,20 @@ function CreatePageContent() {
 							</TabsList>
 						</Tabs>
 					</div>
-					<div className="flex justify-end">
-						<Button disabled={isProcessing} onClick={onUpload}>
+					<div className="flex items-center justify-end gap-3">
+						<span className="text-sm text-muted-foreground">
+							{isUploadExternal ? "External" : "Local"}
+						</span>
+
+						<Switch
+							checked={isUploadExternal}
+							onCheckedChange={setIsUploadExternal}
+						/>
+
+						<Button
+							disabled={isProcessing || !uploadAction}
+							onClick={handleUpload}
+						>
 							Upload
 						</Button>
 					</div>
@@ -156,37 +83,21 @@ function CreatePageContent() {
 			}
 		>
 			{creationTab === "albums" && (
-				<>
-					<div className="space-y-6 p-6">
-						<MusicDropBox
-							isProcessing={isProcessing}
-							setIsProcessing={setIsProcessing}
-						/>
-						<div className="space-y-6">
-							{Object.values(state.albums).map((album) => (
-								<UploadAlbumCard
-									albumId={album.id}
-									key={album.id}
-									openAlbumEdit={(id) => setEditingAlbumDialogAlbumId(id)}
-									openTrackEdit={(id) => setEditingTrackDialogTrackId(id)}
-								/>
-							))}
-						</div>
-					</div>
-					<CreateAlbumEditDialog
-						albumId={editingAlbumDialogAlbumId}
-						open={!!editingAlbumDialogAlbumId}
-						onOpenChange={(open) => !open && setEditingAlbumDialogAlbumId(null)}
-					/>
-					<CreateTrackEditDialog
-						trackId={editingTrackDialogTrackId}
-						open={!!editingTrackDialogTrackId}
-						onOpenChange={(open) => !open && setEditingTrackDialogTrackId(null)}
-					/>
-				</>
+				<UploadAlbumContent
+					isProcessing={isProcessing}
+					setIsProcessing={setIsProcessing}
+					onUploadReady={onUploadReady}
+				/>
 			)}
 
-			{creationTab === "concert" && <div>ASAB</div>}
+			{creationTab === "concert" && (
+				<UploadConcertContent
+					isUploadExternal={isUploadExternal}
+					isProcessing={isProcessing}
+					setIsProcessing={setIsProcessing}
+					onUploadReady={onUploadReady}
+				/>
+			)}
 		</AppLayout>
 	);
 }

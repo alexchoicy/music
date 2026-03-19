@@ -146,6 +146,11 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("BotAllowed", policy =>
         policy.RequireClaim("access_type", TokenUseType.Machine.ToString()));
 
+    options.AddPolicy("UploadAllowed", policy =>
+        policy.RequireClaim("access_type",
+            TokenUseType.UserAccess.ToString(),
+            TokenUseType.Upload.ToString()));
+
     options.DefaultPolicy = options.GetPolicy("UserAllowed")!;
 });
 

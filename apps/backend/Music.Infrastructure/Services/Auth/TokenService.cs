@@ -77,6 +77,32 @@ public class TokenService : ITokenService
         return tokenHandler.WriteToken(token);
     }
 
+    public string GenerateUploadToken(string userId)
+    {
+        List<Claim> claims =
+           [
+                new Claim(JwtRegisteredClaimNames.NameId, userId),
+                new Claim("access_type", TokenUseType.Upload.ToString()),
+           ];
+
+        SigningCredentials creds = new(_key, SecurityAlgorithms.HmacSha512Signature);
+
+        SecurityTokenDescriptor tokenDescriptor = new()
+        {
+            Subject = new ClaimsIdentity(claims),
+            SigningCredentials = creds,
+            Issuer = _config["JWT:Issuer"],
+            Audience = _config["JWT:Audience"],
+            Expires = DateTime.Now.AddHours(10)
+        };
+
+        JwtSecurityTokenHandler tokenHandler = new();
+
+        SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+
+        return tokenHandler.WriteToken(token);
+    }
+
     public string GenerateBotToken(string userId)
     {
         List<Claim> claims =
