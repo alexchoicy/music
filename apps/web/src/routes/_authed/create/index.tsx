@@ -81,6 +81,7 @@ function CreatePageContent() {
 
 			{creationTab === "concert" && (
 				<UploadConcertContent
+					isProcessing={isProcessing}
 					setIsProcessing={setIsProcessing}
 					onUploadReady={onUploadReady}
 				/>

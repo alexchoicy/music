@@ -1,16 +1,14 @@
 import { Upload } from "lucide-react";
-import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { twMerge } from "tailwind-merge";
 import { Button } from "../../shadcn/button";
 
-export function FileDropBox() {
-	const [isProcessing] = useState(false);
+type FileDropBoxProps = {
+	isProcessing: boolean;
+	onDrop: (files: File[]) => void;
+};
 
-	const onDrop = async (files: File[]) => {
-		console.log("Dropped files:", files);
-	};
-
+export function FileDropBox({ isProcessing, onDrop }: FileDropBoxProps) {
 	const {
 		getRootProps,
 		getInputProps,
@@ -18,11 +16,12 @@ export function FileDropBox() {
 		isDragAccept,
 		isDragReject,
 	} = useDropzone({
-		onDrop,
+		onDrop: (files) => onDrop(files),
 		disabled: isProcessing,
 		multiple: true,
 		accept: {
-			"video/*": [".mp4", ".mkv"],
+			"video/*": [".mp4", ".mkv", ".mov", ".webm"],
+			"audio/*": [".flac"],
 		},
 	});
 
@@ -33,12 +32,13 @@ export function FileDropBox() {
 			: "Drag and drop or browse to upload concert assets";
 
 	return (
-		<div className="bg-sidebar rounded-lg border p-6 row-span-2">
+		<div className="rounded-xl border bg-sidebar/40 p-4 shadow-sm lg:min-h-[16rem]">
 			<div
 				{...getRootProps()}
 				className={twMerge(
-					"hover:bg-card/70 cursor-pointer rounded-lg border-2 border-dashed p-12 text-center transition-all duration-200",
-					!isProcessing && isDragActive && !isDragAccept && "bg-card/70",
+					"from-background to-muted/30 hover:border-primary/40 hover:bg-muted/40 flex min-h-[14rem] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed bg-gradient-to-b p-8 text-center transition-all duration-200",
+					!isProcessing && isDragActive && !isDragAccept && "bg-muted/50",
+					!isProcessing && isDragAccept && "border-primary bg-primary/5",
 					!isProcessing &&
 						isDragActive &&
 						isDragReject &&
@@ -46,11 +46,13 @@ export function FileDropBox() {
 					isProcessing && "pointer-events-none cursor-not-allowed opacity-50",
 				)}
 			>
-				<div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-800">
-					<Upload className="h-8 w-8 text-gray-400" />
+				<div className="bg-primary/10 mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-current/10">
+					<Upload className="text-primary h-7 w-7" />
 				</div>
-				<h3 className="mb-2 text-xl font-semibold">Choose concert files</h3>
-				<p className="mb-2 text-gray-400">{dropHint}</p>
+				<h3 className="mb-2 text-lg font-semibold">Choose concert files</h3>
+				<p className="text-muted-foreground mb-5 max-w-sm text-sm">
+					{dropHint}
+				</p>
 				<input {...getInputProps()} />
 				<Button disabled={isProcessing}>Browse Files</Button>
 			</div>
