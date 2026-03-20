@@ -37,7 +37,7 @@ public class AuthService(UserManager<User> userManager, ITokenService tokenServi
             Roles = roles
         };
 
-        string token = _tokenService.GenerateUserToken(userInfo, roles);
+        string token = await _tokenService.GenerateUserToken(userInfo, roles);
 
         return new AuthSession
         {

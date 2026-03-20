@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Music.Core.Constants;
 using Music.Core.Models;
 using Music.Core.Services.Interfaces;
 
@@ -35,7 +36,7 @@ public sealed class FilesController(IFileUrlService fileUrlService) : Controller
     }
 
     [HttpGet("{id:guid}/init")]
-    [Authorize("UploadAllowed")]
+    [Authorize(AuthorizationPolicies.UploadAllowed)]
     [ProducesResponseType(typeof(MultipartUploadInfo), StatusCodes.Status200OK)]
     public async Task<IActionResult> InitUpload([FromRoute][Required] Guid id,
     CancellationToken cancellationToken)

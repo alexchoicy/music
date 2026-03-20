@@ -10,6 +10,8 @@ namespace Music.Infrastructure.Data;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<User>(options)
 {
+    public DbSet<AuthToken> AuthTokens { get; set; }
+
     public DbSet<Language> Languages { get; set; }
 
     public DbSet<Party> Parties { get; set; }

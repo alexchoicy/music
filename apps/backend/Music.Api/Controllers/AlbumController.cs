@@ -7,6 +7,7 @@ using Music.Core.Models;
 using System.ComponentModel.DataAnnotations;
 using Music.Api.Mappers;
 using Music.Core.Enums;
+using Music.Core.Constants;
 
 namespace Music.Api.Controllers;
 
@@ -17,7 +18,7 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
     private readonly IAlbumService _albumService = albumService;
 
     [HttpGet("{id:int}/simple")]
-    [Authorize(Policy = "BotAllowed")]
+    [Authorize(Policy = AuthorizationPolicies.BotAllowed)]
     [Produces("application/json")]
     [ProducesResponseType(typeof(AlbumSimpleModel), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

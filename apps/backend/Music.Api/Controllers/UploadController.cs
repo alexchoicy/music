@@ -3,13 +3,14 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Music.Api.Dtos.Requests;
+using Music.Core.Constants;
 using Music.Core.Models;
 using Music.Core.Services.Interfaces;
 
 namespace Music.Api.Controllers;
 
 [ApiController]
-[Authorize("UploadAllowed")]
+[Authorize(AuthorizationPolicies.UploadAllowed)]
 [Route("uploads")]
 public class UploadController(IContentService contentService) : ControllerBase
 {

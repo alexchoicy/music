@@ -13,6 +13,8 @@ using Music.Infrastructure.Data;
 using Music.Infrastructure.Data.Seed;
 using Music.Infrastructure.Entities;
 using Microsoft.IdentityModel.JsonWebTokens;
+using Music.Core.Services.Interfaces;
+using Music.Core.Constants;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,11 +96,11 @@ builder.Services.AddAuthentication(options =>
                 return false;
             }
 
-            string? accessType = jwt.Claims.FirstOrDefault(c => c.Type == "access_type")?.Value;
+            string? accessType = jwt.Claims.FirstOrDefault(c => c.Type == AuthClaimNames.AccessType)?.Value;
 
             if (string.IsNullOrEmpty(accessType))
             {
-                Console.WriteLine("Missing access_type claim");
+                Console.WriteLine($"Missing {AuthClaimNames.AccessType} claim");
                 return false;
             }
 
@@ -127,31 +129,35 @@ builder.Services.AddAuthentication(options =>
             }
 
             return Task.CompletedTask;
+        },
+        OnTokenValidated = async context =>
+        {
+            ITokenService tokenService = context.HttpContext.RequestServices.GetRequiredService<ITokenService>();
+            bool isValid = await tokenService.ValidateTokenAsync(context.Principal!, context.HttpContext.RequestAborted);
+            if (!isValid)
+            {
+                context.Fail("Token session is invalid or revoked.");
+            }
         }
     };
 });
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("UserAllowed",
-        policy => policy.RequireClaim("access_type", TokenUseType.UserAccess.ToString()));
+    options.AddPolicy(AuthorizationPolicies.UserAllowed,
+        policy => policy.RequireClaim(AuthClaimNames.AccessType, TokenUseType.UserAccess.ToString()));
 
-    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole(Roles.Admin.ToString()));
+    options.AddPolicy(AuthorizationPolicies.RequireAdminRole, policy => policy.RequireRole(Roles.Admin.ToString()));
 
-    options.AddPolicy("ShareAllowed", policy =>
-        policy.RequireClaim("access_type",
-            TokenUseType.UserAccess.ToString(),
-            TokenUseType.ContentAccess.ToString()));
+    options.AddPolicy(AuthorizationPolicies.BotAllowed, policy =>
+        policy.RequireClaim(AuthClaimNames.AccessType, TokenUseType.Machine.ToString()));
 
-    options.AddPolicy("BotAllowed", policy =>
-        policy.RequireClaim("access_type", TokenUseType.Machine.ToString()));
-
-    options.AddPolicy("UploadAllowed", policy =>
-        policy.RequireClaim("access_type",
+    options.AddPolicy(AuthorizationPolicies.UploadAllowed, policy =>
+        policy.RequireClaim(AuthClaimNames.AccessType,
             TokenUseType.UserAccess.ToString(),
             TokenUseType.Upload.ToString()));
 
-    options.DefaultPolicy = options.GetPolicy("UserAllowed")!;
+    options.DefaultPolicy = options.GetPolicy(AuthorizationPolicies.UserAllowed)!;
 });
 
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
