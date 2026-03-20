@@ -96,7 +96,6 @@ public class TokenService : ITokenService
 
         string token = tokenHandler.WriteToken(securityToken);
 
-        await SaveAuthToken(userId, TokenUseType.Machine, jti, token);
         return token;
     }
 
