@@ -11,4 +11,6 @@ public class User : IdentityUser
     public ICollection<TrackSource> UploadedTrackSources { get; set; } = [];
 
     public ICollection<FileObject> CreatedFileObjects { get; set; } = [];
+
+    public ICollection<AuthToken> AuthTokens { get; set; } = [];
 }

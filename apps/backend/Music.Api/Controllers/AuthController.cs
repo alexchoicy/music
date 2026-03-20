@@ -33,7 +33,6 @@ public class AuthController(IAuthService authService, ITokenService tokenService
                 title: "InvalidCredentials",
                 detail: "Invalid username or password.",
                 statusCode: StatusCodes.Status401Unauthorized);
-
         }
 
         Response.Cookies.Append(AuthCookieName, result.Token, new CookieOptions
@@ -71,12 +70,12 @@ public class AuthController(IAuthService authService, ITokenService tokenService
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public ActionResult<string> CreateBotToken()
+    public async Task<ActionResult<string>> CreateBotToken()
     {
         string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new ValidationException("Missing user identifier claim.");
 
-        string token = _tokenService.GenerateBotToken(userId);
+        string token = await _tokenService.GenerateBotToken(userId);
         return Ok(token);
     }
 

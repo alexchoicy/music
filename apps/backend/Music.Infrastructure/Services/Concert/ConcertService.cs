@@ -207,7 +207,7 @@ public sealed class ConcertService(
 
             CreateConcertWithoutUploadResult uploadResult = new()
             {
-                Token = _tokenService.GenerateUploadToken(userId),
+                Token = await _tokenService.GenerateUploadToken(userId),
                 ConcertTitle = concert.Title
             };
 
