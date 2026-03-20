@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Music.Core.Constants;
 using Music.Core.Models;
 using Music.Core.Services.Interfaces;
 
@@ -7,7 +8,7 @@ namespace Music.Api.Controllers;
 
 [ApiController]
 [Route("migrations")]
-[Authorize(Policy = "RequireAdminRole")]
+[Authorize(Policy = AuthorizationPolicies.RequireAdminRole)]
 public sealed class MigrationsController(IMigrationService migrationService) : ControllerBase
 {
     private readonly IMigrationService _migrationService = migrationService;

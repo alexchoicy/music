@@ -8,6 +8,7 @@ using Music.Core.Models;
 using Music.Infrastructure.Data;
 using Music.Core.Entities;
 using Microsoft.EntityFrameworkCore;
+using Music.Core.Constants;
 
 namespace Music.Infrastructure.Services.Auth;
 
@@ -16,7 +17,6 @@ public class TokenService : ITokenService
     private readonly IConfiguration _config;
     private readonly SymmetricSecurityKey _key;
     private readonly AppDbContext _dbContext;
-    private const string AccessTypeClaim = "accessType";
 
     public TokenService(AppDbContext dbContext, IConfiguration config)
     {
@@ -37,7 +37,7 @@ public class TokenService : ITokenService
                new Claim(JwtRegisteredClaimNames.NameId, user.Id),
                new Claim(ClaimTypes.NameIdentifier, user.Id),
                new Claim(JwtRegisteredClaimNames.Name, user.UserName!),
-               new Claim(AccessTypeClaim, TokenUseType.UserAccess.ToString()),
+               new Claim(AuthClaimNames.AccessType, TokenUseType.UserAccess.ToString()),
            ];
 
         foreach (var role in roles)
@@ -76,7 +76,7 @@ public class TokenService : ITokenService
                new Claim(JwtRegisteredClaimNames.Jti, jti),
                new Claim(JwtRegisteredClaimNames.NameId, userId),
                new Claim(ClaimTypes.NameIdentifier, userId),
-               new Claim(AccessTypeClaim, TokenUseType.Upload.ToString()),
+               new Claim(AuthClaimNames.AccessType, TokenUseType.Upload.ToString()),
            ];
 
         SigningCredentials creds = new(_key, SecurityAlgorithms.HmacSha512Signature);
@@ -110,7 +110,7 @@ public class TokenService : ITokenService
                new Claim(JwtRegisteredClaimNames.Jti, jti),
                new Claim(JwtRegisteredClaimNames.NameId, userId),
                new Claim(ClaimTypes.NameIdentifier, userId),
-               new Claim(AccessTypeClaim, TokenUseType.Machine.ToString()),
+               new Claim(AuthClaimNames.AccessType, TokenUseType.Machine.ToString()),
            ];
 
         SigningCredentials creds = new(_key, SecurityAlgorithms.HmacSha512Signature);
@@ -149,7 +149,7 @@ public class TokenService : ITokenService
 
     public async Task<bool> ValidateTokenAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
     {
-        string? accessType = principal.FindFirstValue(AccessTypeClaim);
+        string? accessType = principal.FindFirstValue(AuthClaimNames.AccessType);
         if (string.IsNullOrEmpty(accessType))
         {
             return false;

@@ -6,6 +6,7 @@ using Music.Api.Dtos.Responses;
 using Music.Core.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using Music.Core.Constants;
 
 namespace Music.Api.Controllers;
 
@@ -66,7 +67,7 @@ public class AuthController(IAuthService authService, ITokenService tokenService
     }
 
     [HttpPost("bot-token")]
-    [Authorize(Policy = "RequireAdminRole")]
+    [Authorize(Policy = AuthorizationPolicies.RequireAdminRole)]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
