@@ -36,10 +36,6 @@ public sealed class ProbeStream
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public double? Duration { get; init; }
 
-    [JsonPropertyName("channels")]
-    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
-    public int? ChannelCount { get; init; } // 6 = 5.1, 2 = stereo
-
     [JsonPropertyName("r_frame_rate")]
     public string RFrameRate { get; init; } = string.Empty; // convert it with support function to rounded fps
 

@@ -168,6 +168,16 @@ public sealed class BackgroundWorker(
 
             ProbeStream? audioStream = newProbeResult?.Streams?.FirstOrDefault(s => s.CodecType == "audio");
 
+            if (newProbeResult is null)
+            {
+                logger.LogWarning("ffprobe returned no metadata for transcoded file {FilePath}", newPath);
+            }
+
+            if (audioStream is null)
+            {
+                logger.LogWarning("No audio stream found for transcoded file {FilePath}", newPath);
+            }
+
 
             FileObject newFileObject = new()
             {
@@ -182,8 +192,8 @@ public sealed class BackgroundWorker(
                 Container = "audio/opus",
                 Extension = "opus",
                 Codec = "OPUS",
-                AudioSampleRate = audioStream?.SampleRate ?? 0,
-                Bitrate = newProbeResult?.Format?.BitRate ?? fileObject.Bitrate ?? 0,
+                AudioSampleRate = audioStream?.SampleRate,
+                Bitrate = newProbeResult?.Format?.BitRate,
                 DurationInMs = audioStream?.Duration != null
                     ? (int)(audioStream.Duration * 1000) : fileObject.DurationInMs,
                 OriginalFileName = $"{fileObject.OriginalFileName}.{DateTime.UtcNow}.opus",

@@ -2,6 +2,7 @@ import { Download, MoreVertical, Play } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { components } from "@/data/APIschema";
+import { FILE_SOURCES } from "@/enums/track";
 import { downloadTrack } from "@/lib/queries/track.queries";
 import { getMMSSFromMs } from "@/lib/utils/display";
 import { Button } from "../shadcn/button";
@@ -23,6 +24,37 @@ type AlbumTrackListProps = {
 	handlePlay: (trackId?: number) => void;
 };
 
+function formatFileSize(sizeInBytes?: number | string | null) {
+	if (sizeInBytes == null) return null;
+
+	const bytes = Number(sizeInBytes);
+
+	if (!Number.isFinite(bytes) || bytes <= 0) return null;
+
+	const units = ["B", "KB", "MB", "GB"];
+	let value = bytes;
+	let unitIndex = 0;
+
+	while (value >= 1024 && unitIndex < units.length - 1) {
+		value /= 1024;
+		unitIndex += 1;
+	}
+
+	const precision = value >= 100 || unitIndex === 0 ? 0 : 1;
+
+	return `${value.toFixed(precision)} ${units[unitIndex]}`;
+}
+
+function formatBitrate(bitrate?: number | string | null) {
+	if (bitrate == null) return null;
+
+	const value = Number(bitrate);
+
+	if (!Number.isFinite(value) || value <= 0) return null;
+
+	return `${Math.round(value / 1000)} kbps`;
+}
+
 export function AlbumTrackListItem({ track, handlePlay }: AlbumTrackListProps) {
 	const [isDownloading, setIsDownloading] = useState(false);
 
@@ -32,13 +64,54 @@ export function AlbumTrackListItem({ track, handlePlay }: AlbumTrackListProps) {
 		return getMMSSFromMs(Number(track.durationInMs));
 	}, [track.durationInMs]);
 
-	const handleDownload = async () => {
+	const downloadSources = useMemo(() => {
+		const defaultVariant = track.trackVariants[0];
+
+		if (!defaultVariant) return [];
+
+		return defaultVariant.sources.map((source, index) => ({
+			key: `${source.source}-${source.rank}-${index}`,
+			label:
+				FILE_SOURCES.find((item) => item.value === source.source)?.label ||
+				source.source,
+			variants: [
+				{
+					label: "Original",
+					value: "Original" as const,
+					meta: [
+						formatFileSize(source.file.original.sizeInBytes),
+						formatBitrate(source.file.original.bitrate),
+					]
+						.filter(Boolean)
+						.join(" • "),
+				},
+				...(source.file.opus96
+					? [
+							{
+								label: "Opus 96K",
+								value: "Opus96" as const,
+								meta: [
+									formatFileSize(source.file.opus96.sizeInBytes),
+									formatBitrate(source.file.opus96.bitrate),
+								]
+									.filter(Boolean)
+									.join(" • "),
+							},
+						]
+					: []),
+			],
+		}));
+	}, [track.trackVariants]);
+
+	const handleDownload = async (
+		variant: components["schemas"]["FileObjectVariant"],
+	) => {
 		if (isDownloading) return;
 
 		setIsDownloading(true);
 
 		try {
-			const downloadItem = await downloadTrack(track.trackId, "Original");
+			const downloadItem = await downloadTrack(track.trackId, variant);
 
 			const anchor = document.createElement("a");
 			anchor.href = downloadItem.url;
@@ -111,25 +184,40 @@ export function AlbumTrackListItem({ track, handlePlay }: AlbumTrackListProps) {
 								<Download className="size-4" />
 								{isDownloading ? "Downloading..." : "Download"}
 							</DropdownMenuLabel>
-							<DropdownMenuSub>
-								{/* Maybe or may not hardcoded*/}
-								<DropdownMenuSubTrigger>
-									Original (Rank 0 / Pinned)
-								</DropdownMenuSubTrigger>
-								<DropdownMenuPortal>
-									<DropdownMenuSubContent>
-										<DropdownMenuItem
-											onClick={(event) => {
-												event.stopPropagation();
-												handleDownload();
-											}}
-											disabled={isDownloading}
-										>
-											Original
-										</DropdownMenuItem>
-									</DropdownMenuSubContent>
-								</DropdownMenuPortal>
-							</DropdownMenuSub>
+							{downloadSources.length > 0 ? (
+								downloadSources.map((source) => (
+									<DropdownMenuSub key={source.key}>
+										<DropdownMenuSubTrigger>
+											{source.label}
+										</DropdownMenuSubTrigger>
+										<DropdownMenuPortal>
+											<DropdownMenuSubContent>
+												{source.variants.map((variant) => (
+													<DropdownMenuItem
+														key={variant.value}
+														onClick={(event) => {
+															event.stopPropagation();
+															void handleDownload(variant.value);
+														}}
+														disabled={isDownloading}
+													>
+														<div className="flex w-full items-center justify-between gap-4">
+															<span>{variant.label}</span>
+															{variant.meta ? (
+																<span className="text-xs text-muted-foreground">
+																	{variant.meta}
+																</span>
+															) : null}
+														</div>
+													</DropdownMenuItem>
+												))}
+											</DropdownMenuSubContent>
+										</DropdownMenuPortal>
+									</DropdownMenuSub>
+								))
+							) : (
+								<DropdownMenuItem disabled>No files available</DropdownMenuItem>
+							)}
 						</DropdownMenuGroup>
 					</DropdownMenuContent>
 				</DropdownMenu>
