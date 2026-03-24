@@ -66,6 +66,7 @@ import {
 import { Textarea } from "@/components/shadcn/textarea";
 import type { components } from "@/data/APIschema";
 import { CONCERT_FILE_TYPE_OPTIONS } from "@/enums/concert";
+import { getResolvedApiEndpoint } from "@/lib/APIFetchClient";
 import { albumQueries } from "@/lib/queries/album.queries";
 import { concertMutations } from "@/lib/queries/concert.queries";
 import { partyQueries } from "@/lib/queries/party.queries";
@@ -262,6 +263,7 @@ export function UploadConcertContent({
 	);
 	const titleFieldId = useId();
 	const descriptionFieldId = useId();
+	const confirmUploadId = useId();
 	const imageInputRef = useRef<HTMLInputElement>(null);
 
 	const [title, setTitle] = useState("");
@@ -278,6 +280,7 @@ export function UploadConcertContent({
 
 	const [open, setOpen] = useState(false);
 	const [confirmed, setConfirmed] = useState(false);
+	const [apiEndpoint, setApiEndpoint] = useState<string | null>(null);
 	const [result, setResult] = useState<
 		components["schemas"]["CreateConcertWithoutUploadResult"] | null
 	>(null);
@@ -310,6 +313,20 @@ export function UploadConcertContent({
 			imageInputRef.current.value = "";
 		}
 	}
+
+	useEffect(() => {
+		let active = true;
+
+		void getResolvedApiEndpoint().then((resolvedApiEndpoint) => {
+			if (active) {
+				setApiEndpoint(resolvedApiEndpoint);
+			}
+		});
+
+		return () => {
+			active = false;
+		};
+	}, []);
 
 	useEffect(() => {
 		return () => {
@@ -634,6 +651,16 @@ export function UploadConcertContent({
 		title,
 	]);
 
+	const messages = useMemo(() => {
+		if (!result || !apiEndpoint) return [];
+
+		return (result.files ?? []).map((request) => ({
+			fileObjectId: request.fileObjectId,
+			fileName: request.fileName,
+			command: `upload_cli ${result.token} ${request.simpleBlake3Hash} ${request.fileObjectId} ${apiEndpoint}/files/${request.fileObjectId}/init ${apiEndpoint}/uploads/concert/complete-multipart`,
+		}));
+	}, [apiEndpoint, result]);
+
 	useEffect(() => {
 		onUploadReady(onUpload);
 
@@ -641,9 +668,7 @@ export function UploadConcertContent({
 			onUploadReady(null);
 		};
 	}, [onUpload, onUploadReady]);
-	const codeText = `{
-  "I WILL MAKE A COOL RUST THING HERE": "asdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
-}`;
+
 	return (
 		<>
 			<div className="grid gap-2 p-6 lg:grid-cols-5">
@@ -809,46 +834,53 @@ export function UploadConcertContent({
 
 					<div className="min-w-0 space-y-4">
 						{result && (
-							<div className="min-w-0 max-w-full overflow-hidden rounded-xl border bg-zinc-950 text-zinc-100">
-								<div className="flex items-center justify-between border-b border-zinc-800 px-4 py-2">
-									<div className="flex min-w-0 items-center gap-2">
-										<div className="flex shrink-0 gap-1.5">
-											<span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
-											<span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
-											<span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
-										</div>
-										<span className="truncate text-xs text-zinc-400">
-											concert-upload.rs
-										</span>
-									</div>
-
-									<Button
-										type="button"
-										variant="ghost"
-										size="sm"
-										className="ml-4 shrink-0 text-zinc-300 hover:bg-zinc-800 hover:text-white"
-										onClick={async () => {
-											await navigator.clipboard.writeText(codeText);
-										}}
+							<div className="space-y-3">
+								{messages.map((message) => (
+									<div
+										key={message.fileObjectId}
+										className="min-w-0 max-w-full overflow-hidden rounded-xl border bg-zinc-950 text-zinc-100"
 									>
-										Copy
-									</Button>
-								</div>
+										<div className="flex items-center justify-between gap-3 border-b border-zinc-800 px-4 py-2">
+											<div className="flex min-w-0 items-center gap-2">
+												<div className="flex shrink-0 gap-1.5">
+													<span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+													<span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+													<span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+												</div>
+												<span className="truncate text-xs text-zinc-400">
+													{message.fileName}
+												</span>
+											</div>
 
-								<div className="min-w-0 max-w-full overflow-x-auto">
-									<pre className="w-full min-w-0 p-4 text-sm leading-6">
-										<code className="block min-w-0 font-mono whitespace-pre">
-											{codeText}
-										</code>
-									</pre>
-								</div>
+											<Button
+												type="button"
+												variant="ghost"
+												size="sm"
+												className="shrink-0 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+												onClick={async () => {
+													await navigator.clipboard.writeText(message.command);
+												}}
+											>
+												Copy
+											</Button>
+										</div>
+
+										<div className="min-w-0 max-w-full overflow-x-auto">
+											<pre className="w-full min-w-0 p-4 text-sm leading-6">
+												<code className="block min-w-0 font-mono whitespace-pre-wrap break-all">
+													{message.command}
+												</code>
+											</pre>
+										</div>
+									</div>
+								))}
 							</div>
 						)}
 
 						<div className="min-w-0 rounded-xl border bg-background p-4">
 							<div className="flex items-start gap-3">
 								<Checkbox
-									id="confirm-upload"
+									id={confirmUploadId}
 									checked={confirmed}
 									onCheckedChange={(checked) => setConfirmed(checked === true)}
 									className="mt-0.5 shrink-0"
@@ -856,7 +888,7 @@ export function UploadConcertContent({
 
 								<div className="min-w-0 space-y-1">
 									<Label
-										htmlFor="confirm-upload"
+										htmlFor={confirmUploadId}
 										className="cursor-pointer font-medium"
 									>
 										I confirm I uploaded everything

@@ -47,4 +47,20 @@ public class UploadController(IContentService contentService) : ControllerBase
 
         return Ok();
     }
+
+    [HttpPost("concert/complete-multipart")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> CompleteConcertMultipartUpload(
+        [FromBody] CompleteMultipartUploadRequest request,
+        CancellationToken cancellationToken)
+    {
+        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new ValidationException("Missing user identifier claim.");
+
+        await contentService.CompleteConcertMultipartUploadAsync(request, userId, cancellationToken);
+
+        return Ok();
+    }
 }

@@ -25,3 +25,8 @@ public class PartyInfoEnrichmentWorkerModel : WorkerModel
 {
     public required int PartyId { get; init; }
 }
+
+public class ConcertUploadProcessWorkerModel : WorkerModel
+{
+    public required Guid FileObjectId { get; init; }
+}

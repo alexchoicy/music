@@ -37,6 +37,9 @@ public sealed class BackgroundWorker(
                     case PartyInfoEnrichmentWorkerModel partyExternalEnrichmentWorker:
                         await ProcessPartyExternalEnrichmentAsync(partyExternalEnrichmentWorker, scopeFactory, stoppingToken);
                         break;
+                    case ConcertUploadProcessWorkerModel concertUploadWorker:
+                        await ProcessConcertUploadAsync(concertUploadWorker, scopeFactory, logger, stoppingToken);
+                        break;
                     default:
                         logger.LogWarning("Unknown worker type {WorkerType}", workerModel.GetType().Name);
                         break;
@@ -46,6 +49,51 @@ public sealed class BackgroundWorker(
             {
                 logger.LogError(ex, "Storage background processing failed for file object.");
             }
+        }
+    }
+
+    private static async Task ProcessConcertUploadAsync(
+        ConcertUploadProcessWorkerModel job,
+        IServiceScopeFactory scopeFactory,
+        ILogger<BackgroundWorker> logger,
+        CancellationToken cancellationToken)
+    {
+        using IServiceScope scope = scopeFactory.CreateScope();
+        IContentService contentService = scope.ServiceProvider.GetRequiredService<IContentService>();
+        AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var stopWatch = System.Diagnostics.Stopwatch.StartNew();
+
+        StorageOptions storageOptions = scope.ServiceProvider
+            .GetRequiredService<IOptions<StorageOptions>>()
+            .Value;
+
+        string tempDir = storageOptions.TempDir;
+
+        FileObject fileObject = await dbContext.FileObjects.FirstOrDefaultAsync(
+            fo => fo.Id == job.FileObjectId, cancellationToken)
+            ?? throw new EntityNotFoundException($"File object with ID {job.FileObjectId} not found."
+        );
+
+        string? filePath = null;
+        string? folderPath = null;
+        try
+        {
+            string tempFolder = $"concert_{fileObject.Id}";
+            folderPath = Path.Combine(tempDir, tempFolder);
+            filePath = Path.Combine(folderPath, $"{fileObject.Id}.{fileObject.Extension}");
+
+            await contentService.DownloadFileToTemp(
+                fileObject.StoragePath,
+                filePath,
+                cancellationToken);
+
+        }
+        finally
+        {
+            stopWatch.Stop();
+            logger.LogInformation("Concert upload processing for file object ID {FileObjectId} completed in {ElapsedMilliseconds} ms", fileObject.Id, stopWatch.ElapsedMilliseconds);
+            // TryDeleteTempFile(filePath, logger);
         }
     }
 

@@ -18,5 +18,5 @@ public interface IStorageService
         FileObjectVariant fileObjectVariant,
         string userId);
 
-    public void RunBackgroundProcessAudioUploadFile(WorkerModel model);
+    public void RunBackgroundProcessUploadFile(WorkerModel model);
 }

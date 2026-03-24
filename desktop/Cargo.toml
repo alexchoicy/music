@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "apps/cli",
-    "packages/presence"
+    "apps/*",
+    "packages/*",
 ]
 resolver = "3"

@@ -15,6 +15,11 @@ public interface IContentService : IStorageService
         string userId,
         CancellationToken cancellationToken = default);
 
+    public Task CompleteConcertMultipartUploadAsync(
+        CompleteMultipartUploadRequest request,
+        string userId,
+        CancellationToken cancellationToken = default);
+
     public string GetPlayPresignedUrlAsync(string objectPath, CancellationToken cancellationToken = default);
 
     public string GetDownloadPresignedUrl(string objectPath, string fileName, CancellationToken cancellationToken = default);

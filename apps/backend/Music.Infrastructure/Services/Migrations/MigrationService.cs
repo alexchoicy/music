@@ -64,7 +64,7 @@ public sealed class MigrationService(
                 FileObjectId = original.Id,
             };
 
-            _contentService.RunBackgroundProcessAudioUploadFile(workerModel);
+            _contentService.RunBackgroundProcessUploadFile(workerModel);
         }
 
         int queuedJobs = uniqueOriginalFileObjectIds.Count;

@@ -72,11 +72,57 @@ public class S3ContentService(
                     FileObjectId = fileObject.Id,
                 };
 
-                RunBackgroundProcessAudioUploadFile(workerModel);
+                RunBackgroundProcessUploadFile(workerModel);
             }
         }
 
         await context.SaveChangesAsync(cancellationToken);
+        return;
+    }
+
+    public async Task CompleteConcertMultipartUploadAsync(Core.Models.CompleteMultipartUploadRequest request, string userId, CancellationToken cancellationToken = default)
+    {
+        if (request.Parts.Count == 0)
+            throw new ValidationException($"Multipart upload for {request.Blake3Id} has no parts.");
+
+        FileObject fileObject = await context.FileObjects
+            .Include(fileobject => fileobject.File)
+            .ThenInclude(f => f!.TrackSources)
+            .FirstOrDefaultAsync(
+                fileobject => fileobject.OriginalBlake3Hash == request.Blake3Id
+                    && fileobject.CreatedByUserId == userId
+                    && fileobject.ProcessingStatus == Core.Enums.FileProcessingStatus.Pending,
+                cancellationToken)
+            ?? throw new EntityNotFoundException(
+                $"No pending upload found for file hash {request.Blake3Id}.");
+
+        List<PartETag> partETags =
+                request.Parts.Select(p => new PartETag
+                {
+                    PartNumber = p.PartNumber,
+                    ETag = p.ETag
+                }).ToList();
+
+        Amazon.S3.Model.CompleteMultipartUploadRequest completeRequest = new()
+        {
+            BucketName = bucket,
+            Key = fileObject.StoragePath,
+            UploadId = request.UploadId,
+            PartETags = partETags
+        };
+
+        await client.CompleteMultipartUploadAsync(completeRequest, cancellationToken);
+        fileObject.ProcessingStatus = Core.Enums.FileProcessingStatus.Completed;
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        ConcertUploadProcessWorkerModel workerModel = new()
+        {
+            FileObjectId = fileObject.Id,
+        };
+
+        RunBackgroundProcessUploadFile(workerModel);
+
         return;
     }
 

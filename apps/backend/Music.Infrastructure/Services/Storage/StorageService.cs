@@ -88,7 +88,7 @@ public class StorageService(
         return (storedFile, fileObject);
     }
 
-    public void RunBackgroundProcessAudioUploadFile(WorkerModel workerModel)
+    public void RunBackgroundProcessUploadFile(WorkerModel workerModel)
     {
         _backgroundTaskQueue?.QueueWorkerAsync(workerModel);
     }
