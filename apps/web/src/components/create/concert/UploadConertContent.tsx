@@ -657,7 +657,7 @@ export function UploadConcertContent({
 		return (result.files ?? []).map((request) => ({
 			fileObjectId: request.fileObjectId,
 			fileName: request.fileName,
-			command: `upload_cli ${result.token} ${request.simpleBlake3Hash} ${request.fileObjectId} ${apiEndpoint}/files/${request.fileObjectId}/init ${apiEndpoint}/uploads/concert/complete-multipart`,
+			command: `upload_cli ${apiEndpoint} ${result.token} ${request.fileObjectId} ${request.simpleBlake3Hash}`,
 		}));
 	}, [apiEndpoint, result]);
 
