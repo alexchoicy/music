@@ -1,12 +1,18 @@
 name: Rust CI
+
 permissions:
   contents: read
 
+concurrency:
+  group: rust-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
+    branches: ["master", "main"]
     paths:
-      - "desktop/apps/cli/**"
-      - "desktop/packages/**"
+      - "desktop/**"
+      - ".github/workflows/rust-*.yml"
   workflow_dispatch:
 
 jobs:
@@ -17,16 +23,23 @@ jobs:
         working-directory: desktop
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Restore Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "desktop -> target"
 
       - name: Check formatting
-        run: cargo fmt --all -- --check
+        run: cargo fmt --all --check
 
       - name: Run clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
 
-      - name: Build workspace
-        run: cargo build --workspace --all-targets --locked
-
-    #   - name: Run tests
-    #     run: cargo test --workspace --all-targets
+      - name: Run tests
+        run: cargo test --workspace --all-targets --locked

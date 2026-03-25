@@ -4,65 +4,84 @@ on:
   push:
     branches: ["master"]
     paths:
-      - "desktop/apps/cli/**"
-      - "desktop/packages/**"
+      - "desktop/**"
+      - ".github/workflows/rust-*.yml"
     tags:
       - "v*.*.*"
+      - "music_presence_cli@v*.*.*"
       - "presence_cli@v*.*.*"
+      - "upload_cli@v*.*.*"
   workflow_dispatch:
 
-# from tauri example
+permissions:
+  contents: read
+
+concurrency:
+  group: rust-cli-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    permissions:
-      contents: write
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: "ubuntu-latest"
-            args: ""
+            platform_id: "linux-x64"
+            package: "music_presence_cli"
             binary: "music_presence_cli"
           - platform: "windows-latest"
-            args: ""
+            platform_id: "windows-x64"
+            package: "music_presence_cli"
             binary: "music_presence_cli.exe"
+          - platform: "ubuntu-latest"
+            platform_id: "linux-x64"
+            package: "upload_cli"
+            binary: "upload_cli"
+          - platform: "windows-latest"
+            platform_id: "windows-x64"
+            package: "upload_cli"
+            binary: "upload_cli.exe"
 
     runs-on: ${{ matrix.platform }}
+    if: |
+      !startsWith(github.ref, 'refs/tags/') ||
+      startsWith(github.ref_name, 'v') ||
+      startsWith(github.ref_name, format('{0}@v', matrix.package)) ||
+      (matrix.package == 'music_presence_cli' && startsWith(github.ref_name, 'presence_cli@v'))
     defaults:
       run:
         working-directory: desktop
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: install Rust stable
-        uses: dtolnay/rust-toolchain@stable # Set this to dtolnay/rust-toolchain@nightly
-        with:
-          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Rust cache
+      - name: Restore Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: "./ -> target"
+          workspaces: "desktop -> target"
 
-      - name: build
-        run: cargo build --package music_presence_cli --release --locked
+      - name: Build release binary
+        run: cargo build --package ${{ matrix.package }} --release --locked
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.binary }}-${{ matrix.platform }}
+          name: ${{ matrix.package }}-${{ matrix.platform_id }}
           path: desktop/target/release/${{ matrix.binary }}
           if-no-files-found: error
 
   releases:
     runs-on: ubuntu-latest
     needs: build
+    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
     steps:
-      - name: Download artifact for ubuntu
+      - name: Download release artifacts
         uses: actions/download-artifact@v5
         with:
           path: dist
