@@ -99,6 +99,8 @@ function DropdownMenuSubTrigger({
   className,
   inset,
   children,
+  onClick,
+  onPointerDown,
   ...props
 }: MenuPrimitive.SubmenuTrigger.Props & {
   inset?: boolean
@@ -111,6 +113,14 @@ function DropdownMenuSubTrigger({
         "focus:bg-accent focus:text-accent-foreground data-open:bg-accent data-open:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground gap-2 rounded-sm px-2 py-1.5 text-sm data-inset:pl-8 [&_svg:not([class*='size-'])]:size-4 data-popup-open:bg-accent data-popup-open:text-accent-foreground flex cursor-default items-center outline-hidden select-none [&_svg]:pointer-events-none [&_svg]:shrink-0",
         className
       )}
+      onClick={(event) => {
+        event.stopPropagation()
+        onClick?.(event)
+      }}
+      onPointerDown={(event) => {
+        event.stopPropagation()
+        onPointerDown?.(event)
+      }}
       {...props}
     >
       {children}
