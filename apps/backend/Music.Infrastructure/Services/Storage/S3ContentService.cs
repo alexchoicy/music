@@ -152,7 +152,7 @@ public class S3ContentService(
                 Verb = HttpVerb.PUT,
                 UploadId = initiateResponse.UploadId,
                 PartNumber = partNumber,
-                Expires = DateTime.UtcNow.AddMinutes(30) // I dunno
+                Expires = DateTime.UtcNow.AddHours(10) // I dunno In case HAHA
             };
 
             string url = client.GetPreSignedURL(presignRequest);
@@ -231,6 +231,7 @@ public class S3ContentService(
             "json" => "application/json",
             "mp4" => "video/mp4",
             "mpd" => "application/dash+xml",
+            "mkv" => "video/matroska",
             _ => "application/octet-stream"
         };
 
