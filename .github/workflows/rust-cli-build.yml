@@ -2,10 +2,6 @@ name: Rust CLI Build
 
 on:
   push:
-    branches: ["master"]
-    paths:
-      - "desktop/**"
-      - ".github/workflows/rust-*.yml"
     tags:
       - "v*.*.*"
       - "presence_cli@v*.*.*"
