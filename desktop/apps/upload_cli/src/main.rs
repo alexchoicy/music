@@ -1,37 +1,31 @@
-use std::{env, time::Instant};
-
+use clap::{Parser, Subcommand};
 use indicatif::{ProgressBar, ProgressStyle};
+use std::{io, path::PathBuf, time::Instant};
 use upload::{UploadClient, UploadClientConfig};
 
-fn build_client(args: &[String]) -> Result<UploadClient, String> {
-    if args.len() != 7 {
-        return Err(
-            "Usage: upload_cli <token> <blake3_hash> <file_object_id> <init_request_url> <complete_url> <file_path>"
-                .to_string(),
-        );
-    }
-
-    let token = args[1].clone();
-    let blake3_hash = args[2].clone();
-    let file_object_id = args[3].clone();
-    let init_request_url = args[4].clone();
-    let complete_url = args[5].clone();
-    let file_path = args[6].clone();
-
-    Ok(UploadClient::new(UploadClientConfig {
-        token,
-        blake3_hash,
-        init_request_url,
-        complete_url,
-        file_object_id,
-        file_path,
-    }))
+#[derive(Debug, Parser)]
+#[command(name = "upload_cli", version, about = "Upload one or more files")]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args: Vec<String> = env::args().collect();
-    let client = build_client(&args).map_err(std::io::Error::other)?;
+#[derive(Debug, Subcommand)]
+enum Commands {
+    #[command(arg_required_else_help = true)]
+    Single {
+        base_url: String,
+        token: String,
+        file_object_id: String,
+        blake3_hash: String,
+        file_path: String,
+    },
+    Multiple {
+        json_path: PathBuf,
+    },
+}
+
+async fn run_client(client: UploadClient) -> Result<(), Box<dyn std::error::Error>> {
     let started_at = Instant::now();
     let progress_bar = ProgressBar::new(0);
 
@@ -65,6 +59,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         completed_upload.upload_id,
         completed_upload.parts.len()
     );
+
+    Ok(())
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args = Cli::parse();
+
+    match args.command {
+        Commands::Single {
+            base_url,
+            token,
+            file_object_id,
+            blake3_hash,
+            file_path,
+        } => {
+            let client = UploadClient::new(UploadClientConfig {
+                token,
+                blake3_hash,
+                base_url,
+                file_object_id,
+                file_path,
+            });
+
+            run_client(client).await?;
+        }
+        Commands::Multiple { json_path: _ } => {
+            return Err(io::Error::other("multiple mode is not supported yet").into());
+        }
+    }
 
     Ok(())
 }

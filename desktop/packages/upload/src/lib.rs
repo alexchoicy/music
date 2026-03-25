@@ -13,8 +13,7 @@ use tokio::time::sleep;
 pub struct UploadClientConfig {
     pub token: String,
     pub blake3_hash: String,
-    pub init_request_url: String,
-    pub complete_url: String,
+    pub base_url: String,
     pub file_object_id: String,
     pub file_path: String,
 }
@@ -240,7 +239,10 @@ impl UploadClient {
     async fn init_multipart_upload(&self) -> UploadResult<MultipartUploadInfo> {
         let response = self
             .client
-            .get(&self.config.init_request_url)
+            .get(join_url(
+                &self.config.base_url,
+                &format!("/files/{}/init", &self.config.file_object_id),
+            ))
             .bearer_auth(&self.config.token)
             .json(&serde_json::json!({
                 "file_object_id": self.config.file_object_id,
@@ -265,7 +267,10 @@ impl UploadClient {
     ) -> UploadResult<()> {
         let response = self
             .client
-            .post(&self.config.complete_url)
+            .post(join_url(
+                &self.config.base_url,
+                &format!("/uploads/concert/complete-multipart"),
+            ))
             .bearer_auth(&self.config.token)
             .json(&CompleteMultipartUploadRequest {
                 blake3_id: self.config.blake3_hash.clone(),
@@ -284,6 +289,14 @@ impl UploadClient {
 
         Ok(())
     }
+}
+
+fn join_url(base_url: &str, path: &str) -> String {
+    format!(
+        "{}/{}",
+        base_url.trim_end_matches('/'),
+        path.trim_start_matches('/')
+    )
 }
 
 async fn upload_part(
