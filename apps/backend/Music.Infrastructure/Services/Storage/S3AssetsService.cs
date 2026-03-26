@@ -58,6 +58,8 @@ public class S3AssetsService : StorageService, IAssetsService
             "mp4" => "video/mp4",
             "jpg" => "image/jpeg",
             "png" => "image/png",
+            "vtt" => "text/vtt",
+            "sup" => "application/x-pgs",
             _ => "application/octet-stream"
         };
 

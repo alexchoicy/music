@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Music.Core.Models;
 using Music.Core.Services.FFmpeg;
+using Music.Core.Utils;
 
 namespace Music.Infrastructure.Services.FFmpeg;
 
@@ -11,18 +12,95 @@ public sealed class MediaFFmpegService(
     ILogger<MediaFFmpegService> logger
 ) : IMediaFFmpegService
 {
-    public async Task<bool> ConvertToOpusAsync(string inputPath, string outputPath)
+    public async Task<bool> ConvertToOpusAsync(string inputPath, string outputPath, CancellationToken cancellationToken = default)
     {
-        var psi = new ProcessStartInfo
+        return await RunFFmpegAsync(
+            ["-v", "error", "-i", inputPath, "-c:a", "libopus", "-b:a", "96k", "-y", outputPath],
+            inputPath,
+            outputPath,
+            cancellationToken);
+    }
+
+    public async Task<bool> ExtractTextSubtitleToVttAsync(string inputPath, int streamIndex, string outputPath, CancellationToken cancellationToken = default)
+    {
+        return await RunFFmpegAsync(
+            ["-v", "error", "-y", "-i", inputPath, "-map", $"0:{streamIndex}", "-c:s", "webvtt", outputPath],
+            inputPath,
+            outputPath,
+            cancellationToken);
+    }
+
+    public async Task<bool> ExtractPgsSubtitleToSupAsync(string inputPath, int streamIndex, string outputPath, CancellationToken cancellationToken = default)
+    {
+        return await RunFFmpegAsync(
+            ["-v", "error", "-y", "-i", inputPath, "-map", $"0:{streamIndex}", "-c:s", "copy", outputPath],
+            inputPath,
+            outputPath,
+            cancellationToken);
+    }
+
+
+    public async Task<bool> ExtractAttachedPictureAsync(
+        string inputPath,
+        int streamIndex,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        return await RunFFmpegAsync(
+            ["-v", "error", "-y", "-i", inputPath, "-map", $"0:{streamIndex}", "-c:v", "copy", outputPath],
+            inputPath,
+            outputPath,
+            cancellationToken);
+    }
+
+
+    public async Task<bool> ExtractVideoThumbnailAsync(
+        string inputPath,
+        int streamIndex,
+        string outputPath,
+        double? seekSeconds = null,
+        CancellationToken cancellationToken = default)
+    {
+        List<string> args = ["-v", "error"];
+
+        if (seekSeconds is > 0)
+        {
+            args.Add("-ss");
+            args.Add(seekSeconds.Value.ToString("0.###", CultureInfo.InvariantCulture));
+        }
+
+        args.AddRange([
+            "-y",
+            "-i", inputPath,
+            "-map", $"0:{streamIndex}",
+            "-frames:v", "1",
+            "-vf", "scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2:black",
+            outputPath
+        ]);
+
+        return await RunFFmpegAsync(args, inputPath, outputPath, cancellationToken);
+    }
+
+    private async Task<bool> RunFFmpegAsync(
+        IReadOnlyList<string> arguments,
+        string inputPath,
+        string outputPath,
+        CancellationToken cancellationToken)
+    {
+        ProcessStartInfo psi = new()
         {
             FileName = "ffmpeg",
-            Arguments = $"-v error -i \"{inputPath}\" -c:a libopus -b:a 96k -y \"{outputPath}\"",
-            RedirectStandardError = true, // only this matters
+            RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true
         };
 
-        using var process = new Process { StartInfo = psi };
+        foreach (string arg in arguments)
+        {
+            psi.ArgumentList.Add(arg);
+        }
+
+        using Process process = new() { StartInfo = psi };
 
         try
         {
@@ -34,14 +112,29 @@ public sealed class MediaFFmpegService(
             return false;
         }
 
-        string stderr = await process.StandardError.ReadToEndAsync();
-        await process.WaitForExitAsync();
+        using CancellationTokenRegistration cancellationRegistration = cancellationToken.Register(() =>
+        {
+            try
+            {
+                if (!process.HasExited)
+                {
+                    process.Kill(entireProcessTree: true);
+                }
+            }
+            catch
+            {
+            }
+        });
+
+        string stderr = await process.StandardError.ReadToEndAsync(cancellationToken);
+        await process.WaitForExitAsync(cancellationToken);
 
         if (process.ExitCode != 0)
         {
             logger.LogError(
-                "ffmpeg failed for {InputPath} (exit {ExitCode}): {Error}",
+                "ffmpeg failed for {InputPath} -> {OutputPath} (exit {ExitCode}): {Error}",
                 inputPath,
+                outputPath,
                 process.ExitCode,
                 stderr);
 
@@ -49,20 +142,13 @@ public sealed class MediaFFmpegService(
         }
 
         logger.LogInformation(
-            "Successfully converted {InputPath} → {OutputPath}",
+            "Successfully processed {InputPath} -> {OutputPath}",
             inputPath,
             outputPath);
 
         return true;
     }
 
-    // public async Task<bool> ExtractTextSubtitleToVttAsync(string inputPath, string streamIndex, string outputPath, CancellationToken cancellationToken = default)
-    // {
-
-    // }
-
-    // public async Task<bool> ExtractPgsSubtitleToSupAsync(string inputPath, string streamIndex, string outputPath, CancellationToken cancellationToken = default)
-    // { }
 
     public async Task<bool> ConvertVideoToDashAsync(
         string inputPath,
@@ -83,8 +169,8 @@ public sealed class MediaFFmpegService(
             .ToList()
             ?? [];
 
-        double fps = ParseFrameRate(videoStream.AvgFrameRate)
-            ?? ParseFrameRate(videoStream.RFrameRate)
+        double fps = MediaFiles.ParseFrameRate(videoStream.AvgFrameRate)
+            ?? MediaFiles.ParseFrameRate(videoStream.RFrameRate)
             ?? 30.0;
 
         int gsize = Math.Max(24, (int)Math.Round(fps * 4.0, MidpointRounding.AwayFromZero));
@@ -217,8 +303,8 @@ public sealed class MediaFFmpegService(
             }
         });
 
-        Task<string> stdoutTask = process.StandardOutput.ReadToEndAsync();
-        Task<string> stderrTask = process.StandardError.ReadToEndAsync();
+        Task<string> stdoutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        Task<string> stderrTask = process.StandardError.ReadToEndAsync(cancellationToken);
 
         await process.WaitForExitAsync(cancellationToken);
 
@@ -341,32 +427,5 @@ public sealed class MediaFFmpegService(
 
         return !fieldOrder.Equals("progressive", StringComparison.OrdinalIgnoreCase)
             && !fieldOrder.Equals("unknown", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static double? ParseFrameRate(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        string[] parts = value.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-
-        if (parts.Length == 1
-            && double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double single))
-        {
-            return single > 0 ? single : null;
-        }
-
-        if (parts.Length == 2
-            && double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double num)
-            && double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out double den)
-            && den != 0)
-        {
-            double fps = num / den;
-            return fps > 0 ? fps : null;
-        }
-
-        return null;
     }
 }

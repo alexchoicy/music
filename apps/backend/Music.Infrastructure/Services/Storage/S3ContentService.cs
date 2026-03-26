@@ -232,6 +232,7 @@ public class S3ContentService(
             "mp4" => "video/mp4",
             "mpd" => "application/dash+xml",
             "mkv" => "video/matroska",
+            "webm" => "video/webm",
             _ => "application/octet-stream"
         };
 

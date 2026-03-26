@@ -1,5 +1,6 @@
 
 using System.Collections.Immutable;
+using System.Globalization;
 using Music.Core.Models;
 
 namespace Music.Core.Utils;
@@ -31,5 +32,32 @@ public static class MediaFiles
     {
         const int threshold = 96_000;
         return bitrate is > threshold;
+    }
+
+    public static double? ParseFrameRate(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        string[] parts = value.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length == 1
+            && double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double single))
+        {
+            return single > 0 ? single : null;
+        }
+
+        if (parts.Length == 2
+            && double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double num)
+            && double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out double den)
+            && den != 0)
+        {
+            double fps = num / den;
+            return fps > 0 ? fps : null;
+        }
+
+        return null;
     }
 }
