@@ -63,4 +63,21 @@ public class UploadController(IContentService contentService) : ControllerBase
 
         return Ok();
     }
+
+    [HttpPost("concert/test-process")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public IActionResult QueueAudioUploadProcess(
+        [FromBody] TrackUploadProcessTestRequest request)
+    {
+        ConcertUploadProcessWorkerModel workerModel = new()
+        {
+            FileObjectId = request.FileObjectId,
+        };
+
+        contentService.RunBackgroundProcessUploadFile(workerModel);
+
+        return Ok();
+    }
 }
