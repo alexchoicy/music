@@ -21,6 +21,10 @@ public enum FileObjectVariant
     Thumbnail640x360,
     Opus96, //this is enough
     WaveformB8Pixel20,
+    Dash,
+    SubtitleVtt,
+    SubtitleSup,
+    AttachedPicture,
 }
 
 public enum FileProcessingStatus

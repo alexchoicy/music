@@ -21,7 +21,10 @@ public static class MediaFiles
             { "video/mp4", "mp4" },
             { "video/webm", "webm" },
             { "video/x-matroska", "mkv" },
-            { "video/matroska", "mkv"}
+            { "video/matroska", "mkv" },
+            { "application/dash+xml", "mpd" },
+            { "text/vtt", "vtt" },
+            { "application/x-pgs", "sup" }
     });
 
     public static bool ShouldTranscodeToOpus96(int bitrate)

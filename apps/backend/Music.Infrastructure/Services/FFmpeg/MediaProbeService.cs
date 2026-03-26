@@ -10,6 +10,11 @@ public sealed class MediaProbeService(
     ILogger<MediaProbeService> logger
 ) : IMediaProbeService
 {
+    private readonly JsonSerializerOptions jsonSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     public async Task<MediaProbeResult?> ProbeAsync(string filePath)
     {
         var psi = new ProcessStartInfo
@@ -56,7 +61,7 @@ public sealed class MediaProbeService(
 
         try
         {
-            return JsonSerializer.Deserialize<MediaProbeResult>(stdout);
+            return JsonSerializer.Deserialize<MediaProbeResult>(stdout, jsonSerializerOptions);
         }
         catch (Exception ex)
         {
