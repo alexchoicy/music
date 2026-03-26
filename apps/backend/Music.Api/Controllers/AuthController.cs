@@ -43,7 +43,7 @@ public class AuthController(IAuthService authService, ITokenService tokenService
             Secure = false,
             IsEssential = true,
             Expires = DateTimeOffset.UtcNow.AddDays(7),
-            Domain = AuthCookieDomain,
+            // Domain = AuthCookieDomain,
             Path = "/",
         });
 
