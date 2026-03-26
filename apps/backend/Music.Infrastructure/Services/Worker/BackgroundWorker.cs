@@ -89,7 +89,11 @@ public sealed class BackgroundWorker(
 
             Directory.CreateDirectory(outputDirectory);
 
+            logger.LogInformation("Processing concert upload for file object ID {FileObjectId}", sourceFileObject.Id);
+
             await contentService.DownloadFileToTemp(sourceFileObject.StoragePath, sourcePath, cancellationToken);
+
+            logger.LogInformation("Probing media file for file object ID {FileObjectId}", sourceFileObject.Id);
 
             MediaProbeResult? probeResult = await mediaProbeService.ProbeAsync(sourcePath);
 
