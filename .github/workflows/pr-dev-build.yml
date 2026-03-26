@@ -1,0 +1,108 @@
+name: Build dev image
+
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: build-dev-${{ github.event.issue.number }}-${{ contains(github.event.comment.body, '/build backend') && 'backend' || 'web' }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  ISSUE_NUMBER: ${{ github.event.issue.number }}
+
+jobs:
+  web:
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/build web') && github.actor == 'alexchoicy'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: refs/pull/${{ env.ISSUE_NUMBER }}/head
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push web dev image
+        uses: docker/build-push-action@v7
+        with:
+          context: apps/web
+          file: apps/web/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}-web:pr-${{ env.ISSUE_NUMBER }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Comment success (web)
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const image = `${process.env.REGISTRY}/${context.repo.owner}/${context.repo.repo}-web:pr-${context.issue.number}`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ Web dev image built successfully\n\n📦 Image:\n\`${image}\``
+            });
+
+  backend:
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/build backend') && github.actor == 'alexchoicy'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: refs/pull/${{ env.ISSUE_NUMBER }}/head
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend dev image
+        uses: docker/build-push-action@v7
+        with:
+          context: apps/backend
+          file: apps/backend/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}-backend:pr-${{ env.ISSUE_NUMBER }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Comment success (backend)
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const image = `${process.env.REGISTRY}/${context.repo.owner}/${context.repo.repo}-backend:pr-${context.issue.number}`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ Backend dev image built successfully\n\n📦 Image:\n\`${image}\``
+            });
