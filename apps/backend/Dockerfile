@@ -68,13 +68,6 @@ RUN set -eux; \
     ; \
     rm -rf /var/lib/apt/lists/*
 
-# Skip this first because I am not yet finish HAHA, but i want to merge first.
-# ARG SHAKA_PACKAGER_VERSION=v3.6.1
-# RUN curl -fsSL \
-#     "https://github.com/shaka-project/shaka-packager/releases/download/${SHAKA_PACKAGER_VERSION}/packager-linux-x64" \
-#     -o /usr/local/bin/packager \
-#     && chmod +x /usr/local/bin/packager
-
 COPY --from=audiowaveform /usr/local/bin/audiowaveform /usr/local/bin/
 
 COPY --from=build /app/publish ./
