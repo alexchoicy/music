@@ -172,14 +172,14 @@ public class S3ContentService(
         };
     }
 
-    public string GetPlayPresignedUrlAsync(string objectPath, CancellationToken cancellationToken = default)
+    public string GetPresignedUrlAsync(string objectPath, DateTime expires, CancellationToken cancellationToken = default)
     {
         GetPreSignedUrlRequest presignRequest = new()
         {
             BucketName = bucket,
             Key = objectPath,
             Verb = HttpVerb.GET,
-            Expires = DateTime.UtcNow.AddMinutes(30)
+            Expires = expires
         };
 
         string url = client.GetPreSignedURL(presignRequest);
@@ -305,6 +305,19 @@ public class S3ContentService(
             }, cancellationToken);
             throw;
         }
+    }
+
+
+    public async Task<string> ReadTextAsync(string objectPath, CancellationToken cancellationToken = default)
+    {
+        using GetObjectResponse response = await client.GetObjectAsync(new GetObjectRequest
+        {
+            BucketName = bucket,
+            Key = objectPath
+        }, cancellationToken);
+
+        using StreamReader reader = new(response.ResponseStream);
+        return await reader.ReadToEndAsync(cancellationToken);
     }
 }
 

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Music.Core.Models;
 using Music.Core.Services.FFmpeg;
 using Music.Core.Utils;
+using Music.Infrastructure.Utils;
 
 namespace Music.Infrastructure.Services.FFmpeg;
 
@@ -14,28 +15,65 @@ public sealed class MediaFFmpegService(
 {
     public async Task<bool> ConvertToOpusAsync(string inputPath, string outputPath, CancellationToken cancellationToken = default)
     {
-        return await RunFFmpegAsync(
-            ["-v", "error", "-i", inputPath, "-c:a", "libopus", "-b:a", "96k", "-y", outputPath],
+        List<string> args = [
+            "-v", "error",
+            "-y",
+            "-i", inputPath,
+            "-c:a", "libopus",
+            "-b:a", "96k",
+            "-vn",
+            outputPath
+        ];
+
+        return await ExternalRunner.RunAsync(
+            logger,
+            "ffmpeg",
+            args,
             inputPath,
             outputPath,
+            "ffmpeg Opus conversion",
             cancellationToken);
     }
 
     public async Task<bool> ExtractTextSubtitleToVttAsync(string inputPath, int streamIndex, string outputPath, CancellationToken cancellationToken = default)
     {
-        return await RunFFmpegAsync(
-            ["-v", "error", "-y", "-i", inputPath, "-map", $"0:{streamIndex}", "-c:s", "webvtt", outputPath],
+        List<string> args = [
+            "-v", "error",
+            "-y",
+            "-i", inputPath,
+            "-map", $"0:{streamIndex}",
+            "-c:s", "webvtt",
+            outputPath
+        ];
+
+        return await ExternalRunner.RunAsync(
+            logger,
+            "ffmpeg",
+            args,
             inputPath,
             outputPath,
+            "ffmpeg text subtitle extraction",
             cancellationToken);
     }
 
     public async Task<bool> ExtractPgsSubtitleToSupAsync(string inputPath, int streamIndex, string outputPath, CancellationToken cancellationToken = default)
     {
-        return await RunFFmpegAsync(
-            ["-v", "error", "-y", "-i", inputPath, "-map", $"0:{streamIndex}", "-c:s", "copy", outputPath],
+        List<string> args = [
+            "-v", "error",
+            "-y",
+            "-i", inputPath,
+            "-map", $"0:{streamIndex}",
+            "-c:s", "copy",
+            outputPath
+        ];
+
+        return await ExternalRunner.RunAsync(
+            logger,
+            "ffmpeg",
+            args,
             inputPath,
             outputPath,
+            "ffmpeg PGS subtitle extraction",
             cancellationToken);
     }
 
@@ -46,10 +84,22 @@ public sealed class MediaFFmpegService(
         string outputPath,
         CancellationToken cancellationToken = default)
     {
-        return await RunFFmpegAsync(
-            ["-v", "error", "-y", "-i", inputPath, "-map", $"0:{streamIndex}", "-c:v", "copy", outputPath],
+        List<string> args = [
+            "-v", "error",
+            "-y",
+            "-i", inputPath,
+            "-map", $"0:{streamIndex}",
+            "-c:v", "copy",
+            outputPath
+        ];
+
+        return await ExternalRunner.RunAsync(
+            logger,
+            "ffmpeg",
+            args,
             inputPath,
             outputPath,
+            "ffmpeg attached picture extraction",
             cancellationToken);
     }
 
@@ -78,77 +128,15 @@ public sealed class MediaFFmpegService(
             outputPath
         ]);
 
-        return await RunFFmpegAsync(args, inputPath, outputPath, cancellationToken);
-    }
-
-    private async Task<bool> RunFFmpegAsync(
-        IReadOnlyList<string> arguments,
-        string inputPath,
-        string outputPath,
-        CancellationToken cancellationToken)
-    {
-        ProcessStartInfo psi = new()
-        {
-            FileName = "ffmpeg",
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-
-        foreach (string arg in arguments)
-        {
-            psi.ArgumentList.Add(arg);
-        }
-
-        using Process process = new() { StartInfo = psi };
-
-        try
-        {
-            process.Start();
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to start ffmpeg for {InputPath}", inputPath);
-            return false;
-        }
-
-        using CancellationTokenRegistration cancellationRegistration = cancellationToken.Register(() =>
-        {
-            try
-            {
-                if (!process.HasExited)
-                {
-                    process.Kill(entireProcessTree: true);
-                }
-            }
-            catch
-            {
-            }
-        });
-
-        string stderr = await process.StandardError.ReadToEndAsync(cancellationToken);
-        await process.WaitForExitAsync(cancellationToken);
-
-        if (process.ExitCode != 0)
-        {
-            logger.LogError(
-                "ffmpeg failed for {InputPath} -> {OutputPath} (exit {ExitCode}): {Error}",
-                inputPath,
-                outputPath,
-                process.ExitCode,
-                stderr);
-
-            return false;
-        }
-
-        logger.LogInformation(
-            "Successfully processed {InputPath} -> {OutputPath}",
+        return await ExternalRunner.RunAsync(
+            logger,
+            "ffmpeg",
+            args,
             inputPath,
-            outputPath);
-
-        return true;
+            outputPath,
+            "ffmpeg thumbnail extraction",
+            cancellationToken);
     }
-
 
     public async Task<bool> ConvertVideoToDashAsync(
         string inputPath,
@@ -223,10 +211,10 @@ public sealed class MediaFFmpegService(
             for (int outputAudioIndex = 0; outputAudioIndex < audioStreams.Count; outputAudioIndex++)
             {
                 ProbeStream audioStream = audioStreams[outputAudioIndex];
-                int channels = NormalizeChannels(audioStream.Channels);
+                int channels = MediaFiles.NormalizeChannels(audioStream.Channels);
                 int bitrateKbps = GetTargetOpusBitrateKbps(channels);
-                string language = GetLanguage(audioStream);
-                string title = BuildAudioTitle(audioStream);
+                string language = MediaFiles.GetLanguage(audioStream);
+                string title = MediaFiles.BuildAudioTitle(audioStream);
 
                 args.AddRange(
                 [
@@ -254,145 +242,15 @@ public sealed class MediaFFmpegService(
         Directory.CreateDirectory(Path.Combine(outputDirectory, "init"));
         Directory.CreateDirectory(Path.Combine(outputDirectory, "chunks"));
 
-        ProcessStartInfo psi = new()
-        {
-            FileName = "ffmpeg",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            WorkingDirectory = outputDirectory
-        };
-
-        foreach (string arg in args)
-        {
-            psi.ArgumentList.Add(arg);
-        }
-
-        using Process process = new()
-        {
-            StartInfo = psi,
-            EnableRaisingEvents = true
-        };
-
-        try
-        {
-            if (!process.Start())
-            {
-                logger.LogError("Failed to start ffmpeg DASH encode for {InputPath}", inputPath);
-                return false;
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to start ffmpeg DASH encode for {InputPath}", inputPath);
-            return false;
-        }
-
-        using CancellationTokenRegistration cancellationRegistration = cancellationToken.Register(() =>
-        {
-            try
-            {
-                if (!process.HasExited)
-                {
-                    process.Kill(entireProcessTree: true);
-                }
-            }
-            catch
-            {
-            }
-        });
-
-        Task<string> stdoutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-        Task<string> stderrTask = process.StandardError.ReadToEndAsync(cancellationToken);
-
-        await process.WaitForExitAsync(cancellationToken);
-
-        string stdout = await stdoutTask;
-        string stderr = await stderrTask;
-
-
-        if (process.ExitCode != 0)
-        {
-            logger.LogError(
-                "ffmpeg DASH encode failed for {InputPath} (exit {ExitCode}): {Error}",
-                inputPath,
-                process.ExitCode,
-                string.IsNullOrWhiteSpace(stderr) ? stdout : stderr);
-
-            return false;
-        }
-
-        logger.LogInformation(
-            "Successfully encoded DASH package for {InputPath} into {OutputDirectory}",
+        return await ExternalRunner.RunAsync(
+            logger,
+            "ffmpeg",
+            args,
             inputPath,
-            outputDirectory);
-
-        return true;
-
-    }
-
-    private static string BuildLayoutName(ProbeStream stream)
-    {
-        if (!string.IsNullOrWhiteSpace(stream.ChannelLayout))
-        {
-            return stream.ChannelLayout;
-        }
-
-        return NormalizeChannels(stream.Channels) switch
-        {
-            1 => "Mono",
-            2 => "Stereo",
-            6 => "5.1",
-            8 => "7.1",
-            int channelCount => $"{channelCount}ch"
-        };
-    }
-
-    private static string BuildAudioTitle(ProbeStream stream)
-    {
-
-        string codecLong = stream.CodecLongName ?? stream.CodecName ?? "audio";
-        string profile = stream.Profile ?? string.Empty;
-
-        string codecLabel = string.IsNullOrWhiteSpace(profile)
-            ? codecLong
-            : $"{codecLong} - {profile}";
-
-        string layout = BuildLayoutName(stream);
-
-        string incomingTitle = string.Empty;
-        if (stream.Tags is not null
-            && stream.Tags.TryGetValue("title", out string? title)
-            && !string.IsNullOrWhiteSpace(title))
-        {
-            incomingTitle = title.Trim();
-        }
-
-        if (string.IsNullOrWhiteSpace(incomingTitle))
-        {
-            return $"{layout} ({codecLabel})";
-        }
-
-        if (incomingTitle.Contains(codecLabel, StringComparison.OrdinalIgnoreCase))
-        {
-            return incomingTitle;
-        }
-
-        return $"{incomingTitle} ({codecLabel})";
-
-    }
-
-    private static string GetLanguage(ProbeStream stream)
-    {
-        if (stream.Tags is not null
-            && stream.Tags.TryGetValue("language", out string? language)
-            && !string.IsNullOrWhiteSpace(language))
-        {
-            return language.Trim();
-        }
-
-        return "und";
+            outputDirectory,
+            "ffmpeg DASH AV1 conversion",
+            cancellationToken,
+            workingDirectory: outputDirectory);
     }
 
     private static int GetTargetOpusBitrateKbps(int channels)
@@ -406,16 +264,6 @@ public sealed class MediaFFmpegService(
             7 or 8 => 256,
             _ => 192
         };
-    }
-
-    private static int NormalizeChannels(int? channels)
-    {
-        if (channels is null || channels <= 0)
-        {
-            return 2;
-        }
-
-        return channels.Value;
     }
 
     private static bool IsInterlaced(string? fieldOrder)

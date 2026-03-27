@@ -150,6 +150,8 @@ public sealed class BackgroundWorker(
                 throw new FileNotFoundException("DASH manifest was not generated.", manifestPath);
             }
 
+            DashManifestHelper.InjectAudioLabelsIntoDashManifest(manifestPath, probeResult);
+
             string derivedVideoRoot = MediaFolderOptions.DerivedVideo.GetFolder(storageOptions.MediaFolders).TrimEnd('/');
 
             string manifestHash = await hashService.ComputeBlake3HashAsync(manifestPath, cancellationToken);

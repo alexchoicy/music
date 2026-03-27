@@ -60,4 +60,76 @@ public static class MediaFiles
 
         return null;
     }
+
+    public static string BuildAudioTitle(ProbeStream stream)
+    {
+        string codecLong = stream.CodecLongName ?? stream.CodecName ?? "audio";
+        string profile = stream.Profile ?? string.Empty;
+
+        string codecLabel = string.IsNullOrWhiteSpace(profile)
+            ? codecLong
+            : $"{codecLong} - {profile}";
+
+        string layout = BuildAudioLayoutName(stream);
+
+        string incomingTitle = string.Empty;
+        if (stream.Tags is not null
+            && stream.Tags.TryGetValue("title", out string? title)
+            && !string.IsNullOrWhiteSpace(title))
+        {
+            incomingTitle = title.Trim();
+        }
+
+        if (string.IsNullOrWhiteSpace(incomingTitle))
+        {
+            return $"{layout} ({codecLabel})";
+        }
+
+        if (incomingTitle.Contains(codecLabel, StringComparison.OrdinalIgnoreCase))
+        {
+            return incomingTitle;
+        }
+
+        return $"{incomingTitle} ({codecLabel})";
+    }
+
+    public static string BuildAudioLayoutName(ProbeStream stream)
+    {
+        if (!string.IsNullOrWhiteSpace(stream.ChannelLayout))
+        {
+            return stream.ChannelLayout;
+        }
+
+        return NormalizeChannels(stream.Channels) switch
+        {
+            1 => "Mono",
+            2 => "Stereo",
+            6 => "5.1",
+            8 => "7.1",
+            int channelCount => $"{channelCount}ch"
+        };
+    }
+
+    public static int NormalizeChannels(int? channels)
+    {
+        if (channels is null || channels <= 0)
+        {
+            return 2;
+        }
+
+        return channels.Value;
+    }
+
+    public static string GetLanguage(ProbeStream stream)
+    {
+        if (stream.Tags is not null
+            && stream.Tags.TryGetValue("language", out string? language)
+            && !string.IsNullOrWhiteSpace(language))
+        {
+            return language.Trim();
+        }
+
+        return "und";
+    }
+
 }
