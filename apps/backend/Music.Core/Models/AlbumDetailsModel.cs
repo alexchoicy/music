@@ -24,6 +24,7 @@ public sealed class AlbumPartyCreditModel
     public required string Name { get; init; } = string.Empty;
     public required PartyType Type { get; init; }
     public required AlbumCreditType CreditType { get; init; }
+    public required IReadOnlyList<PartyImageModel> Avatar { get; init; }
 }
 
 public sealed class AlbumDiscDetailsModel
@@ -50,6 +51,7 @@ public sealed class TrackPartyCreditModel
     public required string Name { get; init; } = string.Empty;
     public required PartyType Type { get; init; }
     public required TrackCreditType CreditType { get; init; }
+    public required IReadOnlyList<PartyImageModel> Avatar { get; init; }
 }
 
 public sealed class TrackVariantDetailsModel

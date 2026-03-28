@@ -40,10 +40,10 @@ public class AuthController(IAuthService authService, ITokenService tokenService
         {
             HttpOnly = true,
             SameSite = SameSiteMode.Lax,
-            Secure = false,
+            Secure = true,
             IsEssential = true,
             Expires = DateTimeOffset.UtcNow.AddDays(7),
-            // Domain = AuthCookieDomain,
+            Domain = AuthCookieDomain,
             Path = "/",
         });
 

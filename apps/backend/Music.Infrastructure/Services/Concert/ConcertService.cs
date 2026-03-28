@@ -8,6 +8,7 @@ using Music.Core.Models;
 using Music.Core.Services.Interfaces;
 using Music.Core.Utils;
 using Music.Infrastructure.Data;
+using Music.Infrastructure.Mappers;
 
 namespace Music.Infrastructure.Services.Concert;
 
@@ -23,6 +24,108 @@ public sealed class ConcertService(
     private readonly ILogger<ConcertService> _logger = logger;
     private readonly IAssetsService _assetsService = assetsService;
     private readonly ITokenService _tokenService = tokenService;
+
+    public async Task<IReadOnlyList<ConcertListItemModel>> GetAllAsync(
+        CancellationToken cancellationToken = default)
+    {
+        List<Core.Entities.Concert> concerts = await _dbContext.Concerts
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(c => c.Cover)
+                .ThenInclude(cover => cover!.File)
+                .ThenInclude(file => file!.FileObjects)
+            .Include(c => c.ConcertAlbums)
+            .Include(c => c.ConcertParties)
+                .ThenInclude(concertParty => concertParty.Party)
+            .Include(c => c.ConcertFiles)
+            .OrderByDescending(c => c.Date ?? c.CreatedAt)
+            .ThenByDescending(c => c.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        return concerts
+            .Select(concert => new ConcertListItemModel
+            {
+                ConcertId = concert.Id,
+                Title = concert.Title,
+                Description = concert.Description,
+                Date = concert.Date,
+                CoverVariants = ConcertResponseMappingExtensions.ToConcertCoverVariants(concert, _assetsService),
+                Parties = ConcertResponseMappingExtensions.ToConcertPartySummaryModels(concert.ConcertParties),
+                AlbumCount = concert.ConcertAlbums.Count,
+                FileCount = concert.ConcertFiles.Count,
+                CreatedAt = concert.CreatedAt,
+                UpdatedAt = concert.UpdatedAt,
+            })
+            .ToList();
+    }
+
+    public async Task<ConcertDetailsModel> GetByIdAsync(
+        int concertId,
+        CancellationToken cancellationToken = default)
+    {
+        Core.Entities.Concert concert = await _dbContext.Concerts
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(c => c.Cover)
+                .ThenInclude(cover => cover!.File)
+                .ThenInclude(file => file!.FileObjects)
+            .Include(c => c.ConcertAlbums)
+                .ThenInclude(concertAlbum => concertAlbum.Album)
+                .ThenInclude(album => album!.Credits)
+                .ThenInclude(credit => credit.Party)
+            .Include(c => c.ConcertAlbums)
+                .ThenInclude(concertAlbum => concertAlbum.Album)
+                .ThenInclude(album => album!.Discs)
+                .ThenInclude(disc => disc.Tracks)
+                .ThenInclude(track => track.Track)
+            .Include(c => c.ConcertAlbums)
+                .ThenInclude(concertAlbum => concertAlbum.Album)
+                .ThenInclude(album => album!.Images)
+                .ThenInclude(image => image.File)
+                .ThenInclude(file => file!.FileObjects)
+            .Include(c => c.ConcertParties)
+                .ThenInclude(concertParty => concertParty.Party)
+            .Include(c => c.ConcertFiles)
+                .ThenInclude(concertFile => concertFile.File)
+                .ThenInclude(file => file!.FileObjects)
+            .FirstOrDefaultAsync(c => c.Id == concertId, cancellationToken)
+            ?? throw new EntityNotFoundException($"Concert {concertId} not found");
+
+        return new ConcertDetailsModel
+        {
+            ConcertId = concert.Id,
+            Title = concert.Title,
+            Description = concert.Description,
+            Date = concert.Date,
+            CoverVariants = ConcertResponseMappingExtensions.ToConcertCoverVariants(concert, _assetsService),
+            LinkedParties = ConcertResponseMappingExtensions.ToConcertPartySummaryModels(concert.ConcertParties),
+            LinkedAlbums = concert.ConcertAlbums
+                .Where(concertAlbum => concertAlbum.Album is not null)
+                .Select(concertAlbum => concertAlbum.Album!)
+                .DistinctBy(album => album.Id)
+                .OrderBy(album => album.ReleaseDate ?? album.CreatedAt)
+                .ThenBy(album => album.Title)
+                .Select(album => album.ToListItemModel(_assetsService))
+                .ToList(),
+            Files = concert.ConcertFiles
+                .OrderBy(concertFile => concertFile.Order)
+                .ThenBy(concertFile => concertFile.Id)
+                .Select(concertFile => new ConcertFileDetailsModel
+                {
+                    ConcertFileId = concertFile.Id,
+                    Title = concertFile.Title,
+                    Type = concertFile.Type,
+                    Order = concertFile.Order,
+                    File = ConcertResponseMappingExtensions.ToConcertFileVariantsModel(
+                        concertFile.File,
+                        _contentService,
+                        _assetsService)
+                })
+                .ToList(),
+            CreatedAt = concert.CreatedAt,
+            UpdatedAt = concert.UpdatedAt,
+        };
+    }
 
     public async Task<CreateConcertUploadResult> CreateConcertAsync(
         CreateConcertModel concert,
