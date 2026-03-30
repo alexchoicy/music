@@ -132,4 +132,40 @@ public static class MediaFiles
         return "und";
     }
 
+
+    private static bool AreAllAudioCodecsAllowed(List<string> audioCodecs, IReadOnlyCollection<string> allowedCodecs)
+    {
+        return audioCodecs.Count == 0 || audioCodecs.All(allowedCodecs.Contains);
+    }
+
+    private static List<string> NormalizeCodecs(IEnumerable<string?> values)
+    {
+        return values
+            .Select(NormalizeCodecFromFFprobe)
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .ToList();
+    }
+
+    private static string NormalizeCodecFromFFprobe(string? value)
+    {
+        return (value ?? string.Empty).Trim().TrimStart('.').ToLowerInvariant();
+    }
+
+    private static readonly string[] Mp4SupportAudioCodecs = ["aac", "mp3"];
+    private static readonly string[] Mp4SupportedVideoCodecs = ["h264", "hevc", "h265"];
+    private static readonly string[] WebmAudioCodecs = ["opus"];
+    private static readonly string[] WebmVideoCodecs = ["av1", "vp9"];
+
+    public static bool CanRemuxVideoToMp4(string? videoCodec, IEnumerable<string?> audioCodecs)
+    {
+        return Mp4SupportedVideoCodecs.Contains(NormalizeCodecFromFFprobe(videoCodec))
+            && AreAllAudioCodecsAllowed(NormalizeCodecs(audioCodecs), Mp4SupportAudioCodecs);
+    }
+
+    public static bool CanRemuxVideoToWebM(string? videoCodec, IEnumerable<string?> audioCodecs)
+    {
+        return WebmVideoCodecs.Contains(NormalizeCodecFromFFprobe(videoCodec))
+            && AreAllAudioCodecsAllowed(NormalizeCodecs(audioCodecs), WebmAudioCodecs);
+    }
+
 }

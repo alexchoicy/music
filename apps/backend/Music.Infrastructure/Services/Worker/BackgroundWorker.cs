@@ -109,10 +109,10 @@ public sealed class BackgroundWorker(
                 .FirstOrDefault()
                 ?? throw new InvalidOperationException($"No real video stream found for file object ID {sourceFileObject.Id}.");
 
-            ProbeStream? audioStream = probeResult.Streams?
+            List<ProbeStream> audioStreams = (probeResult.Streams ?? [])
                 .Where(s => string.Equals(s.CodecType, "audio", StringComparison.OrdinalIgnoreCase))
                 .OrderBy(s => s.Index)
-                .FirstOrDefault();
+                .ToList();
 
             double? fps = MediaFiles.ParseFrameRate(videoStream.AvgFrameRate) ?? MediaFiles.ParseFrameRate(videoStream.RFrameRate);
 
@@ -123,7 +123,7 @@ public sealed class BackgroundWorker(
             sourceFileObject.Height = videoStream.Height ?? sourceFileObject.Height;
             sourceFileObject.FrameRate = fps.HasValue ? Convert.ToDecimal(fps.Value, CultureInfo.InvariantCulture) : sourceFileObject.FrameRate;
             sourceFileObject.Bitrate = probeResult.Format?.BitRate ?? sourceFileObject.Bitrate;
-            sourceFileObject.AudioSampleRate = audioStream?.SampleRate ?? sourceFileObject.AudioSampleRate;
+            sourceFileObject.AudioSampleRate = audioStreams.FirstOrDefault()?.SampleRate ?? sourceFileObject.AudioSampleRate;
 
 
             if (probeResult.Format?.Duration is double durationSeconds)
@@ -133,11 +133,27 @@ public sealed class BackgroundWorker(
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            bool success = await mediaFFmpegService.ConvertVideoToDashAsync(
-                sourcePath,
-                outputDirectory,
-                probeResult,
-                cancellationToken);
+            ConcertDashPlan concertDashPlan = GetConcertDashPlan(videoStream, audioStreams, probeResult.Format?.BitRate);
+
+            bool success = concertDashPlan.Kind switch
+            {
+                ConcertDashKind.PackageMp4 => await mediaFFmpegService.PackageVideoToMp4DashAsync(
+                    sourcePath,
+                    outputDirectory,
+                    probeResult,
+                    cancellationToken),
+                ConcertDashKind.PackageWebM => await mediaFFmpegService.PackageVideoToWebMDashAsync(
+                    sourcePath,
+                    outputDirectory,
+                    probeResult,
+                    cancellationToken),
+                ConcertDashKind.TranscodeAv1WebM => await mediaFFmpegService.ConvertVideoToAv1DashAsync(
+                    sourcePath,
+                    outputDirectory,
+                    probeResult,
+                    cancellationToken),
+                _ => false
+            };
 
             if (!success)
             {
@@ -167,9 +183,9 @@ public sealed class BackgroundWorker(
                 Type = FileObjectType.Transcoded,
                 SizeInBytes = GetDirectorySizeInBytes(outputDirectory),
                 MimeType = "application/dash+xml",
-                Container = "application/dash+xml",
+                Container = concertDashPlan.Container,
                 Extension = "mpd",
-                Codec = "AV1",
+                Codec = concertDashPlan.Kind == ConcertDashKind.TranscodeAv1WebM ? "AV1" : sourceFileObject.Codec,
                 Width = videoStream.Width,
                 Height = videoStream.Height,
                 FrameRate = sourceFileObject.FrameRate,
@@ -326,6 +342,44 @@ public sealed class BackgroundWorker(
             TryDeleteTempFile(sourcePath, logger);
             TryDeleteTempDirectory(outputDirectory, logger);
         }
+    }
+
+    private enum ConcertDashKind
+    {
+        PackageMp4,
+        PackageWebM,
+        TranscodeAv1WebM,
+    }
+
+    private const int ConcertConvertToAv1BitrateThreshold = 10_000_000;
+
+    private sealed record ConcertDashPlan(
+        ConcertDashKind Kind,
+        string Container);
+
+    private static ConcertDashPlan GetConcertDashPlan(
+        ProbeStream videoStream,
+        IReadOnlyList<ProbeStream> audioStreams,
+        int? videoBitrate)
+    {
+        IEnumerable<string?> audioCodecs = audioStreams.Select(stream => stream.CodecName);
+
+        if (videoBitrate is not null && videoBitrate > ConcertConvertToAv1BitrateThreshold)
+        {
+            return new(ConcertDashKind.TranscodeAv1WebM, "webm");
+        }
+
+        if (MediaFiles.CanRemuxVideoToMp4(videoStream.CodecName, audioCodecs))
+        {
+            return new(ConcertDashKind.PackageMp4, "mp4");
+        }
+
+        if (MediaFiles.CanRemuxVideoToWebM(videoStream.CodecName, audioCodecs))
+        {
+            return new(ConcertDashKind.PackageWebM, "webm");
+        }
+
+        return new(ConcertDashKind.TranscodeAv1WebM, "webm");
     }
 
     private static double? GetThumbnailSeekSeconds(double? durationSeconds)

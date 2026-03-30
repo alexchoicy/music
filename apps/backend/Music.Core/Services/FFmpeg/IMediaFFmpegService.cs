@@ -7,11 +7,24 @@ public interface IMediaFFmpegService
 {
     Task<bool> ConvertToOpusAsync(string inputPath, string outputPath, CancellationToken cancellationToken = default);
 
-    Task<bool> ConvertVideoToDashAsync(
+    Task<bool> ConvertVideoToAv1DashAsync(
         string inputPath,
         string outputDirectory,
         MediaProbeResult probe,
         CancellationToken cancellationToken = default);
+
+    Task<bool> PackageVideoToMp4DashAsync(
+        string inputPath,
+        string outputDirectory,
+        MediaProbeResult probe,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> PackageVideoToWebMDashAsync(
+        string inputPath,
+        string outputDirectory,
+        MediaProbeResult probe,
+        CancellationToken cancellationToken = default);
+
 
     Task<bool> ExtractTextSubtitleToVttAsync(string inputPath, int streamIndex, string outputPath, CancellationToken cancellationToken = default);
 

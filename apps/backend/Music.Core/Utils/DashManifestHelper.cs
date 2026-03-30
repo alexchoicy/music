@@ -76,21 +76,10 @@ public static class DashManifestHelper
         XElement root = document.Root ?? throw new InvalidOperationException("MPD root element not found.");
         XNamespace ns = root.Name.Namespace;
 
-        foreach (XElement baseUrl in root.Descendants(ns + "BaseURL").ToList())
-        {
-            baseUrl.Remove();
-        }
-
-        foreach (XElement init in root.Descendants(ns + "Initialization"))
+        foreach (XElement baseUrl in root.Descendants(ns + "BaseURL"))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            RewriteUrlAttribute(init, "sourceURL", objectFolder, contentService, cancellationToken);
-        }
-
-        foreach (XElement segmentUrl in root.Descendants(ns + "SegmentURL"))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            RewriteUrlAttribute(segmentUrl, "media", objectFolder, contentService, cancellationToken);
+            RewriteElementValue(baseUrl, objectFolder, contentService, cancellationToken);
         }
 
         return document.Declaration is null
@@ -98,27 +87,26 @@ public static class DashManifestHelper
             : document.Declaration + Environment.NewLine + document.ToString(SaveOptions.DisableFormatting);
     }
 
-    private static void RewriteUrlAttribute(
+    private static void RewriteElementValue(
         XElement element,
-        string attributeName,
         string storagePath,
         IContentService contentService,
         CancellationToken cancellationToken)
     {
-        XAttribute? attribute = element.Attribute(attributeName);
-        if (attribute is null || string.IsNullOrWhiteSpace(attribute.Value) || IsAbsoluteUrl(attribute.Value))
+        string value = element.Value?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(value) || IsAbsoluteUrl(value))
         {
             return;
         }
 
-        if (attribute.Value.Contains('$', StringComparison.Ordinal))
+        if (value.Contains('$', StringComparison.Ordinal))
         {
-            throw new InvalidOperationException(
-                $"Manifest contains unresolved DASH template placeholder in attribute '{attributeName}'.");
+            throw new InvalidOperationException("Manifest contains unresolved DASH template placeholder in BaseURL.");
         }
 
-        attribute.Value = contentService.GetPresignedUrlAsync(
-            CombineStoragePath(storagePath, attribute.Value),
+        element.Value = contentService.GetPresignedUrlAsync(
+            CombineStoragePath(storagePath, value),
             DateTime.UtcNow.AddHours(5),
             cancellationToken);
     }
