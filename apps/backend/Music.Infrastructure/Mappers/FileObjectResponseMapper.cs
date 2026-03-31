@@ -6,7 +6,7 @@ namespace Music.Infrastructure.Mappers;
 
 internal static class FileObjectResponseMapper
 {
-    public static FileObjectDetailsModel ToContentDetailsModel(this FileObject fileObject, IContentService contentService)
+    public static FileObjectDetailsModel ToContentDetailsModel(this FileObject fileObject, IContentService contentService, bool isDash = false)
     {
         return fileObject.ToDetailsModel(url: contentService.GetUrl(fileObject.Id));
     }
@@ -16,12 +16,12 @@ internal static class FileObjectResponseMapper
         return fileObject.ToDetailsModel(url: assetsService.GetUrl(fileObject.StoragePath));
     }
 
-    private static FileObjectDetailsModel ToDetailsModel(this FileObject fileObject, string url)
+    private static FileObjectDetailsModel ToDetailsModel(this FileObject fileObject, string url, bool isDash = false)
     {
         return new FileObjectDetailsModel
         {
             Id = fileObject.Id,
-            Url = url,
+            Url = isDash ? $"{url}/manifest.mpd" : url,
             Type = fileObject.Type,
             FileObjectVariant = fileObject.FileObjectVariant,
             SizeInBytes = fileObject.SizeInBytes,

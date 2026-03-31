@@ -176,7 +176,7 @@ public sealed class BackgroundWorker(
             {
                 Id = derivedFileId,
                 FileId = sourceFileObject.FileId,
-                FileObjectVariant = FileObjectVariant.DashAV1,
+                FileObjectVariant = concertDashPlan.Kind == ConcertDashKind.TranscodeAv1WebM ? FileObjectVariant.DashAV1 : FileObjectVariant.OriginalDash,
                 StoragePath = $"{derivedVideoRoot}/{derivedFileId}",
                 OriginalBlake3Hash = manifestHash,
                 CurrentBlake3Hash = manifestHash,

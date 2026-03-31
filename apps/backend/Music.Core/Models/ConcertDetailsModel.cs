@@ -42,6 +42,7 @@ public sealed class ConcertFileDetailsModel
 public sealed class ConcertFileVariantsModel
 {
     public required FileObjectDetailsModel Original { get; init; }
+    public FileObjectDetailsModel? OriginalDash { get; init; }
     public FileObjectDetailsModel? DashAV1 { get; init; }
     public FileObjectDetailsModel? Thumbnail640x360 { get; init; }
     public FileObjectDetailsModel? AttachedPicture { get; init; }

@@ -25,6 +25,7 @@ public enum FileObjectVariant
     SubtitleVtt,
     SubtitleSup,
     AttachedPicture,
+    OriginalDash
 }
 
 public enum FileProcessingStatus

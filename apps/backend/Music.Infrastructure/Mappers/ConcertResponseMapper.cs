@@ -52,9 +52,13 @@ internal static class ConcertResponseMappingExtensions
         return new ConcertFileVariantsModel
         {
             Original = original.ToContentDetailsModel(contentService),
+            OriginalDash = storedFile.FileObjects
+                .Where(fileObject => fileObject.FileObjectVariant == FileObjectVariant.OriginalDash)
+                .Select(fileObject => fileObject.ToContentDetailsModel(contentService, true))
+                .FirstOrDefault(),
             DashAV1 = storedFile.FileObjects
                 .Where(fileObject => fileObject.FileObjectVariant == FileObjectVariant.DashAV1)
-                .Select(fileObject => fileObject.ToContentDetailsModel(contentService))
+                .Select(fileObject => fileObject.ToContentDetailsModel(contentService, true))
                 .FirstOrDefault(),
             Thumbnail640x360 = storedFile.FileObjects
                 .Where(fileObject => fileObject.FileObjectVariant == FileObjectVariant.Thumbnail640x360)
