@@ -8,7 +8,7 @@ internal static class FileObjectResponseMapper
 {
     public static FileObjectDetailsModel ToContentDetailsModel(this FileObject fileObject, IContentService contentService, bool isDash = false)
     {
-        return fileObject.ToDetailsModel(url: contentService.GetUrl(fileObject.Id));
+        return fileObject.ToDetailsModel(url: contentService.GetUrl(fileObject.Id), isDash: isDash);
     }
 
     public static FileObjectDetailsModel ToAssetDetailsModel(this FileObject fileObject, IAssetsService assetsService)

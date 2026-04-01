@@ -15,6 +15,11 @@ public sealed class FileUrlService(IContentService contentService, AppDbContext 
     {
         Core.Entities.FileObject fileObject = await context.FileObjects.FirstOrDefaultAsync(file => file.Id == fileObjectId, cancellationToken) ?? throw new EntityNotFoundException($"File object with ID {fileObjectId} not found.");
 
+        if (IsDashVariant(fileObject.FileObjectVariant))
+        {
+            return $"{contentService.GetUrl(fileObject.Id)}/manifest.mpd";
+        }
+
         return contentService.GetPresignedUrlAsync(fileObject.StoragePath, DateTime.UtcNow.AddMinutes(30), cancellationToken);
     }
 
@@ -26,8 +31,13 @@ public sealed class FileUrlService(IContentService contentService, AppDbContext 
 
     public async Task<string> GetDashManifestAsync(Guid fileObjectId, CancellationToken cancellationToken = default)
     {
-        Core.Entities.FileObject fileObject = await context.FileObjects.FirstOrDefaultAsync(file => file.Id == fileObjectId && file.FileObjectVariant == FileObjectVariant.DashAV1, cancellationToken)
+        Core.Entities.FileObject fileObject = await context.FileObjects.FirstOrDefaultAsync(file => file.Id == fileObjectId, cancellationToken)
             ?? throw new EntityNotFoundException($"File object with ID {fileObjectId} not found.");
+
+        if (!IsDashVariant(fileObject.FileObjectVariant))
+        {
+            throw new ValidationException($"File object {fileObjectId} does not expose a DASH manifest.");
+        }
 
         if (fileObject.ProcessingStatus != FileProcessingStatus.Completed)
         {
@@ -38,5 +48,10 @@ public sealed class FileUrlService(IContentService contentService, AppDbContext 
         string manifestXml = await contentService.ReadTextAsync(DashManifestHelper.CombineStoragePath(storagePath, "manifest.mpd"), cancellationToken);
 
         return DashManifestHelper.InjectPresignUrl(manifestXml, storagePath, contentService, cancellationToken);
+    }
+
+    private static bool IsDashVariant(FileObjectVariant variant)
+    {
+        return variant is FileObjectVariant.DashAV1 or FileObjectVariant.OriginalDash;
     }
 }
