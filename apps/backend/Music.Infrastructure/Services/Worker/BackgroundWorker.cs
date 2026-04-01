@@ -133,7 +133,11 @@ public sealed class BackgroundWorker(
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
+            logger.LogInformation("Video bitrate: {VideoBitrate}", probeResult.Format?.BitRate);
+
             ConcertDashPlan concertDashPlan = GetConcertDashPlan(videoStream, audioStreams, probeResult.Format?.BitRate);
+
+            logger.LogInformation("Concert dash plan: {Kind}", concertDashPlan.Kind);
 
             bool success = concertDashPlan.Kind switch
             {
@@ -364,7 +368,7 @@ public sealed class BackgroundWorker(
     {
         IEnumerable<string?> audioCodecs = audioStreams.Select(stream => stream.CodecName);
 
-        if (videoBitrate is not null && videoBitrate > ConcertConvertToAv1BitrateThreshold)
+        if (videoBitrate > ConcertConvertToAv1BitrateThreshold)
         {
             return new(ConcertDashKind.TranscodeAv1WebM, "webm");
         }
