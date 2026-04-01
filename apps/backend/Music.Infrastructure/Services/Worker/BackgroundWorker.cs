@@ -133,9 +133,11 @@ public sealed class BackgroundWorker(
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            logger.LogInformation("Video bitrate: {VideoBitrate}", probeResult.Format?.BitRate);
+            int? videoBitrate = MediaFiles.GetBestAvailableBitrate(videoStream, probeResult.Format);
 
-            ConcertDashPlan concertDashPlan = GetConcertDashPlan(videoStream, audioStreams, probeResult.Format?.BitRate);
+            logger.LogInformation("Concert video bitrate: {VideoBitrate}", videoBitrate);
+
+            ConcertDashPlan concertDashPlan = GetConcertDashPlan(videoStream, audioStreams, videoBitrate);
 
             logger.LogInformation("Concert dash plan: {Kind}", concertDashPlan.Kind);
 

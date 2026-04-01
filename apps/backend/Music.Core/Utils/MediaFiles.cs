@@ -61,6 +61,27 @@ public static class MediaFiles
         return null;
     }
 
+    public static int? GetBestAvailableBitrate(ProbeStream? stream, ProbeFormat? format = null)
+    {
+        if (format?.BitRate is > 0)
+        {
+            return format.BitRate;
+        }
+
+        if (TryGetPositiveIntTag(stream, "BPS-eng", out int taggedBitrate)
+            || TryGetPositiveIntTag(stream, "BPS", out taggedBitrate))
+        {
+            return taggedBitrate;
+        }
+
+        if (stream?.BitRate is > 0)
+        {
+            return stream.BitRate;
+        }
+
+        return null;
+    }
+
     public static string BuildAudioTitle(ProbeStream stream)
     {
         string codecLong = stream.CodecLongName ?? stream.CodecName ?? "audio";
@@ -151,7 +172,39 @@ public static class MediaFiles
         return (value ?? string.Empty).Trim().TrimStart('.').ToLowerInvariant();
     }
 
-    private static readonly string[] Mp4SupportAudioCodecs = ["aac", "mp3"];
+    private static bool TryGetPositiveIntTag(ProbeStream? stream, string key, out int value)
+    {
+        value = 0;
+
+        return TryGetTagValue(stream, key, out string? tagValue)
+            && int.TryParse(tagValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out value)
+            && value > 0;
+    }
+
+    private static bool TryGetTagValue(ProbeStream? stream, string key, out string? value)
+    {
+        value = null;
+
+        if (stream?.Tags is null)
+        {
+            return false;
+        }
+
+        foreach ((string tagKey, string tagValue) in stream.Tags)
+        {
+            if (string.Equals(tagKey, key, StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(tagValue))
+            {
+                value = tagValue.Trim();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    private static readonly string[] Mp4SupportAudioCodecs = ["aac", "flac", "mp3"];
     private static readonly string[] Mp4SupportedVideoCodecs = ["h264", "hevc", "h265"];
     private static readonly string[] WebmAudioCodecs = ["opus"];
     private static readonly string[] WebmVideoCodecs = ["av1", "vp9"];

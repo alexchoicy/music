@@ -46,6 +46,10 @@ public sealed class ProbeStream
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public int? SampleRate { get; init; }
 
+    [JsonPropertyName("bit_rate")]
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+    public int? BitRate { get; init; }
+
     [JsonPropertyName("duration")]
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public double? Duration { get; init; }
