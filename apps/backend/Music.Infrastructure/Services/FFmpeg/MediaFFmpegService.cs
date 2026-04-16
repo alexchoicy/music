@@ -307,9 +307,20 @@ public sealed class MediaFFmpegService(
             args.AddRange(["-movflags", "+faststart"]);
         }
 
+        if (IsHevcCodec(videoStream.CodecName))
+        {
+            args.AddRange(["-tag:v", "hvc1"]);
+        }
+
         ApplyAudioMetadataArgs(args, audioStreams);
 
         return args;
+    }
+
+    private static bool IsHevcCodec(string? codecName)
+    {
+        return string.Equals(codecName, "hevc", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(codecName, "h265", StringComparison.OrdinalIgnoreCase);
     }
 
     private static List<string> BuildDashMuxerArgs(string dashSegmentType)
@@ -318,9 +329,9 @@ public sealed class MediaFFmpegService(
         [
             "-single_file", "1",
             "-single_file_name", "stream-$RepresentationID$.$ext$",
-            "-use_template", "0",
-            "-use_timeline", "0",
             "-dash_segment_type", dashSegmentType,
+            "-use_template", "1",
+            "-use_timeline", "1",
             "-f", "dash",
             "manifest.mpd"
         ];
