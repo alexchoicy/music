@@ -202,23 +202,4 @@ public static class MediaFiles
 
         return false;
     }
-
-
-    private static readonly string[] Mp4SupportAudioCodecs = ["aac", "flac", "mp3"];
-    private static readonly string[] Mp4SupportedVideoCodecs = ["h264", "hevc", "h265"];
-    private static readonly string[] WebmAudioCodecs = ["opus"];
-    private static readonly string[] WebmVideoCodecs = ["av1", "vp9"];
-
-    public static bool CanRemuxVideoToMp4(string? videoCodec, IEnumerable<string?> audioCodecs)
-    {
-        return Mp4SupportedVideoCodecs.Contains(NormalizeCodecFromFFprobe(videoCodec))
-            && AreAllAudioCodecsAllowed(NormalizeCodecs(audioCodecs), Mp4SupportAudioCodecs);
-    }
-
-    public static bool CanRemuxVideoToWebM(string? videoCodec, IEnumerable<string?> audioCodecs)
-    {
-        return WebmVideoCodecs.Contains(NormalizeCodecFromFFprobe(videoCodec))
-            && AreAllAudioCodecsAllowed(NormalizeCodecs(audioCodecs), WebmAudioCodecs);
-    }
-
 }

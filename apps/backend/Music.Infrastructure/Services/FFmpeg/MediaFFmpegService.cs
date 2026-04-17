@@ -167,56 +167,6 @@ public sealed class MediaFFmpegService(
             workingDirectory: outputDirectory);
     }
 
-    public async Task<bool> PackageVideoToMp4DashAsync(
-        string inputPath,
-        string outputDirectory,
-        MediaProbeResult probe,
-        CancellationToken cancellationToken = default)
-    {
-        ProbeStream videoStream = ProbeHelper.GetPrimaryVideoStream(probe);
-        List<ProbeStream> audioStreams = ProbeHelper.GetAudioStreams(probe);
-
-        List<string> args = BuildDashCopyArgs(inputPath, videoStream, audioStreams, "mp4");
-        args.AddRange(BuildDashMuxerArgs("mp4"));
-
-        Directory.CreateDirectory(outputDirectory);
-
-        return await ExternalRunner.RunAsync(
-            logger,
-            "ffmpeg",
-            args,
-            inputPath,
-            outputDirectory,
-            "ffmpeg MP4 DASH packaging",
-            cancellationToken,
-            workingDirectory: outputDirectory);
-    }
-
-    public async Task<bool> PackageVideoToWebMDashAsync(
-        string inputPath,
-        string outputDirectory,
-        MediaProbeResult probe,
-        CancellationToken cancellationToken = default)
-    {
-        ProbeStream videoStream = ProbeHelper.GetPrimaryVideoStream(probe);
-        List<ProbeStream> audioStreams = ProbeHelper.GetAudioStreams(probe);
-
-        List<string> args = BuildDashCopyArgs(inputPath, videoStream, audioStreams, "webm");
-        args.AddRange(BuildDashMuxerArgs("webm"));
-
-        Directory.CreateDirectory(outputDirectory);
-
-        return await ExternalRunner.RunAsync(
-            logger,
-            "ffmpeg",
-            args,
-            inputPath,
-            outputDirectory,
-            "ffmpeg WebM DASH packaging",
-            cancellationToken,
-            workingDirectory: outputDirectory);
-    }
-
 
     private static List<string> BuildVideoTranscodeArgs(
         string inputPath,
@@ -234,10 +184,14 @@ public sealed class MediaFFmpegService(
             "-y",
             "-i", inputPath,
             "-map", $"0:{videoStream.Index}",
-            "-map", "0:a?",
             "-sn",
             "-dn"
         ];
+
+        foreach (ProbeStream audioStream in audioStreams)
+        {
+            args.AddRange(["-map", $"0:{audioStream.Index}"]);
+        }
 
         List<string> videoFilters = [];
         if (IsInterlaced(videoStream.FieldOrder))
@@ -289,46 +243,6 @@ public sealed class MediaFFmpegService(
 
         return args;
     }
-
-    private static List<string> BuildDashCopyArgs(
-        string inputPath,
-        ProbeStream videoStream,
-        IReadOnlyList<ProbeStream> audioStreams,
-        string dashSegmentType)
-    {
-        List<string> args =
-        [
-            "-v", "error",
-            "-y",
-            "-i", inputPath,
-            "-map", $"0:{videoStream.Index}",
-            "-map", "0:a?",
-            "-sn",
-            "-dn",
-            "-c", "copy"
-        ];
-
-        if (dashSegmentType == "mp4")
-        {
-            args.AddRange(["-movflags", "+faststart"]);
-        }
-
-        if (IsHevcCodec(videoStream.CodecName))
-        {
-            args.AddRange(["-tag:v", "hvc1"]);
-        }
-
-        ApplyAudioMetadataArgs(args, audioStreams);
-
-        return args;
-    }
-
-    private static bool IsHevcCodec(string? codecName)
-    {
-        return string.Equals(codecName, "hevc", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(codecName, "h265", StringComparison.OrdinalIgnoreCase);
-    }
-
 
     private static List<string> BuildDashMuxerArgs(string dashSegmentType, double? segmentDurationSeconds = null)
     {

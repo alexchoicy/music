@@ -133,33 +133,11 @@ public sealed class BackgroundWorker(
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            int? videoBitrate = MediaFiles.GetBestAvailableBitrate(videoStream, probeResult.Format);
-
-            logger.LogInformation("Concert video bitrate: {VideoBitrate}", videoBitrate);
-
-            ConcertDashPlan concertDashPlan = GetConcertDashPlan(videoStream, audioStreams, videoBitrate);
-
-            logger.LogInformation("Concert dash plan: {Kind}", concertDashPlan.Kind);
-
-            bool success = concertDashPlan.Kind switch
-            {
-                ConcertDashKind.PackageMp4 => await mediaFFmpegService.PackageVideoToMp4DashAsync(
+            bool success = await mediaFFmpegService.ConvertVideoToAv1DashAsync(
                     sourcePath,
                     outputDirectory,
                     probeResult,
-                    cancellationToken),
-                ConcertDashKind.PackageWebM => await mediaFFmpegService.PackageVideoToWebMDashAsync(
-                    sourcePath,
-                    outputDirectory,
-                    probeResult,
-                    cancellationToken),
-                ConcertDashKind.TranscodeAv1WebM => await mediaFFmpegService.ConvertVideoToAv1DashAsync(
-                    sourcePath,
-                    outputDirectory,
-                    probeResult,
-                    cancellationToken),
-                _ => false
-            };
+                    cancellationToken);
 
             if (!success)
             {
@@ -182,16 +160,16 @@ public sealed class BackgroundWorker(
             {
                 Id = derivedFileId,
                 FileId = sourceFileObject.FileId,
-                FileObjectVariant = concertDashPlan.Kind == ConcertDashKind.TranscodeAv1WebM ? FileObjectVariant.DashAV1 : FileObjectVariant.OriginalDash,
+                FileObjectVariant = FileObjectVariant.DashAV1,
                 StoragePath = $"{derivedVideoRoot}/{derivedFileId}",
                 OriginalBlake3Hash = manifestHash,
                 CurrentBlake3Hash = manifestHash,
                 Type = FileObjectType.Transcoded,
                 SizeInBytes = GetDirectorySizeInBytes(outputDirectory),
                 MimeType = "application/dash+xml",
-                Container = concertDashPlan.Container,
+                Container = "webm",
                 Extension = "mpd",
-                Codec = concertDashPlan.Kind == ConcertDashKind.TranscodeAv1WebM ? "AV1" : sourceFileObject.Codec,
+                Codec = "AV1",
                 Width = videoStream.Width,
                 Height = videoStream.Height,
                 FrameRate = sourceFileObject.FrameRate,
@@ -355,37 +333,6 @@ public sealed class BackgroundWorker(
         PackageMp4,
         PackageWebM,
         TranscodeAv1WebM,
-    }
-
-    private const int ConcertConvertToAv1BitrateThreshold = 10_000_000;
-
-    private sealed record ConcertDashPlan(
-        ConcertDashKind Kind,
-        string Container);
-
-    private static ConcertDashPlan GetConcertDashPlan(
-        ProbeStream videoStream,
-        IReadOnlyList<ProbeStream> audioStreams,
-        int? videoBitrate)
-    {
-        IEnumerable<string?> audioCodecs = audioStreams.Select(stream => stream.CodecName);
-
-        if (videoBitrate > ConcertConvertToAv1BitrateThreshold)
-        {
-            return new(ConcertDashKind.TranscodeAv1WebM, "webm");
-        }
-
-        if (MediaFiles.CanRemuxVideoToMp4(videoStream.CodecName, audioCodecs))
-        {
-            return new(ConcertDashKind.PackageMp4, "mp4");
-        }
-
-        if (MediaFiles.CanRemuxVideoToWebM(videoStream.CodecName, audioCodecs))
-        {
-            return new(ConcertDashKind.PackageWebM, "webm");
-        }
-
-        return new(ConcertDashKind.TranscodeAv1WebM, "webm");
     }
 
     private static double? GetThumbnailSeekSeconds(double? durationSeconds)

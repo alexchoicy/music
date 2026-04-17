@@ -13,19 +13,6 @@ public interface IMediaFFmpegService
         MediaProbeResult probe,
         CancellationToken cancellationToken = default);
 
-    Task<bool> PackageVideoToMp4DashAsync(
-        string inputPath,
-        string outputDirectory,
-        MediaProbeResult probe,
-        CancellationToken cancellationToken = default);
-
-    Task<bool> PackageVideoToWebMDashAsync(
-        string inputPath,
-        string outputDirectory,
-        MediaProbeResult probe,
-        CancellationToken cancellationToken = default);
-
-
     Task<bool> ExtractTextSubtitleToVttAsync(string inputPath, int streamIndex, string outputPath, CancellationToken cancellationToken = default);
 
     Task<bool> ExtractPgsSubtitleToSupAsync(string inputPath, int streamIndex, string outputPath, CancellationToken cancellationToken = default);

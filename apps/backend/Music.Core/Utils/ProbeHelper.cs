@@ -18,8 +18,17 @@ public static class ProbeHelper
     {
         return probe.Streams?
             .Where(s => string.Equals(s.CodecType, "audio", StringComparison.OrdinalIgnoreCase))
-            .OrderBy(s => s.Index)
+            .OrderBy(GetDashAudioSortWeight)
+            .ThenBy(s => s.Index)
             .ToList()
             ?? [];
+    }
+
+    // sort by stereo
+    // becuase in firefox 5.1 -> stereo will don't have audio
+    // but stereo -> 5.1 work fine
+    private static int GetDashAudioSortWeight(ProbeStream stream)
+    {
+        return MediaFiles.NormalizeChannels(stream.Channels) == 2 ? 0 : 1;
     }
 }

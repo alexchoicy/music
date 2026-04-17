@@ -10,10 +10,7 @@ public static class DashManifestHelper
     // Shaka Packager can't produce the files i want that can ez inject presign url later.
     public static void InjectAudioLabelsIntoDashManifest(string manifestPath, MediaProbeResult probeResult)
     {
-        List<ProbeStream> audioStreams = (probeResult.Streams ?? [])
-            .Where(stream => string.Equals(stream.CodecType, "audio", StringComparison.OrdinalIgnoreCase))
-            .OrderBy(stream => stream.Index)
-            .ToList();
+        List<ProbeStream> audioStreams = ProbeHelper.GetAudioStreams(probeResult);
 
         if (audioStreams.Count == 0)
         {
