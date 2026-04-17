@@ -35,6 +35,18 @@ public sealed class FilesController(IFileUrlService fileUrlService) : Controller
         return Redirect(url);
     }
 
+    [HttpGet("{id:guid}/manifest.mpd")]
+    [Authorize]
+    [Produces("application/dash+xml")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetManifest(
+        [FromRoute][Required] Guid id,
+        CancellationToken cancellationToken)
+    {
+        string manifest = await _fileUrlService.GetDashManifestAsync(id, cancellationToken);
+        return Content(manifest, "application/dash+xml");
+    }
+
     [HttpGet("{id:guid}/init")]
     [Authorize(AuthorizationPolicies.UploadAllowed)]
     [ProducesResponseType(typeof(MultipartUploadInfo), StatusCodes.Status200OK)]

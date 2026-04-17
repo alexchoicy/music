@@ -10,6 +10,7 @@ using Music.Infrastructure.Data;
 using Music.Core.Entities;
 using System.Text.RegularExpressions;
 using System.ComponentModel.DataAnnotations;
+using Music.Infrastructure.Mappers;
 
 namespace Music.Infrastructure.Services.Album;
 
@@ -46,10 +47,8 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
                 .Distinct()
                 .OrderBy(name => name)
                 .ToList(),
-            CoverUrl = album.Images.FirstOrDefault()?.File?.FileObjects
-                .OrderBy(fo => fo.FileObjectVariant)
-                .Select(fo => _assetsService.GetUrl(fo.StoragePath))
-                .FirstOrDefault() ?? string.Empty
+            CoverUrl = album.ToAlbumCoverVariants(_assetsService)
+                    .FirstOrDefault()?.Url ?? string.Empty
         };
     }
 
@@ -62,11 +61,17 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
             .AsSplitQuery()
             .Include(a => a.Credits)
                 .ThenInclude(c => c.Party)
+                .ThenInclude(party => party!.Images)
+                .ThenInclude(image => image.File)
+                .ThenInclude(file => file!.FileObjects)
             .Include(a => a.Discs)
                 .ThenInclude(d => d.Tracks)
                 .ThenInclude(at => at.Track!)
                 .ThenInclude(t => t.Credits)
                 .ThenInclude(tc => tc.Party)
+                .ThenInclude(p => p!.Images)
+                .ThenInclude(image => image.File)
+                .ThenInclude(file => file!.FileObjects)
             .Include(a => a.Discs)
                 .ThenInclude(d => d.Tracks)
                 .ThenInclude(at => at.Track!)
@@ -128,6 +133,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
                                     Name = c.Party!.Name,
                                     Type = c.Party!.Type,
                                     CreditType = c.Credit,
+                                    Avatar = c.Party.ToPrimaryAvatarImageModels(_assetsService)
                                 })
                                 .ToList(),
                             TrackVariants = variants,
@@ -140,13 +146,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
         int totalTrackCount = discs.Sum(d => d.Tracks.Count);
         int totalDurationInMs = discs.SelectMany(d => d.Tracks).Sum(t => t.DurationInMs);
 
-        List<AlbumCoverVariantModel>? coverImageUrl = album.Images.FirstOrDefault()?.File?.FileObjects
-            .Select(file => new AlbumCoverVariantModel
-            {
-                Variant = file.FileObjectVariant,
-                Url = _assetsService.GetUrl(file.StoragePath)
-            })
-            .ToList() ?? [];
+        IReadOnlyList<AlbumCoverVariantModel> coverImageUrl = album.ToAlbumCoverVariants(_assetsService);
 
         return new AlbumDetailsModel
         {
@@ -164,6 +164,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
                     Name = c.Party!.Name,
                     Type = c.Party!.Type,
                     CreditType = c.Credit,
+                    Avatar = c.Party.ToPrimaryAvatarImageModels(_assetsService)
                 })
                 .ToList(),
             Discs = discs,
@@ -189,59 +190,9 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
 
         return new TrackSourceFileVariantsModel
         {
-            Original = ToDetailsModel(original),
-            Opus96 = opus96 is null ? null : ToDetailsModel(opus96),
-            WaveformB8Pixel20 = waveformB8Pixel20 is null ? null : ToAssetDetailsModel(waveformB8Pixel20),
-        };
-    }
-
-    private FileObjectDetailsModel ToDetailsModel(FileObject fo)
-    {
-        return new FileObjectDetailsModel
-        {
-            Id = fo.Id,
-            Url = _contentService.GetUrl(fo.Id),
-            Type = fo.Type,
-            FileObjectVariant = fo.FileObjectVariant,
-            SizeInBytes = fo.SizeInBytes,
-            MimeType = fo.MimeType,
-            Container = fo.Container,
-            Extension = fo.Extension,
-            Codec = fo.Codec,
-            Width = fo.Width,
-            Height = fo.Height,
-            AudioSampleRate = fo.AudioSampleRate,
-            Bitrate = fo.Bitrate,
-            FrameRate = fo.FrameRate,
-            DurationInMs = fo.DurationInMs,
-            OriginalFileName = fo.OriginalFileName,
-            CreatedAt = fo.CreatedAt,
-            UpdatedAt = fo.UpdatedAt,
-        };
-    }
-
-    private FileObjectDetailsModel ToAssetDetailsModel(FileObject fo)
-    {
-        return new FileObjectDetailsModel
-        {
-            Id = fo.Id,
-            Url = _assetsService.GetUrl(fo.StoragePath),
-            Type = fo.Type,
-            FileObjectVariant = fo.FileObjectVariant,
-            SizeInBytes = fo.SizeInBytes,
-            MimeType = fo.MimeType,
-            Container = fo.Container,
-            Extension = fo.Extension,
-            Codec = fo.Codec,
-            Width = fo.Width,
-            Height = fo.Height,
-            AudioSampleRate = fo.AudioSampleRate,
-            Bitrate = fo.Bitrate,
-            FrameRate = fo.FrameRate,
-            DurationInMs = fo.DurationInMs,
-            OriginalFileName = fo.OriginalFileName,
-            CreatedAt = fo.CreatedAt,
-            UpdatedAt = fo.UpdatedAt,
+            Original = original.ToContentDetailsModel(_contentService),
+            Opus96 = opus96?.ToContentDetailsModel(_contentService),
+            WaveformB8Pixel20 = waveformB8Pixel20?.ToAssetDetailsModel(_assetsService),
         };
     }
 
@@ -263,40 +214,7 @@ public class AlbumService(AppDbContext dbContext, IContentService contentService
             .ToListAsync(cancellationToken);
 
         return albums
-            .Select(a =>
-            {
-
-                return new AlbumListItemModel
-                {
-                    AlbumId = a.Id,
-                    Title = a.Title,
-                    Description = a.Description,
-                    Type = a.Type,
-                    ReleaseDate = a.ReleaseDate,
-                    CreatedAt = a.CreatedAt,
-                    UpdatedAt = a.UpdatedAt,
-                    CoverVariants = a.Images.FirstOrDefault()?.File?.FileObjects
-                        .Select(file => new AlbumCoverVariantModel
-                        {
-                            Variant = file.FileObjectVariant,
-                            Url = _assetsService.GetUrl(file.StoragePath)
-                        })
-                        .ToList() ?? [],
-                    Artists = a.Credits
-                        .Where(c => c.Credit == AlbumCreditType.Artist)
-                        .OrderBy(c => c.Party!.Name)
-                        .Select(c => new AlbumListArtistModel
-                        {
-                            PartyId = c.PartyId,
-                            Name = c.Party!.Name,
-                        })
-                        .ToList(),
-                    TrackCount = a.Discs.Sum(d => d.Tracks.Count),
-                    TotalDurationInMs = a.Discs
-                        .SelectMany(d => d.Tracks)
-                        .Sum(at => at.Track?.DurationInMs ?? 0),
-                };
-            })
+            .Select(a => a.ToListItemModel(_assetsService))
             .ToList();
     }
 

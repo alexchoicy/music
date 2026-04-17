@@ -6,6 +6,7 @@ using Music.Infrastructure.Data;
 using Music.Core.Entities;
 using Music.Core.Exceptions;
 using Microsoft.Extensions.Logging;
+using Music.Infrastructure.Mappers;
 
 namespace Music.Infrastructure.Services.Party;
 
@@ -88,11 +89,7 @@ public class PartyService(AppDbContext dbContext, IAssetsService assetsService, 
                 AvatarImages = p.Images
                     .Where(pi => pi.PartyImageType == Core.Enums.PartyImageType.Avatar && pi.IsPrimary && pi.File != null)
                     .SelectMany(pi => pi.File!.FileObjects)
-                    .Select(fo => new PartyImageModel
-                    {
-                        Url = _assetsService.GetUrl(fo.StoragePath),
-                        Variant = fo.FileObjectVariant
-                    }).ToList(),
+                    .ToPartyImageModels(_assetsService),
                 Type = p.Type
             })
             .ToListAsync();
@@ -163,49 +160,17 @@ public class PartyService(AppDbContext dbContext, IAssetsService assetsService, 
             },
             IconUrl = party.Images.
             FirstOrDefault(i => i.PartyImageType == Core.Enums.PartyImageType.Avatar && i.IsPrimary)?
-            .File?.FileObjects.Select(fo => new PartyImageModel
-            {
-                Url = _assetsService.GetUrl(fo.StoragePath),
-                Variant = fo.FileObjectVariant
-            }).ToList(),
+            .File?.FileObjects.ToPartyImageModels(_assetsService),
             BannerUrl = party.Images.
             FirstOrDefault(i => i.PartyImageType == Core.Enums.PartyImageType.Banner && i.IsPrimary)?
-            .File?.FileObjects.Select(fo => new PartyImageModel
-            {
-                Url = _assetsService.GetUrl(fo.StoragePath),
-                Variant = fo.FileObjectVariant
-            }).ToList(),
+            .File?.FileObjects.ToPartyImageModels(_assetsService),
             PartyAlbums = party.AlbumCredits
             .Select(ac => ac.Album)
             .Select(album =>
             {
                 partyAlbumIds.Add(album!.Id);
 
-                return new AlbumListItemModel
-                {
-                    AlbumId = album.Id,
-                    Title = album.Title,
-                    Type = album.Type,
-                    ReleaseDate = album.ReleaseDate,
-                    CreatedAt = album.CreatedAt,
-                    UpdatedAt = album.UpdatedAt,
-                    Artists = album.Credits
-                    .Select(ac =>
-                        new AlbumListArtistModel
-                        {
-                            PartyId = ac.PartyId,
-                            Name = ac.Party!.Name
-                        }
-                    )
-                    .ToList(),
-                    TrackCount = album.Discs.Sum(d => d.Tracks.Count),
-                    TotalDurationInMs = album.Discs.SelectMany(d => d.Tracks).Sum(t => t.Track?.DurationInMs ?? 0),
-                    CoverVariants = album.Images.FirstOrDefault(ai => ai.IsPrimary)?.File?.FileObjects.Select(fo => new AlbumCoverVariantModel
-                    {
-                        Url = _assetsService.GetUrl(fo.StoragePath),
-                        Variant = fo.FileObjectVariant
-                    }).ToList() ?? [],
-                };
+                return album.ToListItemModel(_assetsService);
             }).ToList(),
             PartyPartOfAlbums = party.TrackCredits
             .Select(tc => tc.Track)
@@ -213,38 +178,7 @@ public class PartyService(AppDbContext dbContext, IAssetsService assetsService, 
             .Select(at => at.AlbumDisc?.Album)
             .Where(a => a!.Id != 0 && !partyAlbumIds.Contains(a.Id))
             .DistinctBy(a => a!.Id)
-            .Select(a => new AlbumListItemModel
-            {
-                AlbumId = a!.Id,
-                Title = a.Title,
-                Type = a.Type,
-                ReleaseDate = a.ReleaseDate,
-                CreatedAt = a.CreatedAt,
-                UpdatedAt = a.UpdatedAt,
-                Artists = a.Credits
-                .Select(ac =>
-                {
-                    if (ac.Party is null)
-                    {
-                        return null;
-                    }
-
-                    return new AlbumListArtistModel
-                    {
-                        PartyId = ac.PartyId,
-                        Name = ac.Party.Name
-                    };
-                })
-                .OfType<AlbumListArtistModel>()
-                .ToList(),
-                TrackCount = a.Discs.Sum(d => d.Tracks.Count),
-                TotalDurationInMs = a.Discs.SelectMany(d => d.Tracks).Sum(t => t.Track?.DurationInMs ?? 0),
-                CoverVariants = a.Images.FirstOrDefault(ai => ai.IsPrimary)?.File?.FileObjects.Select(fo => new AlbumCoverVariantModel
-                {
-                    Url = _assetsService.GetUrl(fo.StoragePath),
-                    Variant = fo.FileObjectVariant
-                }).ToList() ?? [],
-            }).ToList()
+            .Select(a => a!.ToListItemModel(_assetsService)).ToList()
         };
 
         return partyDetail;

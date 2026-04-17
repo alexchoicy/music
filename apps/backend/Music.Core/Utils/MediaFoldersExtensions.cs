@@ -18,6 +18,8 @@ public static class MediaFoldersExtensions
             MediaFolderOptions.PartyCover => folders.AssetsParty + "/cover",
             MediaFolderOptions.PartyBanner => folders.AssetsParty + "/banner",
             MediaFolderOptions.AssetsPeak => folders.AssetsPeak,
+            MediaFolderOptions.AssetsVideoSubtitle => folders.AssetsVideoSubtitle,
+            MediaFolderOptions.AssetsVideoArtwork => folders.AssetsVideoArtwork,
             _ => throw new ArgumentOutOfRangeException(nameof(variant), variant, null)
         };
 }

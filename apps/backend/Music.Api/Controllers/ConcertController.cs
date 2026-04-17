@@ -41,4 +41,23 @@ public sealed class ConcertController(IConcertService concertService) : Controll
 
         return Ok(result);
     }
+
+    [HttpGet]
+    [ProducesResponseType(typeof(IReadOnlyList<ConcertListItemModel>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    {
+        IReadOnlyList<ConcertListItemModel> concerts = await _concertService.GetAllAsync(cancellationToken);
+        return Ok(concerts);
+    }
+
+    [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(ConcertDetailsModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById(
+        [FromRoute][Required] int id,
+        CancellationToken cancellationToken)
+    {
+        ConcertDetailsModel concert = await _concertService.GetByIdAsync(id, cancellationToken);
+        return Ok(concert);
+    }
 }

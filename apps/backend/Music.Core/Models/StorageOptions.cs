@@ -14,6 +14,8 @@ public sealed class MediaFoldersOptions
     public string AssetsCover { get; init; } = "assets/cover";
     public string AssetsParty { get; init; } = "assets/party";
     public string AssetsPeak { get; init; } = "assets/peak";
+    public string AssetsVideoSubtitle { get; init; } = "assets/video/subtitle";
+    public string AssetsVideoArtwork { get; init; } = "assets/video/artwork";
 }
 
 public sealed class S3StorageOptions

@@ -20,7 +20,7 @@ function RouteComponent() {
 }
 function CreatePageContent() {
 	const [isProcessing, setIsProcessing] = useState(false);
-	const [isUploadExternal, setIsUploadExternal] = useState(false);
+	const [isUploadExternal, setIsUploadExternal] = useState(true);
 
 	type CreationTab = "albums" | "concert";
 
@@ -70,6 +70,7 @@ function CreatePageContent() {
 						<Switch
 							checked={isUploadExternal}
 							onCheckedChange={setIsUploadExternal}
+							disabled
 						/>
 
 						<Button

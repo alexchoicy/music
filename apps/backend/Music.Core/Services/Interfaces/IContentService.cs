@@ -20,7 +20,7 @@ public interface IContentService : IStorageService
         string userId,
         CancellationToken cancellationToken = default);
 
-    public string GetPlayPresignedUrlAsync(string objectPath, CancellationToken cancellationToken = default);
+    public string GetPresignedUrlAsync(string objectPath, DateTime expires, CancellationToken cancellationToken = default);
 
     public string GetDownloadPresignedUrl(string objectPath, string fileName, CancellationToken cancellationToken = default);
 
@@ -29,4 +29,6 @@ public interface IContentService : IStorageService
     public Task DownloadFileToTemp(string objectPath, string destinationPath, CancellationToken cancellationToken = default);
 
     public Task UploadFileFromTempAsync(string objectPath, string sourcePath, CancellationToken cancellationToken = default);
+
+    public Task<string> ReadTextAsync(string objectPath, CancellationToken cancellationToken = default);
 }
