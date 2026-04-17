@@ -211,8 +211,7 @@ public sealed class MediaFFmpegService(
             "-g", gopSizeString,
             "-keyint_min", gopSizeString,
             "-force_key_frames", $"expr:gte(t,n_forced*{segmentDuration})",
-            "-forced-idr", "1",
-            "-sc_threshold", "0"
+            "-forced-idr", "1"
         ]);
 
         if (audioStreams.Count > 0)

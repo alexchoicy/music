@@ -71,8 +71,6 @@ public sealed class BackgroundWorker(
             .GetRequiredService<IOptions<StorageOptions>>()
             .Value;
 
-        string tempDir = storageOptions.TempDir;
-
         FileObject sourceFileObject = await dbContext.FileObjects.FirstOrDefaultAsync(
             fo => fo.Id == job.FileObjectId, cancellationToken)
             ?? throw new EntityNotFoundException($"File object with ID {job.FileObjectId} not found."
@@ -181,7 +179,8 @@ public sealed class BackgroundWorker(
 
             dbContext.FileObjects.Add(derivedFileObject);
 
-            await UploadDirectoryAsync(contentService, outputDirectory, derivedFileObject.StoragePath, cancellationToken);
+            await UploadDirectoryAsync(contentService, outputDirectory, derivedFileObject.StoragePath, logger, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
 
             string subtitlesDirectory = Path.Combine(outputDirectory, "subtitles");
             string artworkDirectory = Path.Combine(outputDirectory, "artwork");
@@ -193,7 +192,6 @@ public sealed class BackgroundWorker(
                          .Where(stream => string.Equals(stream.CodecType, "subtitle", StringComparison.OrdinalIgnoreCase))
                          .OrderBy(stream => stream.Index))
             {
-                string normalizedCodec = (subtitleStream.CodecName ?? string.Empty).Trim().ToLowerInvariant();
 
                 (string extension, string mimeType, FileObjectVariant variant)? subtitlePlan =
                     GetSubtitleExtractionPlan(subtitleStream.CodecName);
@@ -328,13 +326,6 @@ public sealed class BackgroundWorker(
         }
     }
 
-    private enum ConcertDashKind
-    {
-        PackageMp4,
-        PackageWebM,
-        TranscodeAv1WebM,
-    }
-
     private static double? GetThumbnailSeekSeconds(double? durationSeconds)
     {
         if (durationSeconds is null || durationSeconds <= 0)
@@ -460,14 +451,19 @@ public sealed class BackgroundWorker(
         IContentService contentService,
         string sourceDirectory,
         string destinationRoot,
+        ILogger logger,
         CancellationToken cancellationToken)
     {
+        logger.LogInformation("Uploading directory {SourceDirectory} to {DestinationRoot}", sourceDirectory, destinationRoot);
+
         foreach (string filePath in Directory.EnumerateFiles(sourceDirectory, "*", SearchOption.AllDirectories))
         {
             string relativePath = Path.GetRelativePath(sourceDirectory, filePath).Replace('\\', '/');
             string objectPath = $"{destinationRoot.TrimEnd('/')}/{relativePath}";
             await contentService.UploadFileFromTempAsync(objectPath, filePath, cancellationToken);
         }
+
+        logger.LogInformation("Completed uploading directory {SourceDirectory} to {DestinationRoot}", sourceDirectory, destinationRoot);
     }
 
     private static async Task ProcessPartyExternalEnrichmentAsync(
@@ -571,7 +567,7 @@ public sealed class BackgroundWorker(
 
             newPath = Path.Combine(tempDir, $"{fileName}_opus.opus");
 
-            bool success = await mediaFFmpegService.ConvertToOpusAsync(filePath, newPath);
+            bool success = await mediaFFmpegService.ConvertToOpusAsync(filePath, newPath, cancellationToken);
 
             if (!success)
             {
