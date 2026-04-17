@@ -13,6 +13,8 @@ public sealed class MediaFFmpegService(
     ILogger<MediaFFmpegService> logger
 ) : IMediaFFmpegService
 {
+    private const double DashSegmentDurationSeconds = 4.0;
+
     public async Task<bool> ConvertToOpusAsync(string inputPath, string outputPath, CancellationToken cancellationToken = default)
     {
         List<string> args = [
@@ -147,8 +149,10 @@ public sealed class MediaFFmpegService(
         ProbeStream videoStream = ProbeHelper.GetPrimaryVideoStream(probe);
         List<ProbeStream> audioStreams = ProbeHelper.GetAudioStreams(probe);
 
-        List<string> args = BuildVideoTranscodeArgs(inputPath, videoStream, audioStreams);
-        args.AddRange(BuildDashMuxerArgs("webm"));
+        GetDashTiming(videoStream, out int gopSize, out double segmentDurationSeconds);
+
+        List<string> args = BuildVideoTranscodeArgs(inputPath, videoStream, audioStreams, gopSize, segmentDurationSeconds);
+        args.AddRange(BuildDashMuxerArgs("webm", segmentDurationSeconds));
 
         Directory.CreateDirectory(outputDirectory);
 
@@ -213,16 +217,16 @@ public sealed class MediaFFmpegService(
             workingDirectory: outputDirectory);
     }
 
+
     private static List<string> BuildVideoTranscodeArgs(
         string inputPath,
         ProbeStream videoStream,
-        IReadOnlyList<ProbeStream> audioStreams)
+        IReadOnlyList<ProbeStream> audioStreams,
+        int gopSize,
+        double segmentDurationSeconds)
     {
-        double fps = MediaFiles.ParseFrameRate(videoStream.AvgFrameRate)
-            ?? MediaFiles.ParseFrameRate(videoStream.RFrameRate)
-            ?? 30.0;
-
-        int gsize = Math.Max(24, (int)Math.Round(fps * 4.0, MidpointRounding.AwayFromZero));
+        string gopSizeString = gopSize.ToString(CultureInfo.InvariantCulture);
+        string segmentDuration = segmentDurationSeconds.ToString("0.#########", CultureInfo.InvariantCulture);
 
         List<string> args =
         [
@@ -250,8 +254,10 @@ public sealed class MediaFFmpegService(
             "-rc", "vbr",
             "-cq", "22",
             "-b:v", "0",
-            "-g", gsize.ToString(CultureInfo.InvariantCulture),
-            "-keyint_min", gsize.ToString(CultureInfo.InvariantCulture),
+            "-g", gopSizeString,
+            "-keyint_min", gopSizeString,
+            "-force_key_frames", $"expr:gte(t,n_forced*{segmentDuration})",
+            "-forced-idr", "1",
             "-sc_threshold", "0"
         ]);
 
@@ -323,18 +329,30 @@ public sealed class MediaFFmpegService(
             || string.Equals(codecName, "h265", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static List<string> BuildDashMuxerArgs(string dashSegmentType)
+
+    private static List<string> BuildDashMuxerArgs(string dashSegmentType, double? segmentDurationSeconds = null)
     {
-        return
+        List<string> args =
         [
             "-single_file", "1",
             "-single_file_name", "stream-$RepresentationID$.$ext$",
-            "-dash_segment_type", dashSegmentType,
-            "-use_template", "1",
-            "-use_timeline", "1",
+            "-use_template", "0",
+            "-use_timeline", "0",
+            "-dash_segment_type", dashSegmentType
+        ];
+
+        if (segmentDurationSeconds is > 0)
+        {
+            args.AddRange(["-seg_duration", segmentDurationSeconds.Value.ToString("0.#########", CultureInfo.InvariantCulture)]);
+        }
+
+        args.AddRange(
+        [
             "-f", "dash",
             "manifest.mpd"
-        ];
+        ]);
+
+        return args;
     }
 
     private static void ApplyAudioMetadataArgs(List<string> args, IReadOnlyList<ProbeStream> audioStreams)
@@ -351,6 +369,16 @@ public sealed class MediaFFmpegService(
                 $"-metadata:s:a:{outputAudioIndex}", $"title={title}"
             ]);
         }
+    }
+
+    private static void GetDashTiming(ProbeStream videoStream, out int gopSize, out double segmentDurationSeconds)
+    {
+        double fps = MediaFiles.ParseFrameRate(videoStream.AvgFrameRate)
+            ?? MediaFiles.ParseFrameRate(videoStream.RFrameRate)
+            ?? 30.0;
+
+        gopSize = Math.Max(24, (int)Math.Round(fps * DashSegmentDurationSeconds, MidpointRounding.AwayFromZero));
+        segmentDurationSeconds = gopSize / fps;
     }
 
     private static int GetTargetOpusBitrateKbps(int channels)
