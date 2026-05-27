@@ -1,3 +1,5 @@
+using Music.Core.Enums;
+
 namespace Music.Core.Entities;
 
 public class Track
@@ -23,7 +25,7 @@ public class Track
 
     public required string CreatedByUserId { get; set; }
 
-    public byte[]? Version { get; set; }
+    public uint Version { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;

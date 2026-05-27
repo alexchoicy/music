@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Music.Core.Entities;
+using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data.Configurations;
 

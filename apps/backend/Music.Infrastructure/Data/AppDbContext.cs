@@ -27,7 +27,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<AlbumTrack> AlbumTracks { get; set; }
     public DbSet<TrackAudio> TrackAudios { get; set; }
     public DbSet<TrackCredit> TrackCredits { get; set; }
-    public DbSet<TrackSource> TrackSources { get; set; }
     public DbSet<StoredFile> StoredFiles { get; set; }
     public DbSet<FileObject> FileObjects { get; set; }
     public DbSet<Concert> Concerts { get; set; }
@@ -83,14 +82,36 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         return base.SaveChangesAsync(cancellationToken);
     }
 
+    private static void UpdateTimestamps(EntityEntry entry, DateTimeOffset now)
+    {
+        if (entry.Metadata.FindProperty("CreatedAt") is not null && entry.State == EntityState.Added)
+        {
+            var createdAt = entry.Property("CreatedAt").CurrentValue;
+            if (createdAt is null || createdAt.Equals(default(DateTimeOffset)))
+            {
+                entry.Property("CreatedAt").CurrentValue = now;
+            }
+        }
+
+        if (entry.Metadata.FindProperty("UpdatedAt") is not null)
+        {
+            entry.Property("UpdatedAt").CurrentValue = now;
+        }
+    }
+
 
     private void NormalizeEntities()
     {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+
         IEnumerable<EntityEntry> entries = ChangeTracker.Entries()
             .Where(entry => entry.State is EntityState.Added or EntityState.Modified);
 
+
         foreach (var entry in entries)
         {
+            UpdateTimestamps(entry, now);
+
             switch (entry.Entity)
             {
                 case Party party:

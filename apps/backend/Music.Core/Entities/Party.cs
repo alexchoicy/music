@@ -13,7 +13,7 @@ public class Party
     public string? MusicBrainzId { get; set; }
     public string? Country { get; set; }
 
-    public DateTimeOffset ReleaseDate { get; set; }
+    public DateTimeOffset? DebutDate { get; set; }
 
     public int? LanguageId { get; set; }
     public Language? Language { get; set; }
@@ -23,7 +23,7 @@ public class Party
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
-    public byte[]? Version { get; set; }
+    public uint Version { get; set; }
 
     public ICollection<PartyMembership> Members { get; set; } = [];
     public ICollection<PartyMembership> MemberOf { get; set; } = [];

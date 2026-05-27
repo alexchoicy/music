@@ -21,7 +21,7 @@ public class Album
 
     public DateTimeOffset? ReleaseDate { get; set; }
 
-    public byte[]? Version { get; set; }
+    public uint Version { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;

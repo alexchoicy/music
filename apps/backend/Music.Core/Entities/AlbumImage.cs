@@ -1,3 +1,5 @@
+using Music.Core.Enums;
+
 namespace Music.Core.Entities;
 
 // Only handle cover

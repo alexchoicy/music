@@ -10,7 +10,7 @@ public class AlbumDisc
     public int DiscNumber { get; set; } = 1;
     public string Subtitle { get; set; } = string.Empty;
 
-    public byte[]? Version { get; set; }
+    public uint Version { get; set; }
 
     public ICollection<AlbumTrack> Tracks { get; set; } = [];
 }
