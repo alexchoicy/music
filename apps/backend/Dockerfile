@@ -32,23 +32,29 @@ RUN set -eux; \
     make -C /tmp/audiowaveform/build install; \
     rm -rf /tmp/audiowaveform
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 WORKDIR /src
 
 COPY Music.slnx .
 COPY Directory.Packages.props .
 COPY Music.Api/Music.Api.csproj Music.Api/
+COPY Music.Api/packages.lock.json Music.Api/
+
 COPY Music.Core/Music.Core.csproj Music.Core/
+COPY Music.Core/packages.lock.json Music.Core/
+
 COPY Music.Infrastructure/Music.Infrastructure.csproj Music.Infrastructure/
-RUN dotnet restore ./Music.Api/Music.Api.csproj
+COPY Music.Infrastructure/packages.lock.json Music.Infrastructure/
+
+RUN dotnet restore ./Music.Api/Music.Api.csproj --locked-mode
 
 COPY Music.Api/. ./Music.Api/
 COPY Music.Core/. ./Music.Core/
 COPY Music.Infrastructure/. ./Music.Infrastructure/
 
-RUN dotnet publish ./Music.Api/Music.Api.csproj -c Release -o /app/publish --no-restore
+RUN dotnet publish ./Music.Api/Music.Api.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS runtime
 WORKDIR /app
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -66,13 +72,18 @@ RUN set -eux; \
     libmad0 \
     libsndfile1 \
     ; \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*; \
+    mkdir -p /app/temp
 
 COPY --from=audiowaveform /usr/local/bin/audiowaveform /usr/local/bin/
 
 COPY --from=build /app/publish ./
 
-ENV HTTP_PORTS=8080
+RUN chown -R $APP_UID:$APP_UID /app
+
+ENV ASPNETCORE_HTTP_PORTS=8080
 EXPOSE 8080
+
+USER $APP_UID
 
 ENTRYPOINT ["dotnet", "Music.Api.dll"]
