@@ -21,9 +21,9 @@ public class ConcertConfiguration : IEntityTypeConfiguration<Concert>
             .HasForeignKey(concert => concert.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(c => c.Cover)
-            .WithOne(cc => cc.Concert)
-            .HasForeignKey<ConcertCover>(cc => cc.ConcertId)
+        builder.HasMany(c => c.Images)
+            .WithOne(image => image.Concert)
+            .HasForeignKey(image => image.ConcertId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(c => c.ConcertAlbums)

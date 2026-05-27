@@ -16,6 +16,9 @@ public class TrackConfiguration : IEntityTypeConfiguration<Track>
         builder.Property(t => t.Id)
             .ValueGeneratedOnAdd();
 
+        builder.Property(t => t.Kind)
+            .IsRequired();
+
         builder.Property(t => t.Version)
             .IsRowVersion();
 
@@ -24,13 +27,22 @@ public class TrackConfiguration : IEntityTypeConfiguration<Track>
             .HasForeignKey(track => track.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(t => t.BasedOnTrack)
+            .WithMany(t => t.DerivedTracks)
+            .HasForeignKey(t => t.BasedOnTrackId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+
         builder.HasIndex(t => t.NormalizedTitle);
         builder.HasIndex(t => t.IsMC);
         builder.HasIndex(t => t.LanguageId);
         builder.HasIndex(t => t.CreatedByUserId);
+        builder.HasIndex(t => t.Kind);
+        builder.HasIndex(t => t.BasedOnTrackId);
         builder.HasIndex(t => t.CreatedAt);
         builder.HasIndex(t => t.UpdatedAt);
 
         builder.HasIndex(t => new { t.LanguageId, t.IsMC });
+        builder.HasIndex(t => new { t.Kind, t.BasedOnTrackId });
     }
 }

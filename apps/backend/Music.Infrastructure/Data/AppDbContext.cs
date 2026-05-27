@@ -25,13 +25,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<AlbumImage> AlbumImages { get; set; }
     public DbSet<Track> Tracks { get; set; }
     public DbSet<AlbumTrack> AlbumTracks { get; set; }
-    public DbSet<TrackVariant> TrackVariants { get; set; }
+    public DbSet<TrackAudio> TrackAudios { get; set; }
     public DbSet<TrackCredit> TrackCredits { get; set; }
     public DbSet<TrackSource> TrackSources { get; set; }
     public DbSet<StoredFile> StoredFiles { get; set; }
     public DbSet<FileObject> FileObjects { get; set; }
     public DbSet<Concert> Concerts { get; set; }
-    public DbSet<ConcertCover> ConcertCovers { get; set; }
+    public DbSet<ConcertImage> ConcertImages { get; set; }
     public DbSet<ConcertAlbum> ConcertAlbums { get; set; }
     public DbSet<ConcertParty> ConcertParties { get; set; }
     public DbSet<ConcertFile> ConcertFiles { get; set; }

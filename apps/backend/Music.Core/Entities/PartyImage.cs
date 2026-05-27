@@ -22,7 +22,8 @@ public class PartyImage
 
     public bool IsPrimary { get; set; } = false;
 
-    public required PartyImageType PartyImageType { get; set; }
+    public required ImageRole ImageRole { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

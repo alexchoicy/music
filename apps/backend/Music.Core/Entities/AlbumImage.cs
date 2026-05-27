@@ -14,6 +14,8 @@ public class AlbumImage
     public int FileId { get; set; }
     public StoredFile? File { get; set; }
 
+    public ImageRole ImageRole { get; set; } = ImageRole.Cover;
+
     public int? CropX { get; set; }
     public int? CropY { get; set; }
     public int? CropWidth { get; set; }
@@ -22,4 +24,5 @@ public class AlbumImage
     public bool IsPrimary { get; set; } = false;
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

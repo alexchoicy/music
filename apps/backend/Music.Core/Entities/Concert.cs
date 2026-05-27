@@ -17,7 +17,7 @@ public class Concert
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
-    public ConcertCover? Cover { get; set; }
+    public ICollection<ConcertImage> Images { get; set; } = [];
 
     public ICollection<ConcertAlbum> ConcertAlbums { get; set; } = [];
     public ICollection<ConcertParty> ConcertParties { get; set; } = [];

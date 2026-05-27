@@ -13,24 +13,18 @@ public class FileObjectConfiguration : IEntityTypeConfiguration<FileObject>
 
         builder.HasKey(fo => fo.Id);
 
-        builder.HasOne<User>()
-            .WithMany(user => user.CreatedFileObjects)
-            .HasForeignKey(fo => fo.CreatedByUserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         builder.HasOne(fo => fo.File)
             .WithMany(ft => ft.FileObjects)
             .HasForeignKey(fo => fo.FileId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(fo => fo.FileId);
-        builder.HasIndex(fo => fo.OriginalBlake3Hash);
-        builder.HasIndex(fo => fo.CurrentBlake3Hash);
+        builder.HasIndex(fo => fo.ObjectBlake3Hash);
         builder.HasIndex(fo => fo.Type);
         builder.HasIndex(fo => fo.MimeType);
-        builder.HasIndex(fo => fo.CreatedByUserId);
         builder.HasIndex(fo => fo.CreatedAt);
 
         builder.HasIndex(fo => new { fo.FileId, fo.Type });
+        builder.HasIndex(fo => new { fo.FileId, fo.FileObjectVariant });
     }
 }

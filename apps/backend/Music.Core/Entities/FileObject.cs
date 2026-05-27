@@ -14,8 +14,7 @@ public class FileObject
     // storageType/variant/Blake3Hash.ext
     public required string StoragePath { get; set; } // can be S3 path, local path, etc.
 
-    public required string OriginalBlake3Hash { get; set; } // I have this idea because this file will be changed with metadata after upload
-    public required string CurrentBlake3Hash { get; set; }
+    public required string ObjectBlake3Hash { get; set; }
 
     public required FileObjectType Type { get; set; }
 
@@ -36,9 +35,6 @@ public class FileObject
     public decimal? FrameRate { get; set; }
 
     public int? DurationInMs { get; set; } = null;
-
-    public required string OriginalFileName { get; set; } // for user reference, not used for storage
-    public string? CreatedByUserId { get; set; } // null = system
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;

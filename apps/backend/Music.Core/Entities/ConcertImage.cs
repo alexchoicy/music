@@ -1,6 +1,8 @@
+using Music.Core.Enums;
+
 namespace Music.Core.Entities;
 
-public class ConcertCover
+public class ConcertImage
 {
     public int Id { get; set; }
 
@@ -15,5 +17,10 @@ public class ConcertCover
     public int? CropWidth { get; set; }
     public int? CropHeight { get; set; }
 
+    public ImageRole ImageRole { get; set; } = ImageRole.Cover;
+
+    public bool IsPrimary { get; set; } = false;
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
