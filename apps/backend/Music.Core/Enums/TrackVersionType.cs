@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Music.Core.Enums;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum TrackKind
+public enum TrackVersionType
 {
     Original = 0,
     Instrumental,

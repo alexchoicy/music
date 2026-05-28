@@ -9,13 +9,13 @@ public class Track
     public required string Title { get; set; }
     public string NormalizedTitle { get; set; } = string.Empty;
 
-    public bool IsMC { get; set; } = false;
-
     public required int DurationInMs { get; set; }
 
     public string Description { get; set; } = string.Empty;
 
-    public TrackKind Kind { get; set; } = TrackKind.Original;
+    public TrackVersionType VersionType { get; set; } = TrackVersionType.Original;
+
+    public TrackContentType ContentType { get; set; } = TrackContentType.Music;
 
     public int? BasedOnTrackId { get; set; }
     public Track? BasedOnTrack { get; set; }

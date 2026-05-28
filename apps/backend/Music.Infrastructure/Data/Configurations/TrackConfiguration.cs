@@ -16,7 +16,7 @@ public class TrackConfiguration : IEntityTypeConfiguration<Track>
         builder.Property(t => t.Id)
             .ValueGeneratedOnAdd();
 
-        builder.Property(t => t.Kind)
+        builder.Property(t => t.VersionType)
             .IsRequired();
 
         builder.Property(t => t.Version)
@@ -34,15 +34,15 @@ public class TrackConfiguration : IEntityTypeConfiguration<Track>
 
 
         builder.HasIndex(t => t.NormalizedTitle);
-        builder.HasIndex(t => t.IsMC);
+        builder.HasIndex(t => t.ContentType);
         builder.HasIndex(t => t.LanguageId);
         builder.HasIndex(t => t.CreatedByUserId);
-        builder.HasIndex(t => t.Kind);
+        builder.HasIndex(t => t.VersionType);
         builder.HasIndex(t => t.BasedOnTrackId);
         builder.HasIndex(t => t.CreatedAt);
         builder.HasIndex(t => t.UpdatedAt);
 
-        builder.HasIndex(t => new { t.LanguageId, t.IsMC });
-        builder.HasIndex(t => new { t.Kind, t.BasedOnTrackId });
+        builder.HasIndex(t => new { t.LanguageId, t.ContentType });
+        builder.HasIndex(t => new { t.VersionType, t.BasedOnTrackId });
     }
 }
