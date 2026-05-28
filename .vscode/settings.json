@@ -5,5 +5,9 @@
         "**/obj": true,
         "**/dist": true,
         "**/node_modules": true
+    },
+    "files.associations": {
+        "**/appsettings.json": "jsonc",
+        "**/appsettings.Development.json": "jsonc"
     }
 }
