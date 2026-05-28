@@ -28,6 +28,15 @@
 				"source.organizeImports.biome": true
 			}
 		},
+    "CSharp": {
+      "format_on_save": "on",
+			"formatter": {
+				"external": {
+					"command": "dotnet",
+					"arguments": ["csharpier", "format"]
+				}
+			}
+		},
 		"JSON": { "formatter": { "language_server": { "name": "biome" } } },
 		"JSONC": { "formatter": { "language_server": { "name": "biome" } } },
 		"CSS": { "formatter": { "language_server": { "name": "biome" } } }
