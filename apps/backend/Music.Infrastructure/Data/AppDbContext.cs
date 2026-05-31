@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Music.Core.Utils;
 using Music.Core.Entities;
+using Music.Core.Shared.Utils;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data;
@@ -35,8 +35,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<ConcertParty> ConcertParties { get; set; }
     public DbSet<ConcertFile> ConcertFiles { get; set; }
 
-
-
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -47,24 +45,24 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000001",
-                Name = Core.Enums.Roles.Admin.ToString(),
-                NormalizedName = Core.Enums.Roles.Admin.ToString().ToUpper(),
-                ConcurrencyStamp = "508a0eaf-dbca-47d9-baeb-597b81a4957e"
+                Name = Music.Core.Domain.Auth.Enums.Roles.Admin.ToString(),
+                NormalizedName = Music.Core.Domain.Auth.Enums.Roles.Admin.ToString().ToUpper(),
+                ConcurrencyStamp = "508a0eaf-dbca-47d9-baeb-597b81a4957e",
             },
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000002",
-                Name = Core.Enums.Roles.Uploader.ToString(),
-                NormalizedName = Core.Enums.Roles.Uploader.ToString().ToUpper(),
-                ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0"
+                Name = Music.Core.Domain.Auth.Enums.Roles.Uploader.ToString(),
+                NormalizedName = Music.Core.Domain.Auth.Enums.Roles.Uploader.ToString().ToUpper(),
+                ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0",
             },
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000003",
-                Name = Core.Enums.Roles.User.ToString(),
-                NormalizedName = Core.Enums.Roles.User.ToString().ToUpper(),
-                ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0"
-            }
+                Name = Music.Core.Domain.Auth.Enums.Roles.User.ToString(),
+                NormalizedName = Music.Core.Domain.Auth.Enums.Roles.User.ToString().ToUpper(),
+                ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0",
+            },
         ];
 
         builder.Entity<IdentityRole>().HasData(roles);
@@ -84,7 +82,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
     private static void UpdateTimestamps(EntityEntry entry, DateTimeOffset now)
     {
-        if (entry.Metadata.FindProperty("CreatedAt") is not null && entry.State == EntityState.Added)
+        if (
+            entry.Metadata.FindProperty("CreatedAt") is not null
+            && entry.State == EntityState.Added
+        )
         {
             var createdAt = entry.Property("CreatedAt").CurrentValue;
             if (createdAt is null || createdAt.Equals(default(DateTimeOffset)))
@@ -99,14 +100,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         }
     }
 
-
     private void NormalizeEntities()
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
 
-        IEnumerable<EntityEntry> entries = ChangeTracker.Entries()
+        IEnumerable<EntityEntry> entries = ChangeTracker
+            .Entries()
             .Where(entry => entry.State is EntityState.Added or EntityState.Modified);
-
 
         foreach (var entry in entries)
         {
@@ -132,5 +132,4 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             }
         }
     }
-
 }

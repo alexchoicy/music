@@ -11,14 +11,14 @@ public class AuthTokenConfiguration : IEntityTypeConfiguration<AuthToken>
     {
         builder.ToTable("AuthTokens");
 
-        builder.HasOne<User>()
+        builder
+            .HasOne<User>()
             .WithMany(user => user.AuthTokens)
             .HasForeignKey(fo => fo.CreatedByUserId);
 
         builder.HasKey(token => token.Id);
 
-        builder.HasIndex(token => token.Jti)
-            .IsUnique();
+        builder.HasIndex(token => token.Jti).IsUnique();
 
         builder.HasIndex(token => token.CreatedByUserId);
     }

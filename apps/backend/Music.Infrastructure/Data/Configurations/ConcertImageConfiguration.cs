@@ -12,24 +12,22 @@ public class ConcertImageConfiguration : IEntityTypeConfiguration<ConcertImage>
 
         builder.HasKey(ci => ci.Id);
 
-        builder.Property(ci => ci.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(ci => ci.Id).ValueGeneratedOnAdd();
 
-        builder.Property(ci => ci.ConcertId)
-            .IsRequired();
+        builder.Property(ci => ci.ConcertId).IsRequired();
 
-        builder.Property(ci => ci.FileId)
-            .IsRequired();
+        builder.Property(ci => ci.FileId).IsRequired();
 
-        builder.Property(ci => ci.ImageRole)
-            .IsRequired();
+        builder.Property(ci => ci.ImageRole).IsRequired();
 
-        builder.HasOne(ci => ci.Concert)
+        builder
+            .HasOne(ci => ci.Concert)
             .WithMany(concert => concert.Images)
             .HasForeignKey(ci => ci.ConcertId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(ci => ci.File)
+        builder
+            .HasOne(ci => ci.File)
             .WithMany(file => file.ConcertImages)
             .HasForeignKey(ci => ci.FileId)
             .OnDelete(DeleteBehavior.Restrict);
@@ -42,7 +40,8 @@ public class ConcertImageConfiguration : IEntityTypeConfiguration<ConcertImage>
         builder.HasIndex(ci => ci.UpdatedAt);
 
         builder.HasIndex(ci => new { ci.ConcertId, ci.IsPrimary });
-        builder.HasIndex(ci => new { ci.ConcertId, ci.ImageRole })
+        builder
+            .HasIndex(ci => new { ci.ConcertId, ci.ImageRole })
             .IsUnique()
             .HasFilter("\"IsPrimary\" = true");
     }

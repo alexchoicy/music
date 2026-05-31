@@ -13,7 +13,8 @@ public static class ExternalRunner
         string outputPath,
         string toolName,
         CancellationToken cancellationToken,
-        string? workingDirectory = null)
+        string? workingDirectory = null
+    )
     {
         ProcessStartInfo psi = new()
         {
@@ -21,7 +22,7 @@ public static class ExternalRunner
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
-            CreateNoWindow = true
+            CreateNoWindow = true,
         };
 
         if (!string.IsNullOrWhiteSpace(workingDirectory))
@@ -34,11 +35,7 @@ public static class ExternalRunner
             psi.ArgumentList.Add(arg);
         }
 
-        using Process process = new()
-        {
-            StartInfo = psi,
-            EnableRaisingEvents = true
-        };
+        using Process process = new() { StartInfo = psi, EnableRaisingEvents = true };
 
         try
         {
@@ -54,19 +51,19 @@ public static class ExternalRunner
             return false;
         }
 
-        using CancellationTokenRegistration cancellationRegistration = cancellationToken.Register(() =>
-        {
-            try
+        using CancellationTokenRegistration cancellationRegistration = cancellationToken.Register(
+            () =>
             {
-                if (!process.HasExited)
+                try
                 {
-                    process.Kill(entireProcessTree: true);
+                    if (!process.HasExited)
+                    {
+                        process.Kill(entireProcessTree: true);
+                    }
                 }
+                catch { }
             }
-            catch
-            {
-            }
-        });
+        );
 
         Task<string> stdoutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
         Task<string> stderrTask = process.StandardError.ReadToEndAsync(cancellationToken);
@@ -84,7 +81,8 @@ public static class ExternalRunner
                 inputPath,
                 outputPath,
                 process.ExitCode,
-                string.IsNullOrWhiteSpace(stderr) ? stdout : stderr);
+                string.IsNullOrWhiteSpace(stderr) ? stdout : stderr
+            );
 
             return false;
         }
@@ -93,7 +91,8 @@ public static class ExternalRunner
             "{ToolName} succeeded for {InputPath} -> {OutputPath}",
             toolName,
             inputPath,
-            outputPath);
+            outputPath
+        );
 
         return true;
     }

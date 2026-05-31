@@ -12,24 +12,22 @@ public class AlbumImageConfiguration : IEntityTypeConfiguration<AlbumImage>
 
         builder.HasKey(ai => ai.Id);
 
-        builder.Property(ai => ai.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(ai => ai.Id).ValueGeneratedOnAdd();
 
-        builder.Property(ai => ai.AlbumId)
-            .IsRequired();
+        builder.Property(ai => ai.AlbumId).IsRequired();
 
-        builder.Property(ai => ai.FileId)
-            .IsRequired();
+        builder.Property(ai => ai.FileId).IsRequired();
 
-        builder.Property(ai => ai.ImageRole)
-            .IsRequired();
+        builder.Property(ai => ai.ImageRole).IsRequired();
 
-        builder.HasOne(pi => pi.Album)
+        builder
+            .HasOne(pi => pi.Album)
             .WithMany(p => p.Images)
             .HasForeignKey(pi => pi.AlbumId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(pi => pi.File)
+        builder
+            .HasOne(pi => pi.File)
             .WithMany(file => file.AlbumImages)
             .HasForeignKey(pi => pi.FileId)
             .OnDelete(DeleteBehavior.Restrict);
@@ -43,7 +41,8 @@ public class AlbumImageConfiguration : IEntityTypeConfiguration<AlbumImage>
 
         builder.HasIndex(ai => new { ai.AlbumId, ai.IsPrimary });
 
-        builder.HasIndex(ai => new { ai.AlbumId, ai.ImageRole })
+        builder
+            .HasIndex(ai => new { ai.AlbumId, ai.ImageRole })
             .IsUnique()
             .HasFilter("\"IsPrimary\" = true");
     }

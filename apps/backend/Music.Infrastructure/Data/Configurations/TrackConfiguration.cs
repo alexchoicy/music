@@ -13,25 +13,23 @@ public class TrackConfiguration : IEntityTypeConfiguration<Track>
 
         builder.HasKey(t => t.Id);
 
-        builder.Property(t => t.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(t => t.Id).ValueGeneratedOnAdd();
 
-        builder.Property(t => t.VersionType)
-            .IsRequired();
+        builder.Property(t => t.VersionType).IsRequired();
 
-        builder.Property(t => t.Version)
-            .IsRowVersion();
+        builder.Property(t => t.Version).IsRowVersion();
 
-        builder.HasOne<User>()
+        builder
+            .HasOne<User>()
             .WithMany(user => user.CreatedTracks)
             .HasForeignKey(track => track.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(t => t.BasedOnTrack)
+        builder
+            .HasOne(t => t.BasedOnTrack)
             .WithMany(t => t.DerivedTracks)
             .HasForeignKey(t => t.BasedOnTrackId)
             .OnDelete(DeleteBehavior.Restrict);
-
 
         builder.HasIndex(t => t.NormalizedTitle);
         builder.HasIndex(t => t.ContentType);

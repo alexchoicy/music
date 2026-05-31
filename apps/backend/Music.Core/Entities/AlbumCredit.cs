@@ -1,4 +1,4 @@
-using Music.Core.Enums;
+using Music.Core.Domain.Albums;
 
 namespace Music.Core.Entities;
 

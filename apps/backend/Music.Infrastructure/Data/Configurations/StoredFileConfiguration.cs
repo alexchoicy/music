@@ -13,50 +13,52 @@ public class StoredFileConfiguration : IEntityTypeConfiguration<StoredFile>
 
         builder.HasKey(f => f.Id);
 
-        builder.Property(f => f.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(f => f.Id).ValueGeneratedOnAdd();
 
-        builder.Property(f => f.Source)
-            .IsRequired();
+        builder.Property(f => f.Source).IsRequired();
 
-        builder.Property(f => f.OriginalBlake3Hash)
-            .IsRequired();
+        builder.Property(f => f.OriginalBlake3Hash).IsRequired();
 
-        builder.Property(f => f.OriginalFileName)
-            .IsRequired();
+        builder.Property(f => f.OriginalFileName).IsRequired();
 
-        builder.HasOne<User>()
+        builder
+            .HasOne<User>()
             .WithMany(user => user.UploadedFiles)
             .HasForeignKey(f => f.UploadedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasMany(f => f.FileObjects)
+        builder
+            .HasMany(f => f.FileObjects)
             .WithOne(fo => fo.File)
             .HasForeignKey(fo => fo.FileId)
             .OnDelete(DeleteBehavior.Cascade);
 
-
-        builder.HasMany(f => f.TrackAudios)
+        builder
+            .HasMany(f => f.TrackAudios)
             .WithOne(ta => ta.File)
             .HasForeignKey(ta => ta.FileId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasMany(f => f.AlbumImages)
+        builder
+            .HasMany(f => f.AlbumImages)
             .WithOne(image => image.File)
             .HasForeignKey(image => image.FileId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasMany(f => f.PartyImages)
+        builder
+            .HasMany(f => f.PartyImages)
             .WithOne(image => image.File)
             .HasForeignKey(image => image.FileId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasMany(f => f.ConcertImages)
+        builder
+            .HasMany(f => f.ConcertImages)
             .WithOne(image => image.File)
             .HasForeignKey(image => image.FileId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasMany(f => f.ConcertFiles)
+        builder
+            .HasMany(f => f.ConcertFiles)
             .WithOne(file => file.File)
             .HasForeignKey(file => file.FileId)
             .OnDelete(DeleteBehavior.Restrict);

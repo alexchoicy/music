@@ -1,4 +1,4 @@
-using Music.Core.Enums;
+using Music.Core.Domain.Files.Enums;
 
 namespace Music.Core.Entities;
 
@@ -10,6 +10,8 @@ public class FileObject
     public StoredFile? File { get; set; }
 
     public FileProcessingStatus ProcessingStatus { get; set; } = FileProcessingStatus.Pending;
+
+    public required StorageArea StorageArea { get; set; }
 
     // storageType/variant/Blake3Hash.ext
     public required string StoragePath { get; set; } // can be S3 path, local path, etc.

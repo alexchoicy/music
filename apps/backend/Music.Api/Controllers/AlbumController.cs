@@ -1,13 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
-using Music.Core.Services.Interfaces;
-using Music.Api.Dtos.Requests;
-using Microsoft.AspNetCore.Authorization;
-using Music.Api.Dtos.Responses;
-using Music.Core.Models;
 using System.ComponentModel.DataAnnotations;
-using Music.Api.Mappers;
-using Music.Core.Enums;
-using Music.Core.Constants;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Music.Core.Domain.Albums;
+using Music.Core.Shared.Constants;
 
 namespace Music.Api.Controllers;
 
@@ -17,76 +12,75 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
 {
     private readonly IAlbumService _albumService = albumService;
 
-    [HttpGet("{id:int}/simple")]
+    [HttpGet("{id:int}/summary")]
     [Authorize(Policy = AuthorizationPolicies.BotAllowed)]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(AlbumSimpleModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AlbumSummary), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSimpleById(
-        [FromRoute][Required] int id,
-        CancellationToken cancellationToken)
+        [FromRoute] [Required] int id,
+        CancellationToken cancellationToken
+    )
     {
-        AlbumSimpleModel album = await _albumService.GetSimpleByIdAsync(id, cancellationToken);
-        return Ok(album);
-    }
-
-    [HttpGet("{id:int}")]
-    [Authorize]
-    [Produces("application/json")]
-    [ProducesResponseType(typeof(AlbumDetailsModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(
-        [FromRoute][Required] int id,
-        CancellationToken cancellationToken)
-    {
-        AlbumDetailsModel album = await _albumService.GetByIdAsync(id, cancellationToken);
+        AlbumSummary album = await _albumService.GetSummaryByIdAsync(id, cancellationToken);
         return Ok(album);
     }
 
     [HttpGet]
     [Authorize]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(IReadOnlyList<AlbumListItemModel>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IReadOnlyList<AlbumListItem>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllForList(CancellationToken cancellationToken)
     {
-        IReadOnlyList<AlbumListItemModel> list = await _albumService.GetAllForListAsync(cancellationToken);
+        IReadOnlyList<AlbumListItem> list = await _albumService.GetAllForListAsync(
+            cancellationToken
+        );
         return Ok(list);
     }
 
-    [HttpGet("{id:int}/download")]
-    [Produces("application/json")]
+    [HttpGet("{id:int}")]
     [Authorize]
-    [ProducesResponseType(typeof(IReadOnlyList<AlbumTrackDownloadItemModel>), StatusCodes.Status200OK)]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(AlbumDetails), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetDownloadUrls(
-        [FromRoute][Required] int id,
-        [FromQuery][Required] FileObjectVariant variant,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(
+        [FromRoute] [Required] int id,
+        CancellationToken cancellationToken
+    )
     {
-        if (variant != FileObjectVariant.Original && variant != FileObjectVariant.Opus96)
-            throw new ValidationException("Only Original and Opus96 variants are supported for album downloads.");
-
-        IReadOnlyList<AlbumTrackDownloadItemModel> downloadUrls = await _albumService
-            .GetAlbumDownloadUrlsAsync(id, variant, cancellationToken);
-
-        return Ok(downloadUrls);
+        AlbumDetails album = await _albumService.GetByIdAsync(id, cancellationToken);
+        return Ok(album);
     }
 
     [HttpPost]
     [Authorize]
     [ProducesResponseType(typeof(IReadOnlyList<CreateAlbumResult>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(IReadOnlyList<CreateAlbumResult>), StatusCodes.Status207MultiStatus)]
+    [ProducesResponseType(
+        typeof(IReadOnlyList<CreateAlbumResult>),
+        StatusCodes.Status207MultiStatus
+    )]
+    [ProducesResponseType(
+        typeof(IReadOnlyList<CreateAlbumResult>),
+        StatusCodes.Status400BadRequest
+    )]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create(
-        [FromBody] IReadOnlyList<CreateAlbumRequest> request,
-        CancellationToken cancellationToken)
+        [FromBody] [Required] IReadOnlyList<CreateAlbumRequest> request,
+        CancellationToken cancellationToken
+    )
     {
-        List<CreateAlbumModel> model = request.Select(r => r.ToModel()).ToList();
+        if (request.Count == 0)
+            return BadRequest("At least one album is required.");
 
-        string userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value!;
+        string userId =
+            User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? throw new ValidationException("Missing user identifier claim.");
 
-        IReadOnlyList<CreateAlbumResult> results = await _albumService.CreateAlbumAsync(model, userId, cancellationToken);
+        IReadOnlyList<CreateAlbumResult> results = await _albumService.CreateAlbumAsync(
+            request,
+            userId,
+            cancellationToken
+        );
 
         if (results.All(r => r.IsSuccess))
             return Ok(results);
@@ -96,5 +90,4 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
 
         return StatusCode(StatusCodes.Status207MultiStatus, results);
     }
-
 }

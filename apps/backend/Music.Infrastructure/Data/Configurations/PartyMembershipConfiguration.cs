@@ -12,12 +12,14 @@ public class PartyMembershipConfiguration : IEntityTypeConfiguration<PartyMember
 
         builder.HasKey(pm => new { pm.PartyId, pm.MemberId });
 
-        builder.HasOne(pm => pm.Party)
+        builder
+            .HasOne(pm => pm.Party)
             .WithMany(p => p.Members)
             .HasForeignKey(pm => pm.PartyId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(pm => pm.Member)
+        builder
+            .HasOne(pm => pm.Member)
             .WithMany(p => p.MemberOf)
             .HasForeignKey(pm => pm.MemberId)
             .OnDelete(DeleteBehavior.Cascade);

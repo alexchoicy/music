@@ -12,14 +12,12 @@ public class PartyExternalInfoConfiguration : IEntityTypeConfiguration<PartyExte
 
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(x => x.Id).ValueGeneratedOnAdd();
 
-        builder.Property(x => x.ExternalIds)
-            .HasMaxLength(256)
-            .IsRequired();
+        builder.Property(x => x.ExternalIds).HasMaxLength(256).IsRequired();
 
-        builder.HasOne(x => x.Party)
+        builder
+            .HasOne(x => x.Party)
             .WithMany(p => p.PartyExternalInfos)
             .HasForeignKey(x => x.PartyId)
             .OnDelete(DeleteBehavior.Cascade);

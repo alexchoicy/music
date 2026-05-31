@@ -1,83 +1,40 @@
-using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Music.Api.Dtos.Requests;
-using Music.Core.Constants;
-using Music.Core.Models;
-using Music.Core.Services.Interfaces;
+using Music.Core.Domain.Uploads;
+using Music.Core.Domain.Uploads.Requests;
+using Music.Core.Shared.Constants;
 
 namespace Music.Api.Controllers;
 
 [ApiController]
-[Authorize(AuthorizationPolicies.UploadAllowed)]
 [Route("uploads")]
-public class UploadController(IContentService contentService) : ControllerBase
+public class UploadController(IUploadService uploadService) : ControllerBase
 {
-    // [HttpPost("audio/test-process")]
-    // [Produces("application/json")]
-    // [ProducesResponseType(StatusCodes.Status200OK)]
-    // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    // public IActionResult QueueAudioUploadProcess(
-    //     [FromBody] TrackUploadProcessTestRequest request)
-    // {
-    //     TrackUploadProcessWorkerModel workerModel = new()
-    //     {
-    //         FileObjectId = request.FileObjectId,
-    //     };
+    private readonly IUploadService _uploadService = uploadService;
 
-    //     contentService.RunBackgroundProcessAudioUploadFile(workerModel);
-
-    //     return Ok();
-    // }
-
-    // audio only, for extra/concert do it in other methods
-    [HttpPost("audio/complete-multipart")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> CompleteAudioMultipartUpload(
-        [FromBody] List<CompleteMultipartUploadRequest> request,
-        CancellationToken cancellationToken)
+    //TODO: add a upload session
+    [HttpPost("Init")]
+    [Authorize(AuthorizationPolicies.UploadAllowed)]
+    [ProducesResponseType(typeof(MultipartUploadResults), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Init(
+        [FromBody] CreateUploadRequest request,
+        CancellationToken cancellationToken
+    )
     {
-        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new ValidationException("Missing user identifier claim.");
+        var result = await _uploadService.Init(request, cancellationToken);
 
-        await contentService.CompleteAudioMultipartUploadAsync(request, userId, cancellationToken);
-
-        return Ok();
+        return Ok(result);
     }
 
-    [HttpPost("concert/complete-multipart")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> CompleteConcertMultipartUpload(
-        [FromBody] CompleteMultipartUploadRequest request,
-        CancellationToken cancellationToken)
+    [HttpPost("complete")]
+    [Authorize(AuthorizationPolicies.UploadAllowed)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Complete(
+        [FromBody] CompleteUploadRequest request,
+        CancellationToken cancellationToken
+    )
     {
-        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new ValidationException("Missing user identifier claim.");
-
-        await contentService.CompleteConcertMultipartUploadAsync(request, userId, cancellationToken);
-
-        return Ok();
-    }
-
-    [HttpPost("concert/test-process")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public IActionResult QueueAudioUploadProcess(
-        [FromBody] TrackUploadProcessTestRequest request)
-    {
-        ConcertUploadProcessWorkerModel workerModel = new()
-        {
-            FileObjectId = request.FileObjectId,
-        };
-
-        contentService.RunBackgroundProcessUploadFile(workerModel);
-
-        return Ok();
+        await _uploadService.Complete(request, cancellationToken);
+        return NoContent();
     }
 }

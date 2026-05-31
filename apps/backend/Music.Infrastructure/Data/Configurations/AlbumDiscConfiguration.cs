@@ -12,19 +12,16 @@ public class AlbumDiscConfiguration : IEntityTypeConfiguration<AlbumDisc>
 
         builder.HasKey(ad => ad.Id);
 
-        builder.Property(ad => ad.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(ad => ad.Id).ValueGeneratedOnAdd();
 
-        builder.Property(ad => ad.AlbumId)
-            .IsRequired();
+        builder.Property(ad => ad.AlbumId).IsRequired();
 
-        builder.Property(ad => ad.Subtitle)
-            .HasMaxLength(250);
+        builder.Property(ad => ad.Subtitle).HasMaxLength(250);
 
-        builder.Property(ad => ad.Version)
-            .IsRowVersion();
+        builder.Property(ad => ad.Version).IsRowVersion();
 
-        builder.HasOne(ad => ad.Album)
+        builder
+            .HasOne(ad => ad.Album)
             .WithMany(album => album.Discs)
             .HasForeignKey(ad => ad.AlbumId)
             .OnDelete(DeleteBehavior.Cascade);

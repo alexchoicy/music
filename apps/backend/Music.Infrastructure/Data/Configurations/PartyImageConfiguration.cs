@@ -12,18 +12,18 @@ public class PartyImageConfiguration : IEntityTypeConfiguration<PartyImage>
 
         builder.HasKey(pi => pi.Id);
 
-        builder.Property(pi => pi.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(pi => pi.Id).ValueGeneratedOnAdd();
 
-        builder.Property(pi => pi.ImageRole)
-            .IsRequired();
+        builder.Property(pi => pi.ImageRole).IsRequired();
 
-        builder.HasOne(pi => pi.Party)
+        builder
+            .HasOne(pi => pi.Party)
             .WithMany(p => p.Images)
             .HasForeignKey(pi => pi.PartyId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(pi => pi.File)
+        builder
+            .HasOne(pi => pi.File)
             .WithMany(file => file.PartyImages)
             .HasForeignKey(pi => pi.FileId)
             .OnDelete(DeleteBehavior.Restrict);
@@ -36,7 +36,8 @@ public class PartyImageConfiguration : IEntityTypeConfiguration<PartyImage>
         builder.HasIndex(pi => pi.UpdatedAt);
 
         builder.HasIndex(pi => new { pi.PartyId, pi.IsPrimary });
-        builder.HasIndex(pi => new { pi.PartyId, pi.ImageRole })
+        builder
+            .HasIndex(pi => new { pi.PartyId, pi.ImageRole })
             .IsUnique()
             .HasFilter("\"IsPrimary\" = true");
     }

@@ -13,15 +13,16 @@ public class PartyAliasConfiguration : IEntityTypeConfiguration<PartyAlias>
 
         builder.HasKey(aa => aa.Id);
 
-        builder.Property(aa => aa.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(aa => aa.Id).ValueGeneratedOnAdd();
 
-        builder.HasOne(aa => aa.Party)
+        builder
+            .HasOne(aa => aa.Party)
             .WithMany(p => p.Aliases)
             .HasForeignKey(aa => aa.PartyId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne<User>()
+        builder
+            .HasOne<User>()
             .WithMany()
             .HasForeignKey(aa => aa.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);

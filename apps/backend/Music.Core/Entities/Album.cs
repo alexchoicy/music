@@ -1,4 +1,4 @@
-using Music.Core.Enums;
+using Music.Core.Domain.Albums;
 
 namespace Music.Core.Entities;
 
@@ -25,6 +25,7 @@ public class Album
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+
     // This credit is primary the main group of peoples
     // track can have different credits than album
     public ICollection<AlbumCredit> Credits { get; set; } = [];

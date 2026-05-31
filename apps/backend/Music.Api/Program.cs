@@ -1,20 +1,20 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using System.Text.Json.Serialization;
 using Music.Api.Handlers;
 using Music.Api.Startup;
-using Music.Core.Enums;
-using Music.Core.Models;
+using Music.Core.Configuration.Options;
+using Music.Core.Domain.Auth;
+using Music.Core.Domain.Auth.Enums;
+using Music.Core.Shared.Constants;
 using Music.Infrastructure;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Data.Seed;
 using Music.Infrastructure.Entities;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Music.Core.Services.Interfaces;
-using Music.Core.Constants;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,10 +22,8 @@ builder.Services.AddProblemDetails(configure =>
 {
     configure.CustomizeProblemDetails = options =>
     {
-        options.ProblemDetails.Extensions.TryAdd("traceId",
-            options.HttpContext.TraceIdentifier);
-        options.ProblemDetails.Extensions.TryAdd("timestamp",
-            DateTime.UtcNow);
+        options.ProblemDetails.Extensions.TryAdd("traceId", options.HttpContext.TraceIdentifier);
+        options.ProblemDetails.Extensions.TryAdd("timestamp", DateTime.UtcNow);
     };
 });
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -34,17 +32,17 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options =>
 {
-    options.AddDocumentTransformer((document, context, ct) =>
-    {
-        document.Servers =
-        [
-            new() { Url = builder.Configuration["Base:ApiUrl"]! }
-        ];
-        return Task.CompletedTask;
-    });
+    options.AddDocumentTransformer(
+        (document, context, ct) =>
+        {
+            document.Servers = [new() { Url = builder.Configuration["Base:ApiUrl"]! }];
+            return Task.CompletedTask;
+        }
+    );
 });
 
-builder.Services.AddControllers()
+builder
+    .Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -52,11 +50,11 @@ builder.Services.AddControllers()
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(p => p
-        .WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials()
+    options.AddDefaultPolicy(p =>
+        p.WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
     );
 });
 
@@ -67,95 +65,120 @@ builder.Services.Configure<BaseOptions>(builder.Configuration.GetSection("Base")
 builder.Services.Configure<ExternalOptions>(builder.Configuration.GetSection("External"));
 
 ConfigValidation.Validation(builder.Configuration);
+
 // Checked in Validation
 string cookieName = builder.Configuration.GetValue<string>("Cookies:Name")!;
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultScheme =
-    options.DefaultAuthenticateScheme =
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+builder
+    .Services.AddAuthentication(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["JWT:Issuer"],
-        ValidAudience = builder.Configuration["JWT:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]!)
-        ),
-        RequireExpirationTime = false,
-        LifetimeValidator = (notBefore, expires, token, parameters) =>
+        options.DefaultScheme =
+            options.DefaultAuthenticateScheme =
+            options.DefaultChallengeScheme =
+                JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(
+        JwtBearerDefaults.AuthenticationScheme,
+        options =>
         {
-            if (token is not JsonWebToken jwt)
+            options.TokenValidationParameters = new TokenValidationParameters
             {
-                Console.WriteLine("Invalid token format");
-                return false;
-            }
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = builder.Configuration["JWT:Issuer"],
+                ValidAudience = builder.Configuration["JWT:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]!)
+                ),
+                RequireExpirationTime = false,
+                LifetimeValidator = (notBefore, expires, token, parameters) =>
+                {
+                    if (token is not JsonWebToken jwt)
+                    {
+                        Console.WriteLine("Invalid token format");
+                        return false;
+                    }
 
-            string? accessType = jwt.Claims.FirstOrDefault(c => c.Type == AuthClaimNames.AccessType)?.Value;
+                    string? accessType = jwt
+                        .Claims.FirstOrDefault(c => c.Type == AuthClaimNames.AccessType)
+                        ?.Value;
 
-            if (string.IsNullOrEmpty(accessType))
+                    if (string.IsNullOrEmpty(accessType))
+                    {
+                        Console.WriteLine($"Missing {AuthClaimNames.AccessType} claim");
+                        return false;
+                    }
+
+                    if (accessType == TokenUseType.Machine.ToString())
+                    {
+                        return true;
+                    }
+
+                    //TODO add app token check here
+                    if (!expires.HasValue)
+                    {
+                        return false;
+                    }
+
+                    return expires.Value > DateTime.UtcNow;
+                },
+            };
+
+            options.Events = new JwtBearerEvents
             {
-                Console.WriteLine($"Missing {AuthClaimNames.AccessType} claim");
-                return false;
-            }
+                OnMessageReceived = context =>
+                {
+                    if (context.Request.Cookies.TryGetValue(cookieName, out string? authToken))
+                    {
+                        context.Token = authToken;
+                    }
 
-            if (accessType == TokenUseType.Machine.ToString())
-            {
-                return true;
-            }
-
-            //TODO add app token check here
-            if (!expires.HasValue)
-            {
-                return false;
-            }
-
-            return expires.Value > DateTime.UtcNow;
-        },
-    };
-
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = context =>
-        {
-            if (context.Request.Cookies.TryGetValue(cookieName, out string? authToken))
-            {
-                context.Token = authToken;
-            }
-
-            return Task.CompletedTask;
-        },
-        OnTokenValidated = async context =>
-        {
-            ITokenService tokenService = context.HttpContext.RequestServices.GetRequiredService<ITokenService>();
-            bool isValid = await tokenService.ValidateTokenAsync(context.Principal!, context.HttpContext.RequestAborted);
-            if (!isValid)
-            {
-                context.Fail("Token session is invalid or revoked.");
-            }
+                    return Task.CompletedTask;
+                },
+                OnTokenValidated = async context =>
+                {
+                    ITokenService tokenService =
+                        context.HttpContext.RequestServices.GetRequiredService<ITokenService>();
+                    bool isValid = await tokenService.ValidateTokenAsync(
+                        context.Principal!,
+                        context.HttpContext.RequestAborted
+                    );
+                    if (!isValid)
+                    {
+                        context.Fail("Token session is invalid or revoked.");
+                    }
+                },
+            };
         }
-    };
-});
+    );
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy(AuthorizationPolicies.UserAllowed,
-        policy => policy.RequireClaim(AuthClaimNames.AccessType, TokenUseType.UserAccess.ToString()));
+    options.AddPolicy(
+        AuthorizationPolicies.UserAllowed,
+        policy => policy.RequireClaim(AuthClaimNames.AccessType, TokenUseType.UserAccess.ToString())
+    );
 
-    options.AddPolicy(AuthorizationPolicies.RequireAdminRole, policy => policy.RequireRole(Roles.Admin.ToString()));
+    options.AddPolicy(
+        AuthorizationPolicies.RequireAdminRole,
+        policy => policy.RequireRole(Roles.Admin.ToString())
+    );
 
-    options.AddPolicy(AuthorizationPolicies.BotAllowed, policy =>
-        policy.RequireClaim(AuthClaimNames.AccessType, TokenUseType.Machine.ToString()));
+    options.AddPolicy(
+        AuthorizationPolicies.BotAllowed,
+        policy => policy.RequireClaim(AuthClaimNames.AccessType, TokenUseType.Machine.ToString())
+    );
 
-    options.AddPolicy(AuthorizationPolicies.UploadAllowed, policy =>
-        policy.RequireClaim(AuthClaimNames.AccessType,
-            TokenUseType.UserAccess.ToString(),
-            TokenUseType.Upload.ToString()));
+    options.AddPolicy(
+        AuthorizationPolicies.UploadAllowed,
+        policy =>
+            policy.RequireClaim(
+                AuthClaimNames.AccessType,
+                TokenUseType.UserAccess.ToString(),
+                TokenUseType.Upload.ToString()
+            )
+    );
 
     options.DefaultPolicy = options.GetPolicy(AuthorizationPolicies.UserAllowed)!;
 });
@@ -163,7 +186,6 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
-
 
 // Configure the HTTP request pipeline.
 // if (app.Environment.IsDevelopment())
@@ -174,6 +196,7 @@ app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("/openapi/v1.json", "v1");
 });
+
 // }
 
 using (IServiceScope scope = app.Services.CreateScope())
@@ -184,7 +207,13 @@ using (IServiceScope scope = app.Services.CreateScope())
     ILogger<UserSeed> logger = scope.ServiceProvider.GetRequiredService<ILogger<UserSeed>>();
     UserManager<User> userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-    await UserSeed.SeedAsync(dbContext, logger, userManager, builder.Configuration, builder.Environment);
+    await UserSeed.SeedAsync(
+        dbContext,
+        logger,
+        userManager,
+        builder.Configuration,
+        builder.Environment
+    );
 
     //Create a "Unknown" party for works
     await PartySeed.SeedAsync(dbContext);

@@ -12,15 +12,16 @@ public class LanguageConfiguration : IEntityTypeConfiguration<Language>
 
         builder.HasKey(l => l.Id);
 
-        builder.Property(l => l.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(l => l.Id).ValueGeneratedOnAdd();
 
-        builder.HasMany(l => l.Albums)
+        builder
+            .HasMany(l => l.Albums)
             .WithOne(a => a.Language)
             .HasForeignKey(a => a.LanguageId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        builder.HasMany(l => l.Tracks)
+        builder
+            .HasMany(l => l.Tracks)
             .WithOne(t => t.Language)
             .HasForeignKey(t => t.LanguageId)
             .OnDelete(DeleteBehavior.SetNull);

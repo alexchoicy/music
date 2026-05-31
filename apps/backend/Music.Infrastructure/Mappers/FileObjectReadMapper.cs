@@ -1,0 +1,53 @@
+using Music.Core.Application.Storage;
+using Music.Core.Domain.Files;
+using Music.Core.Entities;
+
+namespace Music.Infrastructure.Mappers;
+
+internal static class FileObjectReadMapper
+{
+    public static FileObjectDetails ToContentDetails(
+        this FileObject fileObject,
+        IContentService contentService,
+        bool isDash = false
+    )
+    {
+        return fileObject.ToDetails(url: contentService.GetUrl(fileObject.Id), isDash: isDash);
+    }
+
+    public static FileObjectDetails ToAssetDetails(
+        this FileObject fileObject,
+        IAssetsService assetsService
+    )
+    {
+        return fileObject.ToDetails(url: assetsService.GetUrl(fileObject.StoragePath));
+    }
+
+    private static FileObjectDetails ToDetails(
+        this FileObject fileObject,
+        string url,
+        bool isDash = false
+    )
+    {
+        return new FileObjectDetails
+        {
+            Id = fileObject.Id,
+            Url = isDash ? $"{url}/manifest.mpd" : url,
+            Type = fileObject.Type,
+            Variant = fileObject.FileObjectVariant,
+            SizeInBytes = fileObject.SizeInBytes,
+            MimeType = fileObject.MimeType,
+            Container = fileObject.Container,
+            Extension = fileObject.Extension,
+            Codec = fileObject.Codec,
+            Width = fileObject.Width,
+            Height = fileObject.Height,
+            AudioSampleRate = fileObject.AudioSampleRate,
+            Bitrate = fileObject.Bitrate,
+            FrameRate = fileObject.FrameRate,
+            DurationInMs = fileObject.DurationInMs,
+            CreatedAt = fileObject.CreatedAt,
+            UpdatedAt = fileObject.UpdatedAt,
+        };
+    }
+}

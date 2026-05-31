@@ -13,7 +13,10 @@ public class FileObjectConfiguration : IEntityTypeConfiguration<FileObject>
 
         builder.HasKey(fo => fo.Id);
 
-        builder.HasOne(fo => fo.File)
+        builder.Property(fo => fo.StorageArea).IsRequired();
+
+        builder
+            .HasOne(fo => fo.File)
             .WithMany(ft => ft.FileObjects)
             .HasForeignKey(fo => fo.FileId)
             .OnDelete(DeleteBehavior.Cascade);

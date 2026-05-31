@@ -1,10 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
+using Music.Core.Domain.Auth;
 using Music.Core.Entities;
-using Music.Core.Enums;
-using Music.Core.Exceptions;
-using Music.Core.Models;
-using Music.Core.Services.Interfaces;
+using Music.Core.Shared.Exceptions;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Services.Auth;
@@ -14,9 +12,63 @@ public class AuthService(UserManager<User> userManager, ITokenService tokenServi
     private readonly UserManager<User> _userManager = userManager;
     private readonly ITokenService _tokenService = tokenService;
 
-    public async Task<AuthSession?> LoginAsync(string username, string password)
+    public async Task<UserInfo> CreateUserAsync(
+        CreateUserRequest request,
+        CancellationToken cancellationToken = default
+    )
     {
-        User? user = await _userManager.FindByNameAsync(username);
+        if (!Enum.IsDefined(request.Role))
+        {
+            throw new ValidationException("Invalid role.");
+        }
+
+        User user = new() { UserName = request.Username };
+
+        IdentityResult createResult = await _userManager.CreateAsync(user, request.Password);
+        if (!createResult.Succeeded)
+        {
+            if (
+                createResult.Errors.Any(error =>
+                    error.Code == nameof(IdentityErrorDescriber.DuplicateUserName)
+                )
+            )
+            {
+                throw new ConflictException("Username already exists.");
+            }
+
+            string errorMessage = string.Join(
+                " ",
+                createResult.Errors.Select(error => error.Description)
+            );
+            throw new ValidationException(errorMessage);
+        }
+
+        IdentityResult roleResult = await _userManager.AddToRoleAsync(
+            user,
+            request.Role.ToString()
+        );
+        if (!roleResult.Succeeded)
+        {
+            string errorMessage = string.Join(
+                " ",
+                roleResult.Errors.Select(error => error.Description)
+            );
+            throw new ValidationException(errorMessage);
+        }
+
+        IList<string> roles = await _userManager.GetRolesAsync(user);
+
+        return new UserInfo
+        {
+            Id = user.Id,
+            UserName = user.UserName!,
+            Roles = roles.ToList(),
+        };
+    }
+
+    public async Task<LoginResult?> LoginAsync(string emailOrUserName, string password)
+    {
+        User? user = await _userManager.FindByNameAsync(emailOrUserName);
         if (user == null)
         {
             return null;
@@ -34,61 +86,11 @@ public class AuthService(UserManager<User> userManager, ITokenService tokenServi
         {
             Id = user.Id,
             UserName = user.UserName!,
-            Roles = roles
+            Roles = roles.ToList(),
         };
 
-        string token = await _tokenService.GenerateUserToken(userInfo, roles);
+        string token = await _tokenService.GenerateUserToken(userInfo);
 
-        return new AuthSession
-        {
-            Token = token,
-            User = new UserInfo
-            {
-                Id = user.Id,
-                UserName = user.UserName!,
-                Roles = roles
-            }
-        };
-    }
-
-    public async Task<UserInfo> CreateUserAsync(string username, string password, Roles role)
-    {
-        if (!Enum.IsDefined(role))
-        {
-            throw new ValidationException("Invalid role.");
-        }
-
-        User user = new()
-        {
-            UserName = username,
-        };
-
-        IdentityResult createResult = await _userManager.CreateAsync(user, password);
-        if (!createResult.Succeeded)
-        {
-            if (createResult.Errors.Any(error => error.Code == nameof(IdentityErrorDescriber.DuplicateUserName)))
-            {
-                throw new ConflictException("Username already exists.");
-            }
-
-            string errorMessage = string.Join(" ", createResult.Errors.Select(error => error.Description));
-            throw new ValidationException(errorMessage);
-        }
-
-        IdentityResult roleResult = await _userManager.AddToRoleAsync(user, role.ToString());
-        if (!roleResult.Succeeded)
-        {
-            string errorMessage = string.Join(" ", roleResult.Errors.Select(error => error.Description));
-            throw new ValidationException(errorMessage);
-        }
-
-        IList<string> roles = await _userManager.GetRolesAsync(user);
-
-        return new UserInfo
-        {
-            Id = user.Id,
-            UserName = user.UserName!,
-            Roles = roles,
-        };
+        return new LoginResult { Token = token, User = userInfo };
     }
 }

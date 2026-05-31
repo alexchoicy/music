@@ -13,26 +13,26 @@ public class TrackAudioConfiguration : IEntityTypeConfiguration<TrackAudio>
 
         builder.HasKey(ta => ta.Id);
 
-        builder.Property(ta => ta.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(ta => ta.Id).ValueGeneratedOnAdd();
 
-        builder.Property(ta => ta.TrackId)
-            .IsRequired();
+        builder.Property(ta => ta.TrackId).IsRequired();
 
-        builder.Property(ta => ta.FileId)
-            .IsRequired();
+        builder.Property(ta => ta.FileId).IsRequired();
 
-        builder.HasOne(ta => ta.Track)
+        builder
+            .HasOne(ta => ta.Track)
             .WithMany(t => t.Audios)
             .HasForeignKey(ta => ta.TrackId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(ta => ta.File)
+        builder
+            .HasOne(ta => ta.File)
             .WithMany(f => f.TrackAudios)
             .HasForeignKey(ta => ta.FileId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<User>()
+        builder
+            .HasOne<User>()
             .WithMany(user => user.UploadedTrackAudios)
             .HasForeignKey(ta => ta.UploadedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
@@ -43,7 +43,12 @@ public class TrackAudioConfiguration : IEntityTypeConfiguration<TrackAudio>
         builder.HasIndex(ta => ta.Pinned);
         builder.HasIndex(ta => ta.CreatedAt);
 
-        builder.HasIndex(ta => new { ta.TrackId, ta.Pinned, ta.Rank });
+        builder.HasIndex(ta => new
+        {
+            ta.TrackId,
+            ta.Pinned,
+            ta.Rank,
+        });
         builder.HasIndex(ta => new { ta.TrackId, ta.FileId }).IsUnique();
     }
 }
