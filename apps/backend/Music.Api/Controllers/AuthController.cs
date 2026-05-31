@@ -2,8 +2,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Music.Core.Domain.Auth;
-using Music.Core.Shared.Constants;
+using Music.Core.Services.Auth;
+using Music.Core.Common.Constants;
 
 namespace Music.Api.Controllers;
 

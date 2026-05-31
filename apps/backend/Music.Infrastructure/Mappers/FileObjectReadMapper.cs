@@ -1,5 +1,7 @@
-using Music.Core.Application.Storage;
-using Music.Core.Domain.Files;
+using Music.Core.Storage;
+using Music.Core.Services.Files;
+using Music.Core.Services.Files.Enums;
+using Music.Core.Services.Files.Requests;
 using Music.Core.Entities;
 
 namespace Music.Infrastructure.Mappers;

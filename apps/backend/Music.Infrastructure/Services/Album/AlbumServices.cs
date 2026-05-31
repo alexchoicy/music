@@ -1,13 +1,18 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
-using Music.Core.Application.Storage;
-using Music.Core.Configuration.Options;
-using Music.Core.Domain.Albums;
-using Music.Core.Domain.Files.Enums;
+using Music.Core.Storage;
+using Music.Core.Options;
+using Music.Core.Services.Albums;
+using Music.Core.Services.Albums.Enums;
+using Music.Core.Services.Albums.Requests;
+using Music.Core.Services.Albums.Results;
+using Music.Core.Services.Files;
+using Music.Core.Services.Files.Enums;
+using Music.Core.Services.Files.Requests;
 using Music.Core.Entities;
-using Music.Core.Shared.Exceptions;
-using Music.Core.Shared.Utils;
+using Music.Core.Common.Exceptions;
+using Music.Core.Common.Utils;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Mappers;
 

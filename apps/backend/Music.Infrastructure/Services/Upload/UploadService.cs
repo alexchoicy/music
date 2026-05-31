@@ -1,9 +1,13 @@
 using Microsoft.EntityFrameworkCore;
-using Music.Core.Application.Storage;
-using Music.Core.Domain.Uploads.Requests;
-using Music.Core.Domain.Uploads;
+using Music.Core.Storage;
+using Music.Core.Services.Files;
+using Music.Core.Services.Files.Enums;
+using Music.Core.Services.Files.Requests;
+using Music.Core.Services.Uploads;
+using Music.Core.Services.Uploads.Requests;
+using Music.Core.Services.Uploads.Results;
 using Music.Core.Entities;
-using Music.Core.Shared.Exceptions;
+using Music.Core.Common.Exceptions;
 using Music.Infrastructure.Data;
 
 namespace Music.Infrastructure.Services.Upload
@@ -29,8 +33,8 @@ namespace Music.Infrastructure.Services.Upload
 
             FileObject? originalFileObject =
                 storedFile.FileObjects.FirstOrDefault(f =>
-                    f.FileObjectVariant == Core.Domain.Files.Enums.FileObjectVariant.Original
-                    && f.Type == Core.Domain.Files.Enums.FileObjectType.Original
+                    f.FileObjectVariant == FileObjectVariant.Original
+                    && f.Type == FileObjectType.Original
                 ) ?? throw new EntityNotFoundException("File object not found");
 
             return await _contentService.CreateMultipartUploadAsync(

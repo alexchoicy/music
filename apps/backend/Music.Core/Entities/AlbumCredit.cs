@@ -1,4 +1,7 @@
-using Music.Core.Domain.Albums;
+using Music.Core.Services.Albums;
+using Music.Core.Services.Albums.Enums;
+using Music.Core.Services.Albums.Requests;
+using Music.Core.Services.Albums.Results;
 
 namespace Music.Core.Entities;
 

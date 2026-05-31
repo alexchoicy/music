@@ -1,7 +1,8 @@
-using Music.Core.Application.Storage;
-using Music.Core.Domain.Images.Enums;
+using Music.Core.Storage;
+using Music.Core.Services.Images;
+using Music.Core.Services.Images.Enums;
 using Music.Core.Entities;
-using PartyImageRead = Music.Core.Domain.Parties.PartyImage;
+using PartyImageRead = Music.Core.Services.Parties.PartyImage;
 
 namespace Music.Infrastructure.Mappers;
 

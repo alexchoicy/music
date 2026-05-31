@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Music.Core.Domain.Uploads;
-using Music.Core.Domain.Uploads.Requests;
-using Music.Core.Shared.Constants;
+using Music.Core.Services.Uploads;
+using Music.Core.Services.Uploads.Requests;
+using Music.Core.Services.Uploads.Results;
+using Music.Core.Common.Constants;
 
 namespace Music.Api.Controllers;
 

@@ -1,5 +1,5 @@
 using System.Threading.Channels;
-using Music.Core.Application.Workers;
+using Music.Core.Workers;
 
 namespace Music.Infrastructure.Workers;
 

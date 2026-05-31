@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
-using Music.Core.Shared.Exceptions;
+using Music.Core.Common.Exceptions;
 
 namespace Music.Api.Handlers;
 

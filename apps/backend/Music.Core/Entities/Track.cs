@@ -1,5 +1,5 @@
-using Music.Core.Domain.Tracks;
-using Music.Core.Domain.Tracks.Enums;
+using Music.Core.Services.Tracks;
+using Music.Core.Services.Tracks.Enums;
 
 namespace Music.Core.Entities;
 

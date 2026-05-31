@@ -1,10 +1,10 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.Extensions.Options;
-using Music.Core.Application.Storage;
-using Music.Core.Application.Workers;
-using Music.Core.Configuration.Options;
-using Music.Core.Shared.Utils;
+using Music.Core.Storage;
+using Music.Core.Workers;
+using Music.Core.Options;
+using Music.Core.Common.Utils;
 
 namespace Music.Infrastructure.Storages.S3;
 

@@ -1,8 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Music.Core.Domain.Albums;
-using Music.Core.Shared.Constants;
+using Music.Core.Services.Albums;
+using Music.Core.Services.Albums.Enums;
+using Music.Core.Services.Albums.Requests;
+using Music.Core.Services.Albums.Results;
+using Music.Core.Common.Constants;
 
 namespace Music.Api.Controllers;
 

@@ -2,13 +2,15 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Microsoft.Extensions.Options;
-using Music.Core.Application.Storage;
-using Music.Core.Application.Workers;
-using Music.Core.Configuration.Options;
-using Music.Core.Domain.Uploads;
-using Music.Core.Shared.Utils;
+using Music.Core.Storage;
+using Music.Core.Workers;
+using Music.Core.Options;
+using Music.Core.Services.Uploads;
+using Music.Core.Services.Uploads.Requests;
+using Music.Core.Services.Uploads.Results;
+using Music.Core.Common.Utils;
 using S3CompleteMultipartUploadRequest = Amazon.S3.Model.CompleteMultipartUploadRequest;
-using UploadCompleteMultipartUploadPart = Music.Core.Domain.Uploads.Requests.CompleteMultipartUploadPart;
+using UploadCompleteMultipartUploadPart = Music.Core.Services.Uploads.Requests.CompleteMultipartUploadPart;
 
 namespace Music.Infrastructure.Storages.S3;
 
@@ -228,7 +230,7 @@ public class S3ContentService(
             }
 
             await client.CompleteMultipartUploadAsync(
-                new CompleteMultipartUploadRequest
+                new S3CompleteMultipartUploadRequest
                 {
                     BucketName = bucket,
                     Key = objectPath,

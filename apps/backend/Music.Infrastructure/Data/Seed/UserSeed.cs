@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Music.Core.Domain.Auth.Enums;
+using Music.Core.Services.Auth;
+using Music.Core.Services.Auth.Enums;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data.Seed;

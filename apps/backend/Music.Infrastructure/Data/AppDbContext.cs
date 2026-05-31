@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Music.Core.Entities;
-using Music.Core.Shared.Utils;
+using Music.Core.Common.Utils;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data;
@@ -45,22 +45,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000001",
-                Name = Music.Core.Domain.Auth.Enums.Roles.Admin.ToString(),
-                NormalizedName = Music.Core.Domain.Auth.Enums.Roles.Admin.ToString().ToUpper(),
+                Name = Music.Core.Services.Auth.Enums.Roles.Admin.ToString(),
+                NormalizedName = Music.Core.Services.Auth.Enums.Roles.Admin.ToString().ToUpper(),
                 ConcurrencyStamp = "508a0eaf-dbca-47d9-baeb-597b81a4957e",
             },
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000002",
-                Name = Music.Core.Domain.Auth.Enums.Roles.Uploader.ToString(),
-                NormalizedName = Music.Core.Domain.Auth.Enums.Roles.Uploader.ToString().ToUpper(),
+                Name = Music.Core.Services.Auth.Enums.Roles.Uploader.ToString(),
+                NormalizedName = Music.Core.Services.Auth.Enums.Roles.Uploader.ToString().ToUpper(),
                 ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0",
             },
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000003",
-                Name = Music.Core.Domain.Auth.Enums.Roles.User.ToString(),
-                NormalizedName = Music.Core.Domain.Auth.Enums.Roles.User.ToString().ToUpper(),
+                Name = Music.Core.Services.Auth.Enums.Roles.User.ToString(),
+                NormalizedName = Music.Core.Services.Auth.Enums.Roles.User.ToString().ToUpper(),
                 ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0",
             },
         ];

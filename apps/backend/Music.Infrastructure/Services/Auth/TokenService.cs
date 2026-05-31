@@ -3,10 +3,10 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Music.Core.Domain.Auth;
-using Music.Core.Domain.Auth.Enums;
+using Music.Core.Services.Auth;
+using Music.Core.Services.Auth.Enums;
 using Music.Core.Entities;
-using Music.Core.Shared.Constants;
+using Music.Core.Common.Constants;
 using Music.Infrastructure.Data;
 
 namespace Music.Infrastructure.Services.Auth;

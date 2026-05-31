@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Music.Core.Application.Workers;
+using Music.Core.Workers;
 
 namespace Music.Infrastructure.Workers;
 

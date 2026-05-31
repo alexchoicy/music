@@ -1,5 +1,5 @@
-using Music.Core.Domain.Images;
-using Music.Core.Domain.Images.Enums;
+using Music.Core.Services.Images;
+using Music.Core.Services.Images.Enums;
 
 namespace Music.Core.Entities;
 
