@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
-using Music.Core.Storage;
+using Music.Core.Common.Exceptions;
+using Music.Core.Common.Utils;
+using Music.Core.Entities;
 using Music.Core.Options;
 using Music.Core.Services.Albums;
 using Music.Core.Services.Albums.Enums;
@@ -10,9 +12,7 @@ using Music.Core.Services.Albums.Results;
 using Music.Core.Services.Files;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Files.Requests;
-using Music.Core.Entities;
-using Music.Core.Common.Exceptions;
-using Music.Core.Common.Utils;
+using Music.Core.Storage;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Mappers;
 
@@ -90,6 +90,7 @@ public class AlbumService(
             .Discs.OrderBy(d => d.DiscNumber)
             .Select(d => new AlbumDiscDetails
             {
+                AlbumDiscId = d.Id,
                 DiscNumber = d.DiscNumber,
                 Subtitle = d.Subtitle,
                 Tracks = d
@@ -140,14 +141,12 @@ public class AlbumService(
         int totalTrackCount = discs.Sum(d => d.Tracks.Count);
         int totalDurationInMs = discs.SelectMany(d => d.Tracks).Sum(t => t.DurationInMs);
 
-        IReadOnlyList<AlbumCoverVariant> coverImageUrl = album.ToAlbumCoverVariants(_assetsService);
-
         return new AlbumDetails
         {
             AlbumId = album.Id,
             Title = album.Title,
             Type = album.Type,
-            CoverImageUrl = coverImageUrl.FirstOrDefault()?.Url ?? null,
+            Cover = album.ToAlbumCoverDetails(_assetsService),
             ReleaseDate = album.ReleaseDate,
             TotalTrackCount = totalTrackCount,
             TotalDurationInMs = totalDurationInMs,
@@ -237,9 +236,7 @@ public class AlbumService(
         string fileName = $"{discNumber}-{trackNumber}-{trackTitle}.{extension}";
         char[] invalidFileNameChars = Path.GetInvalidFileNameChars();
 
-        return string.Concat(
-            fileName.Select(ch => invalidFileNameChars.Contains(ch) ? '_' : ch)
-        );
+        return string.Concat(fileName.Select(ch => invalidFileNameChars.Contains(ch) ? '_' : ch));
     }
 
     public async Task<IReadOnlyList<AlbumTrackDownloadItem>> GetAlbumDownloadUrlsAsync(
@@ -485,25 +482,31 @@ public class AlbumService(
 
         if (album.Image is not null)
         {
-            uploadResults.Image = await CreateAlbumImage(
-                album.Image,
-                newAlbum,
-                userId,
-                cancellationToken
+            uploadResults.Images.Add(
+                await CreateAlbumImage(album.Image, newAlbum, userId, cancellationToken)
             );
         }
 
         foreach (AlbumDiscRequest albumDisc in album.Discs)
         {
-            uploadResults.Tracks.AddRange(
-                await CreateDisc(albumDisc, newAlbum, userId, cancellationToken)
-            );
+            (
+                CreateAlbumImageUploadItemResult? discImage,
+                List<CreateAlbumTrackUploadItemResult> tracks
+            ) = await CreateDisc(albumDisc, newAlbum, userId, cancellationToken);
+
+            if (discImage is not null)
+                uploadResults.Images.Add(discImage);
+
+            uploadResults.Tracks.AddRange(tracks);
         }
 
         return uploadResults;
     }
 
-    private async Task<List<CreateAlbumTrackUploadItemResult>> CreateDisc(
+    private async Task<(
+        CreateAlbumImageUploadItemResult? Image,
+        List<CreateAlbumTrackUploadItemResult> Tracks
+    )> CreateDisc(
         AlbumDiscRequest albumDisc,
         Core.Entities.Album album,
         string userId,
@@ -519,6 +522,19 @@ public class AlbumService(
 
         _dbContext.AlbumDiscs.Add(newAlbumDisc);
 
+        CreateAlbumImageUploadItemResult? imageUpload = null;
+
+        if (albumDisc.Image is not null)
+        {
+            imageUpload = await CreateAlbumImage(
+                albumDisc.Image,
+                album,
+                userId,
+                cancellationToken,
+                newAlbumDisc
+            );
+        }
+
         List<CreateAlbumTrackUploadItemResult> sourceResults = [];
 
         foreach (AlbumTrackRequest albumTrack in albumDisc.Tracks)
@@ -528,7 +544,7 @@ public class AlbumService(
             );
         }
 
-        return sourceResults;
+        return (imageUpload, sourceResults);
     }
 
     private async Task<List<CreateAlbumTrackUploadItemResult>> CreateTrack(
@@ -538,7 +554,8 @@ public class AlbumService(
         CancellationToken cancellationToken
     )
     {
-        //TODO: handle current new track to link the BasedOnTrackId(now i ignore and the UI handle it by the existings track list)
+        //TODO: handle current new track to link the BasedOnTrackId(now i ignore and the UI handle it by only show the existings track list)
+        // OR just not support it.
         Track track = new()
         {
             Title = albumTrack.Title,
@@ -641,7 +658,8 @@ public class AlbumService(
         AlbumImageRequest imageModel,
         Core.Entities.Album album,
         string userId,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        AlbumDisc? albumDisc = null
     )
     {
         string imagePath = _assetsService.GetStoragePath(
@@ -667,6 +685,7 @@ public class AlbumService(
         AlbumImage albumImage = new()
         {
             Album = album,
+            AlbumDisc = albumDisc,
             File = storedFile,
             IsPrimary = true,
             CropHeight = imageModel.CroppedArea?.Height,
@@ -679,6 +698,8 @@ public class AlbumService(
 
         return new CreateAlbumImageUploadItemResult
         {
+            ClientReferenceId = imageModel.ClientReferenceId,
+            DiscNumber = albumDisc?.DiscNumber,
             FileObjectId = fileObject.Id,
             Blake3Hash = imageModel.File.Blake3Hash,
             FileName = imageModel.File.OriginalFileName,

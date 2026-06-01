@@ -14,6 +14,9 @@ public class AlbumImage
     public int AlbumId { get; set; }
     public Album? Album { get; set; }
 
+    public int? AlbumDiscId { get; set; }
+    public AlbumDisc? AlbumDisc { get; set; }
+
     public int FileId { get; set; }
     public StoredFile? File { get; set; }
 

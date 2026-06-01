@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Music.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260531170433_AddFileObjectStorageArea")]
-    partial class AddFileObjectStorageArea
+    [Migration("20260601055549_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -318,6 +318,9 @@ namespace Music.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AlbumDiscId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("AlbumId")
                         .HasColumnType("integer");
 
@@ -350,6 +353,8 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AlbumDiscId");
+
                     b.HasIndex("AlbumId");
 
                     b.HasIndex("CreatedAt");
@@ -362,9 +367,13 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasIndex("UpdatedAt");
 
+                    b.HasIndex("AlbumDiscId", "ImageRole")
+                        .IsUnique()
+                        .HasFilter("\"IsPrimary\" = true AND \"AlbumDiscId\" IS NOT NULL");
+
                     b.HasIndex("AlbumId", "ImageRole")
                         .IsUnique()
-                        .HasFilter("\"IsPrimary\" = true");
+                        .HasFilter("\"IsPrimary\" = true AND \"AlbumDiscId\" IS NULL");
 
                     b.HasIndex("AlbumId", "IsPrimary");
 
@@ -1368,6 +1377,11 @@ namespace Music.Infrastructure.Migrations
 
             modelBuilder.Entity("Music.Core.Entities.AlbumImage", b =>
                 {
+                    b.HasOne("Music.Core.Entities.AlbumDisc", "AlbumDisc")
+                        .WithMany("Images")
+                        .HasForeignKey("AlbumDiscId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("Music.Core.Entities.Album", "Album")
                         .WithMany("Images")
                         .HasForeignKey("AlbumId")
@@ -1381,6 +1395,8 @@ namespace Music.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Album");
+
+                    b.Navigation("AlbumDisc");
 
                     b.Navigation("File");
                 });
@@ -1667,6 +1683,8 @@ namespace Music.Infrastructure.Migrations
 
             modelBuilder.Entity("Music.Core.Entities.AlbumDisc", b =>
                 {
+                    b.Navigation("Images");
+
                     b.Navigation("Tracks");
                 });
 

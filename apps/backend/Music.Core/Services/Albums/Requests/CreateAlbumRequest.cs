@@ -26,6 +26,7 @@ public sealed class CreateAlbumRequest
 
 public sealed class AlbumImageRequest
 {
+    public required string ClientReferenceId { get; init; }
     public required FileRequest File { get; init; }
     public string Description { get; init; } = string.Empty;
     public FileCroppedAreaRequest? CroppedArea { get; init; }
@@ -41,6 +42,7 @@ public sealed class AlbumDiscRequest
 {
     public required int DiscNumber { get; init; }
     public string Subtitle { get; init; } = string.Empty;
+    public AlbumImageRequest? Image { get; init; }
     public required IReadOnlyList<AlbumTrackRequest> Tracks { get; init; } = [];
 }
 

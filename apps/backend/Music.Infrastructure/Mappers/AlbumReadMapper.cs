@@ -45,7 +45,47 @@ internal static class AlbumReadMapper
     )
     {
         return album
-                .Images.FirstOrDefault()
+            .Images.Where(image => image.AlbumDiscId is null)
+            .OrderByDescending(image => image.IsPrimary)
+            .ThenBy(image => image.CreatedAt)
+            .FirstOrDefault()
+            .ToCoverVariants(assetsService);
+    }
+
+    public static AlbumCoverDetails ToAlbumCoverDetails(
+        this Album album,
+        IAssetsService assetsService
+    )
+    {
+        List<AlbumDiscCoverDetails> discCovers = album
+            .Discs.OrderBy(disc => disc.DiscNumber)
+            .Select(disc => new AlbumDiscCoverDetails
+            {
+                AlbumDiscId = disc.Id,
+                DiscNumber = disc.DiscNumber,
+                Variants = album
+                    .Images.Where(image => image.AlbumDiscId == disc.Id)
+                    .OrderByDescending(image => image.IsPrimary)
+                    .ThenBy(image => image.CreatedAt)
+                    .FirstOrDefault()
+                    .ToCoverVariants(assetsService),
+            })
+            .Where(discCover => discCover.Variants.Count > 0)
+            .ToList();
+
+        return new AlbumCoverDetails
+        {
+            Album = album.ToAlbumCoverVariants(assetsService),
+            Discs = discCovers,
+        };
+    }
+
+    private static IReadOnlyList<AlbumCoverVariant> ToCoverVariants(
+        this AlbumImage? image,
+        IAssetsService assetsService
+    )
+    {
+        return image
                 ?.File?.FileObjects.OrderBy(fileObject => fileObject.FileObjectVariant)
                 .Select(fileObject => new AlbumCoverVariant
                 {

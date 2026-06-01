@@ -31,6 +31,19 @@ public sealed class AlbumCoverVariant
     public required string Url { get; init; } = string.Empty;
 }
 
+public sealed class AlbumCoverDetails
+{
+    public required IReadOnlyList<AlbumCoverVariant> Album { get; init; } = [];
+    public required IReadOnlyList<AlbumDiscCoverDetails> Discs { get; init; } = [];
+}
+
+public sealed class AlbumDiscCoverDetails
+{
+    public required int AlbumDiscId { get; init; }
+    public required int DiscNumber { get; init; }
+    public required IReadOnlyList<AlbumCoverVariant> Variants { get; init; } = [];
+}
+
 public sealed class AlbumListItem
 {
     public required int AlbumId { get; init; }
@@ -60,7 +73,7 @@ public sealed class AlbumDetails
     public required int TotalTrackCount { get; init; }
     public required int TotalDurationInMs { get; init; }
 
-    public string? CoverImageUrl { get; init; }
+    public required AlbumCoverDetails Cover { get; init; }
 
     public required IReadOnlyList<AlbumPartyCredit> Credits { get; init; } = [];
     public required IReadOnlyList<AlbumDiscDetails> Discs { get; init; } = [];
@@ -77,6 +90,7 @@ public sealed class AlbumPartyCredit
 
 public sealed class AlbumDiscDetails
 {
+    public required int AlbumDiscId { get; init; }
     public required int DiscNumber { get; init; }
     public string Subtitle { get; init; } = string.Empty;
     public required IReadOnlyList<AlbumTrackDetails> Tracks { get; init; } = [];

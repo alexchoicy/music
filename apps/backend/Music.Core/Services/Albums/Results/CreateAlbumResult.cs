@@ -45,12 +45,14 @@ public sealed record CreateAlbumResult
 public sealed record CreateAlbumUploadResult
 {
     public required string AlbumTitle { get; init; }
-    public CreateAlbumImageUploadItemResult? Image { get; set; }
+    public List<CreateAlbumImageUploadItemResult> Images { get; set; } = [];
     public List<CreateAlbumTrackUploadItemResult> Tracks { get; set; } = [];
 }
 
 public sealed record CreateAlbumImageUploadItemResult
 {
+    public required string ClientReferenceId { get; init; }
+    public int? DiscNumber { get; init; }
     public required Guid FileObjectId { get; init; }
     public required string Blake3Hash { get; init; }
     public required string FileName { get; init; }

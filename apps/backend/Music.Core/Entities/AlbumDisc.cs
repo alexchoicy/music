@@ -13,4 +13,5 @@ public class AlbumDisc
     public uint Version { get; set; }
 
     public ICollection<AlbumTrack> Tracks { get; set; } = [];
+    public ICollection<AlbumImage> Images { get; set; } = [];
 }
