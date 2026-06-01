@@ -1,17 +1,21 @@
-import { TanStackDevtools } from "@tanstack/react-devtools";
-import type { QueryClient } from "@tanstack/react-query";
+import { TanStackDevtools } from "@tanstack/react-devtools"
+import type { QueryClient } from "@tanstack/react-query"
 import {
-	createRootRouteWithContext,
 	HeadContent,
 	Scripts,
-} from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { Toaster } from "@/components/shadcn/sonner";
-import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
-import appCss from "../styles.css?url";
+	createRootRouteWithContext,
+} from "@tanstack/react-router"
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
+
+import { AnchoredToastProvider, ToastProvider } from "#/components/coss/toast"
+import { TooltipProvider } from "#/components/coss/tooltip"
+
+import TanStackQueryDevtools from "../integrations/tanstack-query/devtools"
+
+import appCss from "../styles.css?url"
 
 interface MyRouterContext {
-	queryClient: QueryClient;
+	queryClient: QueryClient
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
@@ -21,9 +25,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				charSet: "utf-8",
 			},
 			{
+				name: "viewport",
+				content: "width=device-width, initial-scale=1",
+			},
+			{
 				title: "Alex Music App",
 			},
-			{ name: "viewport", content: "width=device-width, initial-scale=1" },
 		],
 		links: [
 			{
@@ -32,9 +39,8 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			},
 		],
 	}),
-	notFoundComponent: () => <div>Not found</div>,
 	shellComponent: RootDocument,
-});
+})
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
@@ -42,9 +48,16 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<head>
 				<HeadContent />
 			</head>
-			<body>
-				{children}
-				<Toaster />
+			<body className="relative font-sans">
+				<TooltipProvider>
+					<ToastProvider>
+						<AnchoredToastProvider>
+							<div className="relative isolate flex min-h-svh flex-col">
+								{children}
+							</div>
+						</AnchoredToastProvider>
+					</ToastProvider>
+				</TooltipProvider>
 				<TanStackDevtools
 					config={{
 						position: "bottom-right",
@@ -60,5 +73,5 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<Scripts />
 			</body>
 		</html>
-	);
+	)
 }
