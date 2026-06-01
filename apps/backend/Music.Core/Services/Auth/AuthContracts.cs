@@ -20,7 +20,7 @@ public sealed class UserInfo
 {
     public required string Id { get; init; }
     public required string UserName { get; init; } = string.Empty;
-    public required IReadOnlyList<string> Roles { get; init; } = [];
+    public required IList<string> Roles { get; init; } = [];
 }
 
 public sealed class LoginResult

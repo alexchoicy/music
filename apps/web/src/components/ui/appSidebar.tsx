@@ -27,6 +27,7 @@ import {
 	SidebarMenuItem,
 	SidebarSeparator,
 } from "#/components/coss/sidebar"
+import { useUserInfo } from "#/Provider/userInfoProvider"
 import type { FileRouteTypes } from "#/routeTree.gen"
 
 type NavigationTo = Exclude<FileRouteTypes["to"], "/login">
@@ -39,6 +40,16 @@ type NavigationItem = {
 
 function normalizePathname(pathname: string): string {
 	return pathname === "/" ? pathname : pathname.replace(/\/$/, "")
+}
+
+function getInitials(name: string): string {
+	const parts = name.trim().split(/\s+/)
+	const initials =
+		parts.length > 1
+			? `${parts[0].charAt(0)}${parts[1].charAt(0)}`
+			: parts[0].slice(0, 2)
+
+	return initials.toUpperCase() || "?"
 }
 
 const mainNavigation = [
@@ -70,6 +81,7 @@ const mainNavigation = [
 ] satisfies Array<NavigationItem>
 
 export function AppSidebar(): React.ReactElement {
+	const userInfo = useUserInfo()
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
 	})
@@ -77,6 +89,9 @@ export function AppSidebar(): React.ReactElement {
 	const activeNavigationIndex = mainNavigation.findIndex(
 		(item) => item.to === currentPathname,
 	)
+	const displayName = userInfo.userName.trim() || "User"
+	const roleLabel =
+		userInfo.roles.length > 0 ? userInfo.roles.join(", ") : "Member"
 
 	return (
 		<Sidebar collapsible="offcanvas">
@@ -135,12 +150,14 @@ export function AppSidebar(): React.ReactElement {
 								size="lg"
 							>
 								<div className="flex size-8 items-center justify-center rounded-full border text-xs font-medium">
-									AL
+									{getInitials(displayName)}
 								</div>
 								<div className="min-w-0 flex-1">
-									<div className="truncate text-sm font-semibold">alex</div>
+									<div className="truncate text-sm font-semibold">
+										{displayName}
+									</div>
 									<div className="truncate text-xs text-muted-foreground">
-										Admin
+										{roleLabel}
 									</div>
 								</div>
 								<MoreVertical className="ms-auto size-4" />
