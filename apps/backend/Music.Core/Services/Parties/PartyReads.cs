@@ -22,7 +22,7 @@ public sealed class PartyAlias
     public required string NormalizedName { get; init; } = string.Empty;
 }
 
-public sealed class PartyListItem
+public sealed class PartyItems
 {
     public required int PartyId { get; init; }
     public required string Name { get; init; } = string.Empty;

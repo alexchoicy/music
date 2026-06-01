@@ -4,8 +4,8 @@ import { SidebarInset, SidebarProvider } from "#/components/coss/sidebar";
 import { AppSidebar } from "#/components/ui/appSidebar";
 import { AudioPlayer } from "#/components/ui/audioPlayer";
 import { MobileHeader } from "#/components/ui/mobileHeader";
+import { UserInfoProvider } from "#/context/UserInfoContext";
 import { authQueries } from "#/lib/queries/auth.queries";
-import { UserInfoProvider } from "#/Provider/userInfoProvider";
 
 export const Route = createFileRoute("/_authed")({
 	beforeLoad: async ({ context, location }) => {

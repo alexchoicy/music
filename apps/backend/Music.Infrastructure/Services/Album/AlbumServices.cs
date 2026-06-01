@@ -610,7 +610,7 @@ public class AlbumService(
         string path = _contentService.GetStoragePath(
             MediaFolderOptions.OriginalMusic,
             trackAudio.File.Blake3Hash,
-            trackAudio.File.Container
+            trackAudio.File.MimeType
         );
 
         (StoredFile? storedFile, FileObject? fileObject) =
@@ -665,7 +665,7 @@ public class AlbumService(
         string imagePath = _assetsService.GetStoragePath(
             MediaFolderOptions.AssetsCover,
             imageModel.File.Blake3Hash,
-            imageModel.File.Container
+            imageModel.File.MimeType
         );
 
         (StoredFile? storedFile, FileObject? fileObject) =

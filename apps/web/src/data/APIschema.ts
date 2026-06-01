@@ -374,6 +374,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/languages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LanguageListItem"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me": {
         parameters: {
             query?: never;
@@ -416,6 +451,75 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/parties": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PartyItems"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreatePartyRequest"];
+                    "text/json": components["schemas"]["CreatePartyRequest"];
+                    "application/*+json": components["schemas"]["CreatePartyRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -521,7 +625,8 @@ export interface components {
             partyId: number | string;
             credit: components["schemas"]["AlbumCreditType"];
         };
-        AlbumCreditType: number;
+        /** @enum {unknown} */
+        AlbumCreditType: "Artist";
         AlbumDetails: {
             /** Format: int32 */
             albumId: number | string;
@@ -692,6 +797,15 @@ export interface components {
             images?: components["schemas"]["CreateAlbumImageUploadItemResult"][];
             tracks?: components["schemas"]["CreateAlbumTrackUploadItemResult"][];
         };
+        CreatePartyRequest: {
+            name: string;
+            type: components["schemas"]["PartyType"];
+            /** Format: int32 */
+            languageId?: null | number | string;
+            musicBrainzID?: null | string;
+            avatar?: null | components["schemas"]["PartyImageRequest"];
+            banner?: null | components["schemas"]["PartyImageRequest"];
+        };
         CreateUploadRequest: {
             /** Format: int32 */
             fileId: number | string;
@@ -760,6 +874,11 @@ export interface components {
             durationInMs?: null | number | string;
             originalFileName: string;
         };
+        LanguageListItem: {
+            /** Format: int32 */
+            id: number | string;
+            language: string;
+        };
         LoginRequest: {
             username: string;
             password: string;
@@ -781,9 +900,24 @@ export interface components {
             partSizeInBytes: number | string;
             parts: components["schemas"]["MultipartUploadPartInfo"][];
         };
+        PartyAlias: {
+            name: string;
+            normalizedName: string;
+        };
         PartyImage: {
             variant: components["schemas"]["FileObjectVariant"];
             url: string;
+        };
+        PartyImageRequest: {
+            file: components["schemas"]["FileRequest"];
+            croppedArea?: null | components["schemas"]["FileCroppedAreaRequest"];
+        };
+        PartyItems: {
+            /** Format: int32 */
+            partyId: number | string;
+            name: string;
+            normalizedName: string;
+            aliases: components["schemas"]["PartyAlias"][];
         };
         /** @enum {unknown} */
         PartyType: "Individual" | "Group" | "Project";
@@ -815,13 +949,14 @@ export interface components {
             sourceUrl?: null | string;
         };
         /** @enum {unknown} */
-        TrackContentType: "Music" | "MC" | "Interlude";
+        TrackContentType: "Music" | "MC" | "Interlude" | "Intro";
         TrackCreditRequest: {
             /** Format: int32 */
             partyId: number | string;
             credit: components["schemas"]["TrackCreditType"];
         };
-        TrackCreditType: number;
+        /** @enum {unknown} */
+        TrackCreditType: "Artist";
         TrackPartyCredit: {
             /** Format: int32 */
             partyId: number | string;

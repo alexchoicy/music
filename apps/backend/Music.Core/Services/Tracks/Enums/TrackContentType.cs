@@ -8,4 +8,5 @@ public enum TrackContentType
     Music = 0,
     MC,
     Interlude,
+    Intro,
 }

@@ -3,14 +3,16 @@
 import type { Accept } from "react-dropzone";
 
 import { AudioDropBox } from "#/components/audioDropBox";
+import { processDroppedFiles } from "#/lib/utils/upload";
 
 const albumAudioAccept: Accept = {
 	"audio/*": [".flac", ".mp3", ".wav"],
 };
 
 export function AlbumTabContent() {
-	function handleDrop(acceptedFiles: File[]) {
-		console.log(acceptedFiles);
+	async function handleDrop(acceptedFiles: File[]) {
+		const files = await processDroppedFiles(acceptedFiles);
+		console.log(files);
 	}
 
 	return (

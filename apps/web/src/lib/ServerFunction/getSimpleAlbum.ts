@@ -24,8 +24,7 @@ export const getSimpleAlbum = createServerFn({ method: "GET" })
 			throw new Error("Failed to fetch album");
 		}
 
-		const album =
-			(await res.json()) as components["schemas"]["AlbumSimpleModel"];
+		const album = (await res.json()) as components["schemas"]["AlbumSummary"];
 
 		return album;
 	});

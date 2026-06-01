@@ -27,7 +27,7 @@ import {
 	SidebarMenuItem,
 	SidebarSeparator,
 } from "#/components/coss/sidebar";
-import { useUserInfo } from "#/Provider/userInfoProvider";
+import { useUserInfo } from "#/context/UserInfoContext";
 import type { FileRouteTypes } from "#/routeTree.gen";
 
 type NavigationTo = Exclude<FileRouteTypes["to"], "/login">;

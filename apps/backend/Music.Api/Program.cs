@@ -215,6 +215,8 @@ using (IServiceScope scope = app.Services.CreateScope())
         builder.Environment
     );
 
+    await LanguageSeed.SeedAsync(dbContext);
+
     //Create a "Unknown" party for works
     await PartySeed.SeedAsync(dbContext);
 }
