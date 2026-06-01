@@ -1,8 +1,8 @@
-import { queryOptions } from "@tanstack/react-query"
+import { queryOptions } from "@tanstack/react-query";
 
-import type { components } from "@/data/APIschema"
+import type { components } from "@/data/APIschema";
 
-import { $APIFetch } from "../APIFetchClient"
+import { $APIFetch } from "../APIFetchClient";
 
 export const authMutations = {
 	login: () => ({
@@ -13,14 +13,14 @@ export const authMutations = {
 					method: "POST",
 					body: JSON.stringify(data),
 				},
-			)
+			);
 			if (!result.ok) {
-				throw new Error("Invalid username or password")
+				throw new Error("Invalid username or password");
 			}
-			return result.data
+			return result.data;
 		},
 	}),
-}
+};
 
 export const authQueries = {
 	checkAuth: () =>
@@ -29,8 +29,8 @@ export const authQueries = {
 			queryFn: async () => {
 				const result = await $APIFetch("/auth", {
 					method: "GET",
-				})
-				return result.ok
+				});
+				return result.ok;
 			},
 			staleTime: 1000,
 			retry: false,
@@ -44,15 +44,15 @@ export const authQueries = {
 					{
 						method: "GET",
 					},
-				)
+				);
 
 				if (!result.ok) {
-					throw new Error("Unable to load user info")
+					throw new Error("Unable to load user info");
 				}
 
-				return result.data
+				return result.data;
 			},
 			staleTime: 60 * 1000,
 			retry: false,
 		}),
-}
+};

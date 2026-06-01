@@ -1,34 +1,34 @@
-import { useSuspenseQuery } from "@tanstack/react-query"
-import { createContext, useContext } from "react"
-import type { ReactNode } from "react"
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createContext, useContext } from "react";
+import type { ReactNode } from "react";
 
-import type { components } from "#/data/APIschema"
-import { authQueries } from "#/lib/queries/auth.queries"
+import type { components } from "#/data/APIschema";
+import { authQueries } from "#/lib/queries/auth.queries";
 
-export type UserInfo = components["schemas"]["UserInfo"]
+export type UserInfo = components["schemas"]["UserInfo"];
 
-const UserInfoContext = createContext<UserInfo | null>(null)
+const UserInfoContext = createContext<UserInfo | null>(null);
 
 export function UserInfoProvider({
 	children,
 }: {
-	children: ReactNode
+	children: ReactNode;
 }): React.ReactElement {
-	const { data: userInfo } = useSuspenseQuery(authQueries.userInfo())
+	const { data: userInfo } = useSuspenseQuery(authQueries.userInfo());
 
 	return (
 		<UserInfoContext.Provider value={userInfo}>
 			{children}
 		</UserInfoContext.Provider>
-	)
+	);
 }
 
 export function useUserInfo(): UserInfo {
-	const userInfo = useContext(UserInfoContext)
+	const userInfo = useContext(UserInfoContext);
 
 	if (!userInfo) {
-		throw new Error("useUserInfo must be used within a UserInfoProvider.")
+		throw new Error("useUserInfo must be used within a UserInfoProvider.");
 	}
 
-	return userInfo
+	return userInfo;
 }

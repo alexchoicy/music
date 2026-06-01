@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+
 import type { components } from "@/data/APIschema";
 
 export const getSimpleAlbum = createServerFn({ method: "GET" })

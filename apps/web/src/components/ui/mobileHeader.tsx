@@ -1,10 +1,10 @@
-import { MenuIcon, Search } from "lucide-react"
+import { MenuIcon, Search } from "lucide-react";
 
-import { Button } from "#/components/coss/button"
-import { useSidebar } from "#/components/coss/sidebar"
+import { Button } from "#/components/coss/button";
+import { useSidebar } from "#/components/coss/sidebar";
 
 export function MobileHeader(): React.ReactElement {
-	const { toggleSidebar } = useSidebar()
+	const { toggleSidebar } = useSidebar();
 
 	return (
 		<header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:hidden">
@@ -26,5 +26,5 @@ export function MobileHeader(): React.ReactElement {
 				<Search className="size-5" />
 			</Button>
 		</header>
-	)
+	);
 }

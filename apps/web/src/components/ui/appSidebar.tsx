@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router"
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
 	CirclePlus,
 	Disc3,
@@ -9,12 +9,12 @@ import {
 	Search,
 	Settings2,
 	UsersRound,
-} from "lucide-react"
-import type { LucideIcon } from "lucide-react"
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-import { Button } from "#/components/coss/button"
-import { Kbd } from "#/components/coss/kbd"
-import { Menu, MenuItem, MenuPopup, MenuTrigger } from "#/components/coss/menu"
+import { Button } from "#/components/coss/button";
+import { Kbd } from "#/components/coss/kbd";
+import { Menu, MenuItem, MenuPopup, MenuTrigger } from "#/components/coss/menu";
 import {
 	Sidebar,
 	SidebarContent,
@@ -26,30 +26,30 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 	SidebarSeparator,
-} from "#/components/coss/sidebar"
-import { useUserInfo } from "#/Provider/userInfoProvider"
-import type { FileRouteTypes } from "#/routeTree.gen"
+} from "#/components/coss/sidebar";
+import { useUserInfo } from "#/Provider/userInfoProvider";
+import type { FileRouteTypes } from "#/routeTree.gen";
 
-type NavigationTo = Exclude<FileRouteTypes["to"], "/login">
+type NavigationTo = Exclude<FileRouteTypes["to"], "/login">;
 
 type NavigationItem = {
-	label: string
-	icon: LucideIcon
-	to: NavigationTo
-}
+	label: string;
+	icon: LucideIcon;
+	to: NavigationTo;
+};
 
 function normalizePathname(pathname: string): string {
-	return pathname === "/" ? pathname : pathname.replace(/\/$/, "")
+	return pathname === "/" ? pathname : pathname.replace(/\/$/, "");
 }
 
 function getInitials(name: string): string {
-	const parts = name.trim().split(/\s+/)
+	const parts = name.trim().split(/\s+/);
 	const initials =
 		parts.length > 1
 			? `${parts[0].charAt(0)}${parts[1].charAt(0)}`
-			: parts[0].slice(0, 2)
+			: parts[0].slice(0, 2);
 
-	return initials.toUpperCase() || "?"
+	return initials.toUpperCase() || "?";
 }
 
 const mainNavigation = [
@@ -78,20 +78,20 @@ const mainNavigation = [
 		icon: CirclePlus,
 		to: "/create",
 	},
-] satisfies Array<NavigationItem>
+] satisfies Array<NavigationItem>;
 
 export function AppSidebar(): React.ReactElement {
-	const userInfo = useUserInfo()
+	const userInfo = useUserInfo();
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
-	})
-	const currentPathname = normalizePathname(pathname)
+	});
+	const currentPathname = normalizePathname(pathname);
 	const activeNavigationIndex = mainNavigation.findIndex(
 		(item) => item.to === currentPathname,
-	)
-	const displayName = userInfo.userName.trim() || "User"
+	);
+	const displayName = userInfo.userName.trim() || "User";
 	const roleLabel =
-		userInfo.roles.length > 0 ? userInfo.roles.join(", ") : "Member"
+		userInfo.roles.length > 0 ? userInfo.roles.join(", ") : "Member";
 
 	return (
 		<Sidebar collapsible="offcanvas">
@@ -131,7 +131,7 @@ export function AppSidebar(): React.ReactElement {
 											<span>{item.label}</span>
 										</SidebarMenuButton>
 									</SidebarMenuItem>
-								)
+								);
 							})}
 						</SidebarMenu>
 					</SidebarGroupContent>
@@ -178,5 +178,5 @@ export function AppSidebar(): React.ReactElement {
 				</SidebarMenu>
 			</SidebarFooter>
 		</Sidebar>
-	)
+	);
 }

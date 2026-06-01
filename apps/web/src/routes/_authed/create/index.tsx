@@ -1,19 +1,19 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { AlbumIcon, MicVocalIcon, UsersIcon } from "lucide-react"
+import { createFileRoute } from "@tanstack/react-router";
+import { AlbumIcon, MicVocalIcon, UsersIcon } from "lucide-react";
 
 import {
 	Tabs,
 	TabsContent,
 	TabsList,
 	TabsTrigger,
-} from "#/components/coss/tabs"
-import { AlbumTabContent } from "#/components/create/albumTabContent"
-import { ConcertTabContent } from "#/components/create/concertTabContent"
-import { PartyTabContent } from "#/components/create/partyTabContent"
+} from "#/components/coss/tabs";
+import { AlbumTabContent } from "#/components/create/albumTabContent";
+import { ConcertTabContent } from "#/components/create/concertTabContent";
+import { PartyTabContent } from "#/components/create/partyTabContent";
 
 export const Route = createFileRoute("/_authed/create/")({
 	component: RouteComponent,
-})
+});
 
 function RouteComponent() {
 	return (
@@ -54,5 +54,5 @@ function RouteComponent() {
 				</TabsContent>
 			</Tabs>
 		</main>
-	)
+	);
 }

@@ -1,23 +1,24 @@
-import { Button } from "#/components/coss/button"
+import { useForm } from "@tanstack/react-form";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
+
+import { Button } from "#/components/coss/button";
 import {
 	Card,
 	CardDescription,
 	CardHeader,
 	CardPanel,
 	CardTitle,
-} from "#/components/coss/card"
+} from "#/components/coss/card";
 import {
 	Field,
 	FieldDescription,
 	FieldError,
 	FieldLabel,
-} from "#/components/coss/field"
-import { Input } from "#/components/coss/input"
-import { authMutations, authQueries } from "#/lib/queries/auth.queries"
-import { useForm } from "@tanstack/react-form"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
-import { z } from "zod"
+} from "#/components/coss/field";
+import { Input } from "#/components/coss/input";
+import { authMutations, authQueries } from "#/lib/queries/auth.queries";
 
 export const Route = createFileRoute("/_public/login/")({
 	validateSearch: (search) => ({
@@ -27,28 +28,28 @@ export const Route = createFileRoute("/_public/login/")({
 		const status = await context.queryClient.fetchQuery({
 			...authQueries.checkAuth(),
 			staleTime: 0,
-		})
-		if (status) throw redirect({ to: search.redirect })
+		});
+		if (status) throw redirect({ to: search.redirect });
 	},
 	component: RouteComponent,
-})
+});
 
 const loginRequestDto = z.object({
 	username: z.string().min(1, "Username is required"),
 	password: z.string().min(1, "Password is required"),
-})
+});
 
-const usernameInputId = "login-username"
-const passwordInputId = "login-password"
+const usernameInputId = "login-username";
+const passwordInputId = "login-password";
 
 function RouteComponent() {
-	const queryClient = useQueryClient()
-	const navigate = useNavigate()
-	const { redirect: redirectTo } = Route.useSearch()
+	const queryClient = useQueryClient();
+	const navigate = useNavigate();
+	const { redirect: redirectTo } = Route.useSearch();
 
 	const { isPending, mutateAsync: loginSubmit } = useMutation({
 		...authMutations.login(),
-	})
+	});
 
 	const form = useForm({
 		defaultValues: {
@@ -60,7 +61,7 @@ function RouteComponent() {
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				await loginSubmit(value)
+				await loginSubmit(value);
 			} catch {
 				form.setFieldMeta("password", (prev) => ({
 					...prev,
@@ -68,14 +69,14 @@ function RouteComponent() {
 						...prev.errorMap,
 						onSubmit: [{ message: "Invalid username or password" }],
 					},
-				}))
-				return
+				}));
+				return;
 			}
 
-			await queryClient.invalidateQueries({ queryKey: ["auth"] })
-			await navigate({ to: redirectTo })
+			await queryClient.invalidateQueries({ queryKey: ["auth"] });
+			await navigate({ to: redirectTo });
 		},
-	})
+	});
 
 	return (
 		<main className="flex min-h-svh items-center justify-center p-6">
@@ -90,13 +91,13 @@ function RouteComponent() {
 					<form
 						className="grid gap-4"
 						onSubmit={(event) => {
-							event.preventDefault()
-							void form.handleSubmit()
+							event.preventDefault();
+							void form.handleSubmit();
 						}}
 					>
 						<form.Field name="username">
 							{(field) => {
-								const error = field.state.meta.errors[0]?.message
+								const error = field.state.meta.errors[0]?.message;
 
 								return (
 									<Field
@@ -120,13 +121,13 @@ function RouteComponent() {
 										/>
 										<FieldError match={Boolean(error)}>{error}</FieldError>
 									</Field>
-								)
+								);
 							}}
 						</form.Field>
 
 						<form.Field name="password">
 							{(field) => {
-								const error = field.state.meta.errors[0]?.message
+								const error = field.state.meta.errors[0]?.message;
 
 								return (
 									<Field
@@ -153,7 +154,7 @@ function RouteComponent() {
 										</FieldDescription>
 										<FieldError match={Boolean(error)}>{error}</FieldError>
 									</Field>
-								)
+								);
 							}}
 						</form.Field>
 
@@ -175,5 +176,5 @@ function RouteComponent() {
 				</CardPanel>
 			</Card>
 		</main>
-	)
+	);
 }

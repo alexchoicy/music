@@ -1,29 +1,29 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
-import { SidebarInset, SidebarProvider } from "#/components/coss/sidebar"
-import { AppSidebar } from "#/components/ui/appSidebar"
-import { AudioPlayer } from "#/components/ui/audioPlayer"
-import { MobileHeader } from "#/components/ui/mobileHeader"
-import { authQueries } from "#/lib/queries/auth.queries"
-import { UserInfoProvider } from "#/Provider/userInfoProvider"
+import { SidebarInset, SidebarProvider } from "#/components/coss/sidebar";
+import { AppSidebar } from "#/components/ui/appSidebar";
+import { AudioPlayer } from "#/components/ui/audioPlayer";
+import { MobileHeader } from "#/components/ui/mobileHeader";
+import { authQueries } from "#/lib/queries/auth.queries";
+import { UserInfoProvider } from "#/Provider/userInfoProvider";
 
 export const Route = createFileRoute("/_authed")({
 	beforeLoad: async ({ context, location }) => {
 		const isAuthenticated = await context.queryClient.fetchQuery(
 			authQueries.checkAuth(),
-		)
+		);
 
 		if (!isAuthenticated) {
 			throw redirect({
 				to: "/login",
 				search: { redirect: location.href },
-			})
+			});
 		}
 
-		await context.queryClient.ensureQueryData(authQueries.userInfo())
+		await context.queryClient.ensureQueryData(authQueries.userInfo());
 	},
 	component: RouteComponent,
-})
+});
 
 function RouteComponent() {
 	return (
@@ -41,5 +41,5 @@ function RouteComponent() {
 				</SidebarInset>
 			</SidebarProvider>
 		</UserInfoProvider>
-	)
+	);
 }
