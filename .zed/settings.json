@@ -201,7 +201,8 @@
 		"**/obj",
 		"**/.tanstack",
 		"**/node_modules",
-		"**/.output"
+		"**/.output",
+		"**/routeTree.gen.ts" //hide since auto gen
 	],
 	"file_types": {
 		"JSONC": ["appsettings*.json"]

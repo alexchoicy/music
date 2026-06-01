@@ -401,7 +401,7 @@ export function SidebarSeparator({
 }: React.ComponentProps<typeof Separator>): React.ReactElement {
 	return (
 		<Separator
-			className={cn("mx-2 w-auto bg-sidebar-border", className)}
+			className={cn("mx-2 data-[orientation=horizontal]:w-auto bg-sidebar-border", className)}
 			data-sidebar="separator"
 			data-slot="sidebar-separator"
 			{...props}

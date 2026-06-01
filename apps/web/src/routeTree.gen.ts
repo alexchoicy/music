@@ -8,62 +8,127 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root"
-import { Route as IndexRouteImport } from "./routes/index"
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
+import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
+import { Route as PublicLoginIndexRouteImport } from './routes/_public/login/index'
+import { Route as AuthedCreateIndexRouteImport } from './routes/_authed/create/index'
 
-const IndexRoute = IndexRouteImport.update({
-	id: "/",
-	path: "/",
-	getParentRoute: () => rootRouteImport,
+const AuthedRouteRoute = AuthedRouteRouteImport.update({
+  id: '/_authed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedIndexRoute = AuthedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const PublicLoginIndexRoute = PublicLoginIndexRouteImport.update({
+  id: '/_public/login/',
+  path: '/login/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedCreateIndexRoute = AuthedCreateIndexRouteImport.update({
+  id: '/create/',
+  path: '/create/',
+  getParentRoute: () => AuthedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-	"/": typeof IndexRoute
+  '/': typeof AuthedIndexRoute
+  '/create/': typeof AuthedCreateIndexRoute
+  '/login/': typeof PublicLoginIndexRoute
 }
 export interface FileRoutesByTo {
-	"/": typeof IndexRoute
+  '/': typeof AuthedIndexRoute
+  '/create': typeof AuthedCreateIndexRoute
+  '/login': typeof PublicLoginIndexRoute
 }
 export interface FileRoutesById {
-	__root__: typeof rootRouteImport
-	"/": typeof IndexRoute
+  __root__: typeof rootRouteImport
+  '/_authed': typeof AuthedRouteRouteWithChildren
+  '/_authed/': typeof AuthedIndexRoute
+  '/_authed/create/': typeof AuthedCreateIndexRoute
+  '/_public/login/': typeof PublicLoginIndexRoute
 }
 export interface FileRouteTypes {
-	fileRoutesByFullPath: FileRoutesByFullPath
-	fullPaths: "/"
-	fileRoutesByTo: FileRoutesByTo
-	to: "/"
-	id: "__root__" | "/"
-	fileRoutesById: FileRoutesById
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths: '/' | '/create/' | '/login/'
+  fileRoutesByTo: FileRoutesByTo
+  to: '/' | '/create' | '/login'
+  id:
+    | '__root__'
+    | '/_authed'
+    | '/_authed/'
+    | '/_authed/create/'
+    | '/_public/login/'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-	IndexRoute: typeof IndexRoute
+  AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
+  PublicLoginIndexRoute: typeof PublicLoginIndexRoute
 }
 
-declare module "@tanstack/react-router" {
-	interface FileRoutesByPath {
-		"/": {
-			id: "/"
-			path: "/"
-			fullPath: "/"
-			preLoaderRoute: typeof IndexRouteImport
-			parentRoute: typeof rootRouteImport
-		}
-	}
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/_authed': {
+      id: '/_authed'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authed/': {
+      id: '/_authed/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthedIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_public/login/': {
+      id: '/_public/login/'
+      path: '/login'
+      fullPath: '/login/'
+      preLoaderRoute: typeof PublicLoginIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authed/create/': {
+      id: '/_authed/create/'
+      path: '/create'
+      fullPath: '/create/'
+      preLoaderRoute: typeof AuthedCreateIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+  }
 }
+
+interface AuthedRouteRouteChildren {
+  AuthedIndexRoute: typeof AuthedIndexRoute
+  AuthedCreateIndexRoute: typeof AuthedCreateIndexRoute
+}
+
+const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
+  AuthedIndexRoute: AuthedIndexRoute,
+  AuthedCreateIndexRoute: AuthedCreateIndexRoute,
+}
+
+const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
+  AuthedRouteRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
-	IndexRoute: IndexRoute,
+  AuthedRouteRoute: AuthedRouteRouteWithChildren,
+  PublicLoginIndexRoute: PublicLoginIndexRoute,
 }
 export const routeTree = rootRouteImport
-	._addFileChildren(rootRouteChildren)
-	._addFileTypes<FileRouteTypes>()
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>()
 
-import type { createStart } from "@tanstack/react-start"
-
-import type { getRouter } from "./router.tsx"
-declare module "@tanstack/react-start" {
-	interface Register {
-		ssr: true
-		router: Awaited<ReturnType<typeof getRouter>>
-	}
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
 }
