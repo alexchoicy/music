@@ -13,14 +13,12 @@ public class Party
     public string NormalizedName { get; set; } = string.Empty;
 
     public string? MusicBrainzId { get; set; }
-    public string? Country { get; set; }
+    public required CountryCode Country { get; set; }
 
     public DateTimeOffset? DebutDate { get; set; }
 
-    public int? LanguageId { get; set; }
-    public Language? Language { get; set; }
-
     public PartyType Type { get; set; } = PartyType.Individual;
+    public required PartyKind Kind { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;

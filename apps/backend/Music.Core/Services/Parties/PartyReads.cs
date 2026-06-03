@@ -27,6 +27,9 @@ public sealed class PartyItems
     public required int PartyId { get; init; }
     public required string Name { get; init; } = string.Empty;
     public required string NormalizedName { get; init; } = string.Empty;
+    public required CountryCode Country { get; init; }
+    public PartyType Type { get; init; } = PartyType.Individual;
+    public required PartyKind Kind { get; init; }
     public required IReadOnlyList<PartyAlias> Aliases { get; init; } = [];
 }
 
@@ -36,6 +39,7 @@ public sealed class PartySummary
     public required string Name { get; init; } = string.Empty;
     public IReadOnlyList<PartyImage>? AvatarImages { get; init; }
     public PartyType Type { get; init; } = PartyType.Individual;
+    public required PartyKind Kind { get; init; }
 }
 
 public sealed class PartyDetails
@@ -45,7 +49,7 @@ public sealed class PartyDetails
     public IReadOnlyList<PartyImage>? AvatarImages { get; init; }
     public IReadOnlyList<PartyImage>? BannerImages { get; init; }
     public PartyType Type { get; init; } = PartyType.Individual;
-    public Language? Language { get; init; }
+    public required PartyKind Kind { get; init; }
     public required IReadOnlyList<AlbumListItem> Albums { get; init; } = [];
     public required IReadOnlyList<AlbumListItem> AppearsOnAlbums { get; init; } = [];
 }
@@ -54,10 +58,4 @@ public sealed class PartyImage
 {
     public required FileObjectVariant Variant { get; init; }
     public required string Url { get; init; } = string.Empty;
-}
-
-public sealed class Language
-{
-    public required int LanguageId { get; init; }
-    public required string Name { get; init; } = string.Empty;
 }

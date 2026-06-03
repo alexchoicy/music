@@ -774,8 +774,8 @@ namespace Music.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Country")
-                        .HasColumnType("text");
+                    b.Property<int>("Country")
+                        .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -783,7 +783,7 @@ namespace Music.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("DebutDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("LanguageId")
+                    b.Property<int>("Kind")
                         .HasColumnType("integer");
 
                     b.Property<string>("MusicBrainzId")
@@ -811,19 +811,19 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Country");
+
                     b.HasIndex("CreatedAt");
 
                     b.HasIndex("DebutDate");
 
-                    b.HasIndex("LanguageId");
+                    b.HasIndex("Kind");
 
                     b.HasIndex("NormalizedName");
 
                     b.HasIndex("Type");
 
                     b.HasIndex("UpdatedAt");
-
-                    b.HasIndex("Type", "LanguageId");
 
                     b.ToTable("Parties", (string)null);
                 });
@@ -894,10 +894,13 @@ namespace Music.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AddedByUserId")
+                        .HasColumnType("text");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ExternalIds")
+                    b.Property<string>("ExternalId")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
@@ -913,7 +916,9 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ExternalIds");
+                    b.HasIndex("AddedByUserId");
+
+                    b.HasIndex("ExternalId");
 
                     b.HasIndex("PartyId");
 
@@ -1520,16 +1525,6 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("File");
                 });
 
-            modelBuilder.Entity("Music.Core.Entities.Party", b =>
-                {
-                    b.HasOne("Music.Core.Entities.Language", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Language");
-                });
-
             modelBuilder.Entity("Music.Core.Entities.PartyAlias", b =>
                 {
                     b.HasOne("Music.Infrastructure.Entities.User", null)
@@ -1548,6 +1543,11 @@ namespace Music.Infrastructure.Migrations
 
             modelBuilder.Entity("Music.Core.Entities.PartyExternalInfo", b =>
                 {
+                    b.HasOne("Music.Infrastructure.Entities.User", null)
+                        .WithMany("PartyExternalInfos")
+                        .HasForeignKey("AddedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Music.Core.Entities.Party", "Party")
                         .WithMany("PartyExternalInfos")
                         .HasForeignKey("PartyId")
@@ -1755,6 +1755,8 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("CreatedConcerts");
 
                     b.Navigation("CreatedTracks");
+
+                    b.Navigation("PartyExternalInfos");
 
                     b.Navigation("UploadedFiles");
 

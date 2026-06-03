@@ -17,12 +17,6 @@ public class PartyConfiguration : IEntityTypeConfiguration<Party>
         builder.Property(p => p.Version).IsRowVersion();
 
         builder
-            .HasOne(p => p.Language)
-            .WithMany()
-            .HasForeignKey(p => p.LanguageId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        builder
             .HasMany(p => p.Images)
             .WithOne(pi => pi.Party)
             .HasForeignKey(pi => pi.PartyId)
@@ -42,11 +36,10 @@ public class PartyConfiguration : IEntityTypeConfiguration<Party>
 
         builder.HasIndex(p => p.NormalizedName);
         builder.HasIndex(p => p.Type);
-        builder.HasIndex(p => p.LanguageId);
+        builder.HasIndex(p => p.Kind);
+        builder.HasIndex(p => p.Country);
         builder.HasIndex(p => p.DebutDate);
         builder.HasIndex(p => p.CreatedAt);
         builder.HasIndex(p => p.UpdatedAt);
-
-        builder.HasIndex(p => new { p.Type, p.LanguageId });
     }
 }

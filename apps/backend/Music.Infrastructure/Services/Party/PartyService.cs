@@ -15,13 +15,25 @@ public class PartyService(
     ILogger<PartyService> logger
 ) : IPartyService
 {
-    public Task<bool> CreatePartyAsync(
+    public async Task<bool> CreatePartyAsync(
         CreatePartyRequest request,
         string userId,
         CancellationToken cancellationToken = default
     )
     {
-        throw new NotImplementedException();
+        Core.Entities.Party party = new()
+        {
+            Name = request.Name,
+            Type = request.Type,
+            Kind = request.Kind,
+            Country = request.Country,
+            MusicBrainzId = request.MusicBrainzID,
+        };
+
+        dbContext.Parties.Add(party);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return true;
     }
 
     public async Task<IList<PartyItems>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -33,6 +45,9 @@ public class PartyService(
                 PartyId = p.Id,
                 Name = p.Name,
                 NormalizedName = p.NormalizedName,
+                Country = p.Country,
+                Type = p.Type,
+                Kind = p.Kind,
                 Aliases = p
                     .Aliases.Select(a => new PartyAlias
                     {

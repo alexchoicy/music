@@ -12,7 +12,13 @@ public class PartySeed
         if (context.Parties.Any())
             return;
 
-        Party unknownParty = new() { Name = "Unknown", Type = PartyType.Individual };
+        Party unknownParty = new()
+        {
+            Name = "Unknown",
+            Type = PartyType.Individual,
+            Kind = PartyKind.Human,
+            Country = CountryCode.XX,
+        };
 
         context.Parties.Add(unknownParty);
         await context.SaveChangesAsync();

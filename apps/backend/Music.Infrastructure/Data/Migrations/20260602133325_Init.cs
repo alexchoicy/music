@@ -67,6 +67,28 @@ namespace Music.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Parties",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    NormalizedName = table.Column<string>(type: "text", nullable: false),
+                    MusicBrainzId = table.Column<string>(type: "text", nullable: true),
+                    Country = table.Column<int>(type: "integer", nullable: false),
+                    DebutDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    Kind = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Parties", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -283,34 +305,6 @@ namespace Music.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Parties",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    NormalizedName = table.Column<string>(type: "text", nullable: false),
-                    MusicBrainzId = table.Column<string>(type: "text", nullable: true),
-                    Country = table.Column<string>(type: "text", nullable: true),
-                    DebutDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    LanguageId = table.Column<int>(type: "integer", nullable: true),
-                    Type = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Parties", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Parties_Languages_LanguageId",
-                        column: x => x.LanguageId,
-                        principalTable: "Languages",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Tracks",
                 columns: table => new
                 {
@@ -350,6 +344,118 @@ namespace Music.Infrastructure.Migrations
                         principalTable: "Tracks",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PartyAliases",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    NormalizedName = table.Column<string>(type: "text", nullable: false),
+                    PartyId = table.Column<int>(type: "integer", nullable: false),
+                    Type = table.Column<string>(type: "text", nullable: true),
+                    SourceType = table.Column<int>(type: "integer", nullable: false),
+                    CreatedByUserId = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PartyAliases", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PartyAliases_AspNetUsers_CreatedByUserId",
+                        column: x => x.CreatedByUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PartyAliases_Parties_PartyId",
+                        column: x => x.PartyId,
+                        principalTable: "Parties",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PartyExternalInfo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PartyId = table.Column<int>(type: "integer", nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    ExternalId = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    AddedByUserId = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PartyExternalInfo", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PartyExternalInfo_AspNetUsers_AddedByUserId",
+                        column: x => x.AddedByUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_PartyExternalInfo_Parties_PartyId",
+                        column: x => x.PartyId,
+                        principalTable: "Parties",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PartyMemberships",
+                columns: table => new
+                {
+                    PartyId = table.Column<int>(type: "integer", nullable: false),
+                    MemberId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PartyMemberships", x => new { x.PartyId, x.MemberId });
+                    table.ForeignKey(
+                        name: "FK_PartyMemberships_Parties_MemberId",
+                        column: x => x.MemberId,
+                        principalTable: "Parties",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PartyMemberships_Parties_PartyId",
+                        column: x => x.PartyId,
+                        principalTable: "Parties",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ConcertParties",
+                columns: table => new
+                {
+                    ConcertId = table.Column<int>(type: "integer", nullable: false),
+                    PartyId = table.Column<int>(type: "integer", nullable: false),
+                    Role = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConcertParties", x => new { x.ConcertId, x.PartyId, x.Role });
+                    table.ForeignKey(
+                        name: "FK_ConcertParties_Concerts_ConcertId",
+                        column: x => x.ConcertId,
+                        principalTable: "Concerts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ConcertParties_Parties_PartyId",
+                        column: x => x.PartyId,
+                        principalTable: "Parties",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -454,6 +560,67 @@ namespace Music.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PartyImages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PartyId = table.Column<int>(type: "integer", nullable: false),
+                    FileId = table.Column<int>(type: "integer", nullable: false),
+                    CropX = table.Column<int>(type: "integer", nullable: true),
+                    CropY = table.Column<int>(type: "integer", nullable: true),
+                    CropWidth = table.Column<int>(type: "integer", nullable: true),
+                    CropHeight = table.Column<int>(type: "integer", nullable: true),
+                    IsPrimary = table.Column<bool>(type: "boolean", nullable: false),
+                    ImageRole = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PartyImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PartyImages_Parties_PartyId",
+                        column: x => x.PartyId,
+                        principalTable: "Parties",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PartyImages_StoredFiles_FileId",
+                        column: x => x.FileId,
+                        principalTable: "StoredFiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AlbumCredits",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    AlbumId = table.Column<int>(type: "integer", nullable: false),
+                    PartyId = table.Column<int>(type: "integer", nullable: false),
+                    Credit = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AlbumCredits", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AlbumCredits_Albums_AlbumId",
+                        column: x => x.AlbumId,
+                        principalTable: "Albums",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AlbumCredits_Parties_PartyId",
+                        column: x => x.PartyId,
+                        principalTable: "Parties",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AlbumDiscs",
                 columns: table => new
                 {
@@ -495,172 +662,6 @@ namespace Music.Infrastructure.Migrations
                         name: "FK_ConcertAlbums_Concerts_ConcertId",
                         column: x => x.ConcertId,
                         principalTable: "Concerts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AlbumCredits",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    AlbumId = table.Column<int>(type: "integer", nullable: false),
-                    PartyId = table.Column<int>(type: "integer", nullable: false),
-                    Credit = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AlbumCredits", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AlbumCredits_Albums_AlbumId",
-                        column: x => x.AlbumId,
-                        principalTable: "Albums",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AlbumCredits_Parties_PartyId",
-                        column: x => x.PartyId,
-                        principalTable: "Parties",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ConcertParties",
-                columns: table => new
-                {
-                    ConcertId = table.Column<int>(type: "integer", nullable: false),
-                    PartyId = table.Column<int>(type: "integer", nullable: false),
-                    Role = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ConcertParties", x => new { x.ConcertId, x.PartyId, x.Role });
-                    table.ForeignKey(
-                        name: "FK_ConcertParties_Concerts_ConcertId",
-                        column: x => x.ConcertId,
-                        principalTable: "Concerts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ConcertParties_Parties_PartyId",
-                        column: x => x.PartyId,
-                        principalTable: "Parties",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PartyAliases",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    NormalizedName = table.Column<string>(type: "text", nullable: false),
-                    PartyId = table.Column<int>(type: "integer", nullable: false),
-                    Type = table.Column<string>(type: "text", nullable: true),
-                    SourceType = table.Column<int>(type: "integer", nullable: false),
-                    CreatedByUserId = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PartyAliases", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PartyAliases_AspNetUsers_CreatedByUserId",
-                        column: x => x.CreatedByUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PartyAliases_Parties_PartyId",
-                        column: x => x.PartyId,
-                        principalTable: "Parties",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PartyExternalInfo",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    PartyId = table.Column<int>(type: "integer", nullable: false),
-                    Type = table.Column<int>(type: "integer", nullable: false),
-                    ExternalIds = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PartyExternalInfo", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PartyExternalInfo_Parties_PartyId",
-                        column: x => x.PartyId,
-                        principalTable: "Parties",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PartyImages",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    PartyId = table.Column<int>(type: "integer", nullable: false),
-                    FileId = table.Column<int>(type: "integer", nullable: false),
-                    CropX = table.Column<int>(type: "integer", nullable: true),
-                    CropY = table.Column<int>(type: "integer", nullable: true),
-                    CropWidth = table.Column<int>(type: "integer", nullable: true),
-                    CropHeight = table.Column<int>(type: "integer", nullable: true),
-                    IsPrimary = table.Column<bool>(type: "boolean", nullable: false),
-                    ImageRole = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PartyImages", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PartyImages_Parties_PartyId",
-                        column: x => x.PartyId,
-                        principalTable: "Parties",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PartyImages_StoredFiles_FileId",
-                        column: x => x.FileId,
-                        principalTable: "StoredFiles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PartyMemberships",
-                columns: table => new
-                {
-                    PartyId = table.Column<int>(type: "integer", nullable: false),
-                    MemberId = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PartyMemberships", x => new { x.PartyId, x.MemberId });
-                    table.ForeignKey(
-                        name: "FK_PartyMemberships_Parties_MemberId",
-                        column: x => x.MemberId,
-                        principalTable: "Parties",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PartyMemberships_Parties_PartyId",
-                        column: x => x.PartyId,
-                        principalTable: "Parties",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -1159,6 +1160,11 @@ namespace Music.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Parties_Country",
+                table: "Parties",
+                column: "Country");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Parties_CreatedAt",
                 table: "Parties",
                 column: "CreatedAt");
@@ -1169,9 +1175,9 @@ namespace Music.Infrastructure.Migrations
                 column: "DebutDate");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Parties_LanguageId",
+                name: "IX_Parties_Kind",
                 table: "Parties",
-                column: "LanguageId");
+                column: "Kind");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Parties_NormalizedName",
@@ -1182,11 +1188,6 @@ namespace Music.Infrastructure.Migrations
                 name: "IX_Parties_Type",
                 table: "Parties",
                 column: "Type");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Parties_Type_LanguageId",
-                table: "Parties",
-                columns: new[] { "Type", "LanguageId" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Parties_UpdatedAt",
@@ -1234,9 +1235,14 @@ namespace Music.Infrastructure.Migrations
                 column: "SourceType");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PartyExternalInfo_ExternalIds",
+                name: "IX_PartyExternalInfo_AddedByUserId",
                 table: "PartyExternalInfo",
-                column: "ExternalIds");
+                column: "AddedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PartyExternalInfo_ExternalId",
+                table: "PartyExternalInfo",
+                column: "ExternalId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PartyExternalInfo_PartyId",

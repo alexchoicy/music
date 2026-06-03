@@ -13,4 +13,6 @@ public class User : IdentityUser
     public ICollection<StoredFile> UploadedFiles { get; set; } = [];
 
     public ICollection<AuthToken> AuthTokens { get; set; } = [];
+
+    public ICollection<PartyExternalInfo> PartyExternalInfos { get; set; } = [];
 }
