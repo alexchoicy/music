@@ -479,12 +479,17 @@ public class AlbumService(
         _dbContext.AlbumCredits.AddRange(albumCredits);
 
         CreateAlbumUploadResult uploadResults = new() { AlbumTitle = album.Title };
+        AlbumImage? albumImage = null;
 
         if (album.Image is not null)
         {
-            uploadResults.Images.Add(
-                await CreateAlbumImage(album.Image, newAlbum, userId, cancellationToken)
+            (albumImage, CreateAlbumImageUploadItemResult imageUpload) = await CreateAlbumImage(
+                album.Image,
+                newAlbum,
+                userId,
+                cancellationToken
             );
+            uploadResults.Images.Add(imageUpload);
         }
 
         foreach (AlbumDiscRequest albumDisc in album.Discs)
@@ -492,7 +497,7 @@ public class AlbumService(
             (
                 CreateAlbumImageUploadItemResult? discImage,
                 List<CreateAlbumTrackUploadItemResult> tracks
-            ) = await CreateDisc(albumDisc, newAlbum, userId, cancellationToken);
+            ) = await CreateDisc(albumDisc, newAlbum, userId, cancellationToken, albumImage);
 
             if (discImage is not null)
                 uploadResults.Images.Add(discImage);
@@ -503,6 +508,11 @@ public class AlbumService(
         return uploadResults;
     }
 
+    private static bool IsSameImage(AlbumImageRequest imageModel, AlbumImage albumImage)
+    {
+        return albumImage.File?.OriginalBlake3Hash == imageModel.File.Blake3Hash;
+    }
+
     private async Task<(
         CreateAlbumImageUploadItemResult? Image,
         List<CreateAlbumTrackUploadItemResult> Tracks
@@ -510,7 +520,8 @@ public class AlbumService(
         AlbumDiscRequest albumDisc,
         Core.Entities.Album album,
         string userId,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        AlbumImage? albumImage
     )
     {
         AlbumDisc newAlbumDisc = new()
@@ -526,13 +537,20 @@ public class AlbumService(
 
         if (albumDisc.Image is not null)
         {
-            imageUpload = await CreateAlbumImage(
-                albumDisc.Image,
-                album,
-                userId,
-                cancellationToken,
-                newAlbumDisc
-            );
+            if (albumImage is not null && IsSameImage(albumDisc.Image, albumImage))
+            {
+                CreateDiscImageFromAlbumImage(album, newAlbumDisc, albumImage);
+            }
+            else
+            {
+                (_, imageUpload) = await CreateAlbumImage(
+                    albumDisc.Image,
+                    album,
+                    userId,
+                    cancellationToken,
+                    newAlbumDisc
+                );
+            }
         }
 
         List<CreateAlbumTrackUploadItemResult> sourceResults = [];
@@ -654,7 +672,10 @@ public class AlbumService(
         };
     }
 
-    private async Task<CreateAlbumImageUploadItemResult> CreateAlbumImage(
+    private async Task<(
+        AlbumImage Image,
+        CreateAlbumImageUploadItemResult Upload
+    )> CreateAlbumImage(
         AlbumImageRequest imageModel,
         Core.Entities.Album album,
         string userId,
@@ -696,7 +717,7 @@ public class AlbumService(
 
         _dbContext.AlbumImages.Add(albumImage);
 
-        return new CreateAlbumImageUploadItemResult
+        CreateAlbumImageUploadItemResult upload = new()
         {
             ClientReferenceId = imageModel.ClientReferenceId,
             DiscNumber = albumDisc?.DiscNumber,
@@ -709,6 +730,29 @@ public class AlbumService(
                 cancellationToken
             ),
         };
+
+        return (albumImage, upload);
+    }
+
+    private void CreateDiscImageFromAlbumImage(
+        Core.Entities.Album album,
+        AlbumDisc albumDisc,
+        AlbumImage albumImage
+    )
+    {
+        AlbumImage discImage = new()
+        {
+            Album = album,
+            AlbumDisc = albumDisc,
+            File = albumImage.File,
+            IsPrimary = true,
+            CropHeight = albumImage.CropHeight,
+            CropWidth = albumImage.CropWidth,
+            CropX = albumImage.CropX,
+            CropY = albumImage.CropY,
+        };
+
+        _dbContext.AlbumImages.Add(discImage);
     }
 
     private async Task<bool> AlbumExistsAsync(
