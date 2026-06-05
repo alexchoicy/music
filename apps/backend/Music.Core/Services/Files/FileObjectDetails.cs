@@ -9,7 +9,6 @@ public sealed class FileObjectDetails
     public required Guid Id { get; init; }
     public required string Url { get; init; } = string.Empty;
 
-    public required FileObjectType Type { get; init; }
     public required FileObjectVariant Variant { get; init; }
 
     public required long SizeInBytes { get; init; }

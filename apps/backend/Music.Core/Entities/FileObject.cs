@@ -20,8 +20,6 @@ public class FileObject
 
     public required string ObjectBlake3Hash { get; set; }
 
-    public required FileObjectType Type { get; set; }
-
     public required FileObjectVariant FileObjectVariant { get; set; }
 
     public required long SizeInBytes { get; set; }

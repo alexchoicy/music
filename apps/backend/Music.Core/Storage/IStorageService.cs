@@ -23,7 +23,6 @@ public interface IStorageService
         FileType fileType,
         string storagePath,
         StorageArea storageArea,
-        FileObjectType fileObjectType,
         FileObjectVariant fileObjectVariant,
         string userId,
         MediaSource source = MediaSource.UserUpload,

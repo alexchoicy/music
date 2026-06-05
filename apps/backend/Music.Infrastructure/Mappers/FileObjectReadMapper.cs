@@ -35,7 +35,6 @@ internal static class FileObjectReadMapper
         {
             Id = fileObject.Id,
             Url = isDash ? $"{url}/manifest.mpd" : url,
-            Type = fileObject.Type,
             Variant = fileObject.FileObjectVariant,
             SizeInBytes = fileObject.SizeInBytes,
             MimeType = fileObject.MimeType,

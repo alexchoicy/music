@@ -1,3 +1,4 @@
+using Music.Core.Common.Enums;
 using Music.Core.Services.Albums.Enums;
 using Music.Core.Services.Albums.Requests;
 using Music.Core.Services.Albums.Results;
@@ -35,7 +36,7 @@ public sealed class AlbumImageRequest
 public sealed class AlbumCreditRequest
 {
     public required int PartyId { get; init; }
-    public required AlbumCreditType Credit { get; init; }
+    public required CreditType Credit { get; init; }
 }
 
 public sealed class AlbumDiscRequest
@@ -66,7 +67,7 @@ public sealed class AlbumTrackRequest
 public sealed class TrackCreditRequest
 {
     public required int PartyId { get; init; }
-    public required TrackCreditType Credit { get; init; }
+    public required CreditType Credit { get; init; }
 }
 
 public sealed class TrackAudioRequest

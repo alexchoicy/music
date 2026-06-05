@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Music.Core.Common.Exceptions;
 using Music.Core.Common.Utils;
+using Music.Core.Common.Enums;
 using Music.Core.Entities;
 using Music.Core.Options;
 using Music.Core.Services.Albums;
@@ -471,7 +472,7 @@ public class AlbumService(
                 {
                     Album = newAlbum,
                     PartyId = 1,
-                    Credit = AlbumCreditType.Artist,
+                    Credit = CreditType.Artist,
                 }
             );
         }
@@ -637,7 +638,6 @@ public class AlbumService(
                 FileType.Audio,
                 path,
                 StorageArea.Content,
-                FileObjectType.Original,
                 FileObjectVariant.Original,
                 userId,
                 trackAudio.Source,
@@ -695,7 +695,6 @@ public class AlbumService(
                 FileType.Image,
                 imagePath,
                 StorageArea.Assets,
-                FileObjectType.Original,
                 FileObjectVariant.Original,
                 userId
             );
@@ -763,7 +762,7 @@ public class AlbumService(
         string normalizedTitle = StringUtils.NormalizeString(album.Title);
 
         List<int> inputArtistIds = album
-            .Credits.Where(c => c.Credit == AlbumCreditType.Artist)
+            .Credits.Where(c => c.Credit == CreditType.Artist)
             .Select(c => c.PartyId)
             .Distinct()
             .OrderBy(id => id)
@@ -781,7 +780,7 @@ public class AlbumService(
         foreach (var existingAlbum in matchingAlbums)
         {
             List<int> existingArtistIds = existingAlbum
-                .Credits.Where(c => c.Credit == AlbumCreditType.Artist)
+            .Credits.Where(c => c.Credit == CreditType.Artist)
                 .Select(c => c.PartyId)
                 .Distinct()
                 .OrderBy(id => id)

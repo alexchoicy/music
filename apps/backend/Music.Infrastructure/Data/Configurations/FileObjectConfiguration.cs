@@ -23,11 +23,8 @@ public class FileObjectConfiguration : IEntityTypeConfiguration<FileObject>
 
         builder.HasIndex(fo => fo.FileId);
         builder.HasIndex(fo => fo.ObjectBlake3Hash);
-        builder.HasIndex(fo => fo.Type);
         builder.HasIndex(fo => fo.MimeType);
         builder.HasIndex(fo => fo.CreatedAt);
-
-        builder.HasIndex(fo => new { fo.FileId, fo.Type });
         builder.HasIndex(fo => new { fo.FileId, fo.FileObjectVariant });
     }
 }

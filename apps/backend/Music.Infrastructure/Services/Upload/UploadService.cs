@@ -34,7 +34,6 @@ namespace Music.Infrastructure.Services.Upload
             FileObject? originalFileObject =
                 storedFile.FileObjects.FirstOrDefault(f =>
                     f.FileObjectVariant == FileObjectVariant.Original
-                    && f.Type == FileObjectType.Original
                 ) ?? throw new EntityNotFoundException("File object not found");
 
             return await _contentService.CreateMultipartUploadAsync(

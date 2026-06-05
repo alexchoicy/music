@@ -1,4 +1,5 @@
 using Music.Core.Storage;
+using Music.Core.Common.Enums;
 using Music.Core.Services.Albums;
 using Music.Core.Services.Albums.Enums;
 using Music.Core.Services.Albums.Requests;
@@ -23,7 +24,7 @@ internal static class AlbumReadMapper
             CoverVariants = ToAlbumCoverVariants(album, assetsService),
             Artists = album
                 .Credits.Where(credit =>
-                    credit.Credit == AlbumCreditType.Artist && credit.Party is not null
+                    credit.Credit == CreditType.Artist && credit.Party is not null
                 )
                 .OrderBy(credit => credit.Party!.Name)
                 .Select(credit => new AlbumListArtist

@@ -4,17 +4,19 @@ namespace Music.Core.Services.Files.Enums;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum FileObjectVariant
-{ // this thing is for UI
-    Original,
-    CroppedOriginal,
-    Cover600,
-    Banner1200x400,
-    Thumbnail640x360,
-    Opus96, //this is enough
-    WaveformB8Pixel20,
-    DashAV1,
-    SubtitleVtt,
-    SubtitleSup,
-    AttachedPicture,
-    OriginalDash,
+{
+    // General
+    Original = 0,
+
+    // Audio
+    Opus96 = 100,
+    WaveformB8Pixel20 = 101,
+
+    // Video / Streaming
+    OriginalDash = 200,
+    DashAV1 = 201,
+    Thumbnail640x360 = 202,
+    AttachedPicture = 203,
+    SubtitleVtt = 204,
+    SubtitleSup = 205,
 }

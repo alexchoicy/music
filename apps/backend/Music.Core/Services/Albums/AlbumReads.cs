@@ -1,3 +1,4 @@
+using Music.Core.Common.Enums;
 using Music.Core.Services.Albums.Enums;
 using Music.Core.Services.Albums.Requests;
 using Music.Core.Services.Albums.Results;
@@ -84,7 +85,7 @@ public sealed class AlbumPartyCredit
     public required int PartyId { get; init; }
     public required string Name { get; init; } = string.Empty;
     public required PartyType Type { get; init; }
-    public required AlbumCreditType CreditType { get; init; }
+    public required CreditType CreditType { get; init; }
     public required IReadOnlyList<PartyImage> Avatar { get; init; }
 }
 
@@ -116,7 +117,7 @@ public sealed class TrackPartyCredit
     public required int PartyId { get; init; }
     public required string Name { get; init; } = string.Empty;
     public required PartyType Type { get; init; }
-    public required TrackCreditType CreditType { get; init; }
+    public required CreditType CreditType { get; init; }
     public required IReadOnlyList<PartyImage> Avatar { get; init; }
 }
 
