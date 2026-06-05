@@ -1,5 +1,5 @@
-using Music.Core.Services.Auth.Enums;
 using System.Security.Claims;
+using Music.Core.Services.Auth.Enums;
 
 namespace Music.Core.Services.Auth;
 

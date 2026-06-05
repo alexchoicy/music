@@ -1,7 +1,5 @@
-using Music.Core.Services.Parties;
-using Music.Core.Services.Parties.Enums;
-using Music.Core.Services.Parties.Requests;
 using Music.Core.Entities;
+using Music.Core.Services.Parties.Enums;
 
 namespace Music.Infrastructure.Data.Seed;
 

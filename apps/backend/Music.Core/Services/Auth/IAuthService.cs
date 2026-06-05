@@ -1,4 +1,5 @@
 using Music.Core.Services.Auth.Enums;
+
 namespace Music.Core.Services.Auth;
 
 public interface IAuthService

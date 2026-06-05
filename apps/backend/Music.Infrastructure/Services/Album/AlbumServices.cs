@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
+using Music.Core.Common.Enums;
 using Music.Core.Common.Exceptions;
 using Music.Core.Common.Utils;
-using Music.Core.Common.Enums;
 using Music.Core.Entities;
 using Music.Core.Options;
 using Music.Core.Services.Albums;
@@ -780,7 +780,7 @@ public class AlbumService(
         foreach (var existingAlbum in matchingAlbums)
         {
             List<int> existingArtistIds = existingAlbum
-            .Credits.Where(c => c.Credit == CreditType.Artist)
+                .Credits.Where(c => c.Credit == CreditType.Artist)
                 .Select(c => c.PartyId)
                 .Distinct()
                 .OrderBy(id => id)

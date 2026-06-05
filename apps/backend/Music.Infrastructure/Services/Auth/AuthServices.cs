@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
+using Music.Core.Common.Exceptions;
+using Music.Core.Entities;
 using Music.Core.Services.Auth;
 using Music.Core.Services.Auth.Enums;
-using Music.Core.Entities;
-using Music.Core.Common.Exceptions;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Services.Auth;

@@ -11,8 +11,5 @@ public interface IUploadService
         CancellationToken cancellationToken = default
     );
 
-    Task Complete(
-        CompleteUploadRequest request,
-        CancellationToken cancellationToken = default
-    );
+    Task Complete(CompleteUploadRequest request, CancellationToken cancellationToken = default);
 }

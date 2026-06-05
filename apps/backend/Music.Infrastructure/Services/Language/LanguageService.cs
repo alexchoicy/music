@@ -14,11 +14,7 @@ public class LanguageService(AppDbContext dbContext) : ILanguageService
     {
         return await _dbContext
             .Languages.AsNoTracking()
-            .Select(language => new LanguageListItem
-            {
-                Id = language.Id,
-                Language = language.Name,
-            })
+            .Select(language => new LanguageListItem { Id = language.Id, Language = language.Name })
             .ToListAsync(cancellationToken);
     }
 }
