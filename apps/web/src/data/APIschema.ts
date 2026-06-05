@@ -623,10 +623,8 @@ export interface components {
         AlbumCreditRequest: {
             /** Format: int32 */
             partyId: number | string;
-            credit: components["schemas"]["AlbumCreditType"];
+            credit: components["schemas"]["CreditType"];
         };
-        /** @enum {unknown} */
-        AlbumCreditType: "Artist";
         AlbumDetails: {
             /** Format: int32 */
             albumId: number | string;
@@ -699,7 +697,7 @@ export interface components {
             partyId: number | string;
             name: string;
             type: components["schemas"]["PartyType"];
-            creditType: components["schemas"]["AlbumCreditType"];
+            creditType: components["schemas"]["CreditType"];
             avatar: components["schemas"]["PartyImage"][];
         };
         AlbumSummary: {
@@ -755,6 +753,8 @@ export interface components {
             fileObjectId: string;
             multipart?: null | components["schemas"]["CompleteMultipartUploadRequest"];
         };
+        /** @enum {unknown} */
+        CountryCode: "XX" | "HK" | "JP" | "KR" | "US" | "CN" | "TW";
         CreateAlbumImageUploadItemResult: {
             clientReferenceId: string;
             /** Format: int32 */
@@ -800,8 +800,8 @@ export interface components {
         CreatePartyRequest: {
             name: string;
             type: components["schemas"]["PartyType"];
-            /** Format: int32 */
-            languageId?: null | number | string;
+            kind: components["schemas"]["PartyKind"];
+            country: components["schemas"]["CountryCode"];
             musicBrainzID?: null | string;
             avatar?: null | components["schemas"]["PartyImageRequest"];
             banner?: null | components["schemas"]["PartyImageRequest"];
@@ -810,6 +810,8 @@ export interface components {
             /** Format: int32 */
             fileId: number | string;
         };
+        /** @enum {unknown} */
+        CreditType: "Artist";
         FileCroppedAreaRequest: {
             /** Format: int32 */
             width: number | string;
@@ -824,7 +826,6 @@ export interface components {
             /** Format: uuid */
             id: string;
             url: string;
-            type: components["schemas"]["FileObjectType"];
             variant: components["schemas"]["FileObjectVariant"];
             /** Format: int64 */
             sizeInBytes: number | string;
@@ -849,9 +850,8 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
-        FileObjectType: number;
         /** @enum {unknown} */
-        FileObjectVariant: "Original" | "CroppedOriginal" | "Cover600" | "Banner1200x400" | "Thumbnail640x360" | "Opus96" | "WaveformB8Pixel20" | "DashAV1" | "SubtitleVtt" | "SubtitleSup" | "AttachedPicture" | "OriginalDash";
+        FileObjectVariant: "Original" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup";
         FileRequest: {
             blake3Hash: string;
             mimeType: string;
@@ -917,8 +917,13 @@ export interface components {
             partyId: number | string;
             name: string;
             normalizedName: string;
+            country: components["schemas"]["CountryCode"];
+            type?: components["schemas"]["PartyType"];
+            kind: components["schemas"]["PartyKind"];
             aliases: components["schemas"]["PartyAlias"][];
         };
+        /** @enum {unknown} */
+        PartyKind: "Human" | "VTuber" | "Vocaloid";
         /** @enum {unknown} */
         PartyType: "Individual" | "Group" | "Project";
         ProblemDetails: {
@@ -953,16 +958,14 @@ export interface components {
         TrackCreditRequest: {
             /** Format: int32 */
             partyId: number | string;
-            credit: components["schemas"]["TrackCreditType"];
+            credit: components["schemas"]["CreditType"];
         };
-        /** @enum {unknown} */
-        TrackCreditType: "Artist";
         TrackPartyCredit: {
             /** Format: int32 */
             partyId: number | string;
             name: string;
             type: components["schemas"]["PartyType"];
-            creditType: components["schemas"]["TrackCreditType"];
+            creditType: components["schemas"]["CreditType"];
             avatar: components["schemas"]["PartyImage"][];
         };
         /** @enum {unknown} */
