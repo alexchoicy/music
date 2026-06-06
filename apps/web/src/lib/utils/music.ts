@@ -1,45 +1,58 @@
-export function checkIfMC(title: string, filename: string): boolean {
-	const mcIndicators = ["mc", "m.c.", "m.c", "ＭＣ", "talk"];
-	const lowerTitle = title.toLowerCase();
-	const lowerFilename = filename.toLowerCase();
-	return mcIndicators.some(
-		(indicator) =>
-			lowerTitle.includes(indicator) || lowerFilename.includes(indicator),
+function normalizeSearchValue(value: string): string {
+	return value.normalize("NFKC").trim().toLowerCase();
+}
+
+const MC_INDICATORS = ["mc", "m.c.", "m.c", "talk"].map(normalizeSearchValue);
+const VARIOUS_ARTISTS_INDICATORS = ["various artists", "v/a", "va"].map(
+	normalizeSearchValue,
+);
+const INTRO_INDICATORS = ["intro"].map(normalizeSearchValue);
+const INTERLUDE_INDICATORS = ["interlude", "overture"].map(
+	normalizeSearchValue,
+);
+const INSTRUMENTAL_INDICATORS = ["instrumental"].map(normalizeSearchValue);
+
+function includesAny(value: string, indicators: string[]): boolean {
+	const normalizedValue = normalizeSearchValue(value);
+
+	return indicators.some((indicator) => normalizedValue.includes(indicator));
+}
+
+function includesSeparatedPhrase(value: string, indicators: string[]): boolean {
+	const normalizedValue = ` ${normalizeSearchValue(value)} `;
+
+	return indicators.some((indicator) =>
+		normalizedValue.includes(` ${indicator} `),
 	);
 }
 
-export function checkIfVariousArtists(artist: string[]): boolean {
-	const variousIndicators = ["various artists", "va"];
-	const lowerArtist = artist.map((a) => a.toLowerCase()).join(" ");
-	return variousIndicators.some((indicator) => lowerArtist.includes(indicator));
+export function checkIfVariousArtists(artist: string): boolean {
+	return includesSeparatedPhrase(artist, VARIOUS_ARTISTS_INDICATORS);
+}
+
+export function checkIfMC(title: string, filename: string): boolean {
+	return (
+		includesAny(title, MC_INDICATORS) || includesAny(filename, MC_INDICATORS)
+	);
 }
 
 export function checkIfIntro(title: string, filename: string): boolean {
-	const introIndicators = ["intro"];
-	const lowerTitle = title.toLowerCase();
-	const lowerFilename = filename.toLowerCase();
-	return introIndicators.some(
-		(indicator) =>
-			lowerTitle.includes(indicator) || lowerFilename.includes(indicator),
+	return (
+		includesAny(title, INTRO_INDICATORS) ||
+		includesAny(filename, INTRO_INDICATORS)
 	);
 }
 
 export function checkIfInterlude(title: string, filename: string): boolean {
-	const interludeIndicators = ["interlude", "Overture"];
-	const lowerTitle = title.toLowerCase();
-	const lowerFilename = filename.toLowerCase();
-	return interludeIndicators.some(
-		(indicator) =>
-			lowerTitle.includes(indicator) || lowerFilename.includes(indicator),
+	return (
+		includesAny(title, INTERLUDE_INDICATORS) ||
+		includesAny(filename, INTERLUDE_INDICATORS)
 	);
 }
 
 export function checkIfInstrumental(title: string, filename: string): boolean {
-	const instrumentalIndicators = ["instrumental"];
-	const lowerTitle = title.toLowerCase();
-	const lowerFilename = filename.toLowerCase();
-	return instrumentalIndicators.some(
-		(indicator) =>
-			lowerTitle.includes(indicator) || lowerFilename.includes(indicator),
+	return (
+		includesAny(title, INSTRUMENTAL_INDICATORS) ||
+		includesAny(filename, INSTRUMENTAL_INDICATORS)
 	);
 }

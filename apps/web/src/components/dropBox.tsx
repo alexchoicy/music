@@ -1,5 +1,3 @@
-"use client";
-
 import { Upload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import type { Accept, DropzoneOptions } from "react-dropzone";
@@ -7,7 +5,7 @@ import type { Accept, DropzoneOptions } from "react-dropzone";
 import { Button } from "#/components/coss/button";
 import { cn } from "#/lib/utils/styles";
 
-interface AudioDropBoxProps {
+interface DropBoxProps {
 	accept: Accept;
 	activeHint: string;
 	errorHint: string;
@@ -17,7 +15,7 @@ interface AudioDropBoxProps {
 	title: string;
 }
 
-export function AudioDropBox({
+export function DropBox({
 	accept,
 	activeHint,
 	errorHint,
@@ -25,7 +23,7 @@ export function AudioDropBox({
 	isProcessing = false,
 	onDrop,
 	title,
-}: AudioDropBoxProps) {
+}: DropBoxProps) {
 	const {
 		getInputProps,
 		getRootProps,

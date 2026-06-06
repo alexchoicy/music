@@ -1,6 +1,10 @@
 import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
+import { processDroppedFiles } from "#/lib/utils/upload";
+
+import { insertPreparedFile } from "./albumUploadStoreFunction";
 import type {
 	AlbumUploadStatus,
 	AlbumUploadActions,
@@ -14,7 +18,7 @@ function createInitialState(
 	lastStatus: AlbumUploadStatus = "idle",
 ): AlbumUploadState {
 	return {
-		filesById: {},
+		filesByBlake3Hash: {},
 		coverAssetsIdByHash: {},
 		albumOrder: [],
 		albumsById: {},
@@ -28,22 +32,64 @@ function createInitialState(
 }
 
 export const useAlbumUploadStore = create<AlbumUploadStore>()(
-	immer((set) => ({
-		...createInitialState(),
-		addDroppedFiles: async (files, parties) => {
-			const result: AddDroppedFilesResult = {
-				processedFileNames: [],
-				ignoredFileNames: [],
-			};
-			set((state) => {
-				state.isProcessing = true;
-				state.lastError = null;
-			});
-			return result;
-		},
-		clear: () => {},
-		removeAlbumDraft: (albumId) => {
-			void albumId;
-		},
-	})),
+	devtools(
+		immer((set, get) => ({
+			...createInitialState(),
+			addDroppedFiles: async (files, parties) => {
+				const result: AddDroppedFilesResult = {
+					processedFileNames: [],
+					ignoredFileNames: [],
+				};
+
+				if (get().isProcessing) {
+					result.ignoredFileNames.push(...files.map((file) => file.name));
+					return result;
+				}
+
+				set((state) => {
+					state.isProcessing = true;
+					state.lastError = null;
+				});
+
+				try {
+					const { failedFileNames, processedFiles } =
+						await processDroppedFiles(files);
+
+					result.ignoredFileNames.push(...failedFileNames);
+
+					set((state) => {
+						for (const processedFile of processedFiles) {
+							if (insertPreparedFile(state, processedFile, parties)) {
+								result.processedFileNames.push(processedFile.file.name);
+							} else {
+								result.ignoredFileNames.push(processedFile.file.name);
+							}
+						}
+					});
+				} catch (error) {
+					const errorMessage =
+						error instanceof Error
+							? error.message
+							: "Failed to process dropped files";
+
+					console.error(errorMessage, error);
+					result.ignoredFileNames.push(...files.map((file) => file.name));
+
+					set((state) => {
+						state.lastError = errorMessage;
+					});
+				} finally {
+					set((state) => {
+						state.isProcessing = false;
+						if (state.albumOrder.length > 0) state.submitStatus = "creating";
+					});
+				}
+				return result;
+			},
+			clear: () => {},
+			removeAlbumDraft: (albumId) => {
+				void albumId;
+			},
+		})),
+	),
 );

@@ -4,9 +4,10 @@ import type { components } from "#/data/APIschema";
 
 type CreateAlbumRequest = components["schemas"]["CreateAlbumRequest"];
 type AlbumDiscRequest = components["schemas"]["AlbumDiscRequest"];
-type AlbumImageRequest = components["schemas"]["AlbumImageRequest"];
+export type ImageRequest = components["schemas"]["AlbumImageRequest"];
 type AlbumTrackRequest = components["schemas"]["AlbumTrackRequest"];
-type PartyItem = components["schemas"]["PartyItems"];
+export type PartyItem = components["schemas"]["PartyItems"];
+export type CreditRequest = components["schemas"]["CreditRequest"];
 
 export type LocalFileBlake3Hash = string;
 export type AlbumLocalId = string;
@@ -15,6 +16,13 @@ export type TrackLocalId = string;
 export type CoverAssetBlake3Hash = string;
 export type AlbumUploadStatus = "idle" | "creating" | "uploading";
 export type AlbumMatchingKey = string;
+
+export type CroppedArea = {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+};
 
 export type ProcessedUploadFile = {
 	blake3Hash: LocalFileBlake3Hash;
@@ -25,8 +33,12 @@ export type ProcessedUploadFile = {
 export type CoverAsset = {
 	blake3Hash: CoverAssetBlake3Hash;
 	file: File;
-	imageRequest: AlbumImageRequest;
+	imageRequest: ImageRequest;
 	localURL: string;
+	croppedArea: CroppedArea;
+	height: number;
+	width: number;
+	mimeType: string;
 };
 
 export type AlbumDraft = Omit<CreateAlbumRequest, "image" | "discs"> & {
@@ -41,11 +53,11 @@ export type AlbumDraft = Omit<CreateAlbumRequest, "image" | "discs"> & {
 export type DiscDraft = Omit<AlbumDiscRequest, "image" | "tracks"> & {
 	localId: DiscLocalId;
 	albumId: AlbumLocalId;
-	coverAssetId: CoverAssetBlake3Hash | null;
+	coverAssetIdByHash: CoverAssetBlake3Hash | null;
 	trackIds: TrackLocalId[];
 };
 
-export type TrackDraft = AlbumTrackRequest & {
+export type TrackDraft = Omit<AlbumTrackRequest, "clientTempTrackId"> & {
 	localId: TrackLocalId;
 	albumId: AlbumLocalId;
 	discId: DiscLocalId;
@@ -54,7 +66,7 @@ export type TrackDraft = AlbumTrackRequest & {
 };
 
 export type AlbumUploadState = {
-	filesById: Record<LocalFileBlake3Hash, ProcessedUploadFile>;
+	filesByBlake3Hash: Record<LocalFileBlake3Hash, ProcessedUploadFile>;
 	coverAssetsIdByHash: Record<CoverAssetBlake3Hash, CoverAsset>;
 	albumOrder: AlbumLocalId[];
 	albumsById: Record<AlbumLocalId, AlbumDraft>;

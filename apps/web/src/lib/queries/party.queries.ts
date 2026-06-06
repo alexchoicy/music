@@ -5,12 +5,12 @@ import type { components } from "#/data/APIschema";
 import { $APIFetch } from "../APIFetchClient";
 
 export const partyQueries = {
-	getParties: (query?: string) =>
+	getParties: () =>
 		queryOptions({
-			queryKey: ["parties", "searchList", query],
+			queryKey: ["parties"],
 			queryFn: async () => {
 				const result = await $APIFetch<components["schemas"]["PartyItems"][]>(
-					"/parties/list",
+					"/parties",
 					{
 						method: "GET",
 					},

@@ -620,11 +620,6 @@ export interface components {
             variant: components["schemas"]["FileObjectVariant"];
             url: string;
         };
-        AlbumCreditRequest: {
-            /** Format: int32 */
-            partyId: number | string;
-            credit: components["schemas"]["CreditType"];
-        };
         AlbumDetails: {
             /** Format: int32 */
             albumId: number | string;
@@ -734,7 +729,7 @@ export interface components {
             versionType?: components["schemas"]["TrackVersionType"];
             /** Format: int32 */
             basedOnTrackId?: null | number | string;
-            credits: components["schemas"]["TrackCreditRequest"][];
+            credits: components["schemas"]["CreditRequest"][];
             audios: components["schemas"]["TrackAudioRequest"][];
         };
         /** @enum {unknown} */
@@ -774,7 +769,7 @@ export interface components {
             languageId?: null | number | string;
             /** Format: date-time */
             releaseDate?: null | string;
-            credits: components["schemas"]["AlbumCreditRequest"][];
+            credits: components["schemas"]["CreditRequest"][];
             image?: null | components["schemas"]["AlbumImageRequest"];
             discs: components["schemas"]["AlbumDiscRequest"][];
         };
@@ -809,6 +804,11 @@ export interface components {
         CreateUploadRequest: {
             /** Format: int32 */
             fileId: number | string;
+        };
+        CreditRequest: {
+            /** Format: int32 */
+            partyId: number | string;
+            credit: components["schemas"]["CreditType"];
         };
         /** @enum {unknown} */
         CreditType: "Artist";
@@ -955,11 +955,6 @@ export interface components {
         };
         /** @enum {unknown} */
         TrackContentType: "Music" | "MC" | "Interlude" | "Intro";
-        TrackCreditRequest: {
-            /** Format: int32 */
-            partyId: number | string;
-            credit: components["schemas"]["CreditType"];
-        };
         TrackPartyCredit: {
             /** Format: int32 */
             partyId: number | string;

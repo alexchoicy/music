@@ -1,15 +1,18 @@
 import type { components } from "#/data/APIschema";
+import type { CreditRequest, PartyItem } from "#/store/albumUploadStoreType";
 
+import { checkIfVariousArtists } from "./music";
 import { normalizeString } from "./string";
 
 export function splitArtists(artistString?: string): string[] {
 	if (!artistString) return [];
 
 	return artistString
-		.split(/[/,;]+/)
-		.map((a) => a.trim())
-		.filter(Boolean)
-		.filter((v, i, arr) => arr.indexOf(v) === i);
+		.trim()
+		.toLowerCase()
+		.split(/\s*(?:;|\bfeat\.?\b|\bft\.?\b|\bfeaturing\b)\s*/i)
+		.map((artist) => artist.trim())
+		.filter(Boolean);
 }
 
 export function searchParty(
@@ -28,29 +31,53 @@ export function searchParty(
 }
 
 export function resolveParty(
-	rawMetadata: string | undefined,
+	rawMetadata: string[],
 	parties: components["schemas"]["PartyItems"][],
 ) {
-	const artists = splitArtists(rawMetadata);
+	const artists = rawMetadata.flatMap((artist) => splitArtists(artist));
+	const hasVariousArtists = rawMetadata.some(checkIfVariousArtists);
 
-	return artists.reduce<{
-		albumParty: components["schemas"]["AlbumCreditRequest"][];
-		unsolved: string[];
-	}>(
-		(acc, artist) => {
-			const party = searchParty(parties, artist);
+	const albumParty: CreditRequest[] = [];
+	const unsolved: string[] = [];
 
-			if (party !== undefined) {
-				acc.albumParty.push({
-					partyId: party.partyId,
-					credit: "Artist",
-				});
-			} else {
-				acc.unsolved.push(artist);
-			}
+	const seenPartyIds = new Set<PartyItem["partyId"]>();
 
-			return acc;
-		},
-		{ albumParty: [], unsolved: [] },
+	for (const artist of artists) {
+		const party = searchParty(parties, artist);
+
+		if (party === undefined) {
+			unsolved.push(artist);
+			continue;
+		}
+
+		if (seenPartyIds.has(party.partyId)) {
+			continue;
+		}
+
+		seenPartyIds.add(party.partyId);
+
+		albumParty.push({
+			partyId: party.partyId,
+			credit: "Artist",
+		});
+	}
+
+	return {
+		albumParty,
+		unsolved,
+		hasVariousArtists,
+	};
+}
+
+export function getCreditNames(
+	parties: PartyItem[],
+	credits: CreditRequest[],
+): string[] {
+	const partyNameById = new Map(
+		parties.map((party) => [party.partyId, party.name]),
+	);
+
+	return credits.map(
+		(credit) => partyNameById.get(credit.partyId) ?? "Unknown artist",
 	);
 }

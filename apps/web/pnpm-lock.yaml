@@ -68,9 +68,6 @@ importers:
       nitro:
         specifier: npm:nitro-nightly@3.0.1-20260529-064703-255b254f
         version: nitro-nightly@3.0.1-20260529-064703-255b254f(chokidar@5.0.0)(jiti@2.7.0)(lru-cache@11.5.1)(vite@8.0.16(@types/node@22.19.19)(jiti@2.7.0))
-      openapi-typescript:
-        specifier: ^7.13.0
-        version: 7.13.0(typescript@6.0.3)
       p-map:
         specifier: ^7.0.4
         version: 7.0.4
@@ -135,6 +132,9 @@ importers:
       jsdom:
         specifier: ^28.1.0
         version: 28.1.0
+      openapi-typescript:
+        specifier: ^7.13.0
+        version: 7.13.0(typescript@6.0.3)
       oxfmt:
         specifier: ^0.52.0
         version: 0.52.0
