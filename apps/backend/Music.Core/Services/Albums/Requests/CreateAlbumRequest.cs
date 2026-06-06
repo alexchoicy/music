@@ -20,7 +20,7 @@ public sealed class CreateAlbumRequest
     public int? LanguageId { get; init; }
     public DateTimeOffset? ReleaseDate { get; init; }
 
-    public required IReadOnlyList<AlbumCreditRequest> Credits { get; init; } = [];
+    public required IReadOnlyList<CreditRequest> Credits { get; init; } = [];
     public AlbumImageRequest? Image { get; init; }
     public required IReadOnlyList<AlbumDiscRequest> Discs { get; init; } = [];
 }
@@ -33,7 +33,7 @@ public sealed class AlbumImageRequest
     public FileCroppedAreaRequest? CroppedArea { get; init; }
 }
 
-public sealed class AlbumCreditRequest
+public sealed class CreditRequest
 {
     public required int PartyId { get; init; }
     public required CreditType Credit { get; init; }
@@ -60,14 +60,8 @@ public sealed class AlbumTrackRequest
     public TrackVersionType VersionType { get; init; } = TrackVersionType.Original;
     public int? BasedOnTrackId { get; init; }
 
-    public required IReadOnlyList<TrackCreditRequest> Credits { get; init; } = [];
+    public required IReadOnlyList<CreditRequest> Credits { get; init; } = [];
     public required IReadOnlyList<TrackAudioRequest> Audios { get; init; } = [];
-}
-
-public sealed class TrackCreditRequest
-{
-    public required int PartyId { get; init; }
-    public required CreditType Credit { get; init; }
 }
 
 public sealed class TrackAudioRequest
