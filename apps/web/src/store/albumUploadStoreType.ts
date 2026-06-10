@@ -2,12 +2,14 @@ import type { IAudioMetadata } from "music-metadata";
 
 import type { components } from "#/data/APIschema";
 
-type CreateAlbumRequest = components["schemas"]["CreateAlbumRequest"];
+export type CreateAlbumRequest = components["schemas"]["CreateAlbumRequest"];
 type AlbumDiscRequest = components["schemas"]["AlbumDiscRequest"];
 export type ImageRequest = components["schemas"]["AlbumImageRequest"];
 type AlbumTrackRequest = components["schemas"]["AlbumTrackRequest"];
 export type PartyItem = components["schemas"]["PartyItems"];
 export type CreditRequest = components["schemas"]["CreditRequest"];
+export type LanguageItem = components["schemas"]["LanguageListItem"];
+type TrackAudioRequest = components["schemas"]["TrackAudioRequest"];
 
 export type LocalFileBlake3Hash = string;
 export type AlbumLocalId = string;
@@ -65,6 +67,26 @@ export type TrackDraft = Omit<AlbumTrackRequest, "clientTempTrackId"> & {
 	hasVariousArtists: boolean;
 };
 
+export type UpdateAlbumDraftInput = {
+	title: string;
+	type: CreateAlbumRequest["type"];
+	languageId: CreateAlbumRequest["languageId"];
+	releaseDate: CreateAlbumRequest["releaseDate"];
+	clearUnsolvedAlbumCredits: boolean;
+	cover: CoverAsset | null;
+	credits: CreditRequest[];
+	discCoversById: Partial<Record<DiscLocalId, CoverAsset>>;
+	discSubtitlesById: Partial<Record<DiscLocalId, string>>;
+	replaceAudioSource: TrackAudioRequest["source"] | null;
+	replaceTrackCredits: CreditRequest[] | null;
+	replaceTrackLanguageId: AlbumTrackRequest["languageId"] | null;
+};
+
+export type AddDroppedFilesResult = {
+	processedFileNames: string[];
+	ignoredFileNames: string[];
+};
+
 export type AlbumUploadState = {
 	filesByBlake3Hash: Record<LocalFileBlake3Hash, ProcessedUploadFile>;
 	coverAssetsIdByHash: Record<CoverAssetBlake3Hash, CoverAsset>;
@@ -78,11 +100,6 @@ export type AlbumUploadState = {
 	lastError: string | null;
 };
 
-export type AddDroppedFilesResult = {
-	processedFileNames: string[];
-	ignoredFileNames: string[];
-};
-
 export type AlbumUploadActions = {
 	addDroppedFiles: (
 		files: File[],
@@ -90,4 +107,8 @@ export type AlbumUploadActions = {
 	) => Promise<AddDroppedFilesResult>;
 	clear: () => void;
 	removeAlbumDraft: (albumId: AlbumLocalId) => void;
+	updateAlbumDraft: (
+		albumId: AlbumLocalId,
+		input: UpdateAlbumDraftInput,
+	) => void;
 };

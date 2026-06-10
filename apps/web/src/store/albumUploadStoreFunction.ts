@@ -20,10 +20,13 @@ import type { ProcessedFileData } from "#/lib/utils/upload";
 import type {
 	AlbumDraft,
 	AlbumLocalId,
+	AlbumMatchingKey,
 	AlbumUploadState,
 	CoverAsset,
+	CoverAssetBlake3Hash,
 	DiscLocalId,
 	PartyItem,
+	UpdateAlbumDraftInput,
 } from "./albumUploadStoreType";
 
 export function getTrackContentType(
@@ -88,6 +91,7 @@ export function upsertCoverAsset(
 
 	if (existingId) {
 		URL.revokeObjectURL(coverAsset.localURL);
+		existingId.croppedArea = coverAsset.croppedArea;
 		return existingId.blake3Hash;
 	}
 
@@ -262,4 +266,82 @@ function sortDiscTracks(state: AlbumUploadState, discId: DiscLocalId) {
 		if (numberA !== 0 && numberB === 0) return -1;
 		return numberA - numberB;
 	});
+}
+
+export function cleanNewCoverAssets(
+	state: AlbumUploadState,
+	coverAssetIdByHash: CoverAssetBlake3Hash,
+) {
+	const isUsedByAlbum = Object.values(state.albumsById).some(
+		(album) => album.coverAssetIdByHash === coverAssetIdByHash,
+	);
+
+	if (isUsedByAlbum) return;
+
+	const isUsedByDisc = Object.values(state.discsById).some(
+		(disc) => disc.coverAssetIdByHash === coverAssetIdByHash,
+	);
+
+	if (isUsedByDisc) return;
+
+	URL.revokeObjectURL(state.coverAssetsIdByHash[coverAssetIdByHash].localURL);
+	delete state.coverAssetsIdByHash[coverAssetIdByHash];
+}
+
+function mergeAlbumDraftByMatchingKey(
+	state: AlbumUploadState,
+	albumId: AlbumLocalId,
+	existingAlbumId: AlbumLocalId,
+) {
+	void state;
+	void albumId;
+	void existingAlbumId;
+}
+
+export function updateAlbumDraft(
+	state: AlbumUploadState,
+	albumId: AlbumLocalId,
+	input: UpdateAlbumDraftInput,
+) {
+	const album = state.albumsById[albumId];
+	if (!album) return;
+
+	const nextUnsolvedCredits = input.clearUnsolvedAlbumCredits
+		? []
+		: album.unsolvedCredits;
+
+	const newMatchingKey = makeAlbumMatchingKey(
+		input.title,
+		input.credits,
+		nextUnsolvedCredits,
+	);
+
+	if (newMatchingKey !== album.matchingKey) {
+		const existingAlbumId = state.albumsByMatchingKey[newMatchingKey];
+
+		if (existingAlbumId && existingAlbumId !== albumId) {
+			mergeAlbumDraftByMatchingKey(state, albumId, existingAlbumId);
+			return;
+		} else {
+			delete state.albumsByMatchingKey[album.matchingKey];
+			state.albumsByMatchingKey[newMatchingKey] = albumId;
+			album.matchingKey = newMatchingKey;
+		}
+	}
+
+	album.title = input.title;
+	album.credits = input.credits;
+	album.unsolvedCredits = nextUnsolvedCredits;
+
+	if (input.cover) {
+		const oldCoverAssetIdByHash = album.coverAssetIdByHash;
+		const coverAssetIdByHash = upsertCoverAsset(state, input.cover);
+		album.coverAssetIdByHash = coverAssetIdByHash;
+		if (oldCoverAssetIdByHash)
+			cleanNewCoverAssets(state, oldCoverAssetIdByHash);
+	}
+
+	album.type = input.type;
+	album.languageId = input.languageId;
+	album.releaseDate = input.releaseDate;
 }

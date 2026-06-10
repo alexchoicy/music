@@ -1,15 +1,17 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { UploadIcon } from "lucide-react";
+import { useState } from "react";
 import type { Accept } from "react-dropzone";
 
 import { DropBox } from "#/components/dropBox";
-import { languageQueries } from "#/lib/queries/language.queries";
 import { partyQueries } from "#/lib/queries/party.queries";
 import { useAlbumUploadStore } from "#/store/albumUploadStore";
+import type { AlbumLocalId } from "#/store/albumUploadStoreType";
 
 import { Button } from "../coss/button";
 import { toastManager } from "../coss/toast";
 import { AlbumDraftCard } from "./album/albumDraftCard";
+import { AlbumDraftEditDialog } from "./album/albumDraftEditDialog";
 
 const albumAudioAccept: Accept = {
 	"audio/*": [".flac", ".mp3", ".wav"],
@@ -17,11 +19,15 @@ const albumAudioAccept: Accept = {
 
 export function AlbumTabContent() {
 	const addDroppedFiles = useAlbumUploadStore((state) => state.addDroppedFiles);
-	const { data: languages } = useSuspenseQuery(languageQueries.getLanguages());
+	// const { data: languages } = useSuspenseQuery(languageQueries.getLanguages());
 	const { data: parties } = useSuspenseQuery(partyQueries.getParties());
 	const isProcessing = useAlbumUploadStore((state) => state.isProcessing);
 	const submitStatus = useAlbumUploadStore((state) => state.submitStatus);
 	const albumOrder = useAlbumUploadStore((state) => state.albumOrder);
+
+	const [albumDraftToEdit, setAlbumDraftToEdit] = useState<AlbumLocalId | null>(
+		null,
+	);
 
 	async function handleDrop(acceptedFiles: File[]) {
 		const result = await addDroppedFiles(acceptedFiles, parties);
@@ -76,9 +82,25 @@ export function AlbumTabContent() {
 			{albumOrder.length > 0 && (
 				<div className="grid gap-4">
 					{albumOrder.map((albumId) => {
-						return <AlbumDraftCard key={albumId} albumID={albumId} />;
+						return (
+							<AlbumDraftCard
+								key={albumId}
+								albumID={albumId}
+								onOpenAlbumDraftDialog={setAlbumDraftToEdit}
+							/>
+						);
 					})}
 				</div>
+			)}
+
+			{albumDraftToEdit !== null && (
+				<AlbumDraftEditDialog
+					key={albumDraftToEdit}
+					albumId={albumDraftToEdit}
+					onOpenChange={(open) => {
+						if (!open) setAlbumDraftToEdit(null);
+					}}
+				/>
 			)}
 		</section>
 	);

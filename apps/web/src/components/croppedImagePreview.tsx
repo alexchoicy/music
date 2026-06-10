@@ -7,7 +7,7 @@ type CroppedImagePreviewProps = {
 	alt: string;
 	fallback: ReactNode;
 	src?: string;
-	croppedArea: CroppedArea;
+	croppedArea?: CroppedArea;
 	height: number;
 	width: number;
 	className?: string;
@@ -18,10 +18,12 @@ function getCroppedImageStyle({
 	height,
 	width,
 }: {
-	croppedArea: CroppedArea;
+	croppedArea?: CroppedArea;
 	height: number;
 	width: number;
 }) {
+	if (!croppedArea) return undefined;
+
 	if (croppedArea.width <= 0 || croppedArea.height <= 0) return undefined;
 
 	if (

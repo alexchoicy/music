@@ -4,7 +4,10 @@ import { immer } from "zustand/middleware/immer";
 
 import { processDroppedFiles } from "#/lib/utils/upload";
 
-import { insertPreparedFile } from "./albumUploadStoreFunction";
+import {
+	insertPreparedFile,
+	updateAlbumDraft,
+} from "./albumUploadStoreFunction";
 import type {
 	AlbumUploadStatus,
 	AlbumUploadActions,
@@ -89,6 +92,9 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 			clear: () => {},
 			removeAlbumDraft: (albumId) => {
 				void albumId;
+			},
+			updateAlbumDraft: (albumId, input) => {
+				set((state) => updateAlbumDraft(state, albumId, input));
 			},
 		})),
 	),

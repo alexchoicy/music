@@ -14,7 +14,8 @@ export const languageQueries = {
 				>("/languages", {
 					method: "GET",
 				});
-				return result;
+				if (!result.ok) return [];
+				return result.data;
 			},
 		}),
 };

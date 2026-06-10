@@ -3,7 +3,11 @@ import type { IAudioMetadata } from "music-metadata";
 import pMap from "p-map";
 
 import type { components } from "#/data/APIschema";
-import type { CoverAsset, ImageRequest } from "#/store/albumUploadStoreType";
+import type {
+	CoverAsset,
+	CroppedArea,
+	ImageRequest,
+} from "#/store/albumUploadStoreType";
 
 import { getDimensions, getExtensionFromMimeType } from "./file";
 import { hashBlake3FileUnit8Array, hashFileStream } from "./hash";
@@ -21,24 +25,16 @@ export type ProcessDroppedFilesResult = {
 	failedFileNames: string[];
 };
 
-export async function extractCoverAsset(
-	metadata: IAudioMetadata,
+export async function createCoverAsset(
+	file: File,
+	fileName: string,
+	croppedArea?: CroppedArea,
 ): Promise<CoverAsset | null> {
-	const picture = selectCover(metadata.common.picture);
-	if (!picture) return null;
-	const safeU8 = new Uint8Array(picture.data);
-	const blake3Hash = await hashBlake3FileUnit8Array(safeU8);
-
-	const extension = getExtensionFromMimeType(picture.format);
-
-	const originalFileName =
-		picture.name?.trim() || `cover-${blake3Hash}.${extension}`;
-
-	const file = new File([safeU8], originalFileName, { type: picture.format });
-
+	const { blake3Hash } = await hashFileStream(file);
 	const dimensions = await getDimensions(file);
+	const extension = getExtensionFromMimeType(file.type);
 
-	const croppedArea = {
+	const area = croppedArea ?? {
 		x: 0,
 		y: 0,
 		width: dimensions.width,
@@ -49,7 +45,7 @@ export async function extractCoverAsset(
 		clientReferenceId: crypto.randomUUID(),
 		file: {
 			blake3Hash,
-			mimeType: picture.format,
+			mimeType: file.type,
 			sizeInBytes: file.size,
 			container: extension,
 			extension,
@@ -60,10 +56,10 @@ export async function extractCoverAsset(
 			bitrate: null,
 			frameRate: null,
 			durationInMs: null,
-			originalFileName,
+			originalFileName: fileName,
 		},
-		description: picture.description ?? "",
-		croppedArea,
+		description: "",
+		croppedArea: area,
 	};
 
 	return {
@@ -71,11 +67,27 @@ export async function extractCoverAsset(
 		file,
 		imageRequest,
 		localURL: URL.createObjectURL(file),
-		croppedArea,
+		croppedArea: area,
 		height: dimensions.height,
 		width: dimensions.width,
 		mimeType: file.type,
 	};
+}
+
+export async function extractCoverAsset(
+	metadata: IAudioMetadata,
+): Promise<CoverAsset | null> {
+	const picture = selectCover(metadata.common.picture);
+	if (!picture) return null;
+
+	const safeU8 = new Uint8Array(picture.data);
+	const blake3Hash = await hashBlake3FileUnit8Array(safeU8);
+	const extension = getExtensionFromMimeType(picture.format);
+	const originalFileName =
+		picture.name?.trim() || `cover-${blake3Hash}.${extension}`;
+	const file = new File([safeU8], originalFileName, { type: picture.format });
+
+	return createCoverAsset(file, originalFileName);
 }
 
 export async function processFile(

@@ -12,9 +12,13 @@ import { DraftCreditSummary } from "./DraftCreditSummary";
 
 type AlbumDraftCardProps = {
 	albumID: AlbumLocalId;
+	onOpenAlbumDraftDialog: (albumID: AlbumLocalId) => void;
 };
 
-export function AlbumDraftCard({ albumID }: AlbumDraftCardProps) {
+export function AlbumDraftCard({
+	albumID,
+	onOpenAlbumDraftDialog,
+}: AlbumDraftCardProps) {
 	const album = useAlbumUploadStore((state) => {
 		return Object.hasOwn(state.albumsById, albumID)
 			? state.albumsById[albumID]
@@ -85,7 +89,13 @@ export function AlbumDraftCard({ albumID }: AlbumDraftCardProps) {
 						</div>
 					</div>
 				</div>
-				<Button size="sm" variant="secondary">
+				<Button
+					onClick={() => {
+						onOpenAlbumDraftDialog(albumID);
+					}}
+					size="sm"
+					variant="secondary"
+				>
 					<PencilIcon aria-hidden="true" />
 					Edit draft
 				</Button>

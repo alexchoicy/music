@@ -48,7 +48,7 @@ import type { PartyItem } from "#/store/albumUploadStoreType";
 
 type CreatePartyRequest = components["schemas"]["CreatePartyRequest"];
 
-export type PartyComboboxId = string;
+export type PartyComboboxId = number;
 
 type PartyComboboxItem = PartyItem & {
 	creatableName?: string;
@@ -118,14 +118,14 @@ export function PartyCombobox({
 	const selectedIdKeys = new Set(selectedIds);
 	const hiddenIdKeys = new Set([...selectedIds, ...filterOutIds]);
 	const selectedParties: PartyComboboxItem[] = parties.filter((party) =>
-		selectedIdKeys.has(String(party.partyId)),
+		selectedIdKeys.has(Number(party.partyId)),
 	);
 	const normalizedQuery = normalizeString(query);
 	const trimmedQuery = query.trim();
 	const normalizedTrimmedQuery = normalizeString(trimmedQuery);
 	const filteredParties = parties.filter(
 		(party) =>
-			!hiddenIdKeys.has(String(party.partyId)) &&
+			!hiddenIdKeys.has(Number(party.partyId)) &&
 			partyMatchesQuery(party, normalizedQuery),
 	);
 	const existingPartyForQuery = searchPartyByNormalizedName(
@@ -143,7 +143,7 @@ export function PartyCombobox({
 					kind: "Human",
 					name: `Create "${trimmedQuery}"`,
 					normalizedName: normalizedTrimmedQuery,
-					partyId: `create:${normalizedTrimmedQuery}`,
+					partyId: 0,
 					type: "Individual",
 				},
 			]
@@ -175,7 +175,7 @@ export function PartyCombobox({
 		);
 
 		if (existing) {
-			setSelectedIds([...selectedIds, String(existing.partyId)]);
+			setSelectedIds([...selectedIds, Number(existing.partyId)]);
 			setQuery("");
 			setIsCreateDialogOpen(false);
 			return;
@@ -190,7 +190,7 @@ export function PartyCombobox({
 		});
 
 		await queryClient.refetchQueries({ queryKey: ["parties"] });
-		setSelectedIds([...selectedIds, String(result.partyId)]);
+		setSelectedIds([...selectedIds, Number(result.partyId)]);
 		setQuery("");
 		setIsCreateDialogOpen(false);
 	}
@@ -214,7 +214,7 @@ export function PartyCombobox({
 						return;
 					}
 
-					setSelectedIds(nextValue.map((party) => String(party.partyId)));
+					setSelectedIds(nextValue.map((party) => Number(party.partyId)));
 					setQuery("");
 				}}
 				value={selectedParties}
@@ -245,7 +245,10 @@ export function PartyCombobox({
 					<ComboboxList>
 						{(item: PartyComboboxItem) =>
 							item.creatableName ? (
-								<ComboboxItem key={item.partyId} value={item}>
+								<ComboboxItem
+									key={`create:${item.normalizedName}`}
+									value={item}
+								>
 									<span className="flex items-center gap-2">
 										<PlusIcon aria-hidden="true" />
 										Create "{item.creatableName}"

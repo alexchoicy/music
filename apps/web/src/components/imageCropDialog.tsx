@@ -25,7 +25,7 @@ type ImageCropDialogProps = {
 	imageSrc: string | null;
 	onConfirm: (croppedArea: CroppedArea) => Promise<void> | void;
 	onOpenChange: (open: boolean) => void;
-	onOpenChangeComplete?: (mounted: boolean) => void;
+	onOpenChangeComplete?: (open: boolean) => void;
 	open: boolean;
 	title?: string;
 };

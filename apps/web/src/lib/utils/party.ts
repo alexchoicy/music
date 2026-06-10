@@ -15,12 +15,10 @@ export function splitArtists(artistString?: string): string[] {
 		.filter(Boolean);
 }
 
-export function searchParty(
+export function searchPartyByNormalizedName(
 	parties: components["schemas"]["PartyItems"][],
-	partyName: string,
+	normalizedPartyName: string,
 ) {
-	const normalizedPartyName = normalizeString(partyName);
-
 	return parties.find(
 		(party) =>
 			party.normalizedName === normalizedPartyName ||
@@ -43,7 +41,7 @@ export function resolveParty(
 	const seenPartyIds = new Set<PartyItem["partyId"]>();
 
 	for (const artist of artists) {
-		const party = searchParty(parties, artist);
+		const party = searchPartyByNormalizedName(parties, normalizeString(artist));
 
 		if (party === undefined) {
 			unsolved.push(artist);
