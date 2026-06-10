@@ -6,7 +6,7 @@ export type LanguageOption = {
 	value: string;
 };
 
-export const NO_LANGUAGE_OPTION_VALUE = "__none__";
+const NO_LANGUAGE_OPTION_VALUE = "__none__";
 
 export function makeLanguageOptions(
 	languages: LanguageItem[],

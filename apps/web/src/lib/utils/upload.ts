@@ -74,7 +74,7 @@ export async function createCoverAsset(
 	};
 }
 
-export async function extractCoverAsset(
+async function extractCoverAsset(
 	metadata: IAudioMetadata,
 ): Promise<CoverAsset | null> {
 	const picture = selectCover(metadata.common.picture);
@@ -90,9 +90,7 @@ export async function extractCoverAsset(
 	return createCoverAsset(file, originalFileName);
 }
 
-export async function processFile(
-	file: File,
-): Promise<ProcessedFileData | null> {
+async function processFile(file: File): Promise<ProcessedFileData | null> {
 	try {
 		const { blake3Hash } = await hashFileStream(file);
 		const metadata = await parseBlob(file);

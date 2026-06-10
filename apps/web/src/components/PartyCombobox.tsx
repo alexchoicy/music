@@ -67,6 +67,8 @@ type CreatePartyForm = Pick<
 	"country" | "kind" | "name" | "type"
 >;
 
+const EMPTY_FILTER_OUT_IDS: PartyComboboxId[] = [];
+
 function partyMatchesQuery(party: PartyItem, normalizedQuery: string): boolean {
 	if (!normalizedQuery) return true;
 
@@ -96,7 +98,7 @@ function createPartyForm(name: string): CreatePartyForm {
 
 export function PartyCombobox({
 	ariaLabel = "Parties",
-	filterOutIds = [],
+	filterOutIds = EMPTY_FILTER_OUT_IDS,
 	placeholder = "Search or create parties...",
 	selectedIds,
 	setSelectedIds,

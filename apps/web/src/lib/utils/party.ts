@@ -4,7 +4,7 @@ import type { CreditRequest, PartyItem } from "#/store/albumUploadStoreType";
 import { checkIfVariousArtists } from "./music";
 import { normalizeString } from "./string";
 
-export function splitArtists(artistString?: string): string[] {
+function splitArtists(artistString?: string): string[] {
 	if (!artistString) return [];
 
 	return artistString

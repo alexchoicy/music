@@ -130,7 +130,7 @@ export function ReleaseDateField({
 						<Calendar
 							captionLayout="dropdown"
 							components={{ Dropdown: CalendarDropdown }}
-							endMonth={new Date(new Date().getFullYear(), 11)}
+							disabled={{ after: new Date() }}
 							mode="single"
 							onSelect={(date) => {
 								onChange(date ? valueFromDate(date) : null);

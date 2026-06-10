@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createContext, useContext } from "react";
+import { createContext, use } from "react";
 import type { ReactNode } from "react";
 
 import type { components } from "#/data/APIschema";
@@ -24,7 +24,7 @@ export function UserInfoProvider({
 }
 
 export function useUserInfo(): UserInfo {
-	const userInfo = useContext(UserInfoContext);
+	const userInfo = use(UserInfoContext);
 
 	if (!userInfo) {
 		throw new Error("useUserInfo must be used within a UserInfoProvider.");

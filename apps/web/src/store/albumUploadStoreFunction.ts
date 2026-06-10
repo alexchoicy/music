@@ -28,7 +28,7 @@ import type {
 	UpdateAlbumDraftInput,
 } from "./albumUploadStoreType";
 
-export function getTrackContentType(
+function getTrackContentType(
 	title: string,
 	fileName: string,
 ): components["schemas"]["TrackContentType"] {
@@ -38,7 +38,7 @@ export function getTrackContentType(
 	return "Music";
 }
 
-export function getTrackVersionType(
+function getTrackVersionType(
 	title: string,
 	fileName: string,
 ): components["schemas"]["TrackVersionType"] {
@@ -82,10 +82,7 @@ function getMetadata(
 	};
 }
 
-export function upsertCoverAsset(
-	state: AlbumUploadState,
-	coverAsset: CoverAsset,
-) {
+function upsertCoverAsset(state: AlbumUploadState, coverAsset: CoverAsset) {
 	const existingId = state.coverAssetsIdByHash[coverAsset.blake3Hash];
 
 	if (existingId) {
@@ -111,7 +108,7 @@ function findDiscByNumber(
 	});
 }
 
-export function createTrackAudioRequest(
+function createTrackAudioRequest(
 	fileData: ProcessedFileData,
 	durationInMs: number,
 ): components["schemas"]["TrackAudioRequest"] {
@@ -275,7 +272,7 @@ function sortDiscTracks(state: AlbumUploadState, discId: DiscLocalId) {
 	});
 }
 
-export function cleanNewCoverAssets(
+function cleanNewCoverAssets(
 	state: AlbumUploadState,
 	coverAssetIdByHash: CoverAssetBlake3Hash,
 ) {
