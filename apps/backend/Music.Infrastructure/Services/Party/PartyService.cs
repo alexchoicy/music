@@ -15,7 +15,7 @@ public class PartyService(
     ILogger<PartyService> logger
 ) : IPartyService
 {
-    public async Task<bool> CreatePartyAsync(
+    public async Task<int> CreatePartyAsync(
         CreatePartyRequest request,
         string userId,
         CancellationToken cancellationToken = default
@@ -33,7 +33,7 @@ public class PartyService(
         dbContext.Parties.Add(party);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return true;
+        return party.Id;
     }
 
     public async Task<IList<PartyItems>> GetAllAsync(CancellationToken cancellationToken = default)

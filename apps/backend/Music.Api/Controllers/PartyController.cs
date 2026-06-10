@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Music.Core.Services.Parties;
 using Music.Core.Services.Parties.Requests;
+using Music.Core.Services.Parties.Results;
 
 namespace Music.Api.Controllers;
 
@@ -16,20 +17,23 @@ public class PartyController(IPartyService partyService) : ControllerBase
     [HttpPost]
     [Authorize]
     [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(CreatePartyResult), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreatePartyAsync([FromBody] CreatePartyRequest request)
+    public async Task<IActionResult> CreatePartyAsync(
+        [FromBody] CreatePartyRequest request,
+        CancellationToken cancellationToken
+    )
     {
         string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
 
-        bool created = await _partyService.CreatePartyAsync(request, userId);
+        int partyId = await _partyService.CreatePartyAsync(request, userId, cancellationToken);
 
-        if (!created)
+        if (partyId <= 0)
         {
             return BadRequest();
         }
 
-        return Created();
+        return StatusCode(StatusCodes.Status201Created, new CreatePartyResult { PartyId = partyId });
     }
 
     [HttpGet]

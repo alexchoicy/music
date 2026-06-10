@@ -5,7 +5,7 @@ namespace Music.Core.Services.Parties;
 
 public interface IPartyService
 {
-    Task<bool> CreatePartyAsync(
+    Task<int> CreatePartyAsync(
         CreatePartyRequest request,
         string userId,
         CancellationToken cancellationToken = default

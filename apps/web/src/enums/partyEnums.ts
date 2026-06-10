@@ -1,15 +1,10 @@
 import type { components } from "@/data/APIschema";
 
+import { enumOptions } from "./utils";
+
 type CountryCode = components["schemas"]["CountryCode"];
 type PartyKind = components["schemas"]["PartyKind"];
 type PartyType = components["schemas"]["PartyType"];
-
-function enumOptions<Value extends string>(values: Record<Value, string>) {
-	return Object.entries(values).map(([value, label]) => ({
-		value: value as Value,
-		label: label as string,
-	}));
-}
 
 export const COUNTRY_CODE: Record<CountryCode, string> = {
 	XX: "Unknown",

@@ -506,7 +506,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": unknown;
+                        "application/json": components["schemas"]["CreatePartyResult"];
                     };
                 };
                 /** @description Bad Request */
@@ -800,6 +800,10 @@ export interface components {
             musicBrainzID?: null | string;
             avatar?: null | components["schemas"]["PartyImageRequest"];
             banner?: null | components["schemas"]["PartyImageRequest"];
+        };
+        CreatePartyResult: {
+            /** Format: int32 */
+            partyId: number | string;
         };
         CreateUploadRequest: {
             /** Format: int32 */
