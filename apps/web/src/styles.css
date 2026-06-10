@@ -2,6 +2,10 @@
 @import "tw-animate-css";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono";
+@import "@fontsource-variable/noto-sans-sc";
+@import "@fontsource-variable/noto-sans-tc";
+@import "@fontsource-variable/noto-sans-jp";
+@import "@fontsource-variable/noto-sans-kr";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -268,9 +272,36 @@
 		@apply border-border outline-ring/50;
 	}
 	body {
-		--font-sans: "Geist Variable", system-ui, sans-serif;
-		--font-heading: "Geist Variable", system-ui, sans-serif;
-		--font-mono: "Geist Mono Variable", ui-monospace, monospace;
+       	--font-sans:
+      		"Geist Variable",
+      		"Noto Sans SC Variable",
+      		"Noto Sans TC Variable",
+      		"Noto Sans JP Variable",
+      		"Noto Sans KR Variable",
+      		system-ui,
+      		sans-serif;
+
+        --font-heading:
+      		"Geist Variable",
+      		"Noto Sans SC Variable",
+      		"Noto Sans TC Variable",
+      		"Noto Sans JP Variable",
+      		"Noto Sans KR Variable",
+      		system-ui,
+      		sans-serif;
+        --font-mono:
+           	"Geist Mono Variable",
+           	ui-monospace,
+           	"SFMono-Regular",
+           	"Menlo",
+           	"Consolas",
+           	"Liberation Mono",
+           	"Microsoft YaHei Mono",
+           	"Microsoft JhengHei UI",
+           	"Meiryo",
+           	"Yu Gothic UI",
+           	"Malgun Gothic",
+           	monospace;
 		@apply bg-background font-sans text-foreground;
 		font-feature-settings:
 			"rlig" 1,
