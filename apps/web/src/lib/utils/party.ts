@@ -10,7 +10,7 @@ function splitArtists(artistString?: string): string[] {
 	return artistString
 		.trim()
 		.toLowerCase()
-		.split(/\s*(?:;|\bfeat\.?\b|\bft\.?\b|\bfeaturing\b)\s*/i)
+		.split(/\s*(?:;|\bfeat\.?(?=\s|$)|\bft\.?(?=\s|$)|\bfeaturing\b)\s*/i)
 		.map((artist) => artist.trim())
 		.filter(Boolean);
 }
