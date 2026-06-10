@@ -20,7 +20,6 @@ import type { ProcessedFileData } from "#/lib/utils/upload";
 import type {
 	AlbumDraft,
 	AlbumLocalId,
-	AlbumMatchingKey,
 	AlbumUploadState,
 	CoverAsset,
 	CoverAssetBlake3Hash,
@@ -92,6 +91,7 @@ export function upsertCoverAsset(
 	if (existingId) {
 		URL.revokeObjectURL(coverAsset.localURL);
 		existingId.croppedArea = coverAsset.croppedArea;
+		existingId.imageRequest.croppedArea = coverAsset.imageRequest.croppedArea;
 		return existingId.blake3Hash;
 	}
 
@@ -206,11 +206,18 @@ export function insertPreparedFile(
 			discNumber: metadata.discNumber,
 			trackIds: [],
 			subtitle: "",
-			coverAssetIdByHash: coverAssetId,
+			coverAssetIdByHash:
+				coverAssetId && coverAssetId !== album.coverAssetIdByHash
+					? coverAssetId
+					: null,
 		};
 	} else {
 		const existingDisc = state.discsById[discId];
-		if (!existingDisc.coverAssetIdByHash && coverAssetId) {
+		if (
+			!existingDisc.coverAssetIdByHash &&
+			coverAssetId &&
+			coverAssetId !== album.coverAssetIdByHash
+		) {
 			existingDisc.coverAssetIdByHash = coverAssetId;
 		}
 	}
@@ -344,4 +351,33 @@ export function updateAlbumDraft(
 	album.type = input.type;
 	album.languageId = input.languageId;
 	album.releaseDate = input.releaseDate;
+
+	for (const [discId, cover] of Object.entries(input.discCoversById)) {
+		if (!Object.hasOwn(state.discsById, discId)) continue;
+
+		const disc = state.discsById[discId];
+		if (disc.albumId !== albumId) continue;
+
+		const oldCoverAssetIdByHash = disc.coverAssetIdByHash;
+
+		if (cover) {
+			const coverAssetIdByHash = upsertCoverAsset(state, cover);
+			disc.coverAssetIdByHash =
+				coverAssetIdByHash === album.coverAssetIdByHash
+					? null
+					: coverAssetIdByHash;
+		} else {
+			disc.coverAssetIdByHash = null;
+		}
+
+		if (oldCoverAssetIdByHash)
+			cleanNewCoverAssets(state, oldCoverAssetIdByHash);
+	}
+
+	for (const [discId, subtitle] of Object.entries(input.discSubtitlesById)) {
+		if (!Object.hasOwn(state.discsById, discId)) continue;
+
+		const disc = state.discsById[discId];
+		if (disc.albumId === albumId) disc.subtitle = subtitle;
+	}
 }

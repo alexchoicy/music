@@ -75,7 +75,7 @@ export type UpdateAlbumDraftInput = {
 	clearUnsolvedAlbumCredits: boolean;
 	cover: CoverAsset | null;
 	credits: CreditRequest[];
-	discCoversById: Partial<Record<DiscLocalId, CoverAsset>>;
+	discCoversById: Partial<Record<DiscLocalId, CoverAsset | null>>;
 	discSubtitlesById: Partial<Record<DiscLocalId, string>>;
 	replaceAudioSource: TrackAudioRequest["source"] | null;
 	replaceTrackCredits: CreditRequest[] | null;

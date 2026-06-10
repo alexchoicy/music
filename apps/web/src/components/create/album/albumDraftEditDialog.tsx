@@ -1,8 +1,10 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import type { ChangeEvent } from "react";
+import { useShallow } from "zustand/react/shallow";
 
 import { Button } from "#/components/coss/button";
+import { Checkbox } from "#/components/coss/checkbox";
 import {
 	Dialog,
 	DialogClose,
@@ -16,6 +18,7 @@ import {
 import { Field, FieldError, FieldLabel } from "#/components/coss/field";
 import { Form } from "#/components/coss/form";
 import { Input } from "#/components/coss/input";
+import { Label } from "#/components/coss/label";
 import { EnumFieldSelect } from "#/components/enumFieldSelect";
 import { ImageCropDialog } from "#/components/imageCropDialog";
 import { OptionSelectField } from "#/components/OptionSelectField";
@@ -49,12 +52,16 @@ type AlbumDraftEditDialogProps = {
 type AlbumDraftEditDialogFormProps = {
 	cover?: CoverAsset;
 	album: AlbumDraft;
+	discs: DiscDraft[];
 	form: EditAlbumDraftFormValue;
+	discCoversById: Partial<Record<DiscLocalId, CoverAsset>>;
+	pendingDiscCoversById: Partial<Record<DiscLocalId, CoverAsset>>;
 	updateForm: (nextValue: Partial<EditAlbumDraftFormValue>) => void;
 	handleCoverImageChange: (
 		event: React.ChangeEvent<HTMLInputElement>,
 		target: CoverImageTarget,
 	) => void;
+	setDiscSubtitle: (discId: DiscLocalId, subtitle: string) => void;
 };
 
 type EditAlbumDraftFormValue = {
@@ -63,23 +70,41 @@ type EditAlbumDraftFormValue = {
 	type: CreateAlbumRequest["type"];
 	releaseDate: CreateAlbumRequest["releaseDate"];
 	isUnsolvedAlbumCreditsCleared: boolean;
+	useAlbumCoverForDiscs: boolean;
 	languageId: LanguageItem["id"] | null;
+	discSubtitlesById: Record<DiscLocalId, string>;
 };
 
-function initFormValue(album: AlbumDraft): EditAlbumDraftFormValue {
+function initFormValue(
+	album: AlbumDraft,
+	discs: DiscDraft[],
+): EditAlbumDraftFormValue {
+	const discSubtitlesById: Record<DiscLocalId, string> = {};
+	const useAlbumCoverForDiscs = discs.every(
+		(disc) =>
+			!disc.coverAssetIdByHash ||
+			disc.coverAssetIdByHash === album.coverAssetIdByHash,
+	);
+
+	for (const disc of discs) {
+		discSubtitlesById[disc.localId] = disc.subtitle ?? "";
+	}
+
 	return {
+		discSubtitlesById,
 		albumArtistIds: album.credits.map((credit) => Number(credit.partyId)),
 		title: album.title,
 		type: album.type,
 		releaseDate: album.releaseDate ?? null,
 		isUnsolvedAlbumCreditsCleared: false,
+		useAlbumCoverForDiscs,
 		languageId: album.languageId ?? null,
 	};
 }
 
 type CoverImageTarget =
 	| { type: "album" }
-	| { discId: DiscLocalId; discNumber: DiscDraft["discNumber"]; type: "disc" };
+	| { type: "disc"; discId: DiscLocalId };
 
 type CoverImageCandidate = {
 	file: File;
@@ -91,12 +116,20 @@ function AlbumDraftEditDialogForm({
 	cover,
 	form,
 	album,
+	discs,
+	discCoversById,
+	pendingDiscCoversById,
 	updateForm,
 	handleCoverImageChange,
+	setDiscSubtitle,
 }: AlbumDraftEditDialogFormProps) {
 	const titleId = useId();
 	const albumCoverInputId = useId();
 	const languageId = useId();
+	const discSubtitleId = useId();
+	const discCoverInputId = useId();
+	const useAlbumCoverForDiscsId = useId();
+
 	const { data: languages } = useSuspenseQuery(languageQueries.getLanguages());
 	const languageOptions = makeLanguageOptions(languages);
 
@@ -122,6 +155,7 @@ function AlbumDraftEditDialogForm({
 					/>
 					<FieldError match="valueMissing">Album title is required.</FieldError>
 				</Field>
+
 				<CoverImageField
 					className="sm:col-span-2"
 					cover={cover}
@@ -182,6 +216,82 @@ function AlbumDraftEditDialogForm({
 					value={selectedLanguageOption}
 				/>
 			</div>
+
+			{discs.length > 0 && (
+				<section className="grid gap-3">
+					<div className="grid gap-1">
+						<h3 className="text-sm font-semibold">Discs</h3>
+						<p className="text-xs text-muted-foreground">
+							Optional subtitles for each disc. Multi-disc releases can also use
+							separate disc cover images.
+						</p>
+					</div>
+					{discs.length > 1 && (
+						<div className="flex items-start gap-2 rounded-lg border bg-muted/30 p-3">
+							<Checkbox
+								checked={form.useAlbumCoverForDiscs}
+								id={useAlbumCoverForDiscsId}
+								onCheckedChange={(checked) => {
+									updateForm({ useAlbumCoverForDiscs: checked === true });
+								}}
+							/>
+							<div className="grid gap-1 leading-none">
+								<Label htmlFor={useAlbumCoverForDiscsId}>
+									Use album cover for all discs
+								</Label>
+								<p className="text-xs leading-snug text-muted-foreground">
+									Uncheck to upload different cover images for individual discs.
+								</p>
+							</div>
+						</div>
+					)}
+					<div className="grid gap-4">
+						{discs.map((disc) => {
+							const subtitleInputId = `${discSubtitleId}-${disc.localId}`;
+							const coverInputId = `${discCoverInputId}-${disc.localId}`;
+
+							return (
+								<div key={disc.localId} className="grid gap-4">
+									{discs.length > 1 && !form.useAlbumCoverForDiscs && (
+										<CoverImageField
+											cover={
+												pendingDiscCoversById[disc.localId] ??
+												discCoversById[disc.localId] ??
+												cover
+											}
+											inputId={coverInputId}
+											label={`Disc ${disc.discNumber} cover`}
+											name={`discCover-${disc.localId}`}
+											onFileChange={(event) =>
+												handleCoverImageChange(event, {
+													type: "disc",
+													discId: disc.localId,
+												})
+											}
+										/>
+									)}
+									<Field name={`discSubtitle-${disc.localId}`}>
+										<FieldLabel htmlFor={subtitleInputId}>
+											Disc {disc.discNumber} subtitle
+										</FieldLabel>
+										<Input
+											autoComplete="off"
+											id={subtitleInputId}
+											name={`discSubtitle-${disc.localId}`}
+											onChange={(event) =>
+												setDiscSubtitle(disc.localId, event.target.value)
+											}
+											placeholder="Optional"
+											type="text"
+											value={form.discSubtitlesById[disc.localId] ?? ""}
+										/>
+									</Field>
+								</div>
+							);
+						})}
+					</div>
+				</section>
+			)}
 		</>
 	);
 }
@@ -199,6 +309,26 @@ export function AlbumDraftEditDialog({
 		return state.coverAssetsIdByHash[coverAssetIdByHash];
 	});
 
+	const discs = useAlbumUploadStore(
+		useShallow((state) =>
+			album.discIds.map((discId) => state.discsById[discId]),
+		),
+	);
+	const discCoversById = useAlbumUploadStore(
+		useShallow((state) => {
+			const coversById: Partial<Record<DiscLocalId, CoverAsset>> = {};
+
+			for (const discId of album.discIds) {
+				const coverAssetIdByHash = state.discsById[discId].coverAssetIdByHash;
+				if (coverAssetIdByHash) {
+					coversById[discId] = state.coverAssetsIdByHash[coverAssetIdByHash];
+				}
+			}
+
+			return coversById;
+		}),
+	);
+
 	const [pendingCover, setPendingCover] = useState<CoverAsset | null>(null);
 
 	const coverPreview = pendingCover ?? albumCover;
@@ -207,17 +337,58 @@ export function AlbumDraftEditDialog({
 		(state) => state.updateAlbumDraft,
 	);
 
-	const [form, setForm] = useState(() => initFormValue(album));
+	const [form, setForm] = useState(() => initFormValue(album, discs));
 	const [isCoverCropOpen, setIsCoverCropOpen] = useState(false);
 	const [coverImageCandidate, setCoverImageCandidate] =
 		useState<CoverImageCandidate | null>(null);
+
+	const [pendingDiscCoversById, setPendingDiscCoversById] = useState<
+		Partial<Record<DiscLocalId, CoverAsset>>
+	>({});
 
 	function updateForm(nextValue: Partial<EditAlbumDraftFormValue>) {
 		setForm((current) => ({ ...current, ...nextValue }));
 	}
 
+	function setDiscSubtitle(discId: DiscLocalId, subtitle: string) {
+		setForm((current) => ({
+			...current,
+			discSubtitlesById: {
+				...current.discSubtitlesById,
+				[discId]: subtitle,
+			},
+		}));
+	}
+
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
+		const discCoversForSubmit: Partial<Record<DiscLocalId, CoverAsset | null>> =
+			{};
+
+		if (form.useAlbumCoverForDiscs) {
+			for (const disc of discs) {
+				discCoversForSubmit[disc.localId] = null;
+			}
+		} else {
+			for (const disc of discs) {
+				if (
+					discCoversById[disc.localId]?.blake3Hash === coverPreview?.blake3Hash
+				) {
+					discCoversForSubmit[disc.localId] = null;
+				}
+			}
+
+			for (const [discId, pendingDiscCover] of Object.entries(
+				pendingDiscCoversById,
+			)) {
+				if (pendingDiscCover?.blake3Hash === coverPreview?.blake3Hash) {
+					discCoversForSubmit[discId] = null;
+				} else {
+					discCoversForSubmit[discId] = pendingDiscCover;
+				}
+			}
+		}
+
 		updateAlbumDraft(albumId, {
 			title: form.title,
 			type: form.type,
@@ -229,8 +400,8 @@ export function AlbumDraftEditDialog({
 				partyId,
 				credit: "Artist",
 			})),
-			discCoversById: {},
-			discSubtitlesById: {},
+			discCoversById: discCoversForSubmit,
+			discSubtitlesById: form.discSubtitlesById,
 			replaceAudioSource: null,
 			replaceTrackCredits: null,
 			replaceTrackLanguageId: null,
@@ -252,15 +423,19 @@ export function AlbumDraftEditDialog({
 
 	const handleCoverCropConfirm = async (croppedArea: CroppedArea) => {
 		if (!coverImageCandidate) return;
+		const { file, target } = coverImageCandidate;
 
-		const coverAsset = await createCoverAsset(
-			coverImageCandidate.file,
-			coverImageCandidate.file.name,
-			croppedArea,
-		);
+		const coverAsset = await createCoverAsset(file, file.name, croppedArea);
 
-		if (coverAsset) {
+		if (coverAsset && target.type === "album") {
 			setPendingCover(coverAsset);
+		} else if (coverAsset && target.type === "disc") {
+			const { discId } = target;
+
+			setPendingDiscCoversById((current) => ({
+				...current,
+				[discId]: coverAsset,
+			}));
 		}
 		setIsCoverCropOpen(false);
 	};
@@ -292,9 +467,13 @@ export function AlbumDraftEditDialog({
 							<AlbumDraftEditDialogForm
 								cover={coverPreview}
 								form={form}
+								discs={discs}
 								album={album}
+								discCoversById={discCoversById}
+								pendingDiscCoversById={pendingDiscCoversById}
 								updateForm={updateForm}
 								handleCoverImageChange={handleCoverImageChange}
+								setDiscSubtitle={setDiscSubtitle}
 							/>
 						</DialogPanel>
 						<DialogFooter>
