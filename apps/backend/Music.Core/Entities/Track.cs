@@ -24,7 +24,7 @@ public class Track
     public int? LanguageId { get; set; }
     public Language? Language { get; set; }
 
-    public required string CreatedByUserId { get; set; }
+    public string? CreatedByUserId { get; set; }
 
     public uint Version { get; set; }
 
