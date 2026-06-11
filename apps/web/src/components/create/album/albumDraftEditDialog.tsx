@@ -91,6 +91,7 @@ type EditAlbumDraftFormValue = {
 	replaceTrackArtists: number[];
 	replaceTrackLanguageId: LanguageItem["id"] | null;
 	replaceAudioSource: TrackAudioRequest["source"] | null;
+	replaceAudioSourceUrl: NonNullable<TrackAudioRequest["sourceUrl"]>;
 };
 
 function initFormValue(
@@ -118,6 +119,7 @@ function initFormValue(
 		useAlbumCoverForDiscs,
 		languageId: album.languageId ?? null,
 		replaceAudioSource: null,
+		replaceAudioSourceUrl: "",
 		replaceTrackLanguageId: null,
 		replaceTrackArtists: [],
 	};
@@ -152,6 +154,7 @@ function AlbumDraftEditDialogForm({
 	const useAlbumCoverForDiscsId = useId();
 	const replaceTrackLanguageId = useId();
 	const replaceAudioSourceId = useId();
+	const replaceAudioSourceUrlId = useId();
 
 	const { data: languages = [] } = useQuery(languageQueries.getLanguages());
 	const languageOptions = makeLanguageOptions(languages);
@@ -382,6 +385,24 @@ function AlbumDraftEditDialogForm({
 					placeholder="Keep current audio sources"
 					value={selectedReplacementAudioSourceOption}
 				/>
+
+				<Field name="replaceAudioSourceUrl">
+					<FieldLabel htmlFor={replaceAudioSourceUrlId}>Source URL</FieldLabel>
+					<Input
+						autoComplete="off"
+						id={replaceAudioSourceUrlId}
+						name="replaceAudioSourceUrl"
+						onChange={(event) => {
+							updateForm({ replaceAudioSourceUrl: event.target.value });
+						}}
+						placeholder="Keep current source URLs"
+						type="url"
+						value={form.replaceAudioSourceUrl}
+					/>
+					<FieldDescription>
+						Leave empty to keep each audio file's current source URL.
+					</FieldDescription>
+				</Field>
 			</Fieldset>
 		</>
 	);
@@ -481,6 +502,7 @@ export function AlbumDraftEditDialog({
 		}
 
 		updateAlbumDraft(albumId, {
+			replaceAudioSourceUrl: form.replaceAudioSourceUrl.trim() || null,
 			title: form.title,
 			type: form.type,
 			languageId: form.languageId,

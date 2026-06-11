@@ -620,6 +620,12 @@ export function updateAlbumDraft(
 					audio.source = input.replaceAudioSource;
 				}
 			}
+
+			if (input.replaceAudioSourceUrl !== null) {
+				for (const audio of track.audios) {
+					audio.sourceUrl = input.replaceAudioSourceUrl;
+				}
+			}
 		}
 	}
 }

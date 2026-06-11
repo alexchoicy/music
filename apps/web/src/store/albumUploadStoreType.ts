@@ -78,6 +78,7 @@ export type UpdateAlbumDraftInput = {
 	discCoversById: Partial<Record<DiscLocalId, CoverAsset | null>>;
 	discSubtitlesById: Partial<Record<DiscLocalId, string>>;
 	replaceAudioSource: TrackAudioRequest["source"] | null;
+	replaceAudioSourceUrl: TrackAudioRequest["sourceUrl"] | null;
 	replaceTrackCredits: CreditRequest[];
 	replaceTrackLanguageId: AlbumTrackRequest["languageId"] | null;
 };
@@ -113,10 +114,7 @@ export type AlbumUploadActions = {
 	) => Promise<AddDroppedFilesResult>;
 	clear: () => void;
 	removeAlbumDraft: (albumId: AlbumLocalId) => void;
-	mergeAlbumDraft: (
-		albumId: AlbumLocalId,
-		input: MergeAlbumDraftInput,
-	) => void;
+	mergeAlbumDraft: (albumId: AlbumLocalId, input: MergeAlbumDraftInput) => void;
 	updateAlbumDraft: (
 		albumId: AlbumLocalId,
 		input: UpdateAlbumDraftInput,
