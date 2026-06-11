@@ -7,6 +7,7 @@ import { processDroppedFiles } from "#/lib/utils/upload";
 import {
 	insertPreparedFile,
 	mergeAlbumDraft,
+	removeAlbumDraft,
 	updateAlbumDraft,
 } from "./albumUploadStoreFunction";
 import type {
@@ -92,7 +93,7 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 			},
 			clear: () => {},
 			removeAlbumDraft: (albumId) => {
-				void albumId;
+				set((state) => removeAlbumDraft(state, albumId));
 			},
 			mergeAlbumDraft: (albumId, input) => {
 				set((state) => mergeAlbumDraft(state, albumId, input));

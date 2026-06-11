@@ -294,6 +294,14 @@ function cleanNewCoverAssets(
 	delete state.coverAssetsIdByHash[coverAssetIdByHash];
 }
 
+function cleanPreparedFile(state: AlbumUploadState, blake3Hash: string) {
+	const isUsedByTrack = Object.values(state.tracksById).some((track) =>
+		track.audios.some((audio) => audio.file.blake3Hash === blake3Hash),
+	);
+
+	if (!isUsedByTrack) delete state.filesByBlake3Hash[blake3Hash];
+}
+
 function getDiscCoverAssetIdByHash(
 	coverAssetIdByHash: CoverAssetBlake3Hash | null,
 	targetAlbum: AlbumDraft,
@@ -458,6 +466,57 @@ export function mergeAlbumDraft(
 
 	for (const coverAssetId of coverAssetIdsToClean) {
 		cleanNewCoverAssets(state, coverAssetId);
+	}
+}
+
+export function removeAlbumDraft(
+	state: AlbumUploadState,
+	albumId: AlbumLocalId,
+) {
+	if (!Object.hasOwn(state.albumsById, albumId)) return;
+
+	const album = state.albumsById[albumId];
+	const coverAssetIdsToClean = new Set<CoverAssetBlake3Hash>();
+	const fileHashesToClean = new Set<string>();
+
+	if (album.coverAssetIdByHash) {
+		coverAssetIdsToClean.add(album.coverAssetIdByHash);
+	}
+
+	for (const discId of album.discIds) {
+		const disc = state.discsById[discId];
+
+		if (disc.coverAssetIdByHash) {
+			coverAssetIdsToClean.add(disc.coverAssetIdByHash);
+		}
+
+		for (const trackId of disc.trackIds) {
+			const track = state.tracksById[trackId];
+
+			for (const audio of track.audios) {
+				fileHashesToClean.add(audio.file.blake3Hash);
+			}
+
+			delete state.tracksById[trackId];
+		}
+
+		delete state.discsById[discId];
+	}
+
+	delete state.albumsByMatchingKey[album.matchingKey];
+	delete state.albumsById[album.localId];
+	state.albumOrder = state.albumOrder.filter((id) => id !== album.localId);
+
+	for (const coverAssetId of coverAssetIdsToClean) {
+		cleanNewCoverAssets(state, coverAssetId);
+	}
+
+	for (const fileHash of fileHashesToClean) {
+		cleanPreparedFile(state, fileHash);
+	}
+
+	if (state.albumOrder.length === 0 && state.submitStatus === "creating") {
+		state.submitStatus = "idle";
 	}
 }
 

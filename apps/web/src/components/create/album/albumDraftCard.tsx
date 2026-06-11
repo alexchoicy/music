@@ -51,6 +51,9 @@ export function AlbumDraftCard({
 				: count;
 		}, 0);
 	});
+	const removeAlbumDraft = useAlbumUploadStore(
+		(state) => state.removeAlbumDraft,
+	);
 
 	if (!album) return;
 
@@ -117,7 +120,12 @@ export function AlbumDraftCard({
 					<Disc3Icon aria-hidden="true" />
 					Merge album
 				</Button>
-				<Button variant="destructive-outline">
+				<Button
+					onClick={() => {
+						removeAlbumDraft(albumID);
+					}}
+					variant="destructive-outline"
+				>
 					<Trash2Icon aria-hidden="true" />
 					Remove draft
 				</Button>
