@@ -9,7 +9,7 @@ type AlbumTrackRequest = components["schemas"]["AlbumTrackRequest"];
 export type PartyItem = components["schemas"]["PartyItems"];
 export type CreditRequest = components["schemas"]["CreditRequest"];
 export type LanguageItem = components["schemas"]["LanguageListItem"];
-type TrackAudioRequest = components["schemas"]["TrackAudioRequest"];
+export type TrackAudioRequest = components["schemas"]["TrackAudioRequest"];
 
 export type LocalFileBlake3Hash = string;
 export type AlbumLocalId = string;
@@ -78,7 +78,7 @@ export type UpdateAlbumDraftInput = {
 	discCoversById: Partial<Record<DiscLocalId, CoverAsset | null>>;
 	discSubtitlesById: Partial<Record<DiscLocalId, string>>;
 	replaceAudioSource: TrackAudioRequest["source"] | null;
-	replaceTrackCredits: CreditRequest[] | null;
+	replaceTrackCredits: CreditRequest[];
 	replaceTrackLanguageId: AlbumTrackRequest["languageId"] | null;
 };
 

@@ -1,8 +1,10 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { AlertCircleIcon } from "lucide-react";
 import { useId, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
 
+import { Alert, AlertDescription, AlertTitle } from "#/components/coss/alert";
 import { Button } from "#/components/coss/button";
 import { Checkbox } from "#/components/coss/checkbox";
 import {
@@ -15,7 +17,13 @@ import {
 	DialogPopup,
 	DialogTitle,
 } from "#/components/coss/dialog";
-import { Field, FieldError, FieldLabel } from "#/components/coss/field";
+import {
+	Field,
+	FieldDescription,
+	FieldError,
+	FieldLabel,
+} from "#/components/coss/field";
+import { Fieldset, FieldsetLegend } from "#/components/coss/fieldset";
 import { Form } from "#/components/coss/form";
 import { Input } from "#/components/coss/input";
 import { Label } from "#/components/coss/label";
@@ -24,9 +32,15 @@ import { ImageCropDialog } from "#/components/imageCropDialog";
 import { OptionSelectField } from "#/components/OptionSelectField";
 import { PartyCombobox } from "#/components/PartyCombobox";
 import { ALBUM_COVER_ASPECT_RATIO } from "#/constant/album";
-import { ALBUM_TYPE_OPTIONS } from "#/enums/albumEnums";
+import {
+	ALBUM_TYPE_OPTIONS,
+	replaceAudioSourceOptions,
+} from "#/enums/albumEnums";
 import { languageQueries } from "#/lib/queries/language.queries";
-import { makeLanguageOptions } from "#/lib/utils/language";
+import {
+	makeLanguageOptions,
+	makeReplaceLanguageOptions,
+} from "#/lib/utils/language";
 import { createCoverAsset } from "#/lib/utils/upload";
 import { useAlbumUploadStore } from "#/store/albumUploadStore";
 import type {
@@ -38,6 +52,7 @@ import type {
 	DiscDraft,
 	DiscLocalId,
 	LanguageItem,
+	TrackAudioRequest,
 } from "#/store/albumUploadStoreType";
 
 import { ReleaseDateField } from "../../ReleaseDateField";
@@ -73,6 +88,9 @@ type EditAlbumDraftFormValue = {
 	useAlbumCoverForDiscs: boolean;
 	languageId: LanguageItem["id"] | null;
 	discSubtitlesById: Record<DiscLocalId, string>;
+	replaceTrackArtists: number[];
+	replaceTrackLanguageId: LanguageItem["id"] | null;
+	replaceAudioSource: TrackAudioRequest["source"] | null;
 };
 
 function initFormValue(
@@ -99,6 +117,9 @@ function initFormValue(
 		isUnsolvedAlbumCreditsCleared: false,
 		useAlbumCoverForDiscs,
 		languageId: album.languageId ?? null,
+		replaceAudioSource: null,
+		replaceTrackLanguageId: null,
+		replaceTrackArtists: [],
 	};
 }
 
@@ -129,13 +150,25 @@ function AlbumDraftEditDialogForm({
 	const discSubtitleId = useId();
 	const discCoverInputId = useId();
 	const useAlbumCoverForDiscsId = useId();
+	const replaceTrackLanguageId = useId();
+	const replaceAudioSourceId = useId();
 
-	const { data: languages } = useSuspenseQuery(languageQueries.getLanguages());
+	const { data: languages = [] } = useQuery(languageQueries.getLanguages());
 	const languageOptions = makeLanguageOptions(languages);
-
+	const replaceLanguageOptions = makeReplaceLanguageOptions(languages);
 	const selectedLanguageOption =
 		languageOptions.find((option) => option.id === form.languageId) ??
 		languageOptions[0];
+
+	const selectedReplacementTrackLanguageOption =
+		replaceLanguageOptions.find(
+			(option) => option.id === form.replaceTrackLanguageId,
+		) ?? replaceLanguageOptions[0];
+
+	const selectedReplacementAudioSourceOption =
+		replaceAudioSourceOptions.find(
+			(option) => option.value === form.replaceAudioSource,
+		) ?? replaceAudioSourceOptions[0];
 
 	return (
 		<>
@@ -292,6 +325,64 @@ function AlbumDraftEditDialogForm({
 					</div>
 				</section>
 			)}
+			<Fieldset className="grid gap-4 rounded-xl border bg-muted/35 p-4">
+				<div className="grid gap-1">
+					<FieldsetLegend className="text-sm">
+						Replace all track metadata
+					</FieldsetLegend>
+					<p className="text-xs text-muted-foreground">
+						Optional bulk updates applied to every track and audio file in this
+						album draft.
+					</p>
+				</div>
+
+				<Field name="replaceTrackArtists">
+					<FieldLabel>Track artists</FieldLabel>
+					<Alert variant="warning">
+						<AlertCircleIcon />
+						<AlertTitle>Warning</AlertTitle>
+						<AlertDescription>
+							This will clear all unsolved track credits.
+						</AlertDescription>
+					</Alert>
+					<PartyCombobox
+						ariaLabel="Replacement track artists"
+						placeholder="Search or create replacement artists..."
+						selectedIds={form.replaceTrackArtists}
+						setSelectedIds={(replaceTrackArtists) => {
+							updateForm({ replaceTrackArtists });
+						}}
+					/>
+
+					<FieldDescription>
+						Leave empty to keep each track's current artists.
+					</FieldDescription>
+				</Field>
+
+				<OptionSelectField
+					description="Choose a language only if every track should use it."
+					id={replaceTrackLanguageId}
+					label="Track language"
+					name="replaceTrackLanguageId"
+					placeholder="Keep current track languages"
+					onValueChange={(id) =>
+						updateForm({ replaceTrackLanguageId: id ?? null })
+					}
+					options={replaceLanguageOptions}
+					value={selectedReplacementTrackLanguageOption}
+				/>
+
+				<OptionSelectField
+					description="Choose a source only if every audio file should use it."
+					id={replaceAudioSourceId}
+					label="Audio file source"
+					name="replaceAudioSource"
+					onValueChange={(value) => updateForm({ replaceAudioSource: value })}
+					options={replaceAudioSourceOptions}
+					placeholder="Keep current audio sources"
+					value={selectedReplacementAudioSourceOption}
+				/>
+			</Fieldset>
 		</>
 	);
 }
@@ -402,9 +493,12 @@ export function AlbumDraftEditDialog({
 			})),
 			discCoversById: discCoversForSubmit,
 			discSubtitlesById: form.discSubtitlesById,
-			replaceAudioSource: null,
-			replaceTrackCredits: null,
-			replaceTrackLanguageId: null,
+			replaceAudioSource: form.replaceAudioSource ?? null,
+			replaceTrackCredits: form.replaceTrackArtists.map((partyId) => ({
+				partyId,
+				credit: "Artist",
+			})),
+			replaceTrackLanguageId: form.replaceTrackLanguageId ?? null,
 		});
 		onOpenChange(false);
 	};

@@ -20,3 +20,20 @@ export function makeLanguageOptions(
 		})),
 	];
 }
+
+export function makeReplaceLanguageOptions(
+	languages: LanguageItem[],
+): LanguageOption[] {
+	return [
+		{
+			id: null,
+			label: "Keep current language",
+			value: NO_LANGUAGE_OPTION_VALUE,
+		},
+		...languages.map((language) => ({
+			id: language.id,
+			label: language.language,
+			value: String(language.id),
+		})),
+	];
+}

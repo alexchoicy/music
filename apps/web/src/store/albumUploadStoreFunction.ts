@@ -377,4 +377,27 @@ export function updateAlbumDraft(
 		const disc = state.discsById[discId];
 		if (disc.albumId === albumId) disc.subtitle = subtitle;
 	}
+
+	for (const discId of album.discIds) {
+		const disc = state.discsById[discId];
+
+		for (const trackId of disc.trackIds) {
+			const track = state.tracksById[trackId];
+
+			if (input.replaceTrackCredits.length > 0) {
+				track.credits = input.replaceTrackCredits;
+				track.unsolvedCredits = [];
+			}
+
+			if (input.replaceTrackLanguageId !== null) {
+				track.languageId = input.replaceTrackLanguageId;
+			}
+
+			if (input.replaceAudioSource !== null) {
+				for (const audio of track.audios) {
+					audio.source = input.replaceAudioSource;
+				}
+			}
+		}
+	}
 }
