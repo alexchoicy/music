@@ -12,6 +12,7 @@ import { Button } from "../coss/button";
 import { toastManager } from "../coss/toast";
 import { AlbumDraftCard } from "./album/albumDraftCard";
 import { AlbumDraftEditDialog } from "./album/albumDraftEditDialog";
+import { AlbumDraftMergeDialog } from "./album/albumDraftMergeDialog";
 
 const albumAudioAccept: Accept = {
 	"audio/*": [".flac", ".mp3", ".wav"],
@@ -28,6 +29,8 @@ export function AlbumTabContent() {
 	const [albumDraftToEdit, setAlbumDraftToEdit] = useState<AlbumLocalId | null>(
 		null,
 	);
+	const [albumDraftToMerge, setAlbumDraftToMerge] =
+		useState<AlbumLocalId | null>(null);
 
 	async function handleDrop(acceptedFiles: File[]) {
 		const result = await addDroppedFiles(acceptedFiles, parties);
@@ -86,6 +89,7 @@ export function AlbumTabContent() {
 							<AlbumDraftCard
 								key={albumId}
 								albumID={albumId}
+								onOpenAlbumDraftMergeDialog={setAlbumDraftToMerge}
 								onOpenAlbumDraftDialog={setAlbumDraftToEdit}
 							/>
 						);
@@ -99,6 +103,16 @@ export function AlbumTabContent() {
 					albumId={albumDraftToEdit}
 					onOpenChange={(open) => {
 						if (!open) setAlbumDraftToEdit(null);
+					}}
+				/>
+			)}
+
+			{albumDraftToMerge !== null && (
+				<AlbumDraftMergeDialog
+					key={albumDraftToMerge}
+					albumId={albumDraftToMerge}
+					onOpenChange={(open) => {
+						if (!open) setAlbumDraftToMerge(null);
 					}}
 				/>
 			)}

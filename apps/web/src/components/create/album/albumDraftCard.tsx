@@ -12,11 +12,13 @@ import { DraftCreditSummary } from "./DraftCreditSummary";
 
 type AlbumDraftCardProps = {
 	albumID: AlbumLocalId;
+	onOpenAlbumDraftMergeDialog: (albumID: AlbumLocalId) => void;
 	onOpenAlbumDraftDialog: (albumID: AlbumLocalId) => void;
 };
 
 export function AlbumDraftCard({
 	albumID,
+	onOpenAlbumDraftMergeDialog,
 	onOpenAlbumDraftDialog,
 }: AlbumDraftCardProps) {
 	const album = useAlbumUploadStore((state) => {
@@ -106,7 +108,12 @@ export function AlbumDraftCard({
 				})}
 			</div>
 			<footer className="flex flex-wrap justify-end gap-2 p-4 sm:p-6">
-				<Button disabled variant="secondary">
+				<Button
+					onClick={() => {
+						onOpenAlbumDraftMergeDialog(albumID);
+					}}
+					variant="secondary"
+				>
 					<Disc3Icon aria-hidden="true" />
 					Merge album
 				</Button>

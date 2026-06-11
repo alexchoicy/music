@@ -82,6 +82,12 @@ export type UpdateAlbumDraftInput = {
 	replaceTrackLanguageId: AlbumTrackRequest["languageId"] | null;
 };
 
+export type MergeAlbumDraftInput = {
+	targetAlbumId: AlbumLocalId;
+	mergeAsNewDisc: boolean;
+	newDiscSubtitle: string;
+};
+
 export type AddDroppedFilesResult = {
 	processedFileNames: string[];
 	ignoredFileNames: string[];
@@ -107,6 +113,10 @@ export type AlbumUploadActions = {
 	) => Promise<AddDroppedFilesResult>;
 	clear: () => void;
 	removeAlbumDraft: (albumId: AlbumLocalId) => void;
+	mergeAlbumDraft: (
+		albumId: AlbumLocalId,
+		input: MergeAlbumDraftInput,
+	) => void;
 	updateAlbumDraft: (
 		albumId: AlbumLocalId,
 		input: UpdateAlbumDraftInput,
