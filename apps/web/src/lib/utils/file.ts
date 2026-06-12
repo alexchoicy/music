@@ -19,6 +19,22 @@ export function formatDuration(durationInMs: number) {
 	return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
+export function formatFileSize(sizeInBytes: number | string) {
+	const size = Number(sizeInBytes);
+	if (!Number.isFinite(size) || size <= 0) return null;
+
+	const units = ["B", "KB", "MB", "GB"];
+	let value = size;
+	let unitIndex = 0;
+
+	while (value >= 1024 && unitIndex < units.length - 1) {
+		value /= 1024;
+		unitIndex += 1;
+	}
+
+	return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+}
+
 const mimeToExtension: Record<string, string> = {
 	"audio/flac": "flac",
 	"audio/mpeg": "mp3",

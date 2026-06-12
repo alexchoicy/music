@@ -28,6 +28,7 @@ import type {
 	PartyItem,
 	TrackLocalId,
 	UpdateAlbumDraftInput,
+	UpdateTrackDraftInput,
 } from "./albumUploadStoreType";
 
 function getTrackContentType(
@@ -517,6 +518,83 @@ export function removeAlbumDraft(
 
 	if (state.albumOrder.length === 0 && state.submitStatus === "creating") {
 		state.submitStatus = "idle";
+	}
+}
+
+export function updateTrackDraft(
+	state: AlbumUploadState,
+	trackId: TrackLocalId,
+	input: UpdateTrackDraftInput,
+) {
+	if (!Object.hasOwn(state.tracksById, trackId)) return;
+
+	const track = state.tracksById[trackId];
+	const album = state.albumsById[track.albumId];
+	const currentDisc = state.discsById[track.discId];
+	let targetDiscId = findDiscByNumber(state, album, input.discNumber);
+
+	if (!targetDiscId && currentDisc.trackIds.length === 1) {
+		currentDisc.discNumber = input.discNumber;
+		targetDiscId = currentDisc.localId;
+	}
+
+	if (!targetDiscId) {
+		targetDiscId = crypto.randomUUID();
+		album.discIds.push(targetDiscId);
+		state.discsById[targetDiscId] = {
+			localId: targetDiscId,
+			albumId: album.localId,
+			discNumber: input.discNumber,
+			subtitle: "",
+			coverAssetIdByHash: null,
+			trackIds: [],
+		};
+	}
+
+	if (targetDiscId !== track.discId) {
+		const sourceDisc = state.discsById[track.discId];
+		const sourceDiscCoverAssetIdByHash = sourceDisc.coverAssetIdByHash;
+
+		sourceDisc.trackIds = sourceDisc.trackIds.filter((id) => id !== trackId);
+		moveTrackToDisc(state, trackId, album.localId, targetDiscId);
+
+		if (sourceDisc.trackIds.length === 0) {
+			delete state.discsById[sourceDisc.localId];
+			album.discIds = album.discIds.filter((id) => id !== sourceDisc.localId);
+
+			if (sourceDiscCoverAssetIdByHash) {
+				cleanNewCoverAssets(state, sourceDiscCoverAssetIdByHash);
+			}
+		}
+	}
+
+	track.title = input.title;
+	track.trackNumber = input.trackNumber;
+	track.languageId = input.languageId;
+	track.contentType = input.contentType;
+	track.versionType = input.versionType;
+	track.credits = input.credits;
+
+	if (input.clearUnsolvedTrackCredits) {
+		track.unsolvedCredits = [];
+	}
+
+	for (const audioInput of input.audios) {
+		const audio = track.audios.find(
+			(item) => item.file.blake3Hash === audioInput.blake3Hash,
+		);
+
+		if (!audio) continue;
+
+		audio.rank = audioInput.rank;
+		audio.pinned = audioInput.pinned;
+		audio.source = audioInput.source;
+		audio.sourceUrl = audioInput.sourceUrl ?? null;
+	}
+
+	sortAlbumDiscs(state, album.localId);
+	for (const discId of album.discIds) {
+		sortDiscTracks(state, discId);
 	}
 }
 

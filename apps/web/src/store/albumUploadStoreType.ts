@@ -83,6 +83,26 @@ export type UpdateAlbumDraftInput = {
 	replaceTrackLanguageId: AlbumTrackRequest["languageId"] | null;
 };
 
+export type UpdateTrackDraftAudioInput = {
+	blake3Hash: components["schemas"]["TrackAudioRequest"]["file"]["blake3Hash"];
+	rank: NonNullable<TrackAudioRequest["rank"]>;
+	pinned: NonNullable<TrackAudioRequest["pinned"]>;
+	source: NonNullable<TrackAudioRequest["source"]>;
+	sourceUrl: TrackAudioRequest["sourceUrl"];
+};
+
+export type UpdateTrackDraftInput = {
+	title: string;
+	discNumber: number;
+	trackNumber: number;
+	languageId: CreateAlbumRequest["languageId"];
+	contentType: NonNullable<AlbumTrackRequest["contentType"]>;
+	versionType: NonNullable<AlbumTrackRequest["versionType"]>;
+	clearUnsolvedTrackCredits: boolean;
+	credits: CreditRequest[];
+	audios: UpdateTrackDraftAudioInput[];
+};
+
 export type MergeAlbumDraftInput = {
 	targetAlbumId: AlbumLocalId;
 	mergeAsNewDisc: boolean;
@@ -118,5 +138,9 @@ export type AlbumUploadActions = {
 	updateAlbumDraft: (
 		albumId: AlbumLocalId,
 		input: UpdateAlbumDraftInput,
+	) => void;
+	updateTrackDraft: (
+		trackId: TrackLocalId,
+		input: UpdateTrackDraftInput,
 	) => void;
 };

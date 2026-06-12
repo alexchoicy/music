@@ -9,15 +9,19 @@ import type { TrackDraft, TrackLocalId } from "#/store/albumUploadStoreType";
 import { DraftCreditSummary } from "./DraftCreditSummary";
 
 type TrackDraftContentProps = {
-	TrackId: TrackLocalId;
+	trackId: TrackLocalId;
+	onOpenTrackDraftDialog: (trackId: TrackLocalId) => void;
 };
 
 function getContentTypeLabel(contentType: TrackDraft["contentType"]) {
 	return contentType === "MC" ? "Talk" : contentType;
 }
 
-export function TrackDraftContent({ TrackId }: TrackDraftContentProps) {
-	const track = useAlbumUploadStore((state) => state.tracksById[TrackId]);
+export function TrackDraftContent({
+	trackId,
+	onOpenTrackDraftDialog,
+}: TrackDraftContentProps) {
+	const track = useAlbumUploadStore((state) => state.tracksById[trackId]);
 
 	return (
 		<div
@@ -52,7 +56,14 @@ export function TrackDraftContent({ TrackId }: TrackDraftContentProps) {
 			<span className="text-sm text-muted-foreground tabular-nums">
 				{formatDuration(Number(track.durationInMs)) ?? "0:00"}
 			</span>
-			<Button aria-label="Edit track draft" size="icon-sm" variant="ghost">
+			<Button
+				aria-label="Edit track draft"
+				onClick={() => {
+					onOpenTrackDraftDialog(trackId);
+				}}
+				size="icon-sm"
+				variant="ghost"
+			>
 				<PencilIcon aria-hidden="true" />
 			</Button>
 		</div>

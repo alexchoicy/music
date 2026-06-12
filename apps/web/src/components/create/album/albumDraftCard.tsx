@@ -5,7 +5,7 @@ import { Button } from "#/components/coss/button";
 import { Card } from "#/components/coss/card";
 import { CroppedImagePreview } from "#/components/croppedImagePreview";
 import { useAlbumUploadStore } from "#/store/albumUploadStore";
-import type { AlbumLocalId } from "#/store/albumUploadStoreType";
+import type { AlbumLocalId, TrackLocalId } from "#/store/albumUploadStoreType";
 
 import { DiscDraftContent } from "./discDraftContent";
 import { DraftCreditSummary } from "./DraftCreditSummary";
@@ -14,12 +14,14 @@ type AlbumDraftCardProps = {
 	albumID: AlbumLocalId;
 	onOpenAlbumDraftMergeDialog: (albumID: AlbumLocalId) => void;
 	onOpenAlbumDraftDialog: (albumID: AlbumLocalId) => void;
+	onOpenTrackDraftDialog: (trackId: TrackLocalId) => void;
 };
 
 export function AlbumDraftCard({
 	albumID,
 	onOpenAlbumDraftMergeDialog,
 	onOpenAlbumDraftDialog,
+	onOpenTrackDraftDialog,
 }: AlbumDraftCardProps) {
 	const album = useAlbumUploadStore((state) => {
 		return Object.hasOwn(state.albumsById, albumID)
@@ -107,7 +109,13 @@ export function AlbumDraftCard({
 			</header>
 			<div className="border-t">
 				{album.discIds.map((discId) => {
-					return <DiscDraftContent discId={discId} key={discId} />;
+					return (
+						<DiscDraftContent
+							discId={discId}
+							key={discId}
+							onOpenTrackDraftDialog={onOpenTrackDraftDialog}
+						/>
+					);
 				})}
 			</div>
 			<footer className="flex flex-wrap justify-end gap-2 p-4 sm:p-6">

@@ -1,15 +1,19 @@
 import { Disc3Icon } from "lucide-react";
 
 import { useAlbumUploadStore } from "#/store/albumUploadStore";
-import type { DiscLocalId } from "#/store/albumUploadStoreType";
+import type { DiscLocalId, TrackLocalId } from "#/store/albumUploadStoreType";
 
 import { TrackDraftContent } from "./trackDraftContent";
 
 type DiscDraftContentProps = {
 	discId: DiscLocalId;
+	onOpenTrackDraftDialog: (trackId: TrackLocalId) => void;
 };
 
-export function DiscDraftContent({ discId }: DiscDraftContentProps) {
+export function DiscDraftContent({
+	discId,
+	onOpenTrackDraftDialog,
+}: DiscDraftContentProps) {
 	const disc = useAlbumUploadStore((state) => state.discsById[discId]);
 
 	const trackCount = disc.trackIds.length;
@@ -31,7 +35,13 @@ export function DiscDraftContent({ discId }: DiscDraftContentProps) {
 
 			<div className="divide-y">
 				{disc.trackIds.map((trackId) => {
-					return <TrackDraftContent TrackId={trackId} key={trackId} />;
+					return (
+						<TrackDraftContent
+							key={trackId}
+							trackId={trackId}
+							onOpenTrackDraftDialog={onOpenTrackDraftDialog}
+						/>
+					);
 				})}
 			</div>
 		</section>

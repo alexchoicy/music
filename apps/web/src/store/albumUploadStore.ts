@@ -9,6 +9,7 @@ import {
 	mergeAlbumDraft,
 	removeAlbumDraft,
 	updateAlbumDraft,
+	updateTrackDraft,
 } from "./albumUploadStoreFunction";
 import type {
 	AlbumUploadStatus,
@@ -100,6 +101,9 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 			},
 			updateAlbumDraft: (albumId, input) => {
 				set((state) => updateAlbumDraft(state, albumId, input));
+			},
+			updateTrackDraft: (trackId, input) => {
+				set((state) => updateTrackDraft(state, trackId, input));
 			},
 		})),
 	),

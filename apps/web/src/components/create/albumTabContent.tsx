@@ -6,13 +6,14 @@ import type { Accept } from "react-dropzone";
 import { DropBox } from "#/components/dropBox";
 import { partyQueries } from "#/lib/queries/party.queries";
 import { useAlbumUploadStore } from "#/store/albumUploadStore";
-import type { AlbumLocalId } from "#/store/albumUploadStoreType";
+import type { AlbumLocalId, TrackLocalId } from "#/store/albumUploadStoreType";
 
 import { Button } from "../coss/button";
 import { toastManager } from "../coss/toast";
 import { AlbumDraftCard } from "./album/albumDraftCard";
 import { AlbumDraftEditDialog } from "./album/albumDraftEditDialog";
 import { AlbumDraftMergeDialog } from "./album/albumDraftMergeDialog";
+import { TrackDraftEditDialog } from "./album/trackDraftEditDialog";
 
 const albumAudioAccept: Accept = {
 	"audio/*": [".flac", ".mp3", ".wav"],
@@ -31,6 +32,9 @@ export function AlbumTabContent() {
 	);
 	const [albumDraftToMerge, setAlbumDraftToMerge] =
 		useState<AlbumLocalId | null>(null);
+	const [trackDraftToEdit, setTrackDraftToEdit] = useState<TrackLocalId | null>(
+		null,
+	);
 
 	async function handleDrop(acceptedFiles: File[]) {
 		const result = await addDroppedFiles(acceptedFiles, parties);
@@ -91,6 +95,7 @@ export function AlbumTabContent() {
 								albumID={albumId}
 								onOpenAlbumDraftMergeDialog={setAlbumDraftToMerge}
 								onOpenAlbumDraftDialog={setAlbumDraftToEdit}
+								onOpenTrackDraftDialog={setTrackDraftToEdit}
 							/>
 						);
 					})}
@@ -113,6 +118,16 @@ export function AlbumTabContent() {
 					albumId={albumDraftToMerge}
 					onOpenChange={(open) => {
 						if (!open) setAlbumDraftToMerge(null);
+					}}
+				/>
+			)}
+
+			{trackDraftToEdit !== null && (
+				<TrackDraftEditDialog
+					key={trackDraftToEdit}
+					trackId={trackDraftToEdit}
+					onOpenChange={(open) => {
+						if (!open) setTrackDraftToEdit(null);
 					}}
 				/>
 			)}

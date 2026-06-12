@@ -399,6 +399,9 @@ function AlbumDraftEditDialogForm({
 						type="url"
 						value={form.replaceAudioSourceUrl}
 					/>
+					<FieldError match="typeMismatch">
+						Enter a valid source URL.
+					</FieldError>
 					<FieldDescription>
 						Leave empty to keep each audio file's current source URL.
 					</FieldDescription>
