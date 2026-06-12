@@ -16,8 +16,38 @@ export type AlbumLocalId = string;
 export type DiscLocalId = string;
 export type TrackLocalId = string;
 export type CoverAssetBlake3Hash = string;
-export type AlbumUploadStatus = "idle" | "creating" | "uploading";
+export type AlbumUploadStatus =
+	| "idle"
+	| "creating"
+	| "uploading"
+	| "completed"
+	| "failed";
 export type AlbumMatchingKey = string;
+export type AlbumUploadJobStatus = "queued" | "uploading" | "completed" | "failed";
+
+export type AlbumTrackUploadJob = {
+	id: string;
+	fileObjectId: string;
+	blake3Hash: LocalFileBlake3Hash;
+	fileName: string;
+	uploadedPartCount: number;
+	totalPartCount: number;
+	status: AlbumUploadJobStatus;
+	error: string | null;
+};
+
+export type AlbumUploadRunState = {
+	jobOrder: string[];
+	jobsById: Record<string, AlbumTrackUploadJob>;
+	error: string | null;
+};
+
+export type TrackUploadResult = {
+	fileObjectId: string;
+	blake3Hash: string;
+	fileName: string;
+	multipartUploadInfo: components["schemas"]["MultipartUploadResults"];
+};
 
 export type CroppedArea = {
 	x: number;
@@ -124,6 +154,7 @@ export type AlbumUploadState = {
 	tracksById: Record<TrackLocalId, TrackDraft>;
 	isProcessing: boolean;
 	submitStatus: AlbumUploadStatus;
+	uploadRun: AlbumUploadRunState;
 	lastError: string | null;
 };
 
@@ -132,6 +163,7 @@ export type AlbumUploadActions = {
 		files: File[],
 		parties: PartyItem[],
 	) => Promise<AddDroppedFilesResult>;
+	submitAlbums: () => Promise<void>;
 	clear: () => void;
 	removeAlbumDraft: (albumId: AlbumLocalId) => void;
 	mergeAlbumDraft: (albumId: AlbumLocalId, input: MergeAlbumDraftInput) => void;

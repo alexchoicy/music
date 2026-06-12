@@ -9,6 +9,12 @@ import { useAlbumUploadStore } from "#/store/albumUploadStore";
 import type { AlbumLocalId, TrackLocalId } from "#/store/albumUploadStoreType";
 
 import { Button } from "../coss/button";
+import {
+	Progress,
+	ProgressIndicator,
+	ProgressLabel,
+	ProgressTrack,
+} from "../coss/progress";
 import { toastManager } from "../coss/toast";
 import { AlbumDraftCard } from "./album/albumDraftCard";
 import { AlbumDraftEditDialog } from "./album/albumDraftEditDialog";
@@ -21,10 +27,12 @@ const albumAudioAccept: Accept = {
 
 export function AlbumTabContent() {
 	const addDroppedFiles = useAlbumUploadStore((state) => state.addDroppedFiles);
+	const submitAlbums = useAlbumUploadStore((state) => state.submitAlbums);
 	// const { data: languages } = useSuspenseQuery(languageQueries.getLanguages());
 	const { data: parties } = useSuspenseQuery(partyQueries.getParties());
 	const isProcessing = useAlbumUploadStore((state) => state.isProcessing);
 	const submitStatus = useAlbumUploadStore((state) => state.submitStatus);
+	const uploadRun = useAlbumUploadStore((state) => state.uploadRun);
 	const albumOrder = useAlbumUploadStore((state) => state.albumOrder);
 
 	const [albumDraftToEdit, setAlbumDraftToEdit] = useState<AlbumLocalId | null>(
@@ -55,6 +63,25 @@ export function AlbumTabContent() {
 		}
 	}
 
+	async function handleSubmit() {
+		try {
+			await submitAlbums();
+			toastManager.add({
+				title: "Album uploaded successfully",
+				type: "success",
+			});
+		} catch (error) {
+			toastManager.add({
+				title: "Album upload failed",
+				description:
+					error instanceof Error ? error.message : "Unable to upload album",
+				type: "error",
+			});
+		}
+	}
+
+	const uploadJobs = uploadRun.jobOrder.map((jobId) => uploadRun.jobsById[jobId]);
+
 	return (
 		<section className="flex flex-col gap-4">
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -71,6 +98,7 @@ export function AlbumTabContent() {
 						isProcessing
 					}
 					loading={submitStatus === "uploading" || isProcessing}
+					onClick={handleSubmit}
 				>
 					<UploadIcon aria-hidden="true" />
 					{submitStatus === "uploading" ? "Uploading..." : "Submit"}
@@ -99,6 +127,56 @@ export function AlbumTabContent() {
 							/>
 						);
 					})}
+				</div>
+			)}
+
+			{uploadJobs.length > 0 && (
+				<div className="rounded-lg border bg-card p-4 shadow-sm">
+					<div className="mb-3 flex items-center justify-between gap-3">
+						<div>
+							<h2 className="text-sm font-medium">Track uploads</h2>
+							<p className="text-xs text-muted-foreground">
+								Multipart upload progress by completed parts.
+							</p>
+						</div>
+						<span className="text-xs capitalize text-muted-foreground">
+							{submitStatus}
+						</span>
+					</div>
+					<div className="grid gap-3">
+						{uploadJobs.map((job) => {
+							const value =
+								job.totalPartCount > 0
+									? Math.round(
+											(job.uploadedPartCount / job.totalPartCount) * 100,
+										)
+									: 0;
+
+							return (
+								<Progress
+									key={job.id}
+									aria-label={`Upload progress for ${job.fileName}`}
+									value={value}
+								>
+									<div className="flex items-center justify-between gap-3 text-xs">
+										<ProgressLabel className="truncate text-xs">
+											{job.fileName}
+										</ProgressLabel>
+										<div className="flex shrink-0 items-center gap-2 text-muted-foreground">
+											<span className="capitalize">{job.status}</span>
+											<span className="tabular-nums">{value}%</span>
+										</div>
+									</div>
+									<ProgressTrack>
+										<ProgressIndicator />
+									</ProgressTrack>
+									{job.error && (
+										<p className="text-xs text-destructive">{job.error}</p>
+									)}
+								</Progress>
+							);
+						})}
+					</div>
 				</div>
 			)}
 

@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Music.Core.Workers;
+using Music.Infrastructure.Workers.Processor;
 
 namespace Music.Infrastructure.Workers;
 
@@ -41,6 +42,11 @@ public sealed class BackgroundWorker(
     {
         switch (workerModel)
         {
+            case ImageUploadProcessWorker job:
+                await serviceProvider
+                    .GetRequiredService<ImageUploadWorkerProcessor>()
+                    .ProcessAsync(job, cancellationToken);
+                break;
             // case TrackUploadProcessWorker job:
             //     await serviceProvider
             //         .GetRequiredService<TrackUploadWorkerProcessor>()

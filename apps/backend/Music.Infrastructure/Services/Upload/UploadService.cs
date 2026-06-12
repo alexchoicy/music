@@ -54,6 +54,8 @@ namespace Music.Infrastructure.Services.Upload
                     .FileObjects.Include(fo => fo.File!.TrackAudios)
                     .Include(fo => fo.File!.ConcertImages)
                     .Include(fo => fo.File!.ConcertFiles)
+                    .Include(fo => fo.File!.AlbumImages)
+                    .Include(fo => fo.File!.PartyImages)
                     .FirstOrDefaultAsync(fo => fo.Id == request.FileObjectId, cancellationToken)
                 ?? throw new EntityNotFoundException("File object not found");
 
@@ -85,6 +87,12 @@ namespace Music.Infrastructure.Services.Upload
                     FileObjectId = fileObject.Id,
                 },
                 { ConcertFiles.Count: > 0 } => new ConcertUploadProcessWorker
+                {
+                    FileObjectId = fileObject.Id,
+                },
+                { AlbumImages.Count: > 0 }
+                or { PartyImages.Count: > 0 }
+                or { ConcertImages.Count: > 0 } => new ImageUploadProcessWorker
                 {
                     FileObjectId = fileObject.Id,
                 },

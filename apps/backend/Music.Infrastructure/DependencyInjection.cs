@@ -29,6 +29,7 @@ using Music.Infrastructure.Services.Party;
 using Music.Infrastructure.Services.Upload;
 using Music.Infrastructure.Storages.S3;
 using Music.Infrastructure.Workers;
+using Music.Infrastructure.Workers.Processor;
 
 namespace Music.Infrastructure;
 
@@ -71,6 +72,7 @@ public static class DependencyInjection
         // services.AddScoped<IFileUrlService, FileUrlService>();
         // services.AddScoped<IMigrationService, MigrationService>();
 
+        services.AddScoped<ImageUploadWorkerProcessor>();
         // services.AddScoped<IMediaProbeService, MediaProbeService>();
         // services.AddScoped<IMediaFFmpegService, MediaFFmpegService>();
         // services.AddScoped<IHashService, HashService>();

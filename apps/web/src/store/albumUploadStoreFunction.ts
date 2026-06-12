@@ -20,16 +20,85 @@ import type { ProcessedFileData } from "#/lib/utils/upload";
 import type {
 	AlbumDraft,
 	AlbumLocalId,
+	AlbumTrackUploadJob,
 	AlbumUploadState,
 	CoverAsset,
 	CoverAssetBlake3Hash,
+	CreateAlbumRequest,
 	DiscLocalId,
 	MergeAlbumDraftInput,
 	PartyItem,
 	TrackLocalId,
+	TrackUploadResult,
 	UpdateAlbumDraftInput,
 	UpdateTrackDraftInput,
 } from "./albumUploadStoreType";
+
+export function buildAlbumRequests(
+	state: AlbumUploadState,
+): CreateAlbumRequest[] {
+	return state.albumOrder.map((albumId) => {
+		const album = state.albumsById[albumId];
+
+		return {
+			clientTempAlbumId: album.clientTempAlbumId,
+			title: album.title,
+			description: album.description,
+			type: album.type,
+			languageId: album.languageId,
+			releaseDate: album.releaseDate,
+			credits: album.credits,
+			image: album.coverAssetIdByHash
+				? state.coverAssetsIdByHash[album.coverAssetIdByHash]?.imageRequest
+				: null,
+			discs: album.discIds.map((discId) => {
+				const disc = state.discsById[discId];
+
+				return {
+					discNumber: disc.discNumber,
+					subtitle: disc.subtitle,
+					image: disc.coverAssetIdByHash
+						? state.coverAssetsIdByHash[disc.coverAssetIdByHash]?.imageRequest
+						: null,
+					tracks: disc.trackIds.map((trackId) => {
+						const track = state.tracksById[trackId];
+
+						return {
+							clientTempTrackId: track.localId,
+							trackNumber: track.trackNumber,
+							title: track.title,
+							description: track.description,
+							durationInMs: track.durationInMs,
+							languageId: track.languageId,
+							contentType: track.contentType,
+							versionType: track.versionType,
+							basedOnTrackId: track.basedOnTrackId,
+							credits: track.credits,
+							audios: track.audios,
+						};
+					}),
+				};
+			}),
+		};
+	});
+}
+
+export function makeTrackUploadJob(
+	trackUpload: TrackUploadResult,
+): AlbumTrackUploadJob {
+	const fileObjectId = trackUpload.fileObjectId;
+
+	return {
+		id: `trackAudio:${fileObjectId}`,
+		fileObjectId,
+		blake3Hash: trackUpload.blake3Hash,
+		fileName: trackUpload.fileName,
+		uploadedPartCount: 0,
+		totalPartCount: trackUpload.multipartUploadInfo.parts.length,
+		status: "queued",
+		error: null,
+	};
+}
 
 function getTrackContentType(
 	title: string,
@@ -60,7 +129,7 @@ function getMetadata(
 
 	const discNumber = metadata.common?.disk?.no ?? 1;
 	const trackNumber = metadata.common?.track?.no ?? 1;
-	const durationInMs = (metadata.format?.duration ?? 0) * 1000;
+	const durationInMs = Math.round((metadata.format?.duration ?? 0) * 1000);
 
 	const trackContentType = getTrackContentType(trackTitle, file.name);
 	const trackVersionType = getTrackVersionType(trackTitle, file.name);
@@ -129,7 +198,7 @@ function createTrackAudioRequest(
 			width: null,
 			height: null,
 			audioSampleRate: fileData.metadata.format.sampleRate ?? null,
-			bitrate: fileData.metadata.format.bitrate ?? null,
+			bitrate: Math.round(fileData.metadata.format.bitrate ?? 0) ?? null,
 			frameRate: null,
 			durationInMs,
 			originalFileName: fileData.file.name,
@@ -521,6 +590,42 @@ export function removeAlbumDraft(
 
 	if (state.albumOrder.length === 0 && state.submitStatus === "creating") {
 		state.submitStatus = "idle";
+	}
+}
+
+export function removeCreatedAlbumDraft(
+	state: AlbumUploadState,
+	albumId: AlbumLocalId,
+) {
+	if (!Object.hasOwn(state.albumsById, albumId)) return;
+
+	const album = state.albumsById[albumId];
+	const coverAssetIdsToClean = new Set<CoverAssetBlake3Hash>();
+
+	if (album.coverAssetIdByHash) {
+		coverAssetIdsToClean.add(album.coverAssetIdByHash);
+	}
+
+	for (const discId of album.discIds) {
+		const disc = state.discsById[discId];
+
+		if (disc.coverAssetIdByHash) {
+			coverAssetIdsToClean.add(disc.coverAssetIdByHash);
+		}
+
+		for (const trackId of disc.trackIds) {
+			delete state.tracksById[trackId];
+		}
+
+		delete state.discsById[discId];
+	}
+
+	delete state.albumsByMatchingKey[album.matchingKey];
+	delete state.albumsById[album.localId];
+	state.albumOrder = state.albumOrder.filter((id) => id !== album.localId);
+
+	for (const coverAssetId of coverAssetIdsToClean) {
+		cleanNewCoverAssets(state, coverAssetId);
 	}
 }
 
