@@ -10,6 +10,12 @@ public sealed class FileRequest
 
     public string? Codec { get; init; }
 
+    public bool Lossless { get; set; }
+
+    public int? AudioChannels { get; set; }
+
+    public int? BitsPerSample { get; set; }
+
     public int? Width { get; init; }
     public int? Height { get; init; }
 

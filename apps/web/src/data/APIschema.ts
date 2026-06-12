@@ -864,6 +864,11 @@ export interface components {
             container: string;
             extension: string;
             codec?: null | string;
+            lossless?: boolean;
+            /** Format: int32 */
+            audioChannels?: null | number | string;
+            /** Format: int32 */
+            bitsPerSample?: null | number | string;
             /** Format: int32 */
             width?: null | number | string;
             /** Format: int32 */
