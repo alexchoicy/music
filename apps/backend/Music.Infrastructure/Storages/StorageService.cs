@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Options;
 using Music.Core.Common.Utils;
 using Music.Core.Entities;
@@ -30,6 +31,9 @@ public class StorageService(
         string? sourceUrl = null
     )
     {
+        if (string.IsNullOrWhiteSpace(request.Extension))
+            throw new ValidationException("File extension is required.");
+
         StoredFile storedFile = new()
         {
             Type = fileType,
@@ -59,6 +63,9 @@ public class StorageService(
             FrameRate = request.FrameRate,
             Width = request.Width,
             Height = request.Height,
+            Lossless = request.Lossless,
+            AudioChannels = request.AudioChannels,
+            BitsPerSample = request.BitsPerSample,
         };
 
         return (storedFile, fileObject);

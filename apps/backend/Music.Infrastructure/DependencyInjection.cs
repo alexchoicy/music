@@ -5,6 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Music.Core.Media;
+using Music.Core.Media.FFmpeg;
 using Music.Core.Options;
 using Music.Core.Services.Albums;
 using Music.Core.Services.Albums.Enums;
@@ -12,6 +14,7 @@ using Music.Core.Services.Albums.Requests;
 using Music.Core.Services.Albums.Results;
 using Music.Core.Services.Auth;
 using Music.Core.Services.Auth.Enums;
+using Music.Core.Services.Files;
 using Music.Core.Services.Languages;
 using Music.Core.Services.Parties;
 using Music.Core.Services.Uploads;
@@ -23,8 +26,10 @@ using Music.Infrastructure.Data;
 using Music.Infrastructure.Entities;
 using Music.Infrastructure.Services.Album;
 using Music.Infrastructure.Services.Auth;
+using Music.Infrastructure.Services.Files;
 using Music.Infrastructure.Services.Language;
 using Music.Infrastructure.Services.Me;
+using Music.Infrastructure.Services.Media;
 using Music.Infrastructure.Services.Party;
 using Music.Infrastructure.Services.Upload;
 using Music.Infrastructure.Storages.S3;
@@ -73,10 +78,12 @@ public static class DependencyInjection
         // services.AddScoped<IMigrationService, MigrationService>();
 
         services.AddScoped<ImageUploadWorkerProcessor>();
-        // services.AddScoped<IMediaProbeService, MediaProbeService>();
-        // services.AddScoped<IMediaFFmpegService, MediaFFmpegService>();
-        // services.AddScoped<IHashService, HashService>();
-        // services.AddScoped<IWaveformService, WaveformService>();
+        services.AddScoped<TrackUploadWorkerProcessor>();
+
+        services.AddScoped<IMediaProbeService, FFprobeService>();
+        services.AddScoped<IFFmpegService, FFmpegService>();
+        services.AddScoped<IWaveformService, WaveformService>();
+        services.AddScoped<IHashService, HashService>();
         // services.AddScoped<IPartyExternalEnrichmentService, PartyExternalEnrichmentService>();
         // services.AddHttpClient();
 

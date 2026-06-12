@@ -28,7 +28,7 @@ public class FileObject
     public required string Extension { get; set; } // e.g., "mp4", "mp3", "flac", etc
     public string? Codec { get; set; } // e.g., "aac", "vorbis", "opus", etc. // empty because image don't have codec
 
-    public bool Lossless { get; set; }
+    public required bool Lossless { get; set; }
 
     public int? AudioChannels { get; set; }
 

@@ -47,11 +47,11 @@ public sealed class BackgroundWorker(
                     .GetRequiredService<ImageUploadWorkerProcessor>()
                     .ProcessAsync(job, cancellationToken);
                 break;
-            // case TrackUploadProcessWorker job:
-            //     await serviceProvider
-            //         .GetRequiredService<TrackUploadWorkerProcessor>()
-            //         .ProcessAsync(job, cancellationToken);
-            //     break;
+            case TrackUploadProcessWorker job:
+                await serviceProvider
+                    .GetRequiredService<TrackUploadWorkerProcessor>()
+                    .ProcessAsync(job, cancellationToken);
+                break;
             // case PartyInfoEnrichmentWorker job:
             //     await serviceProvider
             //         .GetRequiredService<PartyInfoEnrichmentWorkerProcessor>()

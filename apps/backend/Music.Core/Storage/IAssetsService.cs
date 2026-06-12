@@ -15,4 +15,10 @@ public interface IAssetsService : IStorageService
     );
 
     string GetUrl(string objectPath);
+
+    Task DownloadFileToTempAsync(
+        string objectPath,
+        string destinationPath,
+        CancellationToken cancellationToken = default
+    );
 }

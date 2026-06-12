@@ -36,12 +36,19 @@ export function formatFileSize(sizeInBytes: number | string) {
 }
 
 const mimeToExtension: Record<string, string> = {
+	"audio/aac": "aac",
 	"audio/flac": "flac",
+	"audio/mp4": "m4a",
 	"audio/mpeg": "mp3",
 	"audio/mp3": "mp3",
 	"audio/ogg": "ogg",
 	"audio/opus": "opus",
+	"audio/vnd.wave": "wav",
 	"audio/wav": "wav",
+	"audio/wave": "wav",
+	"audio/x-aac": "aac",
+	"audio/x-flac": "flac",
+	"audio/x-m4a": "m4a",
 	"audio/x-wav": "wav",
 	"image/bmp": "bmp",
 	"image/gif": "gif",
@@ -49,8 +56,14 @@ const mimeToExtension: Record<string, string> = {
 	"image/jpg": "jpg",
 	"image/png": "png",
 	"image/webp": "webp",
+	"image/x-png": "png",
 };
 
 export function getExtensionFromMimeType(mimeType: string) {
 	return mimeToExtension[mimeType.toLowerCase()] ?? "";
+}
+
+export function getExtensionFromFileName(fileName: string) {
+	const index = fileName.lastIndexOf(".");
+	return index >= 0 ? fileName.slice(index + 1).trim().toLowerCase() : "";
 }

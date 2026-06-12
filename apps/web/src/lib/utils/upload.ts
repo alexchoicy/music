@@ -9,7 +9,11 @@ import type {
 	ImageRequest,
 } from "#/store/albumUploadStoreType";
 
-import { getDimensions, getExtensionFromMimeType } from "./file";
+import {
+	getDimensions,
+	getExtensionFromFileName,
+	getExtensionFromMimeType,
+} from "./file";
 import { hashBlake3FileUnit8Array, hashFileStream } from "./hash";
 import { normalizeString } from "./string";
 
@@ -32,7 +36,8 @@ export async function createCoverAsset(
 ): Promise<CoverAsset | null> {
 	const { blake3Hash } = await hashFileStream(file);
 	const dimensions = await getDimensions(file);
-	const extension = getExtensionFromMimeType(file.type);
+	const extension =
+		getExtensionFromMimeType(file.type) || getExtensionFromFileName(fileName);
 
 	const area = croppedArea ?? {
 		x: 0,

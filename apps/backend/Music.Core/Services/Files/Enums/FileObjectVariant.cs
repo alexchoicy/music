@@ -7,6 +7,7 @@ public enum FileObjectVariant
 {
     // General
     Original = 0,
+    TaggedOriginal = 1,
 
     // Audio
     Opus96 = 100,

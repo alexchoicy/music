@@ -6,7 +6,10 @@ import {
 	TRACK_TITLE,
 } from "#/constant/album";
 import type { components } from "#/data/APIschema";
-import { getExtensionFromMimeType } from "#/lib/utils/file";
+import {
+	getExtensionFromFileName,
+	getExtensionFromMimeType,
+} from "#/lib/utils/file";
 import {
 	checkIfInstrumental,
 	checkIfInterlude,
@@ -184,7 +187,9 @@ function createTrackAudioRequest(
 	fileData: ProcessedFileData,
 	durationInMs: number,
 ): components["schemas"]["TrackAudioRequest"] {
-	const extension = getExtensionFromMimeType(fileData.file.type);
+	const extension =
+		getExtensionFromMimeType(fileData.file.type) ||
+		getExtensionFromFileName(fileData.file.name);
 
 	return {
 		file: {

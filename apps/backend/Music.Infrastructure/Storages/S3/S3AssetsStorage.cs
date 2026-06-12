@@ -1,5 +1,6 @@
 using Amazon.S3;
 using Amazon.S3.Model;
+using Amazon.S3.Transfer;
 using Microsoft.Extensions.Options;
 using Music.Core.Common.Utils;
 using Music.Core.Options;
@@ -86,6 +87,22 @@ public class S3AssetsService : StorageService, IAssetsService
         };
 
         await _client.PutObjectAsync(request, cancellationToken);
+    }
+
+    public async Task DownloadFileToTempAsync(
+        string objectPath,
+        string destinationPath,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using TransferUtility transferUtility = new(_client);
+
+        await transferUtility.DownloadAsync(
+            destinationPath,
+            _bucket,
+            objectPath,
+            cancellationToken
+        );
     }
 }
 
