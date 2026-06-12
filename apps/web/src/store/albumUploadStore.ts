@@ -205,7 +205,9 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 					for (const trackUpload of trackUploads) {
 						const jobId = `trackAudio:${trackUpload.fileObjectId}`;
 
-						if (!Object.hasOwn(get().filesByBlake3Hash, trackUpload.blake3Hash)) {
+						if (
+							!Object.hasOwn(get().filesByBlake3Hash, trackUpload.blake3Hash)
+						) {
 							set((state) => {
 								state.uploadRun.jobsById[jobId].status = "failed";
 								state.uploadRun.jobsById[jobId].error =

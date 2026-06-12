@@ -1,3 +1,5 @@
+import pMap from "p-map";
+
 import type { components } from "#/data/APIschema";
 
 type MultipartUploadInfo = components["schemas"]["MultipartUploadResults"];
@@ -55,7 +57,10 @@ async function uploadPartWithRetry(
 			});
 
 			if (!response.ok) {
-				if (retryableStatuses.has(response.status) && attempt < maxAttempts - 1) {
+				if (
+					retryableStatuses.has(response.status) &&
+					attempt < maxAttempts - 1
+				) {
 					await sleep(getRetryDelayMs(attempt), signal);
 					continue;
 				}
@@ -68,7 +73,11 @@ async function uploadPartWithRetry(
 
 			return eTag;
 		} catch (error) {
-			if (isAbortError(error) || signal?.aborted || attempt === maxAttempts - 1) {
+			if (
+				isAbortError(error) ||
+				signal?.aborted ||
+				attempt === maxAttempts - 1
+			) {
 				throw error;
 			}
 
@@ -85,18 +94,24 @@ export async function uploadMultipartFile(
 	options: UploadMultipartFileOptions = {},
 ): Promise<CompletedPart[]> {
 	const partSize = Number(multipartUploadInfo.partSizeInBytes);
-	const completedParts: CompletedPart[] = [];
+	const concurrency = 3;
 
-	for (const part of multipartUploadInfo.parts) {
-		const partNumber = Number(part.partNumber);
-		const start = (partNumber - 1) * partSize;
-		const end = Math.min(start + partSize, file.size);
-		const body = file.slice(start, end, file.type);
-		const eTag = await uploadPartWithRetry(part.url, body, options.signal);
+	const completedParts = await pMap(
+		multipartUploadInfo.parts,
+		async (part): Promise<CompletedPart> => {
+			const partNumber = Number(part.partNumber);
+			const start = (partNumber - 1) * partSize;
+			const end = Math.min(start + partSize, file.size);
+			const body = file.slice(start, end, file.type);
+			const eTag = await uploadPartWithRetry(part.url, body, options.signal);
 
-		completedParts.push({ partNumber, eTag });
-		options.onPartUploaded?.();
-	}
+			options.onPartUploaded?.();
+			return { partNumber, eTag };
+		},
+		{ concurrency },
+	);
 
-	return completedParts.sort((a, b) => Number(a.partNumber) - Number(b.partNumber));
+	return completedParts.sort(
+		(a, b) => Number(a.partNumber) - Number(b.partNumber),
+	);
 }
