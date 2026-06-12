@@ -25,7 +25,8 @@ export function DraftCreditSummary({
 			{names.length > 0 ? (
 				<span className="min-w-0 truncate">{names.join(", ")}</span>
 			) : !hasUnsolvedCredits ? (
-				<Badge size="sm" variant="warning">
+				<Badge size="sm" variant="error">
+					<AlertCircleIcon aria-hidden="true" />
 					No credit
 				</Badge>
 			) : null}
