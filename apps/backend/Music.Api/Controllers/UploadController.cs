@@ -35,7 +35,11 @@ public class UploadController(IUploadService uploadService) : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        await _uploadService.Complete(request, cancellationToken);
+        string userId =
+            User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? throw new ValidationException("Missing user identifier claim.");
+
+        await _uploadService.Complete(request, userId, cancellationToken);
         return NoContent();
     }
 }
