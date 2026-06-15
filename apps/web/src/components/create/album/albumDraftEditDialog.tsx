@@ -480,27 +480,17 @@ export function AlbumDraftEditDialog({
 		const discCoversForSubmit: Partial<Record<DiscLocalId, CoverAsset | null>> =
 			{};
 
-		if (form.useAlbumCoverForDiscs) {
+		if (discs.length === 1) {
+			discCoversForSubmit[discs[0].localId] = null;
+		} else if (form.useAlbumCoverForDiscs) {
 			for (const disc of discs) {
-				discCoversForSubmit[disc.localId] = null;
+				discCoversForSubmit[disc.localId] = coverPreview ?? null;
 			}
 		} else {
-			for (const disc of discs) {
-				if (
-					discCoversById[disc.localId]?.blake3Hash === coverPreview?.blake3Hash
-				) {
-					discCoversForSubmit[disc.localId] = null;
-				}
-			}
-
 			for (const [discId, pendingDiscCover] of Object.entries(
 				pendingDiscCoversById,
 			)) {
-				if (pendingDiscCover?.blake3Hash === coverPreview?.blake3Hash) {
-					discCoversForSubmit[discId] = null;
-				} else {
-					discCoversForSubmit[discId] = pendingDiscCover;
-				}
+				discCoversForSubmit[discId] = pendingDiscCover;
 			}
 		}
 
