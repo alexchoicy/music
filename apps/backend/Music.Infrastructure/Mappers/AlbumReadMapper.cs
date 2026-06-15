@@ -22,6 +22,21 @@ internal static class AlbumReadMapper
             CreatedAt = album.CreatedAt,
             UpdatedAt = album.UpdatedAt,
             CoverVariants = ToAlbumCoverVariants(album, assetsService),
+            DiscCovers = album
+                .Discs.OrderBy(disc => disc.DiscNumber)
+                .Select(disc => new AlbumDiscCoverDetails
+                {
+                    AlbumDiscId = disc.Id,
+                    DiscNumber = disc.DiscNumber,
+                    Variants = album
+                        .Images.Where(image => image.AlbumDiscId == disc.Id)
+                        .OrderByDescending(image => image.IsPrimary)
+                        .ThenBy(image => image.CreatedAt)
+                        .FirstOrDefault()
+                        .ToCoverVariants(assetsService),
+                })
+                .Where(discCover => discCover.Variants.Count > 0)
+                .ToList(),
             Artists = album
                 .Credits.Where(credit =>
                     credit.Credit == CreditType.Artist && credit.Party is not null

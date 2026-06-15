@@ -58,6 +58,7 @@ public sealed class AlbumListItem
     public required DateTimeOffset UpdatedAt { get; init; }
 
     public IReadOnlyList<AlbumCoverVariant> CoverVariants { get; init; } = [];
+    public IReadOnlyList<AlbumDiscCoverDetails> DiscCovers { get; init; } = [];
     public required IReadOnlyList<AlbumListArtist> Artists { get; init; } = [];
 
     public int TrackCount { get; init; }
@@ -131,6 +132,7 @@ public sealed class TrackAudioDetails
 public sealed class TrackAudioFileVariants
 {
     public required FileObjectDetails Original { get; init; }
+    public FileObjectDetails? TaggedOriginal { get; init; }
     public FileObjectDetails? Opus96 { get; init; }
     public FileObjectDetails? WaveformB8Pixel20 { get; init; }
 }

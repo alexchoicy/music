@@ -183,6 +183,10 @@ public class AlbumService(
             fo.FileObjectVariant == FileObjectVariant.Opus96
         );
 
+        FileObject? taggedOriginal = storedFile.FileObjects.FirstOrDefault(fo =>
+            fo.FileObjectVariant == FileObjectVariant.TaggedOriginal
+        );
+
         FileObject? waveformB8Pixel20 = storedFile.FileObjects.FirstOrDefault(fo =>
             fo.FileObjectVariant == FileObjectVariant.WaveformB8Pixel20
         );
@@ -190,6 +194,7 @@ public class AlbumService(
         return new TrackAudioFileVariants
         {
             Original = original.ToContentDetails(_contentService),
+            TaggedOriginal = taggedOriginal?.ToContentDetails(_contentService),
             Opus96 = opus96?.ToContentDetails(_contentService),
             WaveformB8Pixel20 = waveformB8Pixel20?.ToAssetDetails(_assetsService),
         };
