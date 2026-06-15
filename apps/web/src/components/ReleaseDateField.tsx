@@ -17,6 +17,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/coss/select";
+import { dateFormatter, dateFromValue, valueFromDate } from "#/lib/utils/date";
 import { cn } from "#/lib/utils/styles";
 
 type ReleaseDateFieldProps = {
@@ -28,26 +29,7 @@ type ReleaseDateFieldProps = {
 	value: string | null;
 };
 
-const dateFormatter = new Intl.DateTimeFormat(undefined, {
-	day: "2-digit",
-	month: "2-digit",
-	year: "numeric",
-});
-
 const START_YEAR = 1990;
-
-function dateFromValue(value: string | null): Date | undefined {
-	if (!value) return undefined;
-
-	const date = new Date(value);
-	return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-}
-
-function valueFromDate(date: Date): string {
-	return new Date(
-		Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
-	).toISOString();
-}
 
 function CalendarDropdown({
 	className,

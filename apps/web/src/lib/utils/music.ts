@@ -72,3 +72,20 @@ export function formatDurationInHoursAndMinutes(
 
 	return `${hours}h ${minutes}m`;
 }
+
+export function formatDurationInHoursMinutesSeconds(
+	durationInMs?: null | number | string,
+) {
+	const duration = Number(durationInMs);
+	if (!Number.isFinite(duration) || duration <= 0) return null;
+
+	const totalSeconds = Math.round(duration / 1000);
+	const hours = Math.floor(totalSeconds / 3600);
+	const minutes = Math.floor((totalSeconds % 3600) / 60);
+	const seconds = totalSeconds % 60;
+
+	if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+	if (minutes > 0) return `${minutes}m ${seconds}s`;
+
+	return `${seconds}s`;
+}
