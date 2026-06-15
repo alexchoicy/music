@@ -85,6 +85,8 @@ public static class MediaFiles
 
     public static string GetMimeTypeFromExtension(string extension)
     {
+        extension = extension.Trim().TrimStart('.');
+
         if (ExtToMime.TryGetValue(extension, out string? mimeType))
         {
             return mimeType;

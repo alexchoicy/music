@@ -37,7 +37,11 @@ internal static class WorkerFileOperations
             string relativePath = Path.GetRelativePath(sourceDirectory, filePath)
                 .Replace('\\', '/');
             string objectPath = $"{destinationRoot.TrimEnd('/')}/{relativePath}";
-            await contentService.UploadFileFromTempAsync(objectPath, filePath, cancellationToken);
+            await contentService.UploadFileFromTempAsync(
+                objectPath,
+                filePath,
+                cancellationToken: cancellationToken
+            );
         }
 
         logger.LogInformation(

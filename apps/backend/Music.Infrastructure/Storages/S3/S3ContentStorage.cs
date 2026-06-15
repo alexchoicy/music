@@ -164,6 +164,7 @@ public class S3ContentService(
     public async Task UploadFileFromTempAsync(
         string objectPath,
         string sourcePath,
+        string? mimeType = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -174,7 +175,9 @@ public class S3ContentService(
         if (!fileInfo.Exists)
             throw new FileNotFoundException("Temp file not found.", sourcePath);
 
-        string mimeType = MediaFiles.GetMimeTypeFromExtension(fileInfo.Extension);
+        string contentType = string.IsNullOrWhiteSpace(mimeType)
+            ? MediaFiles.GetMimeTypeFromExtension(fileInfo.Extension)
+            : mimeType.Trim();
 
         if (fileInfo.Length < multipartThreshold)
         {
@@ -182,7 +185,7 @@ public class S3ContentService(
             {
                 BucketName = bucket,
                 Key = objectPath,
-                ContentType = mimeType,
+                ContentType = contentType,
                 FilePath = sourcePath,
                 UseChunkEncoding = false,
                 DisablePayloadSigning = true,
@@ -196,7 +199,7 @@ public class S3ContentService(
             {
                 BucketName = bucket,
                 Key = objectPath,
-                ContentType = mimeType,
+                ContentType = contentType,
             },
             cancellationToken
         );

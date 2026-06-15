@@ -68,6 +68,7 @@ public class S3AssetsService : StorageService, IAssetsService
     public async Task UploadFileFromTempAsync(
         string objectPath,
         string sourcePath,
+        string? mimeType = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -75,14 +76,16 @@ public class S3AssetsService : StorageService, IAssetsService
         if (!fileInfo.Exists)
             throw new FileNotFoundException("Temp file not found.", sourcePath);
 
-        string mimeType = MediaFiles.GetMimeTypeFromExtension(fileInfo.Extension);
+        string contentType = string.IsNullOrWhiteSpace(mimeType)
+            ? MediaFiles.GetMimeTypeFromExtension(fileInfo.Extension)
+            : mimeType.Trim();
 
         PutObjectRequest request = new()
         {
             BucketName = _bucket,
             Key = objectPath,
             FilePath = sourcePath,
-            ContentType = mimeType,
+            ContentType = contentType,
             DisablePayloadSigning = true,
         };
 

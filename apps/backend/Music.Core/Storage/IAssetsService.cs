@@ -11,6 +11,7 @@ public interface IAssetsService : IStorageService
     Task UploadFileFromTempAsync(
         string objectPath,
         string sourcePath,
+        string? mimeType = null,
         CancellationToken cancellationToken = default
     );
 

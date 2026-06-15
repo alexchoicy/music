@@ -197,6 +197,7 @@ public class TrackUploadWorkerProcessor(
         await assetsService.UploadFileFromTempAsync(
             waveformStoragePath,
             waveformPath,
+            waveformFileObject.MimeType,
             cancellationToken
         );
 
@@ -317,6 +318,7 @@ public class TrackUploadWorkerProcessor(
         await contentService.UploadFileFromTempAsync(
             taggedStoragePath,
             taggedPath,
+            taggedFileObject.MimeType,
             cancellationToken
         );
 
@@ -434,7 +436,12 @@ public class TrackUploadWorkerProcessor(
             ProcessingStatus = FileProcessingStatus.Completed,
         };
 
-        await contentService.UploadFileFromTempAsync(newStoragePath, outputPath, cancellationToken);
+        await contentService.UploadFileFromTempAsync(
+            newStoragePath,
+            outputPath,
+            newFileObject.MimeType,
+            cancellationToken
+        );
 
         dbContext.FileObjects.Add(newFileObject);
 
