@@ -56,3 +56,19 @@ export function checkIfInstrumental(title: string, filename: string): boolean {
 		includesAny(filename, INSTRUMENTAL_INDICATORS)
 	);
 }
+
+export function formatDurationInHoursAndMinutes(
+	durationInMs?: null | number | string,
+) {
+	const duration = Number(durationInMs);
+	if (!Number.isFinite(duration) || duration <= 0) return null;
+
+	const totalMinutes = Math.round(duration / 1000 / 60);
+	const hours = Math.floor(totalMinutes / 60);
+	const minutes = totalMinutes % 60;
+
+	if (hours === 0) return `${minutes}m`;
+	if (minutes === 0) return `${hours}h`;
+
+	return `${hours}h ${minutes}m`;
+}

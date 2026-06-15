@@ -556,9 +556,16 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["MultipartUploadResults"];
                         "application/json": components["schemas"]["MultipartUploadResults"];
-                        "text/json": components["schemas"]["MultipartUploadResults"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -593,12 +600,23 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description No Content */
-                204: {
+                /** @description OK */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
                 };
             };
         };
@@ -681,11 +699,12 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
             coverVariants?: components["schemas"]["AlbumCoverVariant"][];
+            discCovers?: components["schemas"]["AlbumDiscCoverDetails"][];
             artists: components["schemas"]["AlbumListArtist"][];
             /** Format: int32 */
-            trackCount?: number | string;
+            trackCount: number | string;
             /** Format: int32 */
-            totalDurationInMs?: number | string;
+            totalDurationInMs: number | string;
         };
         AlbumPartyCredit: {
             /** Format: int32 */
@@ -855,7 +874,7 @@ export interface components {
             updatedAt: string;
         };
         /** @enum {unknown} */
-        FileObjectVariant: "Original" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup";
+        FileObjectVariant: "Original" | "TaggedOriginal" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup";
         FileRequest: {
             blake3Hash: string;
             mimeType: string;
@@ -951,6 +970,7 @@ export interface components {
         };
         TrackAudioFileVariants: {
             original: components["schemas"]["FileObjectDetails"];
+            taggedOriginal?: null | components["schemas"]["FileObjectDetails"];
             opus96?: null | components["schemas"]["FileObjectDetails"];
             waveformB8Pixel20?: null | components["schemas"]["FileObjectDetails"];
         };

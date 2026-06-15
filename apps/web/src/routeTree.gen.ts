@@ -13,6 +13,7 @@ import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as PublicLoginIndexRouteImport } from './routes/_public/login/index'
 import { Route as AuthedCreateIndexRouteImport } from './routes/_authed/create/index'
+import { Route as AuthedAlbumsIndexRouteImport } from './routes/_authed/albums/index'
 
 const AuthedRouteRoute = AuthedRouteRouteImport.update({
   id: '/_authed',
@@ -33,14 +34,21 @@ const AuthedCreateIndexRoute = AuthedCreateIndexRouteImport.update({
   path: '/create/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedAlbumsIndexRoute = AuthedAlbumsIndexRouteImport.update({
+  id: '/albums/',
+  path: '/albums/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
+  '/albums/': typeof AuthedAlbumsIndexRoute
   '/create/': typeof AuthedCreateIndexRoute
   '/login/': typeof PublicLoginIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AuthedIndexRoute
+  '/albums': typeof AuthedAlbumsIndexRoute
   '/create': typeof AuthedCreateIndexRoute
   '/login': typeof PublicLoginIndexRoute
 }
@@ -48,18 +56,20 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authed': typeof AuthedRouteRouteWithChildren
   '/_authed/': typeof AuthedIndexRoute
+  '/_authed/albums/': typeof AuthedAlbumsIndexRoute
   '/_authed/create/': typeof AuthedCreateIndexRoute
   '/_public/login/': typeof PublicLoginIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/create/' | '/login/'
+  fullPaths: '/' | '/albums/' | '/create/' | '/login/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/create' | '/login'
+  to: '/' | '/albums' | '/create' | '/login'
   id:
     | '__root__'
     | '/_authed'
     | '/_authed/'
+    | '/_authed/albums/'
     | '/_authed/create/'
     | '/_public/login/'
   fileRoutesById: FileRoutesById
@@ -99,16 +109,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedCreateIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/albums/': {
+      id: '/_authed/albums/'
+      path: '/albums'
+      fullPath: '/albums/'
+      preLoaderRoute: typeof AuthedAlbumsIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
   }
 }
 
 interface AuthedRouteRouteChildren {
   AuthedIndexRoute: typeof AuthedIndexRoute
+  AuthedAlbumsIndexRoute: typeof AuthedAlbumsIndexRoute
   AuthedCreateIndexRoute: typeof AuthedCreateIndexRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedIndexRoute: AuthedIndexRoute,
+  AuthedAlbumsIndexRoute: AuthedAlbumsIndexRoute,
   AuthedCreateIndexRoute: AuthedCreateIndexRoute,
 }
 

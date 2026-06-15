@@ -61,8 +61,8 @@ public sealed class AlbumListItem
     public IReadOnlyList<AlbumDiscCoverDetails> DiscCovers { get; init; } = [];
     public required IReadOnlyList<AlbumListArtist> Artists { get; init; } = [];
 
-    public int TrackCount { get; init; }
-    public int TotalDurationInMs { get; init; }
+    public required int TrackCount { get; init; }
+    public required int TotalDurationInMs { get; init; }
 }
 
 public sealed class AlbumDetails

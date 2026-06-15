@@ -61,7 +61,7 @@ const mainNavigation = [
 	{
 		label: "Albums",
 		icon: Disc3,
-		to: "/",
+		to: "/albums",
 	},
 	{
 		label: "Parties",
