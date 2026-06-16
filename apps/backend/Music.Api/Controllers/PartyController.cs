@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -44,5 +45,25 @@ public class PartyController(IPartyService partyService) : ControllerBase
     {
         IList<PartyItems> parties = await _partyService.GetAllAsync(cancellationToken);
         return Ok(parties);
+    }
+
+    [HttpGet("{id:int}")]
+    [Authorize]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(PartyDetails), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetPartyById(
+        [FromRoute] [Required] int id,
+        CancellationToken cancellationToken
+    )
+    {
+        PartyDetails? party = await _partyService.GetPartyByIdAsync(id, cancellationToken);
+
+        if (party is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(party);
     }
 }

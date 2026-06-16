@@ -526,6 +526,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/parties/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PartyDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/uploads/Init": {
         parameters: {
             query?: never;
@@ -815,6 +861,7 @@ export interface components {
             name: string;
             type: components["schemas"]["PartyType"];
             kind: components["schemas"]["PartyKind"];
+            gender?: components["schemas"]["PartyGender"];
             country: components["schemas"]["CountryCode"];
             musicBrainzID?: null | string;
             avatar?: null | components["schemas"]["PartyImageRequest"];
@@ -874,7 +921,7 @@ export interface components {
             updatedAt: string;
         };
         /** @enum {unknown} */
-        FileObjectVariant: "Original" | "TaggedOriginal" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup";
+        FileObjectVariant: "Original" | "TaggedOriginal" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup" | "ImageCover1024x1024" | "ImageAvatar512x512" | "ImageBanner1500x500";
         FileRequest: {
             blake3Hash: string;
             mimeType: string;
@@ -932,6 +979,29 @@ export interface components {
             name: string;
             normalizedName: string;
         };
+        PartyDetails: {
+            /** Format: int32 */
+            partyId: number | string;
+            name: string;
+            avatarImages?: null | components["schemas"]["PartyImage"][];
+            country: components["schemas"]["CountryCode"];
+            description: string;
+            type?: components["schemas"]["PartyType"];
+            kind: components["schemas"]["PartyKind"];
+            gender?: components["schemas"]["PartyGender"];
+            aliases: components["schemas"]["PartyAlias"][];
+            externalInfoLinks: components["schemas"]["PartyExternalInfoLink"][];
+            albums: components["schemas"]["AlbumListItem"][];
+            appearsOnAlbums: components["schemas"]["AlbumListItem"][];
+        };
+        PartyExternalInfoLink: {
+            type: components["schemas"]["PartyExternalInfoType"];
+            url: string;
+        };
+        /** @enum {unknown} */
+        PartyExternalInfoType: "Spotify" | "Twitter" | "OfficialWebsite" | "YouTube" | "YouTubeMusic" | "Instagram" | "AppleMusic" | "Mora" | "Ototoy";
+        /** @enum {unknown} */
+        PartyGender: "Unknown" | "Male" | "Female";
         PartyImage: {
             variant: components["schemas"]["FileObjectVariant"];
             url: string;
@@ -945,10 +1015,14 @@ export interface components {
             partyId: number | string;
             name: string;
             normalizedName: string;
+            coverUrl: string;
             country: components["schemas"]["CountryCode"];
             type?: components["schemas"]["PartyType"];
             kind: components["schemas"]["PartyKind"];
+            gender?: components["schemas"]["PartyGender"];
             aliases: components["schemas"]["PartyAlias"][];
+            /** Format: int32 */
+            albumCount: number | string;
         };
         /** @enum {unknown} */
         PartyKind: "Human" | "VTuber" | "Vocaloid";

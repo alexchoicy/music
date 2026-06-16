@@ -27,10 +27,12 @@ public sealed class PartyItems
     public required int PartyId { get; init; }
     public required string Name { get; init; } = string.Empty;
     public required string NormalizedName { get; init; } = string.Empty;
+    public required string CoverUrl { get; init; } = string.Empty;
     public required CountryCode Country { get; init; }
     public PartyType Type { get; init; } = PartyType.Individual;
     public required PartyKind Kind { get; init; }
     public PartyGender Gender { get; init; } = PartyGender.Unknown;
+    public required int AlbumCount { get; init; }
     public required IReadOnlyList<PartyAlias> Aliases { get; init; } = [];
 }
 
@@ -49,12 +51,21 @@ public sealed class PartyDetails
     public required int PartyId { get; init; }
     public required string Name { get; init; } = string.Empty;
     public IReadOnlyList<PartyImage>? AvatarImages { get; init; }
-    public IReadOnlyList<PartyImage>? BannerImages { get; init; }
+    public required CountryCode Country { get; init; }
+    public required string Description { get; init; } = string.Empty;
     public PartyType Type { get; init; } = PartyType.Individual;
     public required PartyKind Kind { get; init; }
     public PartyGender Gender { get; init; } = PartyGender.Unknown;
+    public required IReadOnlyList<PartyAlias> Aliases { get; init; } = [];
+    public required IReadOnlyList<PartyExternalInfoLink> ExternalInfoLinks { get; init; } = [];
     public required IReadOnlyList<AlbumListItem> Albums { get; init; } = [];
     public required IReadOnlyList<AlbumListItem> AppearsOnAlbums { get; init; } = [];
+}
+
+public sealed class PartyExternalInfoLink
+{
+    public required PartyExternalInfoType Type { get; init; }
+    public required string Url { get; init; } = string.Empty;
 }
 
 public sealed class PartyImage

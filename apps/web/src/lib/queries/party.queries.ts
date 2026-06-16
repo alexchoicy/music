@@ -19,6 +19,24 @@ export const partyQueries = {
 				return result.data;
 			},
 		}),
+	getParty: (id: number | string) =>
+		queryOptions({
+			queryKey: ["parties", id],
+			queryFn: async () => {
+				const result = await $APIFetch<components["schemas"]["PartyDetails"]>(
+					`/parties/${id}`,
+					{
+						method: "GET",
+					},
+				);
+
+				if (!result.ok) {
+					throw new Error("Unable to load party");
+				}
+
+				return result.data;
+			},
+		}),
 };
 
 export const partyMutation = {

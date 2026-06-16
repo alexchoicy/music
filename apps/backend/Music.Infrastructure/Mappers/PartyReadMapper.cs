@@ -1,5 +1,4 @@
 using Music.Core.Entities;
-using Music.Core.Services.Images;
 using Music.Core.Services.Images.Enums;
 using Music.Core.Storage;
 using PartyImageRead = Music.Core.Services.Parties.PartyImage;
@@ -8,22 +7,6 @@ namespace Music.Infrastructure.Mappers;
 
 internal static class PartyReadMapper
 {
-    public static IReadOnlyList<PartyImageRead> ToPartyImages(
-        this IEnumerable<FileObject>? fileObjects,
-        IAssetsService assetsService
-    )
-    {
-        return fileObjects
-                ?.OrderBy(fileObject => fileObject.FileObjectVariant)
-                .Select(fileObject => new PartyImageRead
-                {
-                    Url = assetsService.GetUrl(fileObject.StoragePath),
-                    Variant = fileObject.FileObjectVariant,
-                })
-                .ToList()
-            ?? [];
-    }
-
     public static IReadOnlyList<PartyImageRead> ToPrimaryAvatarImages(
         this Party party,
         IAssetsService assetsService

@@ -2,8 +2,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "#/components/coss/avatar";
 import { Card, CardHeader, CardPanel, CardTitle } from "#/components/coss/card";
 import { Separator } from "#/components/coss/separator";
 import { getCoverUrl } from "#/lib/utils/album";
+import { getInitials } from "#/lib/utils/string";
 
-import { getInitials, getTrackCredits } from "./albumDetailUtils";
+import { getTrackCredits } from "./albumDetailUtils";
 import type { AlbumDetails, PartyCredit } from "./albumDetailUtils";
 
 type AlbumCreditsCardProps = {

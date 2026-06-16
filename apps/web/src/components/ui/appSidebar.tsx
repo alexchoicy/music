@@ -28,6 +28,7 @@ import {
 	SidebarSeparator,
 } from "#/components/coss/sidebar";
 import { useUserInfo } from "#/context/UserInfoContext";
+import { getInitials } from "#/lib/utils/string";
 import type { FileRouteTypes } from "#/routeTree.gen";
 
 type NavigationTo = Exclude<FileRouteTypes["to"], "/login">;
@@ -40,16 +41,6 @@ type NavigationItem = {
 
 function normalizePathname(pathname: string): string {
 	return pathname === "/" ? pathname : pathname.replace(/\/$/, "");
-}
-
-function getInitials(name: string): string {
-	const parts = name.trim().split(/\s+/);
-	const initials =
-		parts.length > 1
-			? `${parts[0].charAt(0)}${parts[1].charAt(0)}`
-			: parts[0].slice(0, 2);
-
-	return initials.toUpperCase() || "?";
 }
 
 const mainNavigation = [
@@ -66,7 +57,7 @@ const mainNavigation = [
 	{
 		label: "Parties",
 		icon: UsersRound,
-		to: "/",
+		to: "/parties",
 	},
 	{
 		label: "Concerts",
@@ -138,7 +129,7 @@ export function AppSidebar(): React.ReactElement {
 				</SidebarGroup>
 			</SidebarContent>
 
-			<SidebarSeparator />
+			{/*<SidebarSeparator />*/}
 
 			<SidebarFooter>
 				<SidebarMenu>

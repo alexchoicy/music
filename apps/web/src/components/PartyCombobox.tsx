@@ -141,6 +141,7 @@ export function PartyCombobox({
 				{
 					aliases: [],
 					country: "XX",
+					coverUrl: "",
 					creatableName: trimmedQuery,
 					kind: "Human",
 					name: `Create "${trimmedQuery}"`,

@@ -16,14 +16,16 @@ import {
 import type { components } from "#/data/APIschema";
 import { getCoverUrl } from "#/lib/utils/album";
 import { formatDurationInHoursAndMinutes } from "#/lib/utils/music";
+import { cn } from "#/lib/utils/styles";
 
 type Album = components["schemas"]["AlbumListItem"];
 
 type AlbumCardProps = {
 	album: Album;
+	className?: string;
 };
 
-export function AlbumCard({ album }: AlbumCardProps) {
+export function AlbumCard({ album, className }: AlbumCardProps) {
 	const artistNames =
 		album.artists.map((artist) => artist.name).join(", ") || "Unknown artist";
 
@@ -42,7 +44,7 @@ export function AlbumCard({ album }: AlbumCardProps) {
 		formatDurationInHoursAndMinutes(album.totalDurationInMs) ?? "0m";
 
 	return (
-		<div data-slot="album-card">
+		<div className={cn(className)} data-slot="album-card">
 			<Link
 				className="block h-full rounded-2xl text-card-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				params={{ id: String(album.albumId) }}

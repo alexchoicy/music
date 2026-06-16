@@ -22,18 +22,6 @@ export function getCreditNames(credits: PartyCredit[]) {
 	return credits.map((credit) => credit.name).join(", ");
 }
 
-export function getInitials(name: string) {
-	return (
-		name
-			.trim()
-			.split(/\s+/)
-			.map((part) => part.charAt(0))
-			.join("")
-			.slice(0, 2)
-			.toUpperCase() || "?"
-	);
-}
-
 export function getTrackCredits(album: AlbumDetails) {
 	const credits = new Map<string, PartyCredit>();
 	const albumCredits = new Set(

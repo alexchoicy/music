@@ -374,8 +374,7 @@ public class PartyInfoEnrichmentWorkerProcessor(
             }
 
             if (
-                host.Contains("twitter.com", StringComparison.OrdinalIgnoreCase)
-                || host.Contains("x.com", StringComparison.OrdinalIgnoreCase)
+                IsHostOrSubdomain(host, "twitter.com") || IsHostOrSubdomain(host, "x.com")
             )
             {
                 AddExternalInfo(
@@ -450,6 +449,12 @@ public class PartyInfoEnrichmentWorkerProcessor(
         }
 
         return externalInfos;
+    }
+
+    private static bool IsHostOrSubdomain(string host, string domain)
+    {
+        return string.Equals(host, domain, StringComparison.OrdinalIgnoreCase)
+            || host.EndsWith($".{domain}", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void AddExternalInfo(
