@@ -10,10 +10,6 @@ public interface IFileUrlService
         Guid fileObjectId,
         CancellationToken cancellationToken = default
     );
-    Task<MultipartUploadResults> InitUploadAsync(
-        Guid fileObjectId,
-        CancellationToken cancellationToken = default
-    );
     Task<string> GetDashManifestAsync(
         Guid fileObjectId,
         CancellationToken cancellationToken = default

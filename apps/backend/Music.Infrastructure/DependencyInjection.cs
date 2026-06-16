@@ -75,7 +75,7 @@ public static class DependencyInjection
         services.AddScoped<IMeService, MeService>();
         services.AddScoped<IPartyService, PartyService>();
         // services.AddScoped<IConcertService, ConcertService>();
-        // services.AddScoped<IFileUrlService, FileUrlService>();
+        services.AddScoped<IFileUrlService, FileUrlService>();
         // services.AddScoped<IMigrationService, MigrationService>();
 
         services.AddScoped<ImageUploadWorkerProcessor>();
