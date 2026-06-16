@@ -12,6 +12,7 @@ public sealed class CreatePartyRequest
     public required string Name { get; init; }
     public required PartyType Type { get; init; }
     public required PartyKind Kind { get; init; }
+    public PartyGender Gender { get; init; } = PartyGender.Unknown;
     public required CountryCode Country { get; init; }
 
     public string? MusicBrainzID { get; init; }

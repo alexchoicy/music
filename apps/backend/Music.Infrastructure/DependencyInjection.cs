@@ -26,6 +26,7 @@ using Music.Infrastructure.Data;
 using Music.Infrastructure.Entities;
 using Music.Infrastructure.Services.Album;
 using Music.Infrastructure.Services.Auth;
+using Music.Infrastructure.Services.External;
 using Music.Infrastructure.Services.Files;
 using Music.Infrastructure.Services.Language;
 using Music.Infrastructure.Services.Me;
@@ -79,13 +80,17 @@ public static class DependencyInjection
 
         services.AddScoped<ImageUploadWorkerProcessor>();
         services.AddScoped<TrackUploadWorkerProcessor>();
+        services.AddScoped<PartyInfoEnrichmentWorkerProcessor>();
+
+        services.AddScoped<PartyAvatarService>();
+        services.AddScoped<TwitterService>();
+        services.AddScoped<MusicBrainzService>();
 
         services.AddScoped<IMediaProbeService, FFprobeService>();
         services.AddScoped<IFFmpegService, FFmpegService>();
         services.AddScoped<IWaveformService, WaveformService>();
         services.AddScoped<IHashService, HashService>();
-        // services.AddScoped<IPartyExternalEnrichmentService, PartyExternalEnrichmentService>();
-        // services.AddHttpClient();
+        services.AddHttpClient();
 
         services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         services.AddHostedService<BackgroundWorker>();

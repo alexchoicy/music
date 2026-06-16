@@ -7,4 +7,11 @@ public enum PartyExternalInfoType
 {
     Spotify,
     Twitter,
+    OfficialWebsite,
+    YouTube,
+    YouTubeMusic,
+    Instagram,
+    AppleMusic,
+    Mora,
+    Ototoy,
 }

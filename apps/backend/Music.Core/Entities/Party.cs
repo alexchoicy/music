@@ -12,6 +12,8 @@ public class Party
 
     public string NormalizedName { get; set; } = string.Empty;
 
+    public required string Description { get; set; } = "";
+
     public string? MusicBrainzId { get; set; }
     public required CountryCode Country { get; set; }
 
@@ -19,6 +21,7 @@ public class Party
 
     public PartyType Type { get; set; } = PartyType.Individual;
     public required PartyKind Kind { get; set; }
+    public PartyGender Gender { get; set; } = PartyGender.Unknown;
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;

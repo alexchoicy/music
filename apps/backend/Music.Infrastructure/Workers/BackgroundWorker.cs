@@ -52,11 +52,11 @@ public sealed class BackgroundWorker(
                     .GetRequiredService<TrackUploadWorkerProcessor>()
                     .ProcessAsync(job, cancellationToken);
                 break;
-            // case PartyInfoEnrichmentWorker job:
-            //     await serviceProvider
-            //         .GetRequiredService<PartyInfoEnrichmentWorkerProcessor>()
-            //         .ProcessAsync(job, cancellationToken);
-            //     break;
+            case PartyInfoEnrichmentWorker job:
+                await serviceProvider
+                    .GetRequiredService<PartyInfoEnrichmentWorkerProcessor>()
+                    .ProcessAsync(job, cancellationToken);
+                break;
             // case ConcertUploadProcessWorker job:
             //     await serviceProvider
             //         .GetRequiredService<ConcertUploadWorkerProcessor>()

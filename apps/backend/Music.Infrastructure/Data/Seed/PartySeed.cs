@@ -16,6 +16,7 @@ public class PartySeed
             Type = PartyType.Individual,
             Kind = PartyKind.Human,
             Country = CountryCode.XX,
+            Description = "",
         };
 
         context.Parties.Add(unknownParty);

@@ -30,6 +30,7 @@ public sealed class PartyItems
     public required CountryCode Country { get; init; }
     public PartyType Type { get; init; } = PartyType.Individual;
     public required PartyKind Kind { get; init; }
+    public PartyGender Gender { get; init; } = PartyGender.Unknown;
     public required IReadOnlyList<PartyAlias> Aliases { get; init; } = [];
 }
 
@@ -40,6 +41,7 @@ public sealed class PartySummary
     public IReadOnlyList<PartyImage>? AvatarImages { get; init; }
     public PartyType Type { get; init; } = PartyType.Individual;
     public required PartyKind Kind { get; init; }
+    public PartyGender Gender { get; init; } = PartyGender.Unknown;
 }
 
 public sealed class PartyDetails
@@ -50,6 +52,7 @@ public sealed class PartyDetails
     public IReadOnlyList<PartyImage>? BannerImages { get; init; }
     public PartyType Type { get; init; } = PartyType.Individual;
     public required PartyKind Kind { get; init; }
+    public PartyGender Gender { get; init; } = PartyGender.Unknown;
     public required IReadOnlyList<AlbumListItem> Albums { get; init; } = [];
     public required IReadOnlyList<AlbumListItem> AppearsOnAlbums { get; init; } = [];
 }
