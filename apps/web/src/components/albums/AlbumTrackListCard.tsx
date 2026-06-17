@@ -66,8 +66,8 @@ export function AlbumTrackListCard({ album }: AlbumTrackListCardProps) {
 								const canAddToQueue = track.audios.length > 0;
 								const isCurrentTrack =
 									currentTrack &&
-									track.trackId === currentTrack.trackId &&
-									album.albumId === currentTrack.albumId;
+									String(track.trackId) === currentTrack.trackId &&
+									String(album.albumId) === currentTrack.albumId;
 
 								return (
 									<div
