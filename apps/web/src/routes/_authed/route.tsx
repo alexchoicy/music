@@ -30,10 +30,10 @@ function RouteComponent() {
 		<UserInfoProvider>
 			<SidebarProvider>
 				<AppSidebar />
-				<SidebarInset>
+				<SidebarInset className="h-svh overflow-hidden">
 					<MobileHeader />
-					<div className="grid min-h-0 flex-1 grid-rows-[1fr_auto]">
-						<div className="min-h-0 overflow-auto">
+					<div className="relative flex min-h-0 flex-1 flex-col">
+						<div className="min-h-0 flex-1 overflow-auto pb-24">
 							<Outlet />
 						</div>
 						<AudioPlayer />

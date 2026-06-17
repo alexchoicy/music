@@ -7,6 +7,8 @@ import { getAlbumCoverUrl } from "#/components/albums/albumDetailUtils";
 import { AlbumInfoCard } from "#/components/albums/AlbumInfoCard";
 import { AlbumTrackListCard } from "#/components/albums/AlbumTrackListCard";
 import { albumQueries } from "#/lib/queries/album.queries";
+import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer.ts/audioPlayerFunction";
+import { useAudioPlayerStore } from "#/store/audioPlayer.ts/audioPlayerStore";
 
 export const Route = createFileRoute("/_authed/albums/$id")({
 	loader: ({ context, params }) => {
@@ -19,7 +21,9 @@ export const Route = createFileRoute("/_authed/albums/$id")({
 function RouteComponent() {
 	const { id } = Route.useParams();
 	const { data: album } = useSuspenseQuery(albumQueries.getAlbum(id));
+	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const coverUrl = getAlbumCoverUrl(album);
+	const audioPlayerTracks = albumDetailsToAudioPlayerTracks(album);
 
 	return (
 		<main className="relative min-h-full w-full overflow-hidden bg-background">
@@ -35,7 +39,11 @@ function RouteComponent() {
 			</div>
 
 			<div className="relative flex min-h-full w-full flex-col gap-6 p-4 sm:p-6">
-				<AlbumDetailHero album={album} />
+				<AlbumDetailHero
+					album={album}
+					onPlayAlbum={() => playAlbum(audioPlayerTracks)}
+					playAlbumDisabled={audioPlayerTracks.length === 0}
+				/>
 
 				<div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
 					<AlbumTrackListCard album={album} />

@@ -89,3 +89,18 @@ export function formatDurationInHoursMinutesSeconds(
 
 	return `${seconds}s`;
 }
+
+export function formatMsToTimer(ms: number): string {
+	if (!Number.isFinite(ms) || ms < 0) return "0:00";
+
+	const totalSeconds = Math.round(ms / 1000);
+	const hours = Math.floor(totalSeconds / 3600);
+	const minutes = Math.floor((totalSeconds % 3600) / 60);
+	const seconds = totalSeconds % 60;
+
+	if (hours > 0) {
+		return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+	}
+
+	return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}

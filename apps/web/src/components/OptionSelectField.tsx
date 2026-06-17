@@ -7,7 +7,7 @@ import {
 	SelectValue,
 } from "#/components/coss/select";
 
-export type OptionSelectFieldOption<Id> = {
+type OptionSelectFieldOption<Id> = {
 	id: Id;
 	label: string;
 	value: string;

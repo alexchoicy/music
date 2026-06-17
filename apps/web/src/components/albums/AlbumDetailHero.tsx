@@ -19,9 +19,15 @@ import type { AlbumDetails } from "./albumDetailUtils";
 
 type AlbumDetailHeroProps = {
 	album: AlbumDetails;
+	onPlayAlbum: () => void;
+	playAlbumDisabled?: boolean;
 };
 
-export function AlbumDetailHero({ album }: AlbumDetailHeroProps) {
+export function AlbumDetailHero({
+	album,
+	onPlayAlbum,
+	playAlbumDisabled,
+}: AlbumDetailHeroProps) {
 	const coverUrl = getAlbumCoverUrl(album);
 	const hoverCoverUrl = getAlbumHoverCoverUrl(album);
 	const artistNames = getCreditNames(album.credits) || "Unknown artist";
@@ -89,7 +95,7 @@ export function AlbumDetailHero({ album }: AlbumDetailHeroProps) {
 				</div>
 
 				<div className="flex flex-wrap gap-2">
-					<Button>
+					<Button disabled={playAlbumDisabled} onClick={onPlayAlbum}>
 						<PlayIcon aria-hidden="true" />
 						Play Album
 					</Button>

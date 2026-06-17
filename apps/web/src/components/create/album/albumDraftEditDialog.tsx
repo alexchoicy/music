@@ -56,8 +56,8 @@ import type {
 } from "#/store/albumUploadStoreType";
 
 import { ReleaseDateField } from "../../ReleaseDateField";
+import { UnsolvedCreditsAlert } from "../../UnsolvedCreditsAlert";
 import { CoverImageField } from "../CoverImageField";
-import { UnsolvedCreditsAlert } from "../UnsolvedCreditsAlert";
 
 type AlbumDraftEditDialogProps = {
 	albumId: AlbumLocalId;

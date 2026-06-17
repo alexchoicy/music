@@ -36,25 +36,21 @@ export const MEDIA_SOURCE_OPTIONS = enumOptions(MEDIA_SOURCE);
 
 const KEEP_AUDIO_SOURCE_OPTION_VALUE = "__keep__";
 
-export type ReplaceAudioSourceOption = {
+type ReplaceAudioSourceOption = {
 	id: MediaSource | null;
 	label: string;
 	value: string;
 };
 
-function makeReplaceAudioSourceOptions(): ReplaceAudioSourceOption[] {
-	return [
-		{
-			id: null,
-			label: "Keep current audio sources",
-			value: KEEP_AUDIO_SOURCE_OPTION_VALUE,
-		},
-		...MEDIA_SOURCE_OPTIONS.map((option) => ({
-			id: option.value,
-			label: option.label,
-			value: option.value,
-		})),
-	];
-}
-
-export const replaceAudioSourceOptions = makeReplaceAudioSourceOptions();
+export const replaceAudioSourceOptions: ReplaceAudioSourceOption[] = [
+	{
+		id: null,
+		label: "Keep current audio sources",
+		value: KEEP_AUDIO_SOURCE_OPTION_VALUE,
+	},
+	...MEDIA_SOURCE_OPTIONS.map((option) => ({
+		id: option.value,
+		label: option.label,
+		value: option.value,
+	})),
+];

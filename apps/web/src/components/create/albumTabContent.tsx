@@ -80,7 +80,9 @@ export function AlbumTabContent() {
 		}
 	}
 
-	const uploadJobs = uploadRun.jobOrder.map((jobId) => uploadRun.jobsById[jobId]);
+	const uploadJobs = uploadRun.jobOrder.map(
+		(jobId) => uploadRun.jobsById[jobId],
+	);
 
 	return (
 		<section className="flex flex-col gap-4">
@@ -139,7 +141,7 @@ export function AlbumTabContent() {
 								Multipart upload progress by completed parts.
 							</p>
 						</div>
-						<span className="text-xs capitalize text-muted-foreground">
+						<span className="text-xs text-muted-foreground capitalize">
 							{submitStatus}
 						</span>
 					</div>

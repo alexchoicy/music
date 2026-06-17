@@ -24,6 +24,18 @@ public class FileController(IFileUrlService fileUrlService) : ControllerBase
         return Ok(url);
     }
 
+    [HttpGet("{id:guid}/play")]
+    [Authorize]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    public async Task<IActionResult> PlayTrack(
+        [FromRoute] [Required] Guid id,
+        CancellationToken cancellationToken
+    )
+    {
+        string url = await fileUrlService.GetFilePlayUrlAsync(id, cancellationToken);
+        return Redirect(url);
+    }
+
     [HttpGet("{id:guid}/manifest.mpd")]
     [Authorize]
     [Produces("application/dash+xml")]

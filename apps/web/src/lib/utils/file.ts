@@ -65,5 +65,10 @@ export function getExtensionFromMimeType(mimeType: string) {
 
 export function getExtensionFromFileName(fileName: string) {
 	const index = fileName.lastIndexOf(".");
-	return index >= 0 ? fileName.slice(index + 1).trim().toLowerCase() : "";
+	return index >= 0
+		? fileName
+				.slice(index + 1)
+				.trim()
+				.toLowerCase()
+		: "";
 }

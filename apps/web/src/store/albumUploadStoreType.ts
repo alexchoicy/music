@@ -23,7 +23,11 @@ export type AlbumUploadStatus =
 	| "completed"
 	| "failed";
 export type AlbumMatchingKey = string;
-export type AlbumUploadJobStatus = "queued" | "uploading" | "completed" | "failed";
+export type AlbumUploadJobStatus =
+	| "queued"
+	| "uploading"
+	| "completed"
+	| "failed";
 
 export type AlbumTrackUploadJob = {
 	id: string;
