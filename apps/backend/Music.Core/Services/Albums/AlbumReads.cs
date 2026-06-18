@@ -126,6 +126,8 @@ public sealed class TrackAudioDetails
 {
     public required int Rank { get; init; }
     public required bool Pinned { get; init; }
+    public required MediaSource Source { get; init; }
+    public string? SourceUrl { get; init; }
     public required TrackAudioFileVariants File { get; init; }
 }
 

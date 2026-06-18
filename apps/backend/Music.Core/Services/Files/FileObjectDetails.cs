@@ -22,6 +22,7 @@ public sealed class FileObjectDetails
 
     public int? AudioSampleRate { get; init; }
     public int? Bitrate { get; init; }
+    public int? BitsPerSample { get; init; }
     public decimal? FrameRate { get; init; }
     public int? DurationInMs { get; init; }
 

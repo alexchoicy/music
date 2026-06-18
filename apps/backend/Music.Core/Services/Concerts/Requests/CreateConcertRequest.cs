@@ -37,6 +37,8 @@ public sealed class ConcertFileRequest
     public required string Title { get; init; }
     public required ConcertFileType Type { get; init; }
     public int Order { get; init; } = 0;
+    public MediaSource Source { get; set; } = MediaSource.Unknown;
+    public string? SourceUrl { get; set; }
 
     public required string SimpleBlake3Hash { get; init; }
     public required string MimeType { get; init; }

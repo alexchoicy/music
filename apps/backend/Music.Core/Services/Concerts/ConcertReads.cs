@@ -49,6 +49,8 @@ public sealed class ConcertFileDetails
     public required string Title { get; init; } = string.Empty;
     public required ConcertFileType Type { get; init; }
     public required int Order { get; init; }
+    public required MediaSource Source { get; init; }
+    public string? SourceUrl { get; init; }
     public required ConcertFileVariants File { get; init; }
 }
 

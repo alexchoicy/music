@@ -45,6 +45,7 @@ internal static class FileObjectReadMapper
             Height = fileObject.Height,
             AudioSampleRate = fileObject.AudioSampleRate,
             Bitrate = fileObject.Bitrate,
+            BitsPerSample = fileObject.BitsPerSample,
             FrameRate = fileObject.FrameRate,
             DurationInMs = fileObject.DurationInMs,
             CreatedAt = fileObject.CreatedAt,

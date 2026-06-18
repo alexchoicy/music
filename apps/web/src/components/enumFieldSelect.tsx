@@ -14,6 +14,7 @@ export type EnumFieldSelectProps<Value extends string> = {
 	onValueChange: (value: Value) => void;
 	options: EnumOption<Value>[];
 	placeholder?: string;
+	size?: React.ComponentProps<typeof SelectTrigger>["size"];
 	value: Value;
 };
 
@@ -23,6 +24,7 @@ export function EnumFieldSelect<Value extends string>({
 	onValueChange,
 	options,
 	placeholder,
+	size,
 	value,
 }: EnumFieldSelectProps<Value>): React.ReactElement {
 	return (
@@ -39,7 +41,7 @@ export function EnumFieldSelect<Value extends string>({
 				}}
 				value={options.find((option) => option.value === value) ?? null}
 			>
-				<SelectTrigger>
+				<SelectTrigger size={size}>
 					<SelectValue placeholder={placeholder} />
 				</SelectTrigger>
 				<SelectPopup>

@@ -32,6 +32,8 @@ type ConcertUploadImageResult = NonNullable<
 	Awaited<ReturnType<typeof createConcert>>["concertImage"]
 >;
 
+const DEFAULT_CONCERT_FILE_SOURCE = "UserUpload";
+
 function createInitialUploadRun(): ConcertUploadRunState {
 	return {
 		jobOrder: [],
@@ -96,6 +98,8 @@ function buildConcertRequest(state: ConcertUploadState): CreateConcertRequest {
 			title: file.title.trim() || getTitleFromFileName(file.fileName),
 			type: file.type,
 			order: index + 1,
+			source: file.source,
+			sourceUrl: file.sourceUrl.trim() || null,
 			simpleBlake3Hash: file.simpleBlake3Hash,
 			mimeType: file.mimeType,
 			sizeInBytes: file.sizeInBytes,
@@ -150,6 +154,8 @@ async function makeConcertFileDraft(file: File): Promise<ConcertFileDraft> {
 		fileName: file.name,
 		id: crypto.randomUUID(),
 		mimeType: getMimeType(file),
+		source: DEFAULT_CONCERT_FILE_SOURCE,
+		sourceUrl: "",
 		simpleBlake3Hash: blake3Hash,
 		sizeInBytes: file.size,
 		title: getTitleFromFileName(file.name),

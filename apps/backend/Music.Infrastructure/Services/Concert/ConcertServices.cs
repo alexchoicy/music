@@ -137,7 +137,9 @@ public class ConcertService(
                         path,
                         StorageArea.Content,
                         FileObjectVariant.Original,
-                        userId
+                        userId,
+                        file.Source,
+                        file.SourceUrl
                     );
 
                 dbContext.StoredFiles.Add(storedFile);

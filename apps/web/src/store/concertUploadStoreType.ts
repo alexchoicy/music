@@ -5,6 +5,7 @@ import type { CroppedArea } from "./albumUploadStoreType";
 export type CreateConcertRequest =
 	components["schemas"]["CreateConcertRequest"];
 export type ConcertFileType = components["schemas"]["ConcertFileType"];
+export type ConcertMediaSource = components["schemas"]["MediaSource"];
 export type ConcertUploadStatus =
 	| "idle"
 	| "creating"
@@ -33,13 +34,15 @@ export type ConcertFileDraft = {
 	fileName: string;
 	title: string;
 	type: ConcertFileType;
+	source: ConcertMediaSource;
+	sourceUrl: string;
 	simpleBlake3Hash: string;
 	mimeType: string;
 	sizeInBytes: number;
 };
 
 export type UpdateConcertFileDraftInput = Partial<
-	Pick<ConcertFileDraft, "title" | "type">
+	Pick<ConcertFileDraft, "source" | "sourceUrl" | "title" | "type">
 >;
 
 export type ConcertFileUploadResult =

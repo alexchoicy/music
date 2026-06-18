@@ -52,6 +52,8 @@ internal static class ConcertReadMapper
                     Title = concertFile.Title,
                     Type = concertFile.Type,
                     Order = concertFile.Order,
+                    Source = concertFile.File!.Source,
+                    SourceUrl = concertFile.File.SourceUrl,
                     File = concertFile.File.ToConcertFileVariants(contentService, assetsService),
                 })
                 .ToList(),

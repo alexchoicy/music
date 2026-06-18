@@ -107,6 +107,8 @@ public class AlbumService(
                             {
                                 Rank = a.Rank,
                                 Pinned = a.Pinned,
+                                Source = a.File!.Source,
+                                SourceUrl = a.File.SourceUrl,
                                 File = BuildTrackSourceFiles(a.File),
                             })
                             .ToList();

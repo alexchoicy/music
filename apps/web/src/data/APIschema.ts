@@ -1129,12 +1129,16 @@ export interface components {
             /** Format: int32 */
             order: number | string;
             file: components["schemas"]["ConcertFileVariants"];
+            source: components["schemas"]["MediaSource"];
+            sourceUrl?: null | string;
         };
         ConcertFileRequest: {
             title: string;
             type: components["schemas"]["ConcertFileType"];
             /** Format: int32 */
             order?: number | string;
+            source?: components["schemas"]["MediaSource"];
+            sourceUrl?: null | string;
             simpleBlake3Hash: string;
             mimeType: string;
             /** Format: int64 */
@@ -1332,6 +1336,8 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            /** Format: int32 */
+            bitsPerSample?: null | number | string;
         };
         /** @enum {unknown} */
         FileObjectVariant: "Original" | "TaggedOriginal" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup" | "ImageCover1024x1024" | "ImageAvatar512x512" | "ImageBanner1500x500";
@@ -1454,6 +1460,8 @@ export interface components {
             rank: number | string;
             pinned: boolean;
             file: components["schemas"]["TrackAudioFileVariants"];
+            source: components["schemas"]["MediaSource"];
+            sourceUrl?: null | string;
         };
         TrackAudioFileVariants: {
             original: components["schemas"]["FileObjectDetails"];

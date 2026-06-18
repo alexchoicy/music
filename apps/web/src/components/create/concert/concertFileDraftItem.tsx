@@ -11,6 +11,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/coss/select";
+import { EnumFieldSelect } from "#/components/enumFieldSelect";
+import { MEDIA_SOURCE_OPTIONS } from "#/enums/albumEnums";
 import { CONCERT_FILE_TYPE_OPTIONS } from "#/enums/concertEnums";
 import { cn } from "#/lib/utils/styles";
 
@@ -61,6 +63,7 @@ export function ConcertFileDraftItem({
 	onUpdate,
 }: ConcertFileDraftItemProps) {
 	const titleId = useId();
+	const sourceUrlId = useId();
 	const { handleRef, isDragging, ref } = useSortable({
 		group: "concert-files",
 		id: file.id,
@@ -70,14 +73,14 @@ export function ConcertFileDraftItem({
 	return (
 		<div
 			className={cn(
-				"grid grid-cols-[2rem_minmax(0,1fr)_2rem] gap-3 p-3 transition-opacity md:grid-cols-[2rem_minmax(0,1fr)_12rem_2rem] md:grid-rows-[auto_auto] md:items-center md:px-4 md:py-3",
+				"grid grid-cols-[2rem_minmax(0,1fr)_2rem] gap-3 p-3 transition-opacity md:grid-cols-[2rem_minmax(0,1fr)_12rem_2rem] md:items-center md:px-4 md:py-3",
 				isDragging && "opacity-50",
 			)}
 			ref={ref}
 		>
 			<Button
 				aria-label={`Drag ${file.fileName}`}
-				className="col-start-1 row-start-1 self-center md:row-span-2 md:row-start-1"
+				className="col-start-1 row-start-1 self-center md:row-span-3 md:row-start-1"
 				ref={handleRef}
 				size="icon-sm"
 				variant="ghost"
@@ -93,6 +96,7 @@ export function ConcertFileDraftItem({
 					onUpdate(file.id, { title: event.target.value });
 				}}
 				size="sm"
+				type="text"
 				value={file.title}
 			/>
 
@@ -107,9 +111,41 @@ export function ConcertFileDraftItem({
 				{file.fileName}
 			</p>
 
+			<div className="col-span-2 col-start-2 row-start-4 grid gap-3 sm:grid-cols-[12rem_minmax(0,1fr)] md:row-start-3">
+				<EnumFieldSelect
+					label="Source"
+					name={`concertFileSource-${file.id}`}
+					onValueChange={(source) => onUpdate(file.id, { source })}
+					options={MEDIA_SOURCE_OPTIONS}
+					placeholder="Select source"
+					size="sm"
+					value={file.source}
+				/>
+
+				<div className="grid gap-1.5">
+					<label
+						className="text-xs font-medium text-muted-foreground"
+						htmlFor={sourceUrlId}
+					>
+						Source URL
+					</label>
+					<Input
+						autoComplete="off"
+						id={sourceUrlId}
+						onChange={(event) =>
+							onUpdate(file.id, { sourceUrl: event.target.value })
+						}
+						placeholder="Optional"
+						size="sm"
+						type="url"
+						value={file.sourceUrl}
+					/>
+				</div>
+			</div>
+
 			<Button
 				aria-label={`Remove ${file.fileName}`}
-				className="col-start-3 row-start-1 self-center justify-self-end md:col-start-4 md:row-span-2 md:row-start-1"
+				className="col-start-3 row-start-1 self-center justify-self-end md:col-start-4 md:row-span-3 md:row-start-1"
 				onClick={() => onRemove(file.id)}
 				size="icon-sm"
 				variant="ghost"
