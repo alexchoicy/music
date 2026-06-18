@@ -57,11 +57,11 @@ public sealed class BackgroundWorker(
                     .GetRequiredService<PartyInfoEnrichmentWorkerProcessor>()
                     .ProcessAsync(job, cancellationToken);
                 break;
-            // case ConcertUploadProcessWorker job:
-            //     await serviceProvider
-            //         .GetRequiredService<ConcertUploadWorkerProcessor>()
-            //         .ProcessAsync(job, cancellationToken);
-            //     break;
+            case ConcertUploadProcessWorker job:
+                await serviceProvider
+                    .GetRequiredService<ConcertUploadWorkerProcessor>()
+                    .ProcessAsync(job, cancellationToken);
+                break;
             default:
                 logger.LogWarning("Unknown worker type {WorkerType}", workerModel.GetType().Name);
                 break;

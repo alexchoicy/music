@@ -14,6 +14,7 @@ using Music.Core.Services.Albums.Requests;
 using Music.Core.Services.Albums.Results;
 using Music.Core.Services.Auth;
 using Music.Core.Services.Auth.Enums;
+using Music.Core.Services.Concerts;
 using Music.Core.Services.Files;
 using Music.Core.Services.Languages;
 using Music.Core.Services.Parties;
@@ -26,6 +27,7 @@ using Music.Infrastructure.Data;
 using Music.Infrastructure.Entities;
 using Music.Infrastructure.Services.Album;
 using Music.Infrastructure.Services.Auth;
+using Music.Infrastructure.Services.Concert;
 using Music.Infrastructure.Services.External;
 using Music.Infrastructure.Services.Files;
 using Music.Infrastructure.Services.Language;
@@ -74,13 +76,14 @@ public static class DependencyInjection
         services.AddScoped<IUploadService, UploadService>();
         services.AddScoped<IMeService, MeService>();
         services.AddScoped<IPartyService, PartyService>();
-        // services.AddScoped<IConcertService, ConcertService>();
+        services.AddScoped<IConcertService, ConcertService>();
         services.AddScoped<IFileUrlService, FileUrlService>();
         // services.AddScoped<IMigrationService, MigrationService>();
 
         services.AddScoped<ImageUploadWorkerProcessor>();
         services.AddScoped<TrackUploadWorkerProcessor>();
         services.AddScoped<PartyInfoEnrichmentWorkerProcessor>();
+        services.AddScoped<ConcertUploadWorkerProcessor>();
 
         services.AddScoped<PartyAvatarService>();
         services.AddScoped<TwitterService>();

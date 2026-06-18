@@ -2,7 +2,9 @@ using System.Buffers.Binary;
 using System.Globalization;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Music.Core.Common.Utils;
 using Music.Core.Media;
+using Music.Core.Media.FFmpeg;
 
 namespace Music.Infrastructure.Services.Media;
 
@@ -245,5 +247,36 @@ public static class FFmpegHelper
             7 or 8 => 384,
             _ => Math.Min(channels * 64, 510),
         };
+    }
+
+    public static bool IsInterlaced(string? fieldOrder)
+    {
+        if (string.IsNullOrWhiteSpace(fieldOrder))
+        {
+            return false;
+        }
+
+        return !fieldOrder.Equals("progressive", StringComparison.OrdinalIgnoreCase)
+            && !fieldOrder.Equals("unknown", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private const double DashSegmentDurationSeconds = 4.0;
+
+    public static void GetDashTiming(
+        ProbeStream videoStream,
+        out int gopSize,
+        out double segmentDurationSeconds
+    )
+    {
+        double fps =
+            MediaFiles.ParseFrameRate(videoStream.AvgFrameRate)
+            ?? MediaFiles.ParseFrameRate(videoStream.RFrameRate)
+            ?? 30.0;
+
+        gopSize = Math.Max(
+            24,
+            (int)Math.Round(fps * DashSegmentDurationSeconds, MidpointRounding.AwayFromZero)
+        );
+        segmentDurationSeconds = gopSize / fps;
     }
 }

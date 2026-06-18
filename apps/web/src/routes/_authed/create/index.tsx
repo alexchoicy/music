@@ -10,12 +10,14 @@ import {
 import { AlbumTabContent } from "#/components/create/albumTabContent";
 import { ConcertTabContent } from "#/components/create/concertTabContent";
 import { PartyTabContent } from "#/components/create/partyTabContent";
+import { albumQueries } from "#/lib/queries/album.queries";
 import { languageQueries } from "#/lib/queries/language.queries";
 import { partyQueries } from "#/lib/queries/party.queries";
 
 export const Route = createFileRoute("/_authed/create/")({
 	component: RouteComponent,
 	loader: ({ context }) => {
+		context.queryClient.prefetchQuery(albumQueries.getAlbums());
 		context.queryClient.prefetchQuery(languageQueries.getLanguages());
 		context.queryClient.prefetchQuery(partyQueries.getParties());
 	},
