@@ -176,7 +176,13 @@ public class FFmpegService(ILogger<FFmpegService> logger) : IFFmpegService
         {
             videoFilters.Add("bwdif=mode=send_frame:parity=auto:deint=all");
         }
-        videoFilters.Add("format=yuv420p");
+
+        bool isHdrVideo = FFmpegHelper.IsHdrVideo(videoStream);
+        videoFilters.Add(
+            isHdrVideo
+                ? "zscale=t=linear:npl=100,format=gbrpf32le,tonemap=tonemap=hable:desat=0,zscale=p=bt709:t=bt709:m=bt709:r=tv,format=yuv420p"
+                : "format=yuv420p"
+        );
 
         args.AddRange([
             "-vf",
@@ -200,6 +206,20 @@ public class FFmpegService(ILogger<FFmpegService> logger) : IFFmpegService
             "-forced-idr",
             "1",
         ]);
+
+        if (isHdrVideo)
+        {
+            args.AddRange([
+                "-color_primaries",
+                "bt709",
+                "-color_trc",
+                "bt709",
+                "-colorspace",
+                "bt709",
+                "-color_range",
+                "tv",
+            ]);
+        }
 
         if (audioStreams.Count > 0)
         {
@@ -322,6 +342,50 @@ public class FFmpegService(ILogger<FFmpegService> logger) : IFFmpegService
             "ffmpeg AV1 DASH conversion",
             cancellationToken,
             workingDirectory: outputDirectory
+        );
+    }
+
+    public async Task<bool> RemuxVideoForWebAsync(
+        string inputPath,
+        string outputPath,
+        CancellationToken cancellationToken = default
+    )
+    {
+        List<string> args =
+        [
+            "-v",
+            "error",
+            "-y",
+            "-i",
+            inputPath,
+            "-map",
+            "0:V:0",
+            "-map",
+            "0:a:0?",
+            "-c",
+            "copy",
+        ];
+
+        string extension = Path.GetExtension(outputPath);
+        if (string.Equals(extension, ".mp4", StringComparison.OrdinalIgnoreCase))
+        {
+            args.AddRange(["-movflags", "+faststart"]);
+        }
+        else if (string.Equals(extension, ".webm", StringComparison.OrdinalIgnoreCase))
+        {
+            args.AddRange(["-cues_to_front", "1"]);
+        }
+
+        args.Add(outputPath);
+
+        return await ExternalRunner.RunAsync(
+            logger,
+            "ffmpeg",
+            args,
+            inputPath,
+            outputPath,
+            "ffmpeg web video remux",
+            cancellationToken
         );
     }
 

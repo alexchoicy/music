@@ -70,12 +70,39 @@ public sealed class ProbeStream
 
     [JsonPropertyName("channel_layout")]
     public string? ChannelLayout { get; init; }
+
+    [JsonPropertyName("pix_fmt")]
+    public string? PixelFormat { get; init; }
+
+    [JsonPropertyName("color_range")]
+    public string? ColorRange { get; init; }
+
+    [JsonPropertyName("color_space")]
+    public string? ColorSpace { get; init; }
+
+    [JsonPropertyName("color_transfer")]
+    public string? ColorTransfer { get; init; }
+
+    [JsonPropertyName("color_primaries")]
+    public string? ColorPrimaries { get; init; }
+
+    [JsonPropertyName("side_data_list")]
+    public IReadOnlyList<ProbeSideData>? SideDataList { get; init; }
+}
+
+public sealed class ProbeSideData
+{
+    [JsonPropertyName("side_data_type")]
+    public string? SideDataType { get; init; }
 }
 
 public sealed class ProbeFormat
 {
     [JsonPropertyName("filename")]
     public string? FileName { get; init; }
+
+    [JsonPropertyName("format_name")]
+    public string? FormatName { get; init; }
 
     [JsonPropertyName("bit_rate")]
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]

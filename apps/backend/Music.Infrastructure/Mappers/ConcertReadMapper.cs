@@ -19,6 +19,7 @@ internal static class ConcertReadMapper
             Parties = concert.ConcertParties.ToConcertPartySummaries(),
             AlbumCount = concert.ConcertAlbums.Count,
             FileCount = concert.ConcertFiles.Count,
+            TotalDurationInMs = concert.ConcertFiles.TotalDurationInMs(),
             CreatedAt = concert.CreatedAt,
             UpdatedAt = concert.UpdatedAt,
         };
@@ -57,6 +58,7 @@ internal static class ConcertReadMapper
                     File = concertFile.File.ToConcertFileVariants(contentService, assetsService),
                 })
                 .ToList(),
+            TotalDurationInMs = concert.ConcertFiles.TotalDurationInMs(),
             CreatedAt = concert.CreatedAt,
             UpdatedAt = concert.UpdatedAt,
         };
@@ -99,6 +101,17 @@ internal static class ConcertReadMapper
             .ToList();
     }
 
+    private static int TotalDurationInMs(this IEnumerable<ConcertFile> concertFiles)
+    {
+        return concertFiles.Sum(concertFile =>
+            concertFile
+                .File?.FileObjects.FirstOrDefault(fileObject =>
+                    fileObject.FileObjectVariant == FileObjectVariant.Original
+                )
+                ?.DurationInMs ?? 0
+        );
+    }
+
     public static ConcertFileVariants ToConcertFileVariants(
         this StoredFile? storedFile,
         IContentService contentService,
@@ -120,6 +133,18 @@ internal static class ConcertReadMapper
         return new ConcertFileVariants
         {
             Original = original.ToContentDetails(contentService),
+            OriginalDash = storedFile
+                .FileObjects.Where(fileObject =>
+                    fileObject.FileObjectVariant == FileObjectVariant.OriginalDash
+                )
+                .Select(fileObject => fileObject.ToContentDetails(contentService))
+                .FirstOrDefault(),
+            RemuxedOriginal = storedFile
+                .FileObjects.Where(fileObject =>
+                    fileObject.FileObjectVariant == FileObjectVariant.RemuxedOriginal
+                )
+                .Select(fileObject => fileObject.ToContentDetails(contentService))
+                .FirstOrDefault(),
             DashAV1 = storedFile
                 .FileObjects.Where(fileObject =>
                     fileObject.FileObjectVariant == FileObjectVariant.DashAV1

@@ -20,6 +20,7 @@ public enum FileObjectVariant
     AttachedPicture = 203,
     SubtitleVtt = 204,
     SubtitleSup = 205,
+    RemuxedOriginal = 206,
 
     // Images
     ImageCover1024x1024 = 301,

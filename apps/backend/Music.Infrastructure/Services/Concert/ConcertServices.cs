@@ -262,6 +262,8 @@ public class ConcertService(
                 .ThenInclude(concertParty => concertParty.Party)
             .Include(concert => concert.ConcertAlbums)
             .Include(concert => concert.ConcertFiles)
+                .ThenInclude(concertFile => concertFile.File)
+                    .ThenInclude(file => file!.FileObjects)
             .OrderByDescending(concert => concert.CreatedAt)
             .ToListAsync(cancellationToken);
 

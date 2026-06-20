@@ -27,6 +27,12 @@ public interface IFFmpegService
         CancellationToken cancellationToken = default
     );
 
+    Task<bool> RemuxVideoForWebAsync(
+        string inputPath,
+        string outputPath,
+        CancellationToken cancellationToken = default
+    );
+
     Task<bool> ExtractTextSubtitleToVttAsync(
         string inputPath,
         int streamIndex,

@@ -27,6 +27,15 @@ public class ConcertUploadWorkerProcessor(
     ILogger<ConcertUploadWorkerProcessor> logger
 )
 {
+    private const int MaxRawVideoBitrate = 30_000_000;
+
+    private enum VideoProcessingPlan
+    {
+        UseOriginal,
+        RemuxOriginal,
+        ConvertToDashAv1,
+    }
+
     public async Task ProcessAsync(
         ConcertUploadProcessWorker job,
         CancellationToken cancellationToken
@@ -87,64 +96,37 @@ public class ConcertUploadWorkerProcessor(
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            bool success = await ffmpegService.ConvertVideoToAv1DashAsync(
-                sourcePath,
-                outputDirectory,
-                probeResult,
-                cancellationToken
+            VideoProcessingPlan processingPlan = GetVideoProcessingPlan(
+                sourceFileObject,
+                videoStream,
+                audioStreams,
+                probeResult
             );
 
-            if (!success)
+            if (processingPlan == VideoProcessingPlan.ConvertToDashAv1)
             {
-                throw new InvalidOperationException(
-                    $"FFmpeg failed to convert file object ID {sourceFileObject.Id} to DASH."
-                );
-            }
-
-            string manifestPath = Path.Combine(outputDirectory, "manifest.mpd");
-            if (!File.Exists(manifestPath))
-            {
-                throw new FileNotFoundException("DASH manifest was not generated.", manifestPath);
-            }
-
-            DashManifestHelper.InjectAudioLabelsIntoDashManifest(manifestPath, probeResult);
-
-            string derivedVideoRoot = MediaFolderOptions
-                .DerivedVideo.GetFolder(storage.MediaFolders)
-                .TrimEnd('/');
-
-            try
-            {
-                FileObject derivedFileObject = await CreateDerivedDashFileObjectAsync(
-                    sourceFileObject,
+                await CreateDashAv1VariantAsync(
+                    sourcePath,
+                    outputDirectory,
                     derivedFileId,
-                    outputDirectory,
-                    manifestPath,
-                    derivedVideoRoot,
+                    sourceFileObject,
+                    probeResult,
                     videoStream,
+                    storage,
                     cancellationToken
                 );
-
-                dbContext.FileObjects.Add(derivedFileObject);
-
-                await WorkerFileOperations.UploadDirectoryAsync(
-                    contentService,
-                    outputDirectory,
-                    derivedFileObject.StoragePath,
-                    logger,
-                    cancellationToken
-                );
-                await dbContext.SaveChangesAsync(cancellationToken);
             }
-            catch (Exception ex)
+            else if (processingPlan == VideoProcessingPlan.RemuxOriginal)
             {
-                logger.LogError(
-                    ex,
-                    "Failed to persist DASH variant for video file object {FileObjectId}",
-                    sourceFileObject.Id
+                await CreateRemuxedOriginalVariantAsync(
+                    sourcePath,
+                    outputDirectory,
+                    sourceFileObject,
+                    videoStream,
+                    audioStreams.FirstOrDefault(),
+                    cancellationToken
                 );
             }
-
             string subtitlesDirectory = Path.Combine(outputDirectory, "subtitles");
             string artworkDirectory = Path.Combine(outputDirectory, "artwork");
 
@@ -174,6 +156,286 @@ public class ConcertUploadWorkerProcessor(
             WorkerFileOperations.TryDeleteTempFile(sourcePath, logger);
             WorkerFileOperations.TryDeleteTempDirectory(outputDirectory, logger);
         }
+    }
+
+    private async Task CreateDashAv1VariantAsync(
+        string sourcePath,
+        string outputDirectory,
+        Guid derivedFileId,
+        FileObject sourceFileObject,
+        MediaProbeResult probeResult,
+        ProbeStream videoStream,
+        StorageOptions storage,
+        CancellationToken cancellationToken
+    )
+    {
+        bool success = await ffmpegService.ConvertVideoToAv1DashAsync(
+            sourcePath,
+            outputDirectory,
+            probeResult,
+            cancellationToken
+        );
+
+        if (!success)
+        {
+            throw new InvalidOperationException(
+                $"FFmpeg failed to convert file object ID {sourceFileObject.Id} to DASH."
+            );
+        }
+
+        string manifestPath = Path.Combine(outputDirectory, "manifest.mpd");
+        if (!File.Exists(manifestPath))
+        {
+            throw new FileNotFoundException("DASH manifest was not generated.", manifestPath);
+        }
+
+        DashManifestHelper.InjectAudioLabelsIntoDashManifest(manifestPath, probeResult);
+
+        string derivedVideoRoot = MediaFolderOptions
+            .DerivedVideo.GetFolder(storage.MediaFolders)
+            .TrimEnd('/');
+
+        try
+        {
+            FileObject derivedFileObject = await CreateDerivedDashFileObjectAsync(
+                sourceFileObject,
+                derivedFileId,
+                outputDirectory,
+                manifestPath,
+                derivedVideoRoot,
+                videoStream,
+                cancellationToken
+            );
+
+            dbContext.FileObjects.Add(derivedFileObject);
+
+            await WorkerFileOperations.UploadDirectoryAsync(
+                contentService,
+                outputDirectory,
+                derivedFileObject.StoragePath,
+                logger,
+                cancellationToken
+            );
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "Failed to persist DASH variant for video file object {FileObjectId}",
+                sourceFileObject.Id
+            );
+        }
+    }
+
+    private async Task CreateRemuxedOriginalVariantAsync(
+        string sourcePath,
+        string outputDirectory,
+        FileObject sourceFileObject,
+        ProbeStream videoStream,
+        ProbeStream? audioStream,
+        CancellationToken cancellationToken
+    )
+    {
+        (string extension, string mimeType) = GetRemuxOutputFormat(videoStream, audioStream);
+        string remuxPath = Path.Combine(outputDirectory, $"remuxed.{extension}");
+        bool success = await ffmpegService.RemuxVideoForWebAsync(
+            sourcePath,
+            remuxPath,
+            cancellationToken
+        );
+
+        if (!success || !File.Exists(remuxPath))
+        {
+            throw new InvalidOperationException(
+                $"FFmpeg failed to remux file object ID {sourceFileObject.Id}."
+            );
+        }
+
+        await EnsureRemuxHasAudioAsync(
+            remuxPath,
+            sourceFileObject.Id,
+            audioStream,
+            cancellationToken
+        );
+
+        string hash = await hashService.ComputeBlake3HashAsync(remuxPath, cancellationToken);
+        string storagePath = contentService.GetStoragePath(
+            MediaFolderOptions.DerivedVideo,
+            hash,
+            mimeType,
+            Path.GetFileName(remuxPath)
+        );
+
+        await contentService.UploadFileFromTempAsync(
+            storagePath,
+            remuxPath,
+            mimeType,
+            cancellationToken
+        );
+
+        FileObject remuxedFileObject = new()
+        {
+            FileId = sourceFileObject.FileId,
+            FileObjectVariant = FileObjectVariant.RemuxedOriginal,
+            StorageArea = StorageArea.Content,
+            StoragePath = storagePath,
+            ObjectBlake3Hash = hash,
+            SizeInBytes = new FileInfo(remuxPath).Length,
+            MimeType = mimeType,
+            Container = extension,
+            Extension = extension,
+            Codec = sourceFileObject.Codec,
+            Lossless = false,
+            Width = sourceFileObject.Width,
+            Height = sourceFileObject.Height,
+            FrameRate = sourceFileObject.FrameRate,
+            DurationInMs = sourceFileObject.DurationInMs,
+            ProcessingStatus = FileProcessingStatus.Completed,
+        };
+
+        dbContext.FileObjects.Add(remuxedFileObject);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task EnsureRemuxHasAudioAsync(
+        string remuxPath,
+        Guid sourceFileObjectId,
+        ProbeStream? expectedAudioStream,
+        CancellationToken cancellationToken
+    )
+    {
+        if (expectedAudioStream is null)
+        {
+            return;
+        }
+
+        MediaProbeResult remuxProbe =
+            await ffprobeService.ProbeAsync(remuxPath, cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"Unable to probe remuxed file for file object ID {sourceFileObjectId}."
+            );
+
+        if (FFprobeHelper.GetAudioStreams(remuxProbe).Count == 0)
+        {
+            throw new InvalidOperationException(
+                $"Remuxed file object ID {sourceFileObjectId} did not preserve audio."
+            );
+        }
+    }
+
+    private static VideoProcessingPlan GetVideoProcessingPlan(
+        FileObject sourceFileObject,
+        ProbeStream videoStream,
+        IReadOnlyList<ProbeStream> audioStreams,
+        MediaProbeResult probeResult
+    )
+    {
+        ProbeStream? audioStream = audioStreams.FirstOrDefault();
+
+        if (
+            audioStreams.Count > 1
+            || FFmpegHelper.IsInterlaced(videoStream.FieldOrder)
+            || FFmpegHelper.IsHdrVideo(videoStream)
+            || IsHighBitrateVideo(videoStream, probeResult)
+            || !IsBrowserSafeCodecPair(videoStream, audioStream)
+        )
+        {
+            return VideoProcessingPlan.ConvertToDashAv1;
+        }
+
+        if (IsBrowserSafeContainer(sourceFileObject, videoStream, audioStream))
+        {
+            return VideoProcessingPlan.UseOriginal;
+        }
+
+        return IsRemuxableContainer(sourceFileObject.Extension)
+            ? VideoProcessingPlan.RemuxOriginal
+            : VideoProcessingPlan.ConvertToDashAv1;
+    }
+
+    private static bool IsHighBitrateVideo(ProbeStream videoStream, MediaProbeResult probeResult)
+    {
+        return MediaFiles.GetBestAvailableBitrate(videoStream, probeResult.Format)
+            > MaxRawVideoBitrate;
+    }
+
+    private static bool IsBrowserSafeCodecPair(ProbeStream videoStream, ProbeStream? audioStream)
+    {
+        return IsWebmCodecPair(videoStream, audioStream)
+            || IsMp4CodecPair(videoStream, audioStream);
+    }
+
+    private static bool IsBrowserSafeContainer(
+        FileObject sourceFileObject,
+        ProbeStream videoStream,
+        ProbeStream? audioStream
+    )
+    {
+        string extension = sourceFileObject.Extension.TrimStart('.');
+
+        return (IsWebmContainer(extension) && IsWebmCodecPair(videoStream, audioStream))
+            || (IsMp4Container(extension) && IsMp4CodecPair(videoStream, audioStream));
+    }
+
+    private static bool IsWebmCodecPair(ProbeStream videoStream, ProbeStream? audioStream)
+    {
+        return IsCodec(videoStream, "vp8", "vp9", "av1")
+            && (audioStream is null || IsCodec(audioStream, "opus", "vorbis"));
+    }
+
+    private static bool IsMp4CodecPair(ProbeStream videoStream, ProbeStream? audioStream)
+    {
+        if (IsCodec(videoStream, "h264"))
+        {
+            return audioStream is null || IsCodec(audioStream, "aac", "opus", "flac");
+        }
+
+        if (IsCodec(videoStream, "vp9", "av1"))
+        {
+            return audioStream is null || IsCodec(audioStream, "aac");
+        }
+
+        return IsCodec(videoStream, "hevc", "h265")
+            && (audioStream is null || IsCodec(audioStream, "aac", "opus", "flac"));
+    }
+
+    private static (string extension, string mimeType) GetRemuxOutputFormat(
+        ProbeStream videoStream,
+        ProbeStream? audioStream
+    )
+    {
+        return IsWebmCodecPair(videoStream, audioStream)
+            ? ("webm", "video/webm")
+            : ("mp4", "video/mp4");
+    }
+
+    private static bool IsRemuxableContainer(string extension)
+    {
+        extension = extension.TrimStart('.');
+
+        return extension.Equals("mkv", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals("mks", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals("mk3d", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals("mov", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsWebmContainer(string extension)
+    {
+        return extension.Equals("webm", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsMp4Container(string extension)
+    {
+        return extension.Equals("mp4", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals("m4v", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsCodec(ProbeStream stream, params string[] codecNames)
+    {
+        return codecNames.Any(codecName =>
+            string.Equals(stream.CodecName, codecName, StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     private async Task ExtractSubtitlesAsync(

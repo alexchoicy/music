@@ -39,6 +39,7 @@ public sealed class ConcertListItem
     public required IReadOnlyList<ConcertPartySummary> Parties { get; init; } = [];
     public required int AlbumCount { get; init; }
     public required int FileCount { get; init; }
+    public required int TotalDurationInMs { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
     public required DateTimeOffset UpdatedAt { get; init; }
 }
@@ -58,6 +59,7 @@ public sealed class ConcertFileVariants
 {
     public required FileObjectDetails Original { get; init; }
     public FileObjectDetails? OriginalDash { get; init; }
+    public FileObjectDetails? RemuxedOriginal { get; init; }
     public FileObjectDetails? DashAV1 { get; init; }
     public FileObjectDetails? Thumbnail640x360 { get; init; }
     public FileObjectDetails? AttachedPicture { get; init; }
@@ -75,6 +77,7 @@ public sealed class ConcertDetails
     public required IReadOnlyList<ConcertPartySummary> LinkedParties { get; init; } = [];
     public required IReadOnlyList<AlbumListItem> LinkedAlbums { get; init; } = [];
     public required IReadOnlyList<ConcertFileDetails> Files { get; init; } = [];
+    public required int TotalDurationInMs { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
     public required DateTimeOffset UpdatedAt { get; init; }
 }

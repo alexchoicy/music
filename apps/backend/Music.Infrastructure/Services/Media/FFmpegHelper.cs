@@ -260,6 +260,27 @@ public static class FFmpegHelper
             && !fieldOrder.Equals("unknown", StringComparison.OrdinalIgnoreCase);
     }
 
+    public static bool IsHdrVideo(ProbeStream videoStream)
+    {
+        return EqualsIgnoreCase(videoStream.ColorTransfer, "smpte2084")
+            || EqualsIgnoreCase(videoStream.ColorTransfer, "arib-std-b67")
+            || EqualsIgnoreCase(videoStream.ColorPrimaries, "bt2020")
+            || videoStream.SideDataList?.Any(sideData =>
+                ContainsIgnoreCase(sideData.SideDataType, "DOVI")
+                || ContainsIgnoreCase(sideData.SideDataType, "Dolby Vision")
+            ) == true;
+    }
+
+    private static bool EqualsIgnoreCase(string? value, string expected)
+    {
+        return string.Equals(value, expected, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ContainsIgnoreCase(string? value, string expected)
+    {
+        return value?.Contains(expected, StringComparison.OrdinalIgnoreCase) == true;
+    }
+
     private const double DashSegmentDurationSeconds = 4.0;
 
     public static void GetDashTiming(
