@@ -46,7 +46,7 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 	return (
 		<div className={cn(className)} data-slot="album-card">
 			<Link
-				className="block h-full rounded-2xl text-card-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+				className="block h-full rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				params={{ id: String(album.albumId) }}
 				to="/albums/$id"
 			>
@@ -79,7 +79,7 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 							</div>
 						)}
 
-						<Badge className="absolute top-3 right-3 bg-card/85 text-card-foreground shadow-sm backdrop-blur-sm">
+						<Badge className="absolute top-3 end-3 bg-card/85 text-card-foreground shadow-sm backdrop-blur-sm">
 							{album.type}
 						</Badge>
 					</div>
@@ -96,9 +96,14 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 								</TooltipTrigger>
 								<TooltipPopup className="max-w-72">{album.title}</TooltipPopup>
 							</Tooltip>
-							<CardDescription className="truncate">
+						<Tooltip>
+							<TooltipTrigger
+								render={<CardDescription className="truncate" />}
+							>
 								{artistNames}
-							</CardDescription>
+							</TooltipTrigger>
+							<TooltipPopup className="max-w-72">{artistNames}</TooltipPopup>
+						</Tooltip>
 						</div>
 
 						<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">

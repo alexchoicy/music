@@ -25,7 +25,6 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	SidebarSeparator,
 } from "#/components/coss/sidebar";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { getInitials } from "#/lib/utils/string";
@@ -62,7 +61,7 @@ const mainNavigation = [
 	{
 		label: "Concerts",
 		icon: MicVocal,
-		to: "/",
+		to: "/concerts",
 	},
 	{
 		label: "Create",

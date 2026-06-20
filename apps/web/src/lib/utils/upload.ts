@@ -1,5 +1,5 @@
-import { parseBlob, selectCover } from "music-metadata";
 import type { IAudioMetadata } from "music-metadata";
+import type * as MusicMetadata from "music-metadata";
 import pMap from "p-map";
 
 import type { components } from "#/data/APIschema";
@@ -28,6 +28,16 @@ export type ProcessDroppedFilesResult = {
 	processedFiles: ProcessedFileData[];
 	failedFileNames: string[];
 };
+
+let musicMetadataModulePromise: Promise<typeof MusicMetadata> | null = null;
+
+async function getMusicMetadataModule() {
+	if (!musicMetadataModulePromise) {
+		musicMetadataModulePromise = import("music-metadata");
+	}
+
+	return musicMetadataModulePromise;
+}
 
 export async function createCoverAsset(
 	file: File,
@@ -82,6 +92,7 @@ export async function createCoverAsset(
 async function extractCoverAsset(
 	metadata: IAudioMetadata,
 ): Promise<CoverAsset | null> {
+	const { selectCover } = await getMusicMetadataModule();
 	const picture = selectCover(metadata.common.picture);
 	if (!picture) return null;
 
@@ -97,6 +108,7 @@ async function extractCoverAsset(
 
 async function processFile(file: File): Promise<ProcessedFileData | null> {
 	try {
+		const { parseBlob } = await getMusicMetadataModule();
 		const { blake3Hash } = await hashFileStream(file);
 		const metadata = await parseBlob(file);
 		let cover: CoverAsset | null = null;

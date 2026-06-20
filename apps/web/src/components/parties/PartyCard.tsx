@@ -8,6 +8,11 @@ import {
 	CardPanel,
 	CardTitle,
 } from "#/components/coss/card";
+import {
+	Tooltip,
+	TooltipPopup,
+	TooltipTrigger,
+} from "#/components/coss/tooltip";
 import type { components } from "#/data/APIschema";
 import { COUNTRY_CODE, PARTY_KIND, PARTY_TYPE } from "#/enums/partyEnums";
 import { getInitials } from "#/lib/utils/string";
@@ -25,7 +30,7 @@ export function PartyCard({ party }: PartyCardProps) {
 	return (
 		<div data-slot="party-card">
 			<Link
-				className="block h-full rounded-2xl text-card-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+				className="block h-full rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				params={{ id: String(party.partyId) }}
 				to="/parties/$id"
 			>
@@ -45,14 +50,24 @@ export function PartyCard({ party }: PartyCardProps) {
 							</Avatar>
 
 							<div className="flex min-w-0 flex-1 flex-col gap-2">
-								<div className="flex min-w-0 flex-col gap-1">
-									<CardTitle className="truncate text-base" render={<h2 />}>
+							<div className="flex min-w-0 flex-col gap-1">
+								<Tooltip>
+									<TooltipTrigger
+										render={
+											<CardTitle
+												className="truncate text-base"
+												render={<h2 />}
+											/>
+										}
+									>
 										{party.name}
-									</CardTitle>
-									<CardDescription>
-										{COUNTRY_CODE[party.country]}
-									</CardDescription>
-								</div>
+									</TooltipTrigger>
+									<TooltipPopup className="max-w-72">{party.name}</TooltipPopup>
+								</Tooltip>
+								<CardDescription>
+									{COUNTRY_CODE[party.country]}
+								</CardDescription>
+							</div>
 
 								<div className="flex flex-wrap gap-1.5">
 									{party.type && (

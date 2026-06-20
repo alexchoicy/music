@@ -36,17 +36,18 @@ import {
 	SheetTrigger,
 } from "#/components/coss/sheet";
 import { Slider } from "#/components/coss/slider";
+import { Toggle } from "#/components/coss/toggle";
 import { formatMsToTimer } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 import {
 	AUDIO_PLAYER_IDLE_DURATION,
 	AUDIO_PLAYER_IDLE_PEAKS,
 	useAudioPlayerStore,
-} from "#/store/audioPlayer.ts/audioPlayerStore";
+} from "#/store/audioPlayer/audioPlayerStore";
 import type {
 	AudioPlayerState,
 	AudioPlayerTrack,
-} from "#/store/audioPlayer.ts/audioPlayerType";
+} from "#/store/audioPlayer/audioPlayerType";
 
 const AUDIO_TIME_EVENTS = ["timeupdate", "loadedmetadata", "seeking", "seeked"];
 type PlaybackQuality = AudioPlayerState["playbackQuality"];
@@ -546,20 +547,15 @@ export function AudioPlayer() {
 					<div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
 						<div />
 						<div className="flex items-center justify-center gap-1">
-							<Button
+							<Toggle
 								aria-label="Shuffle"
-								className={cn(
-									shuffle
-										? "bg-primary/10 text-primary hover:bg-primary/15"
-										: "text-muted-foreground",
-								)}
+								className="size-8 text-muted-foreground data-pressed:bg-primary/10 data-pressed:text-primary data-pressed:hover:bg-primary/15 sm:size-7"
 								disabled={queueLength === 0}
-								onClick={toggleShuffle}
-								size="icon-sm"
-								variant="ghost"
+								onPressedChange={() => toggleShuffle()}
+								pressed={shuffle}
 							>
 								<ShuffleIcon aria-hidden="true" />
-							</Button>
+							</Toggle>
 							<Button
 								aria-label="Previous track"
 								disabled={!hasPrev || isLoading}

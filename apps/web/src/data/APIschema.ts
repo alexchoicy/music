@@ -1116,6 +1116,8 @@ export interface components {
             linkedParties: components["schemas"]["ConcertPartySummary"][];
             linkedAlbums: components["schemas"]["AlbumListItem"][];
             files: components["schemas"]["ConcertFileDetails"][];
+            /** Format: int32 */
+            totalDurationInMs: number | string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -1128,9 +1130,9 @@ export interface components {
             type: components["schemas"]["ConcertFileType"];
             /** Format: int32 */
             order: number | string;
-            file: components["schemas"]["ConcertFileVariants"];
             source: components["schemas"]["MediaSource"];
             sourceUrl?: null | string;
+            file: components["schemas"]["ConcertFileVariants"];
         };
         ConcertFileRequest: {
             title: string;
@@ -1150,6 +1152,7 @@ export interface components {
         ConcertFileVariants: {
             original: components["schemas"]["FileObjectDetails"];
             originalDash?: null | components["schemas"]["FileObjectDetails"];
+            remuxedOriginal?: null | components["schemas"]["FileObjectDetails"];
             dashAV1?: null | components["schemas"]["FileObjectDetails"];
             thumbnail640x360?: null | components["schemas"]["FileObjectDetails"];
             attachedPicture?: null | components["schemas"]["FileObjectDetails"];
@@ -1173,6 +1176,8 @@ export interface components {
             albumCount: number | string;
             /** Format: int32 */
             fileCount: number | string;
+            /** Format: int32 */
+            totalDurationInMs: number | string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -1328,6 +1333,8 @@ export interface components {
             audioSampleRate?: null | number | string;
             /** Format: int32 */
             bitrate?: null | number | string;
+            /** Format: int32 */
+            bitsPerSample?: null | number | string;
             /** Format: double */
             frameRate?: null | number | string;
             /** Format: int32 */
@@ -1336,11 +1343,9 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
-            /** Format: int32 */
-            bitsPerSample?: null | number | string;
         };
         /** @enum {unknown} */
-        FileObjectVariant: "Original" | "TaggedOriginal" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup" | "ImageCover1024x1024" | "ImageAvatar512x512" | "ImageBanner1500x500";
+        FileObjectVariant: "Original" | "TaggedOriginal" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup" | "RemuxedOriginal" | "ImageCover1024x1024" | "ImageAvatar512x512" | "ImageBanner1500x500";
         FileRequest: {
             blake3Hash: string;
             mimeType: string;
@@ -1459,9 +1464,9 @@ export interface components {
             /** Format: int32 */
             rank: number | string;
             pinned: boolean;
-            file: components["schemas"]["TrackAudioFileVariants"];
             source: components["schemas"]["MediaSource"];
             sourceUrl?: null | string;
+            file: components["schemas"]["TrackAudioFileVariants"];
         };
         TrackAudioFileVariants: {
             original: components["schemas"]["FileObjectDetails"];

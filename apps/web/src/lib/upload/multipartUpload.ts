@@ -94,7 +94,7 @@ export async function uploadMultipartFile(
 	options: UploadMultipartFileOptions = {},
 ): Promise<CompletedPart[]> {
 	const partSize = Number(multipartUploadInfo.partSizeInBytes);
-	const concurrency = 3;
+	const concurrency = 5;
 
 	const completedParts = await pMap(
 		multipartUploadInfo.parts,

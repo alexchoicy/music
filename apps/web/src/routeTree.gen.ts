@@ -14,8 +14,10 @@ import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as PublicLoginIndexRouteImport } from './routes/_public/login/index'
 import { Route as AuthedPartiesIndexRouteImport } from './routes/_authed/parties/index'
 import { Route as AuthedCreateIndexRouteImport } from './routes/_authed/create/index'
+import { Route as AuthedConcertsIndexRouteImport } from './routes/_authed/concerts/index'
 import { Route as AuthedAlbumsIndexRouteImport } from './routes/_authed/albums/index'
 import { Route as AuthedPartiesIdRouteImport } from './routes/_authed/parties/$id'
+import { Route as AuthedConcertsIdRouteImport } from './routes/_authed/concerts/$id'
 import { Route as AuthedAlbumsIdRouteImport } from './routes/_authed/albums/$id'
 
 const AuthedRouteRoute = AuthedRouteRouteImport.update({
@@ -42,6 +44,11 @@ const AuthedCreateIndexRoute = AuthedCreateIndexRouteImport.update({
   path: '/create/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedConcertsIndexRoute = AuthedConcertsIndexRouteImport.update({
+  id: '/concerts/',
+  path: '/concerts/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const AuthedAlbumsIndexRoute = AuthedAlbumsIndexRouteImport.update({
   id: '/albums/',
   path: '/albums/',
@@ -50,6 +57,11 @@ const AuthedAlbumsIndexRoute = AuthedAlbumsIndexRouteImport.update({
 const AuthedPartiesIdRoute = AuthedPartiesIdRouteImport.update({
   id: '/parties/$id',
   path: '/parties/$id',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedConcertsIdRoute = AuthedConcertsIdRouteImport.update({
+  id: '/concerts/$id',
+  path: '/concerts/$id',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
 const AuthedAlbumsIdRoute = AuthedAlbumsIdRouteImport.update({
@@ -61,8 +73,10 @@ const AuthedAlbumsIdRoute = AuthedAlbumsIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
   '/albums/$id': typeof AuthedAlbumsIdRoute
+  '/concerts/$id': typeof AuthedConcertsIdRoute
   '/parties/$id': typeof AuthedPartiesIdRoute
   '/albums/': typeof AuthedAlbumsIndexRoute
+  '/concerts/': typeof AuthedConcertsIndexRoute
   '/create/': typeof AuthedCreateIndexRoute
   '/parties/': typeof AuthedPartiesIndexRoute
   '/login/': typeof PublicLoginIndexRoute
@@ -70,8 +84,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof AuthedIndexRoute
   '/albums/$id': typeof AuthedAlbumsIdRoute
+  '/concerts/$id': typeof AuthedConcertsIdRoute
   '/parties/$id': typeof AuthedPartiesIdRoute
   '/albums': typeof AuthedAlbumsIndexRoute
+  '/concerts': typeof AuthedConcertsIndexRoute
   '/create': typeof AuthedCreateIndexRoute
   '/parties': typeof AuthedPartiesIndexRoute
   '/login': typeof PublicLoginIndexRoute
@@ -81,8 +97,10 @@ export interface FileRoutesById {
   '/_authed': typeof AuthedRouteRouteWithChildren
   '/_authed/': typeof AuthedIndexRoute
   '/_authed/albums/$id': typeof AuthedAlbumsIdRoute
+  '/_authed/concerts/$id': typeof AuthedConcertsIdRoute
   '/_authed/parties/$id': typeof AuthedPartiesIdRoute
   '/_authed/albums/': typeof AuthedAlbumsIndexRoute
+  '/_authed/concerts/': typeof AuthedConcertsIndexRoute
   '/_authed/create/': typeof AuthedCreateIndexRoute
   '/_authed/parties/': typeof AuthedPartiesIndexRoute
   '/_public/login/': typeof PublicLoginIndexRoute
@@ -92,8 +110,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/albums/$id'
+    | '/concerts/$id'
     | '/parties/$id'
     | '/albums/'
+    | '/concerts/'
     | '/create/'
     | '/parties/'
     | '/login/'
@@ -101,8 +121,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/albums/$id'
+    | '/concerts/$id'
     | '/parties/$id'
     | '/albums'
+    | '/concerts'
     | '/create'
     | '/parties'
     | '/login'
@@ -111,8 +133,10 @@ export interface FileRouteTypes {
     | '/_authed'
     | '/_authed/'
     | '/_authed/albums/$id'
+    | '/_authed/concerts/$id'
     | '/_authed/parties/$id'
     | '/_authed/albums/'
+    | '/_authed/concerts/'
     | '/_authed/create/'
     | '/_authed/parties/'
     | '/_public/login/'
@@ -160,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedCreateIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/concerts/': {
+      id: '/_authed/concerts/'
+      path: '/concerts'
+      fullPath: '/concerts/'
+      preLoaderRoute: typeof AuthedConcertsIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/_authed/albums/': {
       id: '/_authed/albums/'
       path: '/albums'
@@ -172,6 +203,13 @@ declare module '@tanstack/react-router' {
       path: '/parties/$id'
       fullPath: '/parties/$id'
       preLoaderRoute: typeof AuthedPartiesIdRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/concerts/$id': {
+      id: '/_authed/concerts/$id'
+      path: '/concerts/$id'
+      fullPath: '/concerts/$id'
+      preLoaderRoute: typeof AuthedConcertsIdRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
     '/_authed/albums/$id': {
@@ -187,8 +225,10 @@ declare module '@tanstack/react-router' {
 interface AuthedRouteRouteChildren {
   AuthedIndexRoute: typeof AuthedIndexRoute
   AuthedAlbumsIdRoute: typeof AuthedAlbumsIdRoute
+  AuthedConcertsIdRoute: typeof AuthedConcertsIdRoute
   AuthedPartiesIdRoute: typeof AuthedPartiesIdRoute
   AuthedAlbumsIndexRoute: typeof AuthedAlbumsIndexRoute
+  AuthedConcertsIndexRoute: typeof AuthedConcertsIndexRoute
   AuthedCreateIndexRoute: typeof AuthedCreateIndexRoute
   AuthedPartiesIndexRoute: typeof AuthedPartiesIndexRoute
 }
@@ -196,8 +236,10 @@ interface AuthedRouteRouteChildren {
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedIndexRoute: AuthedIndexRoute,
   AuthedAlbumsIdRoute: AuthedAlbumsIdRoute,
+  AuthedConcertsIdRoute: AuthedConcertsIdRoute,
   AuthedPartiesIdRoute: AuthedPartiesIdRoute,
   AuthedAlbumsIndexRoute: AuthedAlbumsIndexRoute,
+  AuthedConcertsIndexRoute: AuthedConcertsIndexRoute,
   AuthedCreateIndexRoute: AuthedCreateIndexRoute,
   AuthedPartiesIndexRoute: AuthedPartiesIndexRoute,
 }
