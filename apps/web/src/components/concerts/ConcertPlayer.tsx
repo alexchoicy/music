@@ -1,4 +1,5 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
+import type { UseHotkeyOptions } from "@tanstack/react-hotkeys";
 import {
 	Maximize2,
 	MaximizeIcon,
@@ -80,27 +81,6 @@ function getPlayback(concertFile: ConcertFile): Playback {
 	return { isDash: false, url: concertFile.file.original.url };
 }
 
-async function createDashManifestBlobUrl(url: string): Promise<string | null> {
-	try {
-		const response = await fetch(url, {
-			credentials: "include",
-		});
-
-		if (!response.ok) return null;
-
-		const manifest = await response.text();
-
-		return URL.createObjectURL(
-			new Blob([manifest], {
-				type: "application/dash+xml",
-			}),
-		);
-	} catch (error) {
-		console.log("[concert-player] manifest fetch failed", error);
-		return null;
-	}
-}
-
 function getVolumeIcon(muted: boolean, volume: number) {
 	if (muted || volume === 0) return VolumeXIcon;
 	if (volume < 0.5) return Volume1Icon;
@@ -117,7 +97,6 @@ export function ConcertPlayer({
 
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const playerRef = useRef<shaka.Player | null>(null);
-	const manifestBlobUrlRef = useRef<string | null>(null);
 	const loadRequestIdRef = useRef(0);
 	const hasFile = currentFile !== null;
 
@@ -128,13 +107,6 @@ export function ConcertPlayer({
 	const [muted, setMuted] = useState(false);
 	const [isFullscreen, setIsFullscreen] = useState(false);
 	const [audioTracks, setAudioTracks] = useState<AudioTrack[]>([]);
-
-	const revokeManifestBlobUrl = () => {
-		if (!manifestBlobUrlRef.current) return;
-
-		URL.revokeObjectURL(manifestBlobUrlRef.current);
-		manifestBlobUrlRef.current = null;
-	};
 
 	const logLoadedPlayer = (player: shaka.Player) => {
 		console.log("[concert-player] loaded", {
@@ -180,18 +152,22 @@ export function ConcertPlayer({
 
 				if (loadRequestId !== loadRequestIdRef.current) return;
 
-				const dashUrl = await createDashManifestBlobUrl(playback.url);
+				const manifestOrigin = new URL(playback.url, window.location.href)
+					.origin;
+				const networkingEngine = player.getNetworkingEngine();
 
-				if (!dashUrl) return;
+				networkingEngine?.clearAllRequestFilters();
+				networkingEngine?.registerRequestFilter((_type, request) => {
+					const requestUrl = request.uris[0];
+					if (
+						requestUrl &&
+						new URL(requestUrl, window.location.href).origin === manifestOrigin
+					) {
+						request.allowCrossSiteCredentials = true;
+					}
+				});
 
-				if (loadRequestId !== loadRequestIdRef.current) {
-					URL.revokeObjectURL(dashUrl);
-					return;
-				}
-
-				revokeManifestBlobUrl();
-				manifestBlobUrlRef.current = dashUrl;
-				await player.load(dashUrl);
+				await player.load(playback.url);
 				logLoadedPlayer(player);
 				setAudioTracks(player.getAudioTracks());
 			} else {
@@ -204,7 +180,6 @@ export function ConcertPlayer({
 
 				if (!presignedUrl || loadRequestId !== loadRequestIdRef.current) return;
 
-				revokeManifestBlobUrl();
 				videoElement.src = presignedUrl;
 				videoElement.load();
 			}
@@ -228,7 +203,6 @@ export function ConcertPlayer({
 	useEffect(() => {
 		return () => {
 			setAudioPlayerHidden(false);
-			revokeManifestBlobUrl();
 			void playerRef.current?.destroy();
 		};
 	}, [setAudioPlayerHidden]);
@@ -278,23 +252,23 @@ export function ConcertPlayer({
 	const currentAudioOption = audioOptions.find((option) => option.track.active);
 	const VolumeIconComponent = getVolumeIcon(muted, volume);
 
+	const hotkeyConfig: UseHotkeyOptions = {
+		enabled: hasFile,
+		conflictBehavior: "allow",
+	};
+
 	useHotkey(
 		"Space",
 		() => {
-			if (!hasFile) return;
 			togglePlayback();
 		},
-		{ conflictBehavior: "replace" },
+		hotkeyConfig,
 	);
 
-	useHotkey("ArrowLeft", () => seekBy(-1), { conflictBehavior: "replace" });
-	useHotkey("ArrowRight", () => seekBy(1), { conflictBehavior: "replace" });
-	useHotkey("ArrowDown", () => changeVolume(-0.05), {
-		conflictBehavior: "replace",
-	});
-	useHotkey("ArrowUp", () => changeVolume(0.05), {
-		conflictBehavior: "replace",
-	});
+	useHotkey("ArrowLeft", () => seekBy(-1), hotkeyConfig);
+	useHotkey("ArrowRight", () => seekBy(1), hotkeyConfig);
+	useHotkey("ArrowDown", () => changeVolume(-0.05), hotkeyConfig);
+	useHotkey("ArrowUp", () => changeVolume(0.05), hotkeyConfig);
 
 	return (
 		<div

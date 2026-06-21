@@ -1,4 +1,5 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
+import type { UseHotkeyOptions } from "@tanstack/react-hotkeys";
 import { Link } from "@tanstack/react-router";
 import {
 	Music2Icon,
@@ -539,55 +540,58 @@ export function AudioPlayer() {
 		};
 	}, [bindWaveSurfer]);
 
+	const hotkeyConfig: UseHotkeyOptions = {
+		enabled: !hidden,
+		conflictBehavior: "allow",
+	};
+
 	useHotkey(
 		"Space",
 		() => {
-			if (hidden) return;
 			void togglePlay();
 		},
-		{ conflictBehavior: "allow" },
+		hotkeyConfig,
 	);
 
 	useHotkey(
 		"ArrowLeft",
 		() => {
-			if (hidden || !audioRef.current) return;
+			if (!audioRef.current) return;
+
 			audioRef.current.currentTime = Math.max(
 				audioRef.current.currentTime - 1,
 				0,
 			);
 		},
-		{ conflictBehavior: "allow" },
+		hotkeyConfig,
 	);
 
 	useHotkey(
 		"ArrowRight",
 		() => {
-			if (hidden || !audioRef.current) return;
+			if (!audioRef.current) return;
 			audioRef.current.currentTime = Math.min(
 				audioRef.current.currentTime + 1,
 				audioRef.current.duration || audioRef.current.currentTime + 1,
 			);
 		},
-		{ conflictBehavior: "allow" },
+		hotkeyConfig,
 	);
 
 	useHotkey(
 		"ArrowDown",
 		() => {
-			if (hidden) return;
 			setVolume(volume - 0.05);
 		},
-		{ conflictBehavior: "allow" },
+		hotkeyConfig,
 	);
 
 	useHotkey(
 		"ArrowUp",
 		() => {
-			if (hidden) return;
 			setVolume(volume + 0.05);
 		},
-		{ conflictBehavior: "allow" },
+		hotkeyConfig,
 	);
 
 	return (
