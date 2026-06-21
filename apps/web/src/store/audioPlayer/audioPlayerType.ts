@@ -44,6 +44,7 @@ export type AudioPlayerAction = {
 	togglePlay: () => Promise<void>;
 	toggleRepeatMode: () => void;
 	toggleShuffle: () => void;
+	pause: () => void;
 	setVolume: (volume: number) => void;
 	setHidden: (hidden: boolean) => void;
 	toggleMute: () => void;

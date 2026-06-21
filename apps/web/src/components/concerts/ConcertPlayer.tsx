@@ -113,6 +113,8 @@ export function ConcertPlayer({
 	onToggleTheaterMode,
 }: ConcertPlayerProps) {
 	const setAudioPlayerHidden = useAudioPlayerStore((state) => state.setHidden);
+	const pauseAudioPlayer = useAudioPlayerStore((state) => state.pause);
+
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const playerRef = useRef<shaka.Player | null>(null);
 	const manifestBlobUrlRef = useRef<string | null>(null);
@@ -144,7 +146,8 @@ export function ConcertPlayer({
 
 	useEffect(() => {
 		setAudioPlayerHidden(hasFile);
-	}, [hasFile, setAudioPlayerHidden]);
+		if (hasFile) pauseAudioPlayer();
+	}, [hasFile, pauseAudioPlayer, setAudioPlayerHidden]);
 
 	useEffect(() => {
 		const file = currentFile;
@@ -191,21 +194,28 @@ export function ConcertPlayer({
 				await player.load(dashUrl);
 				logLoadedPlayer(player);
 				setAudioTracks(player.getAudioTracks());
-				return;
+			} else {
+				if (playerRef.current) {
+					await playerRef.current.destroy();
+					playerRef.current = null;
+				}
+
+				const presignedUrl = await getPresignedUrl(playback.url);
+
+				if (!presignedUrl || loadRequestId !== loadRequestIdRef.current) return;
+
+				revokeManifestBlobUrl();
+				videoElement.src = presignedUrl;
+				videoElement.load();
 			}
 
-			if (playerRef.current) {
-				await playerRef.current.destroy();
-				playerRef.current = null;
+			if (loadRequestId !== loadRequestIdRef.current) return;
+
+			try {
+				await videoElement.play();
+			} catch (error) {
+				console.log("[concert-player] autoplay failed", error);
 			}
-
-			const presignedUrl = await getPresignedUrl(playback.url);
-
-			if (!presignedUrl || loadRequestId !== loadRequestIdRef.current) return;
-
-			revokeManifestBlobUrl();
-			videoElement.src = presignedUrl;
-			videoElement.load();
 		}
 
 		void loadCurrentFile(file, video);
@@ -268,15 +278,23 @@ export function ConcertPlayer({
 	const currentAudioOption = audioOptions.find((option) => option.track.active);
 	const VolumeIconComponent = getVolumeIcon(muted, volume);
 
-	useHotkey("Space", () => {
-		if (!hasFile) return;
-		togglePlayback();
-	});
+	useHotkey(
+		"Space",
+		() => {
+			if (!hasFile) return;
+			togglePlayback();
+		},
+		{ conflictBehavior: "replace" },
+	);
 
-	useHotkey("ArrowLeft", () => seekBy(-1));
-	useHotkey("ArrowRight", () => seekBy(1));
-	useHotkey("ArrowDown", () => changeVolume(-0.05));
-	useHotkey("ArrowUp", () => changeVolume(0.05));
+	useHotkey("ArrowLeft", () => seekBy(-1), { conflictBehavior: "replace" });
+	useHotkey("ArrowRight", () => seekBy(1), { conflictBehavior: "replace" });
+	useHotkey("ArrowDown", () => changeVolume(-0.05), {
+		conflictBehavior: "replace",
+	});
+	useHotkey("ArrowUp", () => changeVolume(0.05), {
+		conflictBehavior: "replace",
+	});
 
 	return (
 		<div
@@ -299,7 +317,6 @@ export function ConcertPlayer({
 					setIsPlaying(false);
 				}}
 				onPlay={() => {
-					setAudioPlayerHidden(true);
 					setIsPlaying(true);
 				}}
 				onTimeUpdate={(event) => {

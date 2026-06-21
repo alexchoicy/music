@@ -539,36 +539,56 @@ export function AudioPlayer() {
 		};
 	}, [bindWaveSurfer]);
 
-	useHotkey("Space", () => {
-		if (hidden) return;
-		void togglePlay();
-	});
+	useHotkey(
+		"Space",
+		() => {
+			if (hidden) return;
+			void togglePlay();
+		},
+		{ conflictBehavior: "allow" },
+	);
 
-	useHotkey("ArrowLeft", () => {
-		if (hidden || !audioRef.current) return;
-		audioRef.current.currentTime = Math.max(
-			audioRef.current.currentTime - 1,
-			0,
-		);
-	});
+	useHotkey(
+		"ArrowLeft",
+		() => {
+			if (hidden || !audioRef.current) return;
+			audioRef.current.currentTime = Math.max(
+				audioRef.current.currentTime - 1,
+				0,
+			);
+		},
+		{ conflictBehavior: "allow" },
+	);
 
-	useHotkey("ArrowRight", () => {
-		if (hidden || !audioRef.current) return;
-		audioRef.current.currentTime = Math.min(
-			audioRef.current.currentTime + 1,
-			audioRef.current.duration || audioRef.current.currentTime + 1,
-		);
-	});
+	useHotkey(
+		"ArrowRight",
+		() => {
+			if (hidden || !audioRef.current) return;
+			audioRef.current.currentTime = Math.min(
+				audioRef.current.currentTime + 1,
+				audioRef.current.duration || audioRef.current.currentTime + 1,
+			);
+		},
+		{ conflictBehavior: "allow" },
+	);
 
-	useHotkey("ArrowDown", () => {
-		if (hidden) return;
-		setVolume(volume - 0.05);
-	});
+	useHotkey(
+		"ArrowDown",
+		() => {
+			if (hidden) return;
+			setVolume(volume - 0.05);
+		},
+		{ conflictBehavior: "allow" },
+	);
 
-	useHotkey("ArrowUp", () => {
-		if (hidden) return;
-		setVolume(volume + 0.05);
-	});
+	useHotkey(
+		"ArrowUp",
+		() => {
+			if (hidden) return;
+			setVolume(volume + 0.05);
+		},
+		{ conflictBehavior: "allow" },
+	);
 
 	return (
 		<div
