@@ -31,7 +31,7 @@ export type AudioPlayerState = {
 	hidden: boolean;
 	repeatMode: RepeatMode;
 	shuffle: boolean;
-	playbackQuality: "Original" | "Opus96";
+	playbackQuality: "Auto" | "Original" | "Opus96";
 };
 
 export type AudioPlayerAction = {

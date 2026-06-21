@@ -44,6 +44,7 @@ import { cn } from "#/lib/utils/styles";
 import {
 	AUDIO_PLAYER_IDLE_DURATION,
 	AUDIO_PLAYER_IDLE_PEAKS,
+	autoSelectPlaybackQuality,
 	useAudioPlayerStore,
 } from "#/store/audioPlayer/audioPlayerStore";
 import type {
@@ -89,12 +90,14 @@ function formatPlaybackQuality(
 	track: AudioPlayerTrack,
 	playbackQuality: PlaybackQuality,
 ): string | null {
+	const selectedQuality =
+		playbackQuality === "Auto" ? autoSelectPlaybackQuality() : playbackQuality;
 	const file =
-		playbackQuality === "Opus96"
+		selectedQuality === "Opus96"
 			? (track.audio.file.opus96 ?? track.audio.file.original)
 			: track.audio.file.original;
 	const label =
-		playbackQuality === "Opus96" && track.audio.file.opus96
+		selectedQuality === "Opus96" && track.audio.file.opus96
 			? "Opus 96"
 			: (formatCodec(file.codec) ?? "Original");
 	const parts = [
@@ -359,12 +362,25 @@ function PlaybackQualitySettings({
 					<RadioGroup
 						aria-label="Playback quality"
 						onValueChange={(value) => {
-							if (value === "Original" || value === "Opus96") {
+							if (
+								value === "Auto" ||
+								value === "Original" ||
+								value === "Opus96"
+							) {
 								setPlaybackQuality(value);
 							}
 						}}
 						value={playbackQuality}
 					>
+						<Label className="items-start gap-3">
+							<Radio value="Auto" />
+							<span className="flex flex-col gap-1">
+								<span>Auto</span>
+								<span className="text-xs font-normal text-muted-foreground">
+									Use Opus 96 when phone(GuEsS), otherwise original.
+								</span>
+							</span>
+						</Label>
 						<Label className="items-start gap-3">
 							<Radio value="Original" />
 							<span className="flex flex-col gap-1">

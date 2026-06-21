@@ -4,6 +4,8 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
+import { isProbablyPhone } from "#/lib/utils/browser";
+
 import { getPresignedUrl, getWaveformData } from "./audioPlayerFunction";
 import type {
 	AudioPlayerAction,
@@ -29,7 +31,7 @@ const initialState: AudioPlayerState = {
 	hidden: false,
 	repeatMode: "off",
 	shuffle: false,
-	playbackQuality: "Original",
+	playbackQuality: "Auto",
 };
 
 function getNextIndex(
@@ -92,6 +94,10 @@ function prepareWaveSurferForLoad(): void {
 	waveSurfer.empty();
 }
 
+export function autoSelectPlaybackQuality(): AudioPlayerState["playbackQuality"] {
+	return isProbablyPhone() ? "Opus96" : "Original";
+}
+
 async function loadAndPlay(
 	playbackQuality: AudioPlayerState["playbackQuality"],
 	track: AudioPlayerTrack,
@@ -115,8 +121,10 @@ async function loadAndPlay(
 	}
 	prepareWaveSurferForLoad();
 
+	const selectedQuality =
+		playbackQuality === "Auto" ? autoSelectPlaybackQuality() : playbackQuality;
 	const playbackUrl =
-		playbackQuality === "Original"
+		selectedQuality === "Original"
 			? track.audio.file.original.url
 			: (track.audio.file.opus96?.url ?? track.audio.file.original.url);
 
