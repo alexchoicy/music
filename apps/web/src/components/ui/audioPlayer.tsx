@@ -672,7 +672,7 @@ export function AudioPlayer() {
 								)}
 							</Button>
 						</div>
-						<div className="min-w-0 text-right text-[11px] text-muted-foreground">
+						<div className="hidden min-w-0 text-right text-[11px] text-muted-foreground lg:block">
 							{qualityLabel && <span className="truncate">{qualityLabel}</span>}
 						</div>
 					</div>
@@ -718,6 +718,9 @@ export function AudioPlayer() {
 				</div>
 
 				<div className="flex items-center justify-end gap-1 text-muted-foreground">
+					<div className="mr-auto min-w-0 pl-2 text-[11px] text-muted-foreground lg:hidden">
+						{qualityLabel && <span className="truncate">{qualityLabel}</span>}
+					</div>
 					<VolumeControl
 						muted={muted}
 						setVolume={setVolume}
