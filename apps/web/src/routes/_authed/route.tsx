@@ -34,7 +34,7 @@ function RouteComponent() {
 				<SidebarInset className="h-svh overflow-hidden">
 					<MobileHeader />
 					<div className="relative flex min-h-0 flex-1 flex-col">
-						<ScrollArea className="min-h-0 flex-1 [&_[data-slot=scroll-area-content]]:pb-24">
+						<ScrollArea className="min-h-0 flex-1">
 							<Outlet />
 						</ScrollArea>
 						<AudioPlayer />
