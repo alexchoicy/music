@@ -21,8 +21,8 @@ import { cn } from "#/lib/utils/styles";
 import {
 	albumDetailsToAudioPlayerTracks,
 	albumTrackDetailsToAudioPlayerTrack,
-} from "#/store/audioPlayer.ts/audioPlayerFunction";
-import { useAudioPlayerStore } from "#/store/audioPlayer.ts/audioPlayerStore";
+} from "#/store/audioPlayer/audioPlayerFunction";
+import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
 import { getContentTypeLabel, getCreditNames } from "./albumDetailUtils";
 import type { AlbumDetails } from "./albumDetailUtils";

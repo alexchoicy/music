@@ -7,8 +7,8 @@ import { getAlbumCoverUrl } from "#/components/albums/albumDetailUtils";
 import { AlbumInfoCard } from "#/components/albums/AlbumInfoCard";
 import { AlbumTrackListCard } from "#/components/albums/AlbumTrackListCard";
 import { albumQueries } from "#/lib/queries/album.queries";
-import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer.ts/audioPlayerFunction";
-import { useAudioPlayerStore } from "#/store/audioPlayer.ts/audioPlayerStore";
+import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
+import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
 export const Route = createFileRoute("/_authed/albums/$id")({
 	loader: ({ context, params }) => {
