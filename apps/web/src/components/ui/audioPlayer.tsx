@@ -78,6 +78,13 @@ function formatBitrate(
 	return `${Math.round(bitrate / 1000)} kbps`;
 }
 
+function formatBitsPerSample(
+	value: null | number | string | undefined,
+): string | null {
+	if (!value) return null;
+	return `${value}-bit`;
+}
+
 function formatCodec(value: null | string | undefined): string | null {
 	if (!value) return null;
 	const codec = value.trim();
@@ -103,6 +110,7 @@ function formatPlaybackQuality(
 	const parts = [
 		label,
 		formatSampleRate(file.audioSampleRate),
+		formatBitsPerSample(file.bitsPerSample),
 		formatBitrate(file.bitrate),
 	].filter((part) => part !== null);
 
