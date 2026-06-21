@@ -79,7 +79,7 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 							</div>
 						)}
 
-						<Badge className="absolute top-3 end-3 bg-card/85 text-card-foreground shadow-sm backdrop-blur-sm">
+						<Badge className="absolute end-3 top-3 bg-card/85 text-card-foreground shadow-sm backdrop-blur-sm">
 							{album.type}
 						</Badge>
 					</div>
@@ -96,14 +96,14 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 								</TooltipTrigger>
 								<TooltipPopup className="max-w-72">{album.title}</TooltipPopup>
 							</Tooltip>
-						<Tooltip>
-							<TooltipTrigger
-								render={<CardDescription className="truncate" />}
-							>
-								{artistNames}
-							</TooltipTrigger>
-							<TooltipPopup className="max-w-72">{artistNames}</TooltipPopup>
-						</Tooltip>
+							<Tooltip>
+								<TooltipTrigger
+									render={<CardDescription className="truncate" />}
+								>
+									{artistNames}
+								</TooltipTrigger>
+								<TooltipPopup className="max-w-72">{artistNames}</TooltipPopup>
+							</Tooltip>
 						</div>
 
 						<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">

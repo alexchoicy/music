@@ -62,7 +62,9 @@ export function buildAlbumRequests(
 					discNumber: disc.discNumber,
 					subtitle: disc.subtitle,
 					image:
-						hasMultipleDiscs && disc.coverAssetIdByHash
+						hasMultipleDiscs &&
+						disc.coverAssetIdByHash &&
+						disc.coverAssetIdByHash !== album.coverAssetIdByHash
 							? state.coverAssetsIdByHash[disc.coverAssetIdByHash]?.imageRequest
 							: null,
 					tracks: disc.trackIds.map((trackId) => {

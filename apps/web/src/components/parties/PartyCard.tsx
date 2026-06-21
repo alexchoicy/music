@@ -50,24 +50,26 @@ export function PartyCard({ party }: PartyCardProps) {
 							</Avatar>
 
 							<div className="flex min-w-0 flex-1 flex-col gap-2">
-							<div className="flex min-w-0 flex-col gap-1">
-								<Tooltip>
-									<TooltipTrigger
-										render={
-											<CardTitle
-												className="truncate text-base"
-												render={<h2 />}
-											/>
-										}
-									>
-										{party.name}
-									</TooltipTrigger>
-									<TooltipPopup className="max-w-72">{party.name}</TooltipPopup>
-								</Tooltip>
-								<CardDescription>
-									{COUNTRY_CODE[party.country]}
-								</CardDescription>
-							</div>
+								<div className="flex min-w-0 flex-col gap-1">
+									<Tooltip>
+										<TooltipTrigger
+											render={
+												<CardTitle
+													className="truncate text-base"
+													render={<h2 />}
+												/>
+											}
+										>
+											{party.name}
+										</TooltipTrigger>
+										<TooltipPopup className="max-w-72">
+											{party.name}
+										</TooltipPopup>
+									</Tooltip>
+									<CardDescription>
+										{COUNTRY_CODE[party.country]}
+									</CardDescription>
+								</div>
 
 								<div className="flex flex-wrap gap-1.5">
 									{party.type && (

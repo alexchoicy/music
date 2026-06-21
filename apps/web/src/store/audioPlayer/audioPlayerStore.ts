@@ -25,6 +25,7 @@ const initialState: AudioPlayerState = {
 	status: "idle",
 	volume: 1,
 	muted: false,
+	hidden: false,
 	repeatMode: "off",
 	shuffle: false,
 	playbackQuality: "Original",
@@ -347,6 +348,9 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					state.volume = nextVolume;
 					if (nextVolume > 0) state.muted = false;
 				});
+			},
+			setHidden: (hidden) => {
+				set({ hidden });
 			},
 			toggleMute: () => {
 				const muted = !get().muted;

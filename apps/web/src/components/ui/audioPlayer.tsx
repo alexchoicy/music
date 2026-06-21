@@ -1,3 +1,4 @@
+import { useHotkey } from "@tanstack/react-hotkeys";
 import { Link } from "@tanstack/react-router";
 import {
 	Music2Icon,
@@ -408,6 +409,7 @@ export function AudioPlayer() {
 	const status = useAudioPlayerStore((state) => state.status);
 	const muted = useAudioPlayerStore((state) => state.muted);
 	const volume = useAudioPlayerStore((state) => state.volume);
+	const hidden = useAudioPlayerStore((state) => state.hidden);
 	const playNext = useAudioPlayerStore((state) => state.playNext);
 	const playPrev = useAudioPlayerStore((state) => state.playPrev);
 	const playQueueTrack = useAudioPlayerStore((state) => state.playQueueTrack);
@@ -537,8 +539,44 @@ export function AudioPlayer() {
 		};
 	}, [bindWaveSurfer]);
 
+	useHotkey("Space", () => {
+		if (hidden) return;
+		void togglePlay();
+	});
+
+	useHotkey("ArrowLeft", () => {
+		if (hidden || !audioRef.current) return;
+		audioRef.current.currentTime = Math.max(
+			audioRef.current.currentTime - 1,
+			0,
+		);
+	});
+
+	useHotkey("ArrowRight", () => {
+		if (hidden || !audioRef.current) return;
+		audioRef.current.currentTime = Math.min(
+			audioRef.current.currentTime + 1,
+			audioRef.current.duration || audioRef.current.currentTime + 1,
+		);
+	});
+
+	useHotkey("ArrowDown", () => {
+		if (hidden) return;
+		setVolume(volume - 0.05);
+	});
+
+	useHotkey("ArrowUp", () => {
+		if (hidden) return;
+		setVolume(volume + 0.05);
+	});
+
 	return (
-		<div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 p-2 sm:px-3">
+		<div
+			className={cn(
+				"pointer-events-none absolute inset-x-0 bottom-0 z-20 p-2 sm:px-3",
+				hidden && "hidden",
+			)}
+		>
 			<audio className="hidden" ref={audioRef} preload="metadata" />
 			<div className="pointer-events-auto grid min-h-16 grid-cols-1 items-center gap-3 rounded-lg border bg-background/95 px-2 py-2 shadow-lg/5 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-3 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,2fr)_minmax(8rem,1fr)]">
 				<TrackInfo track={currentTrack} />

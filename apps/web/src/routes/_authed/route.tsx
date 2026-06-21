@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
+import { ScrollArea } from "#/components/coss/scroll-area";
 import { SidebarInset, SidebarProvider } from "#/components/coss/sidebar";
 import { AppSidebar } from "#/components/ui/appSidebar";
 import { AudioPlayer } from "#/components/ui/audioPlayer";
@@ -33,9 +34,9 @@ function RouteComponent() {
 				<SidebarInset className="h-svh overflow-hidden">
 					<MobileHeader />
 					<div className="relative flex min-h-0 flex-1 flex-col">
-						<div className="min-h-0 flex-1 overflow-auto pb-24">
+						<ScrollArea className="min-h-0 flex-1 [&_[data-slot=scroll-area-content]]:pb-24">
 							<Outlet />
-						</div>
+						</ScrollArea>
 						<AudioPlayer />
 					</div>
 				</SidebarInset>

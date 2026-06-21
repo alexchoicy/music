@@ -1,4 +1,5 @@
 import { TanStackDevtools } from "@tanstack/react-devtools";
+import { hotkeysDevtoolsPlugin } from "@tanstack/react-hotkeys-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	HeadContent,
@@ -69,6 +70,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 							render: <TanStackRouterDevtoolsPanel />,
 						},
 						TanStackQueryDevtools,
+						hotkeysDevtoolsPlugin(),
 					]}
 				/>
 				<Scripts />

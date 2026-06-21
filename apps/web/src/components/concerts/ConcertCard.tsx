@@ -55,30 +55,34 @@ export function ConcertCard({ concert }: ConcertCardProps) {
 							</div>
 						)}
 
-						<Badge className="absolute top-3 end-3 bg-card/85 text-card-foreground shadow-sm backdrop-blur-sm">
+						<Badge className="absolute end-3 top-3 bg-card/85 text-card-foreground shadow-sm backdrop-blur-sm">
 							{dateLabel}
 						</Badge>
 					</div>
 
 					<CardPanel className="flex flex-col gap-3 p-4">
-					<div className="flex min-w-0 flex-col gap-1">
-						<Tooltip>
-							<TooltipTrigger
-								render={
-									<CardTitle className="truncate text-base" render={<h2 />} />
-								}
-							>
-								{concert.title}
-							</TooltipTrigger>
-							<TooltipPopup className="max-w-72">{concert.title}</TooltipPopup>
-						</Tooltip>
-						<Tooltip>
-							<TooltipTrigger render={<CardDescription className="truncate" />}>
-								{partyNames}
-							</TooltipTrigger>
-							<TooltipPopup className="max-w-72">{partyNames}</TooltipPopup>
-						</Tooltip>
-					</div>
+						<div className="flex min-w-0 flex-col gap-1">
+							<Tooltip>
+								<TooltipTrigger
+									render={
+										<CardTitle className="truncate text-base" render={<h2 />} />
+									}
+								>
+									{concert.title}
+								</TooltipTrigger>
+								<TooltipPopup className="max-w-72">
+									{concert.title}
+								</TooltipPopup>
+							</Tooltip>
+							<Tooltip>
+								<TooltipTrigger
+									render={<CardDescription className="truncate" />}
+								>
+									{partyNames}
+								</TooltipTrigger>
+								<TooltipPopup className="max-w-72">{partyNames}</TooltipPopup>
+							</Tooltip>
+						</div>
 
 						<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
 							<span>

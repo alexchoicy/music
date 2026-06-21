@@ -28,6 +28,7 @@ export type AudioPlayerState = {
 	status: PlayerStatus;
 	volume: number;
 	muted: boolean;
+	hidden: boolean;
 	repeatMode: RepeatMode;
 	shuffle: boolean;
 	playbackQuality: "Original" | "Opus96";
@@ -44,6 +45,7 @@ export type AudioPlayerAction = {
 	toggleRepeatMode: () => void;
 	toggleShuffle: () => void;
 	setVolume: (volume: number) => void;
+	setHidden: (hidden: boolean) => void;
 	toggleMute: () => void;
 	setPlaybackQuality: (
 		playbackQuality: AudioPlayerState["playbackQuality"],
