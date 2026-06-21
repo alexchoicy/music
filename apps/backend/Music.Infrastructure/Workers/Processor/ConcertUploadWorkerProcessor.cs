@@ -50,6 +50,9 @@ public class ConcertUploadWorkerProcessor(
                 $"File object with ID {job.FileObjectId} not found."
             );
 
+        if (sourceFileObject.ProcessingStatus == FileProcessingStatus.Completed)
+            throw new InvalidOperationException("Cannot process a completed file object.");
+
         Guid derivedFileId = Guid.CreateVersion7();
 
         string? sourcePath = null;
