@@ -27,6 +27,7 @@ export type AudioPlayerState = {
 	queue: AudioPlayerTrack[];
 	index: number;
 	status: PlayerStatus;
+	currentPlayingKey: string | null;
 	volume: number;
 	muted: boolean;
 	hidden: boolean;
@@ -35,6 +36,11 @@ export type AudioPlayerState = {
 	playbackQuality: "Auto" | "Original" | "Opus96";
 	playTalkTrack: boolean;
 };
+
+export type ResolvedPlaybackQuality = Exclude<
+	AudioPlayerState["playbackQuality"],
+	"Auto"
+>;
 
 export type AudioPlayerAction = {
 	bindWaveSurfer: (waveSurfer: WaveSurfer | null) => void;

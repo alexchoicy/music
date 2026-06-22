@@ -1,8 +1,13 @@
 import type { components } from "#/data/APIschema";
 import type { AudioWaveformJson } from "#/data/AudioWaveForm";
 import { getCoverUrl } from "#/lib/utils/album";
+import { isProbablyPhone } from "#/lib/utils/browser";
 
-import type { AudioPlayerTrack } from "./audioPlayerType";
+import type {
+	AudioPlayerState,
+	AudioPlayerTrack,
+	ResolvedPlaybackQuality,
+} from "./audioPlayerType";
 
 type AlbumDetails = components["schemas"]["AlbumDetails"];
 type AlbumDiscDetails = components["schemas"]["AlbumDiscDetails"];
@@ -48,6 +53,25 @@ export function albumTrackDetailsToAudioPlayerTrack(
 		audio,
 		durationInMs: Number(track.durationInMs),
 	};
+}
+
+export function autoSelectPlaybackQuality(): AudioPlayerState["playbackQuality"] {
+	return isProbablyPhone() ? "Opus96" : "Original";
+}
+
+export function resolvePlaybackSource(
+	playbackQuality: AudioPlayerState["playbackQuality"],
+	track: AudioPlayerTrack,
+): { key: string; quality: ResolvedPlaybackQuality; url: string } {
+	const selectedQuality =
+		playbackQuality === "Auto" ? autoSelectPlaybackQuality() : playbackQuality;
+	if (selectedQuality === "Opus96" && track.audio.file.opus96) {
+		const url = track.audio.file.opus96.url;
+		return { key: `Opus96:${url}`, quality: "Opus96", url };
+	}
+
+	const url = track.audio.file.original.url;
+	return { key: `Original:${url}`, quality: "Original", url };
 }
 
 export async function getWaveformData(url: string): Promise<number[] | null> {
