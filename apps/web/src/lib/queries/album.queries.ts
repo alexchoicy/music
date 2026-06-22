@@ -25,7 +25,7 @@ export const albumQueries = {
 
 				const result =
 					await $APIFetch<components["schemas"]["AlbumListItem"][]>(url);
-				if (!result.ok) return [];
+				if (!result.ok) throw new Error("Unable to load albums");
 				return result.data;
 			},
 		}),

@@ -4,7 +4,7 @@ import {
 	stripSearchParams,
 	useNavigate,
 } from "@tanstack/react-router";
-import { SearchIcon } from "lucide-react";
+import { Disc3Icon, SearchIcon } from "lucide-react";
 import { useDeferredValue } from "react";
 import { z } from "zod";
 
@@ -20,6 +20,7 @@ import {
 import { Label } from "#/components/coss/label";
 import { Skeleton } from "#/components/coss/skeleton";
 import { EnumFieldSelect } from "#/components/enumFieldSelect";
+import { LibraryEmptyState } from "#/components/LibraryEmptyState";
 import { PartyCombobox } from "#/components/PartyCombobox";
 import { ALBUM_TYPE_OPTIONS } from "#/enums/albumEnums";
 import { albumQueries } from "#/lib/queries/album.queries";
@@ -89,7 +90,11 @@ function RouteComponent() {
 		Search: deferredFilters.search || undefined,
 		Types: deferredFilters.types.length ? deferredFilters.types : undefined,
 	};
-	const { data: albums = [], isPending } = useQuery({
+	const {
+		data: albums,
+		isError,
+		isPending,
+	} = useQuery({
 		...albumQueries.getAlbums(albumQuery),
 		placeholderData: keepPreviousData,
 	});
@@ -176,17 +181,28 @@ function RouteComponent() {
 
 			{isPending ? (
 				<AlbumGridSkeleton />
-			) : albums.length > 0 ? (
+			) : isError ? (
+				<LibraryEmptyState
+					description="Try again in a moment."
+					icon={<Disc3Icon aria-hidden="true" />}
+					title="Unable to load albums"
+				/>
+			) : albums.length ? (
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
 					{albums.map((album) => {
 						return <AlbumCard album={album} key={album.albumId} />;
 					})}
 				</div>
-			) : null}
+			) : (
+				<LibraryEmptyState
+					description="Albums will appear here after they are created."
+					icon={<Disc3Icon aria-hidden="true" />}
+					title="No albums yet"
+				/>
+			)}
 		</main>
 	);
 }
-
 function AlbumGridSkeleton() {
 	return (
 		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">

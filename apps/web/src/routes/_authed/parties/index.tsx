@@ -10,19 +10,13 @@ import { z } from "zod";
 
 import { Card, CardPanel } from "#/components/coss/card";
 import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
-} from "#/components/coss/empty";
-import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupInput,
 } from "#/components/coss/input-group";
 import { Skeleton } from "#/components/coss/skeleton";
 import { EnumFieldSelect } from "#/components/enumFieldSelect";
+import { LibraryEmptyState } from "#/components/LibraryEmptyState";
 import { PartyCard } from "#/components/parties/PartyCard";
 import {
 	PARTY_GENDER_OPTIONS,
@@ -112,7 +106,11 @@ function RouteComponent() {
 		Type: deferredFilters.type === "All" ? undefined : deferredFilters.type,
 	};
 
-	const { data: parties = [], isPending } = useQuery({
+	const {
+		data: parties,
+		isError,
+		isPending,
+	} = useQuery({
 		...partyQueries.getParties(partyQuery),
 		placeholderData: keepPreviousData,
 	});
@@ -178,24 +176,24 @@ function RouteComponent() {
 
 			{isPending ? (
 				<PartyGridSkeleton />
-			) : parties.length > 0 ? (
+			) : isError ? (
+				<LibraryEmptyState
+					description="Try again in a moment."
+					icon={<UsersRoundIcon aria-hidden="true" />}
+					title="Unable to load parties"
+				/>
+			) : parties.length ? (
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
 					{parties.map((party) => {
 						return <PartyCard key={party.partyId} party={party} />;
 					})}
 				</div>
 			) : (
-				<Empty className="min-h-80 rounded-2xl border bg-card">
-					<EmptyHeader>
-						<EmptyMedia variant="icon">
-							<UsersRoundIcon aria-hidden="true" />
-						</EmptyMedia>
-						<EmptyTitle>No parties yet</EmptyTitle>
-						<EmptyDescription>
-							Parties will appear here after they are created.
-						</EmptyDescription>
-					</EmptyHeader>
-				</Empty>
+				<LibraryEmptyState
+					description="Parties will appear here after they are created."
+					icon={<UsersRoundIcon aria-hidden="true" />}
+					title="No parties yet"
+				/>
 			)}
 		</main>
 	);

@@ -4,7 +4,7 @@ import {
 	stripSearchParams,
 	useNavigate,
 } from "@tanstack/react-router";
-import { SearchIcon } from "lucide-react";
+import { MicVocalIcon, SearchIcon } from "lucide-react";
 import { useDeferredValue } from "react";
 import { z } from "zod";
 
@@ -19,6 +19,7 @@ import {
 } from "#/components/coss/input-group";
 import { Label } from "#/components/coss/label";
 import { Skeleton } from "#/components/coss/skeleton";
+import { LibraryEmptyState } from "#/components/LibraryEmptyState";
 import { PartyCombobox } from "#/components/PartyCombobox";
 import { concertQueries } from "#/lib/queries/concert.queries";
 import type { ConcertQuery } from "#/lib/queries/concert.queries";
@@ -71,7 +72,11 @@ function RouteComponent() {
 			: undefined,
 		Search: deferredFilters.search || undefined,
 	};
-	const { data: concerts = [], isPending } = useQuery({
+	const {
+		data: concerts,
+		isError,
+		isPending,
+	} = useQuery({
 		...concertQueries.getConcerts(concertQuery),
 		placeholderData: keepPreviousData,
 	});
@@ -148,17 +153,28 @@ function RouteComponent() {
 
 			{isPending ? (
 				<ConcertGridSkeleton />
-			) : concerts.length > 0 ? (
+			) : isError ? (
+				<LibraryEmptyState
+					description="Try again in a moment."
+					icon={<MicVocalIcon aria-hidden="true" />}
+					title="Unable to load concerts"
+				/>
+			) : concerts.length ? (
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
 					{concerts.map((concert) => {
 						return <ConcertCard concert={concert} key={concert.concertId} />;
 					})}
 				</div>
-			) : null}
+			) : (
+				<LibraryEmptyState
+					description="Concerts will appear here after they are created."
+					icon={<MicVocalIcon aria-hidden="true" />}
+					title="No concerts yet"
+				/>
+			)}
 		</main>
 	);
 }
-
 function ConcertGridSkeleton() {
 	return (
 		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">

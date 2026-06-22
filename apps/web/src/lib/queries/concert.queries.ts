@@ -25,7 +25,7 @@ export const concertQueries = {
 
 				const result =
 					await $APIFetch<components["schemas"]["ConcertListItem"][]>(url);
-				if (!result.ok) return [];
+				if (!result.ok) throw new Error("Unable to load concerts");
 				return result.data;
 			},
 		}),
