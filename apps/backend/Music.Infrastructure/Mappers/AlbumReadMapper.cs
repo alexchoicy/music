@@ -10,7 +10,11 @@ namespace Music.Infrastructure.Mappers;
 
 internal static class AlbumReadMapper
 {
-    public static AlbumListItem ToListItem(this Album album, IAssetsService assetsService)
+    public static AlbumListItem ToListItem(
+        this Album album,
+        IAssetsService assetsService,
+        IReadOnlySet<int>? matchedTrackIds = null
+    )
     {
         return new AlbumListItem
         {
@@ -48,6 +52,27 @@ internal static class AlbumReadMapper
                     Name = credit.Party!.Name,
                 })
                 .ToList(),
+            MatchedTracks = matchedTrackIds is null
+                ? []
+                : album
+                    .Discs.SelectMany(disc =>
+                        disc.Tracks.Where(albumTrack =>
+                                albumTrack.Track is not null
+                                && matchedTrackIds.Contains(albumTrack.TrackId)
+                            )
+                            .Select(albumTrack => new AlbumListMatchedTrack
+                            {
+                                TrackId = albumTrack.TrackId,
+                                DiscNumber = disc.DiscNumber,
+                                TrackNumber = albumTrack.TrackNumber,
+                                Title = albumTrack.Track!.Title,
+                                BasedOnTrackId = albumTrack.Track.BasedOnTrackId,
+                                BasedOnTrackTitle = albumTrack.Track.BasedOnTrack?.Title,
+                            })
+                    )
+                    .OrderBy(track => track.DiscNumber)
+                    .ThenBy(track => track.TrackNumber)
+                    .ToList(),
             TrackCount = album.Discs.Sum(disc => disc.Tracks.Count),
             TotalDurationInMs = album
                 .Discs.SelectMany(disc => disc.Tracks)

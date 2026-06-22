@@ -34,6 +34,16 @@ public sealed class AlbumListArtist
     public required string Name { get; init; } = string.Empty;
 }
 
+public sealed class AlbumListMatchedTrack
+{
+    public required int TrackId { get; init; }
+    public required int DiscNumber { get; init; }
+    public required int TrackNumber { get; init; }
+    public required string Title { get; init; } = string.Empty;
+    public int? BasedOnTrackId { get; init; }
+    public string? BasedOnTrackTitle { get; init; }
+}
+
 public sealed class AlbumCoverVariant
 {
     public required FileObjectVariant Variant { get; init; }
@@ -68,6 +78,7 @@ public sealed class AlbumListItem
     public IReadOnlyList<AlbumCoverVariant> CoverVariants { get; init; } = [];
     public IReadOnlyList<AlbumDiscCoverDetails> DiscCovers { get; init; } = [];
     public required IReadOnlyList<AlbumListArtist> Artists { get; init; } = [];
+    public IReadOnlyList<AlbumListMatchedTrack> MatchedTracks { get; init; } = [];
 
     public required int TrackCount { get; init; }
     public required int TotalDurationInMs { get; init; }

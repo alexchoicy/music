@@ -4,6 +4,7 @@ import {
 	MoreHorizontalIcon,
 	PlayIcon,
 } from "lucide-react";
+import { useEffect } from "react";
 
 import { Badge } from "#/components/coss/badge";
 import { Button } from "#/components/coss/button";
@@ -29,15 +30,29 @@ import type { AlbumDetails } from "./albumDetailUtils";
 
 type AlbumTrackListCardProps = {
 	album: AlbumDetails;
+	highlightedTrackKey?: string;
 };
 
-export function AlbumTrackListCard({ album }: AlbumTrackListCardProps) {
+export function AlbumTrackListCard({
+	album,
+	highlightedTrackKey,
+}: AlbumTrackListCardProps) {
 	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const currentTrack = useAudioPlayerStore((state) =>
 		state.queue.at(state.index),
 	);
 	const audioPlayerTracks = albumDetailsToAudioPlayerTracks(album);
+
+	useEffect(() => {
+		if (!highlightedTrackKey) return;
+
+		requestAnimationFrame(() => {
+			document
+				.getElementById(highlightedTrackKey)
+				?.scrollIntoView({ behavior: "smooth", block: "center" });
+		});
+	}, [highlightedTrackKey]);
 
 	return (
 		<Card className="overflow-hidden">
@@ -64,6 +79,8 @@ export function AlbumTrackListCard({ album }: AlbumTrackListCardProps) {
 							{disc.tracks.map((track) => {
 								const trackCreditNames = getCreditNames(track.credits);
 								const canAddToQueue = track.audios.length > 0;
+								const trackKey = `track-${track.trackId}`;
+								const isHighlightedTrack = highlightedTrackKey === trackKey;
 								const isCurrentTrack =
 									currentTrack &&
 									String(track.trackId) === currentTrack.trackId &&
@@ -72,8 +89,10 @@ export function AlbumTrackListCard({ album }: AlbumTrackListCardProps) {
 								return (
 									<div
 										className={cn(
-											"group/track grid cursor-pointer grid-cols-[2rem_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-sm px-4 py-4 transition-all outline-none hover:bg-muted/35 focus-visible:bg-muted/35 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background sm:grid-cols-[3rem_minmax(0,1fr)_auto_auto] sm:px-6",
+											"group/track grid cursor-pointer grid-cols-[2rem_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-sm px-4 py-4 outline-none hover:bg-muted/35 focus-visible:bg-muted/35 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background sm:grid-cols-[3rem_minmax(0,1fr)_auto_auto] sm:px-6",
+											isHighlightedTrack && "animate-track-highlight",
 										)}
+										id={trackKey}
 										key={track.trackId}
 										tabIndex={0}
 										onClick={() => {

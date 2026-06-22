@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouterState } from "@tanstack/react-router";
 
 import { AlbumCreditsCard } from "#/components/albums/AlbumCreditsCard";
 import { AlbumDetailHero } from "#/components/albums/AlbumDetailHero";
@@ -21,6 +21,9 @@ export const Route = createFileRoute("/_authed/albums/$id")({
 function RouteComponent() {
 	const { id } = Route.useParams();
 	const { data: album } = useSuspenseQuery(albumQueries.getAlbum(id));
+	const hash = useRouterState({
+		select: (state) => state.location.hash,
+	});
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const coverUrl = getAlbumCoverUrl(album);
 	const audioPlayerTracks = albumDetailsToAudioPlayerTracks(album);
@@ -46,7 +49,7 @@ function RouteComponent() {
 				/>
 
 				<div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-					<AlbumTrackListCard album={album} />
+					<AlbumTrackListCard album={album} highlightedTrackKey={hash} />
 
 					<aside className="flex flex-col gap-6">
 						<AlbumCreditsCard album={album} />

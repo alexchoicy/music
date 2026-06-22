@@ -1,9 +1,15 @@
-import { MenuIcon, Search } from "lucide-react";
+import { MenuIcon, SearchIcon } from "lucide-react";
 
 import { Button } from "#/components/coss/button";
 import { useSidebar } from "#/components/coss/sidebar";
 
-export function MobileHeader(): React.ReactElement {
+type MobileHeaderProps = {
+	onOpenCommand: () => void;
+};
+
+export function MobileHeader({
+	onOpenCommand,
+}: MobileHeaderProps): React.ReactElement {
 	const { toggleSidebar } = useSidebar();
 
 	return (
@@ -22,8 +28,13 @@ export function MobileHeader(): React.ReactElement {
 				<span className="text-sm font-semibold">Music</span>
 			</div>
 
-			<Button aria-label="Search" size="icon" variant="ghost">
-				<Search className="size-5" />
+			<Button
+				aria-label="Search"
+				onClick={onOpenCommand}
+				size="icon"
+				variant="ghost"
+			>
+				<SearchIcon className="size-5" />
 			</Button>
 		</header>
 	);

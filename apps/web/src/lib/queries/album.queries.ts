@@ -23,11 +23,8 @@ export const albumQueries = {
 
 				const url = params.size ? `/albums?${params.toString()}` : "/albums";
 
-				const result = await $APIFetch<
-					components["schemas"]["AlbumListItem"][]
-				>(url, {
-					method: "GET",
-				});
+				const result =
+					await $APIFetch<components["schemas"]["AlbumListItem"][]>(url);
 				if (!result.ok) return [];
 				return result.data;
 			},

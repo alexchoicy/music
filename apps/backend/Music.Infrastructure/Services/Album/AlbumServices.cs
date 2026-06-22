@@ -118,13 +118,76 @@ public class AlbumService(
             .Include(a => a.Discs)
                 .ThenInclude(d => d.Tracks)
                     .ThenInclude(at => at.Track)
+                        .ThenInclude(track => track!.BasedOnTrack)
             .Include(a => a.Images)
                 .ThenInclude(i => i.File)
                     .ThenInclude(f => f!.FileObjects)
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        return albums.Select(a => a.ToListItem(_assetsService)).ToList();
+        Dictionary<int, HashSet<int>> matchedTrackIdsByAlbumId = [];
+
+        if (hasSearch && albums.Count > 0)
+        {
+            int[] albumIds = albums.Select(album => album.Id).ToArray();
+
+            var matchedTracks = await _dbContext
+                .AlbumTracks.AsNoTracking()
+                .Where(albumTrack =>
+                    albumTrack.AlbumDisc != null
+                    && albumTrack.Track != null
+                    && albumIds.Contains(albumTrack.AlbumDisc.AlbumId)
+                    && (
+                        EF.Functions.Like(
+                            AppDbContext.ImmutableUnaccent(albumTrack.Track.NormalizedTitle),
+                            AppDbContext.ImmutableUnaccent(searchPattern)
+                        )
+                        || EF.Functions.TrigramsAreSimilar(
+                            AppDbContext.ImmutableUnaccent(albumTrack.Track.NormalizedTitle),
+                            AppDbContext.ImmutableUnaccent(normalizedSearch)
+                        )
+                        || (
+                            albumTrack.Track.BasedOnTrack != null
+                            && (
+                                EF.Functions.Like(
+                                    AppDbContext.ImmutableUnaccent(
+                                        albumTrack.Track.BasedOnTrack.NormalizedTitle
+                                    ),
+                                    AppDbContext.ImmutableUnaccent(searchPattern)
+                                )
+                                || EF.Functions.TrigramsAreSimilar(
+                                    AppDbContext.ImmutableUnaccent(
+                                        albumTrack.Track.BasedOnTrack.NormalizedTitle
+                                    ),
+                                    AppDbContext.ImmutableUnaccent(normalizedSearch)
+                                )
+                            )
+                        )
+                    )
+                )
+                .Select(albumTrack => new
+                {
+                    albumTrack.AlbumDisc!.AlbumId,
+                    albumTrack.TrackId,
+                })
+                .ToListAsync(cancellationToken);
+
+            matchedTrackIdsByAlbumId = matchedTracks
+                .GroupBy(track => track.AlbumId)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Select(track => track.TrackId).ToHashSet()
+                );
+        }
+
+        return albums
+            .Select(album =>
+                album.ToListItem(
+                    _assetsService,
+                    matchedTrackIdsByAlbumId.GetValueOrDefault(album.Id)
+                )
+            )
+            .ToList();
     }
 
     public async Task<AlbumDetails> GetByIdAsync(

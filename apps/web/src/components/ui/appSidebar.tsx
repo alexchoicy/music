@@ -6,14 +6,14 @@ import {
 	LogOut,
 	MicVocal,
 	MoreVertical,
-	Search,
+	SearchIcon,
 	Settings2,
 	UsersRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { Button } from "#/components/coss/button";
-import { Kbd } from "#/components/coss/kbd";
+import { Kbd, KbdGroup } from "#/components/coss/kbd";
 import { Menu, MenuItem, MenuPopup, MenuTrigger } from "#/components/coss/menu";
 import {
 	Sidebar,
@@ -31,6 +31,10 @@ import { getInitials } from "#/lib/utils/string";
 import type { FileRouteTypes } from "#/routeTree.gen";
 
 type NavigationTo = Exclude<FileRouteTypes["to"], "/login">;
+
+type AppSidebarProps = {
+	onOpenCommand: () => void;
+};
 
 type NavigationItem = {
 	label: string;
@@ -70,7 +74,9 @@ const mainNavigation = [
 	},
 ] satisfies Array<NavigationItem>;
 
-export function AppSidebar(): React.ReactElement {
+export function AppSidebar({
+	onOpenCommand,
+}: AppSidebarProps): React.ReactElement {
 	const userInfo = useUserInfo();
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
@@ -91,18 +97,19 @@ export function AppSidebar(): React.ReactElement {
 					<span className="text-sm font-semibold">Music</span>
 				</div>
 
-				<div className="relative hidden md:block">
+				<div className="hidden md:block">
 					<Button
-						aria-label="Open search"
-						className="h-9 w-full justify-start px-3 text-muted-foreground"
+						className="h-9 w-full justify-start px-3 text-muted-foreground hover:bg-sidebar-accent focus-visible:bg-sidebar-accent focus-visible:ring-0 focus-visible:ring-offset-0"
+						onClick={onOpenCommand}
 						variant="outline"
 					>
-						<Search className="size-4" />
-						<span>Search</span>
+						<SearchIcon aria-hidden="true" />
+						Search
+						<KbdGroup className="absolute top-1/2 right-2 -translate-y-1/2">
+							<Kbd>⌘</Kbd>
+							<Kbd>K</Kbd>
+						</KbdGroup>
 					</Button>
-					<Kbd className="absolute top-1/2 right-2 -translate-y-1/2">
-						Ctrl K
-					</Kbd>
 				</div>
 			</SidebarHeader>
 

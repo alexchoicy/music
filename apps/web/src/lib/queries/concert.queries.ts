@@ -23,11 +23,8 @@ export const concertQueries = {
 					? `/concerts?${params.toString()}`
 					: "/concerts";
 
-				const result = await $APIFetch<
-					components["schemas"]["ConcertListItem"][]
-				>(url, {
-					method: "GET",
-				});
+				const result =
+					await $APIFetch<components["schemas"]["ConcertListItem"][]>(url);
 				if (!result.ok) return [];
 				return result.data;
 			},

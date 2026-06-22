@@ -465,6 +465,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/concerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Search?: string;
+                    PartyIds?: (number | string)[];
+                    IsIncludeInGuestCredit?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ConcertListItem"][];
+                        "application/json": components["schemas"]["ConcertListItem"][];
+                        "text/json": components["schemas"]["ConcertListItem"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/concerts/{id}": {
         parameters: {
             query?: never;
@@ -503,47 +544,6 @@ export interface paths {
                         "text/plain": components["schemas"]["ProblemDetails"];
                         "application/json": components["schemas"]["ProblemDetails"];
                         "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/concerts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: {
-                    Search?: string;
-                    PartyIds?: (number | string)[];
-                    IsIncludeInGuestCredit?: boolean;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ConcertListItem"][];
-                        "application/json": components["schemas"]["ConcertListItem"][];
-                        "text/json": components["schemas"]["ConcertListItem"][];
                     };
                 };
             };
@@ -875,6 +875,56 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Query?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["SearchResult"];
+                        "application/json": components["schemas"]["SearchResult"];
+                        "text/json": components["schemas"]["SearchResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/uploads/Init": {
         parameters: {
             query?: never;
@@ -1100,10 +1150,23 @@ export interface components {
             coverVariants?: components["schemas"]["AlbumCoverVariant"][];
             discCovers?: components["schemas"]["AlbumDiscCoverDetails"][];
             artists: components["schemas"]["AlbumListArtist"][];
+            matchedTracks?: components["schemas"]["AlbumListMatchedTrack"][];
             /** Format: int32 */
             trackCount: number | string;
             /** Format: int32 */
             totalDurationInMs: number | string;
+        };
+        AlbumListMatchedTrack: {
+            /** Format: int32 */
+            trackId: number | string;
+            /** Format: int32 */
+            discNumber: number | string;
+            /** Format: int32 */
+            trackNumber: number | string;
+            title: string;
+            /** Format: int32 */
+            basedOnTrackId?: null | number | string;
+            basedOnTrackTitle?: null | string;
         };
         AlbumPartyCredit: {
             /** Format: int32 */
@@ -1532,6 +1595,11 @@ export interface components {
         RerunConcertWorkerRequest: {
             /** Format: uuid */
             objectId: string;
+        };
+        SearchResult: {
+            albums: components["schemas"]["AlbumListItem"][];
+            concerts: components["schemas"]["ConcertListItem"][];
+            parties: components["schemas"]["PartyItems"][];
         };
         TrackAudioDetails: {
             /** Format: int32 */

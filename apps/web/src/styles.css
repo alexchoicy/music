@@ -52,6 +52,18 @@
 			background-position: -200% 0;
 		}
 	}
+	--animate-track-highlight: track-highlight 1.4s ease-in-out both;
+	@keyframes track-highlight {
+		0%,
+		18% {
+			background-color: --theme(--color-primary/10%);
+			box-shadow: 0 0 2rem --theme(--color-primary/22%);
+		}
+		to {
+			background-color: transparent;
+			box-shadow: 0 0 0 --theme(--color-primary/0%);
+		}
+	}
 	--animate-caret-blink: 1s ease-out infinite caret-blink;
 	--animate-toast-success-odd: toast-success-odd 0.32s
 		cubic-bezier(0.5, 1, 0.89, 1);

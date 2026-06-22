@@ -18,6 +18,7 @@ using Music.Core.Services.Concerts;
 using Music.Core.Services.Files;
 using Music.Core.Services.Languages;
 using Music.Core.Services.Parties;
+using Music.Core.Services.Search;
 using Music.Core.Services.Uploads;
 using Music.Core.Services.Uploads.Requests;
 using Music.Core.Services.Uploads.Results;
@@ -34,6 +35,7 @@ using Music.Infrastructure.Services.Language;
 using Music.Infrastructure.Services.Me;
 using Music.Infrastructure.Services.Media;
 using Music.Infrastructure.Services.Party;
+using Music.Infrastructure.Services.Search;
 using Music.Infrastructure.Services.Upload;
 using Music.Infrastructure.Storages.S3;
 using Music.Infrastructure.Workers;
@@ -77,6 +79,7 @@ public static class DependencyInjection
         services.AddScoped<IMeService, MeService>();
         services.AddScoped<IPartyService, PartyService>();
         services.AddScoped<IConcertService, ConcertService>();
+        services.AddScoped<ISearchService, SearchService>();
         services.AddScoped<IFileUrlService, FileUrlService>();
         // services.AddScoped<IMigrationService, MigrationService>();
 

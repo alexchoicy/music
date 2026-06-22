@@ -21,10 +21,8 @@ export const partyQueries = {
 
 				const url = params.size ? `/parties?${params}` : "/parties";
 
-				const result = await $APIFetch<components["schemas"]["PartyItems"][]>(
-					url,
-					{ method: "GET" },
-				);
+				const result =
+					await $APIFetch<components["schemas"]["PartyItems"][]>(url);
 
 				if (!result.ok) {
 					throw new Error("Unable to load parties");
