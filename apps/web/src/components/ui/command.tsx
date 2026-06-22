@@ -1,6 +1,9 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import {
+	ArrowDownIcon,
+	ArrowUpIcon,
+	CornerDownLeftIcon,
 	Disc3Icon,
 	MicVocalIcon,
 	Music2Icon,
@@ -19,10 +22,13 @@ import {
 	CommandInput,
 	CommandItem,
 	CommandList,
+	CommandFooter,
 } from "#/components/coss/command";
 import type { components } from "#/data/APIschema";
 import { searchQueries } from "#/lib/queries/search.queries";
 import { getCoverUrl } from "#/lib/utils/album";
+
+import { Kbd, KbdGroup } from "../coss/kbd";
 
 type SearchResult = components["schemas"]["SearchResult"];
 type SearchItem =
@@ -199,7 +205,7 @@ export function Command({ onOpenChange, open }: CommandProps) {
 							);
 							if (item) openItem(item);
 						}}
-						placeholder="Search albums, concerts, parties..."
+						placeholder="Search albums, tracks, concerts, parties..."
 					/>
 					<CommandEmpty>
 						{isFetching ? "Searching..." : "No results found."}
@@ -223,6 +229,31 @@ export function Command({ onOpenChange, open }: CommandProps) {
 						/>
 					</CommandList>
 				</CommandRoot>
+				<CommandFooter>
+					<div className="flex items-center gap-4">
+						<div className="flex items-center gap-2">
+							<KbdGroup>
+								<Kbd>
+									<ArrowUpIcon />
+								</Kbd>
+								<Kbd>
+									<ArrowDownIcon />
+								</Kbd>
+							</KbdGroup>
+							<span>Navigate</span>
+						</div>
+						<div className="flex items-center gap-2">
+							<Kbd>
+								<CornerDownLeftIcon />
+							</Kbd>
+							<span>Open</span>
+						</div>
+					</div>
+					<div className="flex items-center gap-2">
+						<Kbd>Esc</Kbd>
+						<span>Close</span>
+					</div>
+				</CommandFooter>
 			</CommandDialogPopup>
 		</CommandDialog>
 	);
