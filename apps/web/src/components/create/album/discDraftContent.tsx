@@ -1,5 +1,6 @@
 import { Disc3Icon } from "lucide-react";
 
+import { CroppedImagePreview } from "#/components/croppedImagePreview";
 import { useAlbumUploadStore } from "#/store/albumUploadStore";
 import type { DiscLocalId, TrackLocalId } from "#/store/albumUploadStoreType";
 
@@ -15,14 +16,32 @@ export function DiscDraftContent({
 	onOpenTrackDraftDialog,
 }: DiscDraftContentProps) {
 	const disc = useAlbumUploadStore((state) => state.discsById[discId]);
+	const cover = useAlbumUploadStore((state) => {
+		const discDraft = state.discsById[discId];
+		const album = state.albumsById[discDraft.albumId];
+		const coverAssetIdByHash =
+			discDraft.coverAssetIdByHash ?? album.coverAssetIdByHash;
+
+		return coverAssetIdByHash
+			? state.coverAssetsIdByHash[coverAssetIdByHash]
+			: undefined;
+	});
 
 	const trackCount = disc.trackIds.length;
 
 	return (
 		<section key={disc.localId} className="border-b last:border-b-0">
 			<div className="flex items-center justify-between gap-4 bg-muted/35 px-4 py-3 text-sm sm:px-6">
-				<div className="flex min-w-0 items-center gap-2 font-semibold tracking-wide text-muted-foreground uppercase">
-					<Disc3Icon aria-hidden="true" className="size-4 shrink-0" />
+				<div className="flex min-w-0 items-center gap-3 font-semibold tracking-wide text-muted-foreground uppercase">
+					<CroppedImagePreview
+						alt={`Disc ${disc.discNumber} cover`}
+						className="size-10 shrink-0"
+						croppedArea={cover?.croppedArea}
+						fallback={<Disc3Icon aria-hidden="true" className="size-4" />}
+						height={cover?.height ?? 0}
+						src={cover?.localURL}
+						width={cover?.width ?? 0}
+					/>
 					<span className="truncate">
 						Disc {disc.discNumber}
 						{disc.subtitle ? ` - ${disc.subtitle}` : ""}

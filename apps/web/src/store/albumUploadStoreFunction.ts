@@ -43,6 +43,17 @@ export function buildAlbumRequests(
 	return state.albumOrder.map((albumId) => {
 		const album = state.albumsById[albumId];
 		const hasMultipleDiscs = album.discIds.length > 1;
+		const hasDiscSpecificCover =
+			hasMultipleDiscs &&
+			album.discIds.some((discId) => {
+				const discCoverAssetIdByHash =
+					state.discsById[discId].coverAssetIdByHash;
+
+				return (
+					discCoverAssetIdByHash &&
+					discCoverAssetIdByHash !== album.coverAssetIdByHash
+				);
+			});
 
 		return {
 			clientTempAlbumId: album.clientTempAlbumId,
@@ -57,15 +68,15 @@ export function buildAlbumRequests(
 				: null,
 			discs: album.discIds.map((discId) => {
 				const disc = state.discsById[discId];
+				const discCoverAssetIdByHash =
+					disc.coverAssetIdByHash ?? album.coverAssetIdByHash;
 
 				return {
 					discNumber: disc.discNumber,
 					subtitle: disc.subtitle,
 					image:
-						hasMultipleDiscs &&
-						disc.coverAssetIdByHash &&
-						disc.coverAssetIdByHash !== album.coverAssetIdByHash
-							? state.coverAssetsIdByHash[disc.coverAssetIdByHash]?.imageRequest
+						hasDiscSpecificCover && discCoverAssetIdByHash
+							? state.coverAssetsIdByHash[discCoverAssetIdByHash]?.imageRequest
 							: null,
 					tracks: disc.trackIds.map((trackId) => {
 						const track = state.tracksById[trackId];
@@ -162,13 +173,16 @@ function getMetadata(
 }
 
 function upsertCoverAsset(state: AlbumUploadState, coverAsset: CoverAsset) {
-	const existingId = state.coverAssetsIdByHash[coverAsset.blake3Hash];
+	if (Object.hasOwn(state.coverAssetsIdByHash, coverAsset.blake3Hash)) {
+		const existingAsset = state.coverAssetsIdByHash[coverAsset.blake3Hash];
 
-	if (existingId) {
-		URL.revokeObjectURL(coverAsset.localURL);
-		existingId.croppedArea = coverAsset.croppedArea;
-		existingId.imageRequest.croppedArea = coverAsset.imageRequest.croppedArea;
-		return existingId.blake3Hash;
+		if (existingAsset.localURL !== coverAsset.localURL) {
+			URL.revokeObjectURL(coverAsset.localURL);
+		}
+		existingAsset.croppedArea = coverAsset.croppedArea;
+		existingAsset.imageRequest.croppedArea =
+			coverAsset.imageRequest.croppedArea;
+		return existingAsset.blake3Hash;
 	}
 
 	state.coverAssetsIdByHash[coverAsset.blake3Hash] = coverAsset;

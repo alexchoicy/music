@@ -258,8 +258,8 @@ function AlbumDraftEditDialogForm({
 					<div className="grid gap-1">
 						<h3 className="text-sm font-semibold">Discs</h3>
 						<p className="text-xs text-muted-foreground">
-							Optional subtitles for each disc. Multi-disc releases can also use
-							separate disc cover images.
+							Optional subtitles for each disc. Disc 1 uses the album cover;
+							Disc 2+ can use alternate cover images.
 						</p>
 					</div>
 					{discs.length > 1 && (
@@ -276,36 +276,44 @@ function AlbumDraftEditDialogForm({
 									Use album cover for all discs
 								</Label>
 								<p className="text-xs leading-snug text-muted-foreground">
-									Uncheck to upload different cover images for individual discs.
+									Uncheck to upload different cover images for Disc 2 and later.
 								</p>
 							</div>
 						</div>
 					)}
 					<div className="grid gap-4">
-						{discs.map((disc) => {
+						{discs.map((disc, index) => {
 							const subtitleInputId = `${discSubtitleId}-${disc.localId}`;
 							const coverInputId = `${discCoverInputId}-${disc.localId}`;
 
 							return (
 								<div key={disc.localId} className="grid gap-4">
-									{discs.length > 1 && !form.useAlbumCoverForDiscs && (
-										<CoverImageField
-											cover={
-												pendingDiscCoversById[disc.localId] ??
-												discCoversById[disc.localId] ??
-												cover
-											}
-											inputId={coverInputId}
-											label={`Disc ${disc.discNumber} cover`}
-											name={`discCover-${disc.localId}`}
-											onFileChange={(event) =>
-												handleCoverImageChange(event, {
-													type: "disc",
-													discId: disc.localId,
-												})
-											}
-										/>
-									)}
+									{discs.length > 1 &&
+										!form.useAlbumCoverForDiscs &&
+										index > 0 && (
+											<CoverImageField
+												cover={
+													pendingDiscCoversById[disc.localId] ??
+													discCoversById[disc.localId]
+												}
+												inputId={coverInputId}
+												label={`Disc ${disc.discNumber} cover`}
+												name={`discCover-${disc.localId}`}
+												onFileChange={(event) =>
+													handleCoverImageChange(event, {
+														type: "disc",
+														discId: disc.localId,
+													})
+												}
+											/>
+										)}
+									{discs.length > 1 &&
+										!form.useAlbumCoverForDiscs &&
+										index === 0 && (
+											<p className="rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground">
+												Disc {disc.discNumber} uses the album cover.
+											</p>
+										)}
 									<Field name={`discSubtitle-${disc.localId}`}>
 										<FieldLabel htmlFor={subtitleInputId}>
 											Disc {disc.discNumber} subtitle
@@ -411,6 +419,10 @@ function AlbumDraftEditDialogForm({
 	);
 }
 
+function revokeCoverAssetURL(cover: CoverAsset | null | undefined) {
+	if (cover) URL.revokeObjectURL(cover.localURL);
+}
+
 export function AlbumDraftEditDialog({
 	albumId,
 	onOpenChange,
@@ -461,6 +473,13 @@ export function AlbumDraftEditDialog({
 		Partial<Record<DiscLocalId, CoverAsset>>
 	>({});
 
+	function cleanupPendingCovers() {
+		revokeCoverAssetURL(pendingCover);
+		for (const cover of Object.values(pendingDiscCoversById)) {
+			revokeCoverAssetURL(cover);
+		}
+	}
+
 	function updateForm(nextValue: Partial<EditAlbumDraftFormValue>) {
 		setForm((current) => ({ ...current, ...nextValue }));
 	}
@@ -484,13 +503,27 @@ export function AlbumDraftEditDialog({
 			discCoversForSubmit[discs[0].localId] = null;
 		} else if (form.useAlbumCoverForDiscs) {
 			for (const disc of discs) {
-				discCoversForSubmit[disc.localId] = coverPreview ?? null;
+				discCoversForSubmit[disc.localId] = null;
+			}
+			for (const cover of Object.values(pendingDiscCoversById)) {
+				revokeCoverAssetURL(cover);
 			}
 		} else {
-			for (const [discId, pendingDiscCover] of Object.entries(
-				pendingDiscCoversById,
-			)) {
-				discCoversForSubmit[discId] = pendingDiscCover;
+			discCoversForSubmit[discs[0].localId] = coverPreview ?? null;
+
+			for (const disc of discs.slice(1)) {
+				const discCover =
+					pendingDiscCoversById[disc.localId] ?? discCoversById[disc.localId];
+				const usesAlbumCover =
+					discCover?.blake3Hash === coverPreview?.blake3Hash;
+
+				if (usesAlbumCover) {
+					revokeCoverAssetURL(pendingDiscCoversById[disc.localId]);
+				}
+
+				discCoversForSubmit[disc.localId] = usesAlbumCover
+					? null
+					: (discCover ?? null);
 			}
 		}
 
@@ -524,7 +557,6 @@ export function AlbumDraftEditDialog({
 
 	const handleCoverCropCloseComplete = () => {
 		if (!isCoverCropOpen) {
-			console.log("cover crop closed");
 			if (coverImageCandidate) URL.revokeObjectURL(coverImageCandidate.src);
 			setCoverImageCandidate(null);
 		}
@@ -537,14 +569,21 @@ export function AlbumDraftEditDialog({
 		const coverAsset = await createCoverAsset(file, file.name, croppedArea);
 
 		if (coverAsset && target.type === "album") {
-			setPendingCover(coverAsset);
+			setPendingCover((current) => {
+				revokeCoverAssetURL(current);
+				return coverAsset;
+			});
 		} else if (coverAsset && target.type === "disc") {
 			const { discId } = target;
 
-			setPendingDiscCoversById((current) => ({
-				...current,
-				[discId]: coverAsset,
-			}));
+			setPendingDiscCoversById((current) => {
+				revokeCoverAssetURL(current[discId]);
+
+				return {
+					...current,
+					[discId]: coverAsset,
+				};
+			});
 		}
 		setIsCoverCropOpen(false);
 	};
@@ -586,7 +625,11 @@ export function AlbumDraftEditDialog({
 							/>
 						</DialogPanel>
 						<DialogFooter>
-							<DialogClose render={<Button variant="ghost" />}>
+							<DialogClose
+								render={
+									<Button onClick={cleanupPendingCovers} variant="ghost" />
+								}
+							>
 								Cancel
 							</DialogClose>
 							<Button type="submit">Save draft</Button>

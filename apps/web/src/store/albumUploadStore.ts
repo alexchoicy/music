@@ -57,6 +57,12 @@ function createInitialState(
 	};
 }
 
+function revokeCoverAssetURLs(state: AlbumUploadState) {
+	for (const coverAsset of Object.values(state.coverAssetsIdByHash)) {
+		URL.revokeObjectURL(coverAsset.localURL);
+	}
+}
+
 async function uploadImagesBestEffort(
 	upload: CreateAlbumResultUpload,
 	state: AlbumUploadState,
@@ -272,7 +278,10 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 				}
 			},
 			clear: () => {
-				set(() => createInitialState());
+				set((state) => {
+					revokeCoverAssetURLs(state);
+					return createInitialState();
+				});
 			},
 			removeAlbumDraft: (albumId) => {
 				set((state) => removeAlbumDraft(state, albumId));
