@@ -148,6 +148,7 @@ export function PartyCombobox({
 					normalizedName: normalizedTrimmedQuery,
 					partyId: 0,
 					type: "Individual",
+					albumCount: 0,
 				},
 			]
 		: filteredParties;

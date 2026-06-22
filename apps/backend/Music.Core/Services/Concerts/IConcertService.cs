@@ -5,7 +5,10 @@ namespace Music.Core.Services.Concerts;
 
 public interface IConcertService
 {
-    Task<IReadOnlyList<ConcertListItem>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ConcertListItem>> GetAllAsync(
+        ConcertListRequest request,
+        CancellationToken cancellationToken = default
+    );
 
     Task<ConcertDetails> GetByIdAsync(int concertId, CancellationToken cancellationToken = default);
 

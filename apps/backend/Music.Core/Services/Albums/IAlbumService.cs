@@ -23,6 +23,7 @@ public interface IAlbumService
     );
 
     Task<IReadOnlyList<AlbumListItem>> GetAllForListAsync(
+        AlbumListRequest request,
         CancellationToken cancellationToken = default
     );
 

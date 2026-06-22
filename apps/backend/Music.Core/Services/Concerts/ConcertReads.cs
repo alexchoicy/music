@@ -15,6 +15,13 @@ using Music.Core.Services.Parties.Requests;
 
 namespace Music.Core.Services.Concerts;
 
+public sealed class ConcertListRequest
+{
+    public string? Search { get; init; }
+    public IReadOnlyList<int>? PartyIds { get; init; }
+    public bool IsIncludeInGuestCredit { get; init; }
+}
+
 public sealed class ConcertCoverVariant
 {
     public required FileObjectVariant Variant { get; init; }
@@ -33,6 +40,7 @@ public sealed class ConcertListItem
 {
     public required int ConcertId { get; init; }
     public required string Title { get; init; } = string.Empty;
+    public double Similarity { get; init; }
     public string Description { get; init; } = string.Empty;
     public DateTimeOffset? Date { get; init; }
     public required IReadOnlyList<ConcertCoverVariant> CoverVariants { get; init; } = [];

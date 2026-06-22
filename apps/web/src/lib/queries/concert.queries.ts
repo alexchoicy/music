@@ -1,17 +1,31 @@
 import { queryOptions } from "@tanstack/react-query";
 
-import type { components } from "#/data/APIschema";
+import type { components, paths } from "#/data/APIschema";
 
 import { $APIFetch } from "../APIFetchClient";
 
+export type ConcertQuery = paths["/concerts"]["get"]["parameters"]["query"];
+
 export const concertQueries = {
-	getConcerts: () =>
+	getConcerts: (query?: ConcertQuery) =>
 		queryOptions({
-			queryKey: ["concerts"],
+			queryKey: ["concerts", query],
 			queryFn: async () => {
+				const params = new URLSearchParams();
+
+				if (query?.Search) params.append("Search", query.Search);
+				if (query?.PartyIds)
+					query.PartyIds.map((item) => params.append("PartyIds", String(item)));
+				if (query?.IsIncludeInGuestCredit)
+					params.append("IsIncludeInGuestCredit", "true");
+
+				const url = params.size
+					? `/concerts?${params.toString()}`
+					: "/concerts";
+
 				const result = await $APIFetch<
 					components["schemas"]["ConcertListItem"][]
-				>("/concerts", {
+				>(url, {
 					method: "GET",
 				});
 				if (!result.ok) return [];

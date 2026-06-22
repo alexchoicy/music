@@ -13,23 +13,34 @@ type OptionSelectFieldOption<Id> = {
 	value: string;
 };
 
-type OptionSelectFieldProps<Id> = {
+type OptionSelectFieldSharedProps<Id> = {
 	className?: string;
 	description?: React.ReactNode;
 	id: string;
 	label: string;
 	name: string;
-	onValueChange: (id: Id | undefined) => void;
 	options: OptionSelectFieldOption<Id>[];
 	placeholder: string;
-	value: OptionSelectFieldOption<Id>;
 };
+
+type OptionSelectFieldProps<Id> =
+	| (OptionSelectFieldSharedProps<Id> & {
+			onValueChange: (id: Id | undefined) => void;
+			multiple?: false;
+			value: OptionSelectFieldOption<Id>;
+	  })
+	| (OptionSelectFieldSharedProps<Id> & {
+			onValueChange: (ids: Id[]) => void;
+			multiple: true;
+			value: OptionSelectFieldOption<Id>[];
+	  });
 
 export function OptionSelectField<Id>({
 	className,
 	description,
 	id,
 	label,
+	multiple,
 	name,
 	onValueChange,
 	options,
@@ -43,8 +54,16 @@ export function OptionSelectField<Id>({
 				items={options}
 				itemToStringLabel={(option) => option.label}
 				itemToStringValue={(option) => option.value}
+				multiple={multiple}
 				name={name}
-				onValueChange={(option) => onValueChange(option?.id)}
+				onValueChange={(option) => {
+					if (Array.isArray(option)) {
+						if (multiple) onValueChange(option.map((item) => item.id));
+						return;
+					}
+
+					if (!multiple) onValueChange(option?.id);
+				}}
 				value={value}
 			>
 				<SelectTrigger id={id}>

@@ -33,9 +33,13 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
     [Authorize]
     [Produces("application/json")]
     [ProducesResponseType(typeof(IReadOnlyList<AlbumListItem>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllForList(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAllForList(
+        [FromQuery] AlbumListRequest request,
+        CancellationToken cancellationToken
+    )
     {
         IReadOnlyList<AlbumListItem> list = await _albumService.GetAllForListAsync(
+            request,
             cancellationToken
         );
         return Ok(list);

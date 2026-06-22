@@ -13,6 +13,14 @@ using Music.Core.Services.Tracks.Enums;
 
 namespace Music.Core.Services.Albums;
 
+public sealed class AlbumListRequest
+{
+    public string? Search { get; init; }
+    public IReadOnlyList<AlbumType>? Types { get; init; }
+    public IReadOnlyList<int>? PartyIds { get; init; }
+    public bool IsIncludeInTrackCredit { get; init; }
+}
+
 public sealed class AlbumSummary
 {
     public required string Title { get; init; } = string.Empty;

@@ -6,6 +6,7 @@ using Music.Core.Common.Utils;
 using Music.Core.Entities;
 using Music.Core.Options;
 using Music.Core.Services.Concerts;
+using Music.Core.Services.Concerts.Enums;
 using Music.Core.Services.Concerts.Requests;
 using Music.Core.Services.Concerts.Results;
 using Music.Core.Services.Files.Enums;
@@ -202,15 +203,14 @@ public class ConcertService(
             concertImageModel.File.OriginalFileName
         );
 
-        (StoredFile storedFile, FileObject fileObject) =
-            assetsService.CreateStoredFileWithObject(
-                concertImageModel.File,
-                FileType.Image,
-                imagePath,
-                StorageArea.Assets,
-                FileObjectVariant.Original,
-                userId
-            );
+        (StoredFile storedFile, FileObject fileObject) = assetsService.CreateStoredFileWithObject(
+            concertImageModel.File,
+            FileType.Image,
+            imagePath,
+            StorageArea.Assets,
+            FileObjectVariant.Original,
+            userId
+        );
 
         dbContext.StoredFiles.Add(storedFile);
         dbContext.FileObjects.Add(fileObject);
@@ -249,11 +249,43 @@ public class ConcertService(
     }
 
     public async Task<IReadOnlyList<ConcertListItem>> GetAllAsync(
+        ConcertListRequest request,
         CancellationToken cancellationToken = default
     )
     {
-        List<Core.Entities.Concert> concerts = await dbContext
-            .Concerts.AsNoTracking()
+        IQueryable<Core.Entities.Concert> query = dbContext.Concerts.AsNoTracking();
+
+        string normalizedSearch = StringUtils.NormalizeString(request.Search ?? string.Empty);
+        string searchPattern = $"%{normalizedSearch}%";
+
+        if (normalizedSearch.Length > 0)
+        {
+            query = query.Where(concert =>
+                EF.Functions.Like(
+                    AppDbContext.ImmutableUnaccent(concert.NormalizedTitle),
+                    AppDbContext.ImmutableUnaccent(searchPattern)
+                )
+                || EF.Functions.TrigramsAreSimilar(
+                    AppDbContext.ImmutableUnaccent(concert.NormalizedTitle),
+                    AppDbContext.ImmutableUnaccent(normalizedSearch)
+                )
+            );
+        }
+
+        if (request.PartyIds?.Count > 0)
+        {
+            query = query.Where(concert =>
+                concert.ConcertParties.Any(concertParty =>
+                    request.PartyIds.Contains(concertParty.PartyId)
+                    && (
+                        concertParty.Role == ConcertPartyRole.MainArtist
+                        || request.IsIncludeInGuestCredit
+                    )
+                )
+            );
+        }
+
+        List<Core.Entities.Concert> concerts = await query
             .AsSplitQuery()
             .Include(concert => concert.Images)
                 .ThenInclude(image => image.File)

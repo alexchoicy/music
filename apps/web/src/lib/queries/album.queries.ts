@@ -1,17 +1,31 @@
 import { queryOptions } from "@tanstack/react-query";
 
-import type { components } from "#/data/APIschema";
+import type { components, paths } from "#/data/APIschema";
 
 import { $APIFetch } from "../APIFetchClient";
 
+export type AlbumQuery = paths["/albums"]["get"]["parameters"]["query"];
+
 export const albumQueries = {
-	getAlbums: () =>
+	getAlbums: (query?: AlbumQuery) =>
 		queryOptions({
-			queryKey: ["albums"],
+			queryKey: ["albums", query],
 			queryFn: async () => {
+				const params = new URLSearchParams();
+
+				if (query?.Search) params.append("Search", query.Search);
+				if (query?.Types)
+					query.Types.map((item) => params.append("Types", item));
+				if (query?.PartyIds)
+					query.PartyIds.map((item) => params.append("PartyIds", String(item)));
+				if (query?.IsIncludeInTrackCredit)
+					params.append("IsIncludeInTrackCredit", "true");
+
+				const url = params.size ? `/albums?${params.toString()}` : "/albums";
+
 				const result = await $APIFetch<
 					components["schemas"]["AlbumListItem"][]
-				>("/albums", {
+				>(url, {
 					method: "GET",
 				});
 				if (!result.ok) return [];

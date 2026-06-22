@@ -58,9 +58,13 @@ public sealed class ConcertController(IConcertService concertService) : Controll
 
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<ConcertListItem>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] ConcertListRequest concertListRequest,
+        CancellationToken cancellationToken
+    )
     {
         IReadOnlyList<ConcertListItem> concerts = await _concertService.GetAllAsync(
+            concertListRequest,
             cancellationToken
         );
         return Ok(concerts);

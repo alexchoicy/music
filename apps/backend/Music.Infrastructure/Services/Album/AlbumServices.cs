@@ -32,11 +32,86 @@ public class AlbumService(
     private readonly ILogger<AlbumService> _logger = logger;
 
     public async Task<IReadOnlyList<AlbumListItem>> GetAllForListAsync(
+        AlbumListRequest request,
         CancellationToken cancellationToken = default
     )
     {
-        List<Core.Entities.Album> albums = await _dbContext
-            .Albums.AsNoTracking()
+        IQueryable<Core.Entities.Album> query = _dbContext.Albums.AsNoTracking();
+
+        string normalizedSearch = StringUtils.NormalizeString(request.Search ?? string.Empty);
+        string searchPattern = $"%{normalizedSearch}%";
+        bool hasSearch = normalizedSearch.Length > 0;
+
+        if (request.Types?.Count > 0)
+        {
+            query = query.Where(album => request.Types.Contains(album.Type));
+        }
+
+        if (request.PartyIds?.Count > 0)
+        {
+            query = query.Where(album =>
+                album.Credits.Any(credit => request.PartyIds.Contains(credit.PartyId))
+                || (
+                    request.IsIncludeInTrackCredit
+                    && album.Discs.Any(disc =>
+                        disc.Tracks.Any(albumTrack =>
+                            albumTrack.Track != null
+                            && albumTrack.Track.Credits.Any(credit =>
+                                request.PartyIds.Contains(credit.PartyId)
+                            )
+                        )
+                    )
+                )
+            );
+        }
+
+        if (hasSearch)
+        {
+            query = query.Where(album =>
+                EF.Functions.Like(
+                    AppDbContext.ImmutableUnaccent(album.NormalizedTitle),
+                    AppDbContext.ImmutableUnaccent(searchPattern)
+                )
+                || EF.Functions.TrigramsAreSimilar(
+                    AppDbContext.ImmutableUnaccent(album.NormalizedTitle),
+                    AppDbContext.ImmutableUnaccent(normalizedSearch)
+                )
+                || album.Discs.Any(disc =>
+                    disc.Tracks.Any(albumTrack =>
+                        albumTrack.Track != null
+                        && (
+                            EF.Functions.Like(
+                                AppDbContext.ImmutableUnaccent(albumTrack.Track.NormalizedTitle),
+                                AppDbContext.ImmutableUnaccent(searchPattern)
+                            )
+                            || EF.Functions.TrigramsAreSimilar(
+                                AppDbContext.ImmutableUnaccent(albumTrack.Track.NormalizedTitle),
+                                AppDbContext.ImmutableUnaccent(normalizedSearch)
+                            )
+                            || (
+                                albumTrack.Track.BasedOnTrack != null
+                                && (
+                                    EF.Functions.Like(
+                                        AppDbContext.ImmutableUnaccent(
+                                            albumTrack.Track.BasedOnTrack.NormalizedTitle
+                                        ),
+                                        AppDbContext.ImmutableUnaccent(searchPattern)
+                                    )
+                                    || EF.Functions.TrigramsAreSimilar(
+                                        AppDbContext.ImmutableUnaccent(
+                                            albumTrack.Track.BasedOnTrack.NormalizedTitle
+                                        ),
+                                        AppDbContext.ImmutableUnaccent(normalizedSearch)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+
+        List<Core.Entities.Album> albums = await query
             .AsSplitQuery()
             .Include(a => a.Credits)
                 .ThenInclude(c => c.Party)
