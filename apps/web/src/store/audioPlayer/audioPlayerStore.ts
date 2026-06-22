@@ -1,7 +1,7 @@
 import type WaveSurfer from "wavesurfer.js";
 import type { WaveSurferOptions } from "wavesurfer.js";
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { createJSONStorage, devtools, persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
 import { isProbablyPhone } from "#/lib/utils/browser";
@@ -14,6 +14,15 @@ import type {
 } from "./audioPlayerType";
 
 type AudioPlayerStore = AudioPlayerState & AudioPlayerAction;
+type AudioPlayerPersistedState = Pick<
+	AudioPlayerState,
+	| "volume"
+	| "muted"
+	| "repeatMode"
+	| "shuffle"
+	| "playbackQuality"
+	| "playTalkTrack"
+>;
 
 let waveSurfer: WaveSurfer | null = null;
 let loadRequestId = 0;
@@ -261,252 +270,268 @@ async function loadAndPlay(
 
 export const useAudioPlayerStore = create<AudioPlayerStore>()(
 	devtools(
-		immer((set, get) => ({
-			...initialState,
-			bindWaveSurfer: (instance: WaveSurfer | null) => {
-				console.log("[audio-player] bindWaveSurfer", {
-					bound: Boolean(instance),
-				});
-				waveSurfer = instance;
+		persist(
+			immer((set, get) => ({
+				...initialState,
+				bindWaveSurfer: (instance: WaveSurfer | null) => {
+					console.log("[audio-player] bindWaveSurfer", {
+						bound: Boolean(instance),
+					});
+					waveSurfer = instance;
 
-				if (!waveSurfer) return;
+					if (!waveSurfer) return;
 
-				waveSurfer.setVolume(get().volume);
-				waveSurfer.setMuted(get().muted);
+					waveSurfer.setVolume(get().volume);
+					waveSurfer.setMuted(get().muted);
 
-				if (get().status === "idle") resetWaveSurferToIdle();
-			},
-			playAlbum: (album: AudioPlayerTrack[], trackId?: string) => {
-				console.log("[audio-player] playAlbum", {
-					trackCount: album.length,
-					trackId,
-				});
+					if (get().status === "idle") resetWaveSurferToIdle();
+				},
+				playAlbum: (album: AudioPlayerTrack[], trackId?: string) => {
+					console.log("[audio-player] playAlbum", {
+						trackCount: album.length,
+						trackId,
+					});
 
-				if (album.length === 0) {
-					console.log("[audio-player] playAlbum:empty album");
-					return;
-				}
+					if (album.length === 0) {
+						console.log("[audio-player] playAlbum:empty album");
+						return;
+					}
 
-				let index = 0;
-				if (trackId !== undefined) {
-					index = album.findIndex((item) => item.trackId === trackId);
-				}
-				if (index === -1) {
-					console.log("[audio-player] playAlbum:track not found", { trackId });
-					return;
-				}
+					let index = 0;
+					if (trackId !== undefined) {
+						index = album.findIndex((item) => item.trackId === trackId);
+					}
+					if (index === -1) {
+						console.log("[audio-player] playAlbum:track not found", {
+							trackId,
+						});
+						return;
+					}
 
-				const track = album[index];
-				console.log("[audio-player] playAlbum:selected", {
-					index,
-					trackId: track.trackId,
-					title: track.title,
-				});
-				set({ queue: album, index, status: "loading" });
-				loadAndPlay(get().playbackQuality, track);
-			},
-			addToQueue: (track: AudioPlayerTrack) => {
-				console.log("[audio-player] addToQueue", {
-					trackId: track.trackId,
-					title: track.title,
-				});
+					const track = album[index];
+					console.log("[audio-player] playAlbum:selected", {
+						index,
+						trackId: track.trackId,
+						title: track.title,
+					});
+					set({ queue: album, index, status: "loading" });
+					loadAndPlay(get().playbackQuality, track);
+				},
+				addToQueue: (track: AudioPlayerTrack) => {
+					console.log("[audio-player] addToQueue", {
+						trackId: track.trackId,
+						title: track.title,
+					});
 
-				set((state) => {
-					const wasEmpty = state.queue.length === 0;
-					state.queue.push(track);
+					set((state) => {
+						const wasEmpty = state.queue.length === 0;
+						state.queue.push(track);
 
-					if (wasEmpty) state.index = 0;
-				});
-			},
-			playQueueTrack: (index) => {
-				const { playbackQuality, queue } = get();
-				const track = queue.at(index);
-				if (!track) return;
+						if (wasEmpty) state.index = 0;
+					});
+				},
+				playQueueTrack: (index) => {
+					const { playbackQuality, queue } = get();
+					const track = queue.at(index);
+					if (!track) return;
 
-				set({ index, status: "loading" });
-				loadAndPlay(playbackQuality, track);
-			},
-			playNext: () => {
-				const { index, playbackQuality, queue, repeatMode, shuffle } = get();
-				const nextIndex = getNextIndex(
-					index,
-					queue.length,
-					repeatMode,
-					shuffle,
-				);
-				if (nextIndex === null) return;
+					set({ index, status: "loading" });
+					loadAndPlay(playbackQuality, track);
+				},
+				playNext: () => {
+					const { index, playbackQuality, queue, repeatMode, shuffle } = get();
+					const nextIndex = getNextIndex(
+						index,
+						queue.length,
+						repeatMode,
+						shuffle,
+					);
+					if (nextIndex === null) return;
 
-				const track = queue.at(nextIndex);
-				if (!track) return;
+					const track = queue.at(nextIndex);
+					if (!track) return;
 
-				set({ index: nextIndex, status: "loading" });
-				loadAndPlay(playbackQuality, track);
-			},
-			playPrev: () => {
-				const { index, playbackQuality, queue, repeatMode } = get();
-				const prevIndex = getPrevIndex(index, queue.length, repeatMode);
-				if (prevIndex === null) return;
+					set({ index: nextIndex, status: "loading" });
+					loadAndPlay(playbackQuality, track);
+				},
+				playPrev: () => {
+					const { index, playbackQuality, queue, repeatMode } = get();
+					const prevIndex = getPrevIndex(index, queue.length, repeatMode);
+					if (prevIndex === null) return;
 
-				const track = queue.at(prevIndex);
-				if (!track) return;
+					const track = queue.at(prevIndex);
+					if (!track) return;
 
-				set({ index: prevIndex, status: "loading" });
-				loadAndPlay(playbackQuality, track);
-			},
-			togglePlay: async () => {
-				const { index, playbackQuality, queue, status } = get();
-				const track = queue.at(index);
-				if (!track || status === "loading") return;
+					set({ index: prevIndex, status: "loading" });
+					loadAndPlay(playbackQuality, track);
+				},
+				togglePlay: async () => {
+					const { index, playbackQuality, queue, status } = get();
+					const track = queue.at(index);
+					if (!track || status === "loading") return;
 
-				if (status === "playing") {
+					if (status === "playing") {
+						waveSurfer?.pause();
+						return;
+					}
+
+					if (status === "paused" || status === "ready") {
+						try {
+							await waveSurfer?.play();
+							set({ status: "playing" });
+						} catch (error) {
+							console.log("[audio-player] togglePlay:play failed", error);
+						}
+
+						return;
+					}
+
+					set({ status: "loading" });
+					loadAndPlay(playbackQuality, track);
+				},
+				pause: () => {
 					waveSurfer?.pause();
-					return;
-				}
+					set((state) => {
+						if (state.status === "playing") state.status = "paused";
+					});
+				},
+				toggleRepeatMode: () => {
+					set((state) => {
+						if (state.repeatMode === "off") {
+							state.repeatMode = "all";
+							return;
+						}
 
-				if (status === "paused" || status === "ready") {
-					try {
-						await waveSurfer?.play();
-						set({ status: "playing" });
-					} catch (error) {
-						console.log("[audio-player] togglePlay:play failed", error);
-					}
+						if (state.repeatMode === "all") {
+							state.repeatMode = "one";
+							return;
+						}
 
-					return;
-				}
+						state.repeatMode = "off";
+					});
+				},
+				toggleShuffle: () => {
+					set((state) => {
+						state.shuffle = !state.shuffle;
+					});
+				},
+				setVolume: (volume) => {
+					const nextVolume = Math.min(Math.max(volume, 0), 1);
+					waveSurfer?.setVolume(nextVolume);
+					if (nextVolume > 0) waveSurfer?.setMuted(false);
 
-				set({ status: "loading" });
-				loadAndPlay(playbackQuality, track);
-			},
-			pause: () => {
-				waveSurfer?.pause();
-				set((state) => {
-					if (state.status === "playing") state.status = "paused";
-				});
-			},
-			toggleRepeatMode: () => {
-				set((state) => {
-					if (state.repeatMode === "off") {
-						state.repeatMode = "all";
+					set((state) => {
+						state.volume = nextVolume;
+						if (nextVolume > 0) state.muted = false;
+					});
+				},
+				setHidden: (hidden) => {
+					set({ hidden });
+				},
+				toggleMute: () => {
+					const muted = !get().muted;
+					waveSurfer?.setMuted(muted);
+					set({ muted });
+				},
+				setPlaybackQuality: (playbackQuality) => {
+					const { index, queue, status } = get();
+					if (playbackQuality === get().playbackQuality) return;
+
+					const track = queue.at(index);
+					if (!track || status === "idle") {
+						set({ playbackQuality });
 						return;
 					}
 
-					if (state.repeatMode === "all") {
-						state.repeatMode = "one";
+					const currentTime = waveSurfer?.getCurrentTime() ?? 0;
+					set({ playbackQuality, status: "loading" });
+					loadAndPlay(playbackQuality, track, {
+						autoplay: status === "playing",
+						currentTime,
+					});
+				},
+				setPlayTalkTrack: (playTalkTrack) => {
+					set({ playTalkTrack });
+				},
+				markReady: () => {
+					set((state) => {
+						if (state.status === "loading") state.status = "ready";
+					});
+				},
+				markPlaying: (playing) => {
+					set((state) => {
+						if (playing) {
+							if (state.status !== "idle") state.status = "playing";
+							return;
+						}
+
+						if (state.status === "playing") state.status = "paused";
+					});
+				},
+				markFinished: () => {
+					if (finishedRequestId === loadRequestId) return;
+
+					finishedRequestId = loadRequestId;
+					const {
+						index,
+						playbackQuality,
+						playTalkTrack,
+						queue,
+						repeatMode,
+						shuffle,
+					} = get();
+
+					if (queue.length === 0) {
+						console.log("[audio-player] markFinished:empty queue");
+						resetWaveSurferToIdle();
+						set({ status: "idle" });
 						return;
 					}
 
-					state.repeatMode = "off";
-				});
-			},
-			toggleShuffle: () => {
-				set((state) => {
-					state.shuffle = !state.shuffle;
-				});
-			},
-			setVolume: (volume) => {
-				const nextVolume = Math.min(Math.max(volume, 0), 1);
-				waveSurfer?.setVolume(nextVolume);
-				if (nextVolume > 0) waveSurfer?.setMuted(false);
-
-				set((state) => {
-					state.volume = nextVolume;
-					if (nextVolume > 0) state.muted = false;
-				});
-			},
-			setHidden: (hidden) => {
-				set({ hidden });
-			},
-			toggleMute: () => {
-				const muted = !get().muted;
-				waveSurfer?.setMuted(muted);
-				set({ muted });
-			},
-			setPlaybackQuality: (playbackQuality) => {
-				const { index, queue, status } = get();
-				if (playbackQuality === get().playbackQuality) return;
-
-				const track = queue.at(index);
-				if (!track || status === "idle") {
-					set({ playbackQuality });
-					return;
-				}
-
-				const currentTime = waveSurfer?.getCurrentTime() ?? 0;
-				set({ playbackQuality, status: "loading" });
-				loadAndPlay(playbackQuality, track, {
-					autoplay: status === "playing",
-					currentTime,
-				});
-			},
-			setPlayTalkTrack: (playTalkTrack) => {
-				set({ playTalkTrack });
-			},
-			markReady: () => {
-				set((state) => {
-					if (state.status === "loading") state.status = "ready";
-				});
-			},
-			markPlaying: (playing) => {
-				set((state) => {
-					if (playing) {
-						if (state.status !== "idle") state.status = "playing";
+					const nextIndex = getNextAutoIndex(
+						index,
+						queue,
+						repeatMode,
+						shuffle,
+						playTalkTrack,
+					);
+					if (nextIndex === null) {
+						console.log("[audio-player] markFinished:end of queue");
+						resetWaveSurferToIdle();
+						set({ status: "idle" });
 						return;
 					}
 
-					if (state.status === "playing") state.status = "paused";
-				});
+					const track = queue.at(nextIndex);
+					if (!track) {
+						console.log("[audio-player] markFinished:end of queue");
+						resetWaveSurferToIdle();
+						set({ status: "idle" });
+						return;
+					}
+
+					console.log("[audio-player] markFinished:next", {
+						index: nextIndex,
+						trackId: track.trackId,
+						title: track.title,
+					});
+
+					set({ index: nextIndex, status: "loading" });
+					loadAndPlay(playbackQuality, track);
+				},
+			})),
+			{
+				name: "audio-player-settings",
+				storage: createJSONStorage(() => localStorage),
+				partialize: (state): AudioPlayerPersistedState => ({
+					volume: state.volume,
+					muted: state.muted,
+					repeatMode: state.repeatMode,
+					shuffle: state.shuffle,
+					playbackQuality: state.playbackQuality,
+					playTalkTrack: state.playTalkTrack,
+				}),
 			},
-			markFinished: () => {
-				if (finishedRequestId === loadRequestId) return;
-
-				finishedRequestId = loadRequestId;
-				const {
-					index,
-					playbackQuality,
-					playTalkTrack,
-					queue,
-					repeatMode,
-					shuffle,
-				} = get();
-
-				if (queue.length === 0) {
-					console.log("[audio-player] markFinished:empty queue");
-					resetWaveSurferToIdle();
-					set({ status: "idle" });
-					return;
-				}
-
-				const nextIndex = getNextAutoIndex(
-					index,
-					queue,
-					repeatMode,
-					shuffle,
-					playTalkTrack,
-				);
-				if (nextIndex === null) {
-					console.log("[audio-player] markFinished:end of queue");
-					resetWaveSurferToIdle();
-					set({ status: "idle" });
-					return;
-				}
-
-				const track = queue.at(nextIndex);
-				if (!track) {
-					console.log("[audio-player] markFinished:end of queue");
-					resetWaveSurferToIdle();
-					set({ status: "idle" });
-					return;
-				}
-
-				console.log("[audio-player] markFinished:next", {
-					index: nextIndex,
-					trackId: track.trackId,
-					title: track.title,
-				});
-
-				set({ index: nextIndex, status: "loading" });
-				loadAndPlay(playbackQuality, track);
-			},
-		})),
+		),
 	),
 );
