@@ -183,6 +183,7 @@ export function ConcertTabContent() {
 						<Field name="concert-main-parties">
 							<FieldLabel>Main Parties</FieldLabel>
 							<PartyCombobox
+								allowCreate
 								ariaLabel="Main parties"
 								filterOutIds={guestIds}
 								placeholder="Search or create main parties..."
@@ -194,6 +195,7 @@ export function ConcertTabContent() {
 						<Field name="concert-guests">
 							<FieldLabel>Guests</FieldLabel>
 							<PartyCombobox
+								allowCreate
 								ariaLabel="Guests"
 								filterOutIds={mainPartyIds}
 								placeholder="Search or create guests..."

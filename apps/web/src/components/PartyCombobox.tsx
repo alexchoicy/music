@@ -1,10 +1,12 @@
 import {
+	keepPreviousData,
 	useMutation,
+	useQuery,
 	useQueryClient,
-	useSuspenseQuery,
+	useQueries,
 } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "#/components/coss/button";
 import {
@@ -16,6 +18,7 @@ import {
 	ComboboxItem,
 	ComboboxList,
 	ComboboxPopup,
+	ComboboxStatus,
 	ComboboxValue,
 } from "#/components/coss/combobox";
 import {
@@ -36,9 +39,7 @@ import type { components } from "#/data/APIschema";
 import {
 	COUNTRY_CODE,
 	COUNTRY_CODE_OPTIONS,
-	PARTY_KIND,
 	PARTY_KIND_OPTIONS,
-	PARTY_TYPE,
 	PARTY_TYPE_OPTIONS,
 } from "#/enums/partyEnums";
 import { partyMutation, partyQueries } from "#/lib/queries/party.queries";
@@ -47,6 +48,7 @@ import { normalizeString } from "#/lib/utils/string";
 import type { PartyItem } from "#/store/albumUploadStoreType";
 
 type CreatePartyRequest = components["schemas"]["CreatePartyRequest"];
+type PartyDetails = components["schemas"]["PartyDetails"];
 
 export type PartyComboboxId = number;
 
@@ -55,6 +57,7 @@ type PartyComboboxItem = PartyItem & {
 };
 
 type PartyComboboxProps = {
+	allowCreate?: boolean;
 	ariaLabel?: string;
 	filterOutIds?: PartyComboboxId[];
 	placeholder?: string;
@@ -68,24 +71,7 @@ type CreatePartyForm = Pick<
 >;
 
 const EMPTY_FILTER_OUT_IDS: PartyComboboxId[] = [];
-
-function partyMatchesQuery(party: PartyItem, normalizedQuery: string): boolean {
-	if (!normalizedQuery) return true;
-
-	const values = [
-		party.normalizedName,
-		party.country,
-		COUNTRY_CODE[party.country],
-		party.kind,
-		PARTY_KIND[party.kind],
-		...(party.type ? [party.type, PARTY_TYPE[party.type]] : []),
-		...party.aliases.map((alias) => alias.normalizedName),
-	];
-
-	return values.some((value) =>
-		normalizeString(value).includes(normalizedQuery),
-	);
-}
+const SEARCH_DEBOUNCE_MS = 300;
 
 function createPartyForm(name: string): CreatePartyForm {
 	return {
@@ -96,45 +82,111 @@ function createPartyForm(name: string): CreatePartyForm {
 	};
 }
 
+function partyDetailsToItem(party: PartyDetails): PartyItem {
+	return {
+		aliases: party.aliases,
+		albumCount: party.albums.length + party.appearsOnAlbums.length,
+		country: party.country,
+		coverUrl: party.avatarImages?.[0]?.url ?? "",
+		kind: party.kind,
+		name: party.name,
+		normalizedName: normalizeString(party.name),
+		partyId: party.partyId,
+		type: party.type,
+	};
+}
+
 export function PartyCombobox({
+	allowCreate = false,
 	ariaLabel = "Parties",
 	filterOutIds = EMPTY_FILTER_OUT_IDS,
-	placeholder = "Search or create parties...",
+	placeholder,
 	selectedIds,
 	setSelectedIds,
 }: PartyComboboxProps): React.ReactElement {
 	const nameId = useId();
-	const { data: parties } = useSuspenseQuery(partyQueries.getParties());
 	const queryClient = useQueryClient();
 	const [query, setQuery] = useState("");
+	const [debouncedQuery, setDebouncedQuery] = useState("");
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 	const [createForm, setCreateForm] = useState<CreatePartyForm>(() =>
 		createPartyForm(""),
 	);
+	const placeholderText =
+		placeholder ??
+		(allowCreate ? "Search or create parties..." : "Search parties...");
 	const highlightedItemRef = useRef<PartyComboboxItem | undefined>(undefined);
 
 	const { isPending, mutateAsync: createParty } = useMutation(
 		partyMutation.createParty(),
 	);
 
+	const trimmedQuery = query.trim();
+	const trimmedSearchQuery = debouncedQuery.trim();
+	const normalizedTrimmedQuery = normalizeString(trimmedQuery);
+	const cachedParties =
+		queryClient.getQueryData<PartyItem[]>(["parties", undefined]) ?? [];
+	const {
+		data: searchParties = [],
+		isFetching: isSearching,
+		isError: isSearchError,
+	} = useQuery({
+		...partyQueries.getParties(
+			trimmedSearchQuery ? { Search: trimmedSearchQuery } : undefined,
+		),
+		placeholderData: keepPreviousData,
+	});
+	const isSearchPending = trimmedQuery !== trimmedSearchQuery || isSearching;
+	const fetchedSelectedIdKeys = new Set(
+		[...cachedParties, ...searchParties].map((party) => Number(party.partyId)),
+	);
+	const selectedPartyQueries = useQueries({
+		queries: selectedIds
+			.filter((partyId) => !fetchedSelectedIdKeys.has(partyId))
+			.map((partyId) => partyQueries.getParty(partyId)),
+	});
+	const selectedDetailsParties = selectedPartyQueries
+		.map((result) => result.data)
+		.filter((party): party is PartyDetails => party !== undefined)
+		.map(partyDetailsToItem);
+	const parties = [
+		...cachedParties,
+		...searchParties,
+		...selectedDetailsParties,
+	];
 	const selectedIdKeys = new Set(selectedIds);
 	const hiddenIdKeys = new Set([...selectedIds, ...filterOutIds]);
-	const selectedParties: PartyComboboxItem[] = parties.filter((party) =>
+	const uniqueParties = Array.from(
+		new Map(parties.map((party) => [Number(party.partyId), party])).values(),
+	);
+	const selectedParties: PartyComboboxItem[] = uniqueParties.filter((party) =>
 		selectedIdKeys.has(Number(party.partyId)),
 	);
-	const normalizedQuery = normalizeString(query);
-	const trimmedQuery = query.trim();
-	const normalizedTrimmedQuery = normalizeString(trimmedQuery);
-	const filteredParties = parties.filter(
-		(party) =>
-			!hiddenIdKeys.has(Number(party.partyId)) &&
-			partyMatchesQuery(party, normalizedQuery),
+	const filteredParties = searchParties.filter(
+		(party) => !hiddenIdKeys.has(Number(party.partyId)),
 	);
+	useEffect(() => {
+		if (filteredParties.length > 0) {
+			setDebouncedQuery(query);
+			return;
+		}
+
+		const timeoutId = window.setTimeout(() => {
+			setDebouncedQuery(query);
+		}, SEARCH_DEBOUNCE_MS);
+
+		return () => window.clearTimeout(timeoutId);
+	}, [filteredParties.length, query]);
+	const showSearchingStatus = isSearchPending && filteredParties.length === 0;
 	const existingPartyForQuery = searchPartyByNormalizedName(
-		parties,
+		uniqueParties,
 		normalizedTrimmedQuery,
 	);
-	const canCreate = trimmedQuery !== "" && existingPartyForQuery === undefined;
+	const canCreate =
+		allowCreate &&
+		trimmedQuery !== "" &&
+		!isSearchPending &&
+		existingPartyForQuery === undefined;
 	const items: PartyComboboxItem[] = canCreate
 		? [
 				...filteredParties,
@@ -154,6 +206,8 @@ export function PartyCombobox({
 		: filteredParties;
 
 	function openCreateDialog(name: string) {
+		if (!allowCreate) return;
+
 		setCreateForm(createPartyForm(name));
 		setIsCreateDialogOpen(true);
 	}
@@ -174,7 +228,7 @@ export function PartyCombobox({
 		if (!name) return;
 
 		const existing = searchPartyByNormalizedName(
-			parties,
+			uniqueParties,
 			normalizeString(name),
 		);
 
@@ -238,13 +292,20 @@ export function PartyCombobox({
 								<ComboboxChipsInput
 									aria-label={ariaLabel}
 									onKeyDown={handleInputKeyDown}
-									placeholder={value.length > 0 ? "" : placeholder}
+									placeholder={value.length > 0 ? "" : placeholderText}
 								/>
 							</>
 						)}
 					</ComboboxValue>
 				</ComboboxChips>
 				<ComboboxPopup>
+					<ComboboxStatus>
+						{showSearchingStatus
+							? "Searching..."
+							: isSearchError
+								? "Unable to search parties."
+								: null}
+					</ComboboxStatus>
 					<ComboboxEmpty>No parties found.</ComboboxEmpty>
 					<ComboboxList>
 						{(item: PartyComboboxItem) =>
@@ -274,66 +335,70 @@ export function PartyCombobox({
 				</ComboboxPopup>
 			</Combobox>
 
-			<Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-				<DialogPopup>
-					<DialogHeader>
-						<DialogTitle>Create party</DialogTitle>
-						<DialogDescription>Add a party and select it.</DialogDescription>
-					</DialogHeader>
-					<Form className="contents" onSubmit={handleCreateSubmit}>
-						<DialogPanel className="grid gap-4">
-							<Field name="name">
-								<FieldLabel htmlFor={nameId}>Party name</FieldLabel>
-								<Input
-									autoComplete="off"
-									id={nameId}
-									name="name"
-									onChange={(event) => {
-										setCreateForm((current) => ({
-											...current,
-											name: event.target.value,
-										}));
+			{allowCreate && (
+				<Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+					<DialogPopup>
+						<DialogHeader>
+							<DialogTitle>Create party</DialogTitle>
+							<DialogDescription>Add a party and select it.</DialogDescription>
+						</DialogHeader>
+						<Form className="contents" onSubmit={handleCreateSubmit}>
+							<DialogPanel className="grid gap-4">
+								<Field name="name">
+									<FieldLabel htmlFor={nameId}>Party name</FieldLabel>
+									<Input
+										autoComplete="off"
+										id={nameId}
+										name="name"
+										onChange={(event) => {
+											setCreateForm((current) => ({
+												...current,
+												name: event.target.value,
+											}));
+										}}
+										required
+										value={createForm.name}
+									/>
+								</Field>
+								<EnumFieldSelect
+									label="Type"
+									onValueChange={(type) => {
+										setCreateForm((current) => ({ ...current, type }));
 									}}
-									required
-									value={createForm.name}
+									options={PARTY_TYPE_OPTIONS}
+									value={createForm.type}
 								/>
-							</Field>
-							<EnumFieldSelect
-								label="Type"
-								onValueChange={(type) => {
-									setCreateForm((current) => ({ ...current, type }));
-								}}
-								options={PARTY_TYPE_OPTIONS}
-								value={createForm.type}
-							/>
-							<EnumFieldSelect
-								label="Kind"
-								onValueChange={(kind) => {
-									setCreateForm((current) => ({ ...current, kind }));
-								}}
-								options={PARTY_KIND_OPTIONS}
-								value={createForm.kind}
-							/>
-							<EnumFieldSelect
-								label="Country"
-								onValueChange={(country) => {
-									setCreateForm((current) => ({ ...current, country }));
-								}}
-								options={COUNTRY_CODE_OPTIONS}
-								value={createForm.country}
-							/>
-						</DialogPanel>
-						<DialogFooter>
-							<DialogClose render={<Button type="button" variant="outline" />}>
-								Cancel
-							</DialogClose>
-							<Button loading={isPending} type="submit">
-								Create
-							</Button>
-						</DialogFooter>
-					</Form>
-				</DialogPopup>
-			</Dialog>
+								<EnumFieldSelect
+									label="Kind"
+									onValueChange={(kind) => {
+										setCreateForm((current) => ({ ...current, kind }));
+									}}
+									options={PARTY_KIND_OPTIONS}
+									value={createForm.kind}
+								/>
+								<EnumFieldSelect
+									label="Country"
+									onValueChange={(country) => {
+										setCreateForm((current) => ({ ...current, country }));
+									}}
+									options={COUNTRY_CODE_OPTIONS}
+									value={createForm.country}
+								/>
+							</DialogPanel>
+							<DialogFooter>
+								<DialogClose
+									render={<Button type="button" variant="outline" />}
+								>
+									Cancel
+								</DialogClose>
+								<Button loading={isPending} type="submit">
+									Create
+								</Button>
+							</DialogFooter>
+						</Form>
+					</DialogPopup>
+				</Dialog>
+			)}
 		</>
 	);
 }

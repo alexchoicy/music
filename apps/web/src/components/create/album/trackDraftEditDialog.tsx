@@ -207,6 +207,7 @@ function TrackDraftEditDialogForm({
 						isCleared={form.clearUnsolvedTrackCredits}
 					/>
 					<PartyCombobox
+						allowCreate
 						ariaLabel="Track artists"
 						placeholder="Search or create track artists..."
 						selectedIds={form.trackArtistIds}

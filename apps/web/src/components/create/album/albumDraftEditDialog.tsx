@@ -216,6 +216,7 @@ function AlbumDraftEditDialogForm({
 						/>
 					)}
 					<PartyCombobox
+						allowCreate
 						ariaLabel="Album artists"
 						placeholder="Search or create album artists..."
 						selectedIds={form.albumArtistIds}
@@ -357,6 +358,7 @@ function AlbumDraftEditDialogForm({
 						</AlertDescription>
 					</Alert>
 					<PartyCombobox
+						allowCreate
 						ariaLabel="Replacement track artists"
 						placeholder="Search or create replacement artists..."
 						selectedIds={form.replaceTrackArtists}
