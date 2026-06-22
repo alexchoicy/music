@@ -32,6 +32,7 @@ const initialState: AudioPlayerState = {
 	repeatMode: "off",
 	shuffle: false,
 	playbackQuality: "Auto",
+	playTalkTrack: false,
 };
 
 function getNextIndex(
@@ -69,6 +70,47 @@ function getPrevIndex(
 	if (queueLength === 0) return null;
 	if (index > 0) return index - 1;
 	if (repeatMode === "all" && queueLength > 1) return queueLength - 1;
+
+	return null;
+}
+
+function getNextAutoIndex(
+	index: number,
+	queue: AudioPlayerTrack[],
+	repeatMode: AudioPlayerState["repeatMode"],
+	shuffle: boolean,
+	playTalkTrack: boolean,
+): number | null {
+	if (playTalkTrack)
+		return getNextIndex(index, queue.length, repeatMode, shuffle);
+
+	if (repeatMode === "one") {
+		return queue[index]?.contentType === "MC" ? null : index;
+	}
+
+	if (shuffle) {
+		const candidates = queue
+			.map((track, trackIndex) => ({ track, trackIndex }))
+			.filter(
+				({ track, trackIndex }) =>
+					track.contentType !== "MC" && trackIndex !== index,
+			);
+		if (candidates.length === 0) return null;
+
+		return candidates[Math.floor(Math.random() * candidates.length)].trackIndex;
+	}
+
+	for (let offset = 1; offset < queue.length; offset++) {
+		const nextIndex = index + offset;
+		if (nextIndex >= queue.length) break;
+		if (queue[nextIndex]?.contentType !== "MC") return nextIndex;
+	}
+
+	if (repeatMode !== "all") return null;
+
+	for (let nextIndex = 0; nextIndex < index; nextIndex++) {
+		if (queue[nextIndex]?.contentType !== "MC") return nextIndex;
+	}
 
 	return null;
 }
@@ -396,6 +438,9 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					currentTime,
 				});
 			},
+			setPlayTalkTrack: (playTalkTrack) => {
+				set({ playTalkTrack });
+			},
 			markReady: () => {
 				set((state) => {
 					if (state.status === "loading") state.status = "ready";
@@ -415,7 +460,14 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 				if (finishedRequestId === loadRequestId) return;
 
 				finishedRequestId = loadRequestId;
-				const { index, playbackQuality, queue, repeatMode, shuffle } = get();
+				const {
+					index,
+					playbackQuality,
+					playTalkTrack,
+					queue,
+					repeatMode,
+					shuffle,
+				} = get();
 
 				if (queue.length === 0) {
 					console.log("[audio-player] markFinished:empty queue");
@@ -424,11 +476,12 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					return;
 				}
 
-				const nextIndex = getNextIndex(
+				const nextIndex = getNextAutoIndex(
 					index,
-					queue.length,
+					queue,
 					repeatMode,
 					shuffle,
+					playTalkTrack,
 				);
 				if (nextIndex === null) {
 					console.log("[audio-player] markFinished:end of queue");
@@ -450,6 +503,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					trackId: track.trackId,
 					title: track.title,
 				});
+
 				set({ index: nextIndex, status: "loading" });
 				loadAndPlay(playbackQuality, track);
 			},

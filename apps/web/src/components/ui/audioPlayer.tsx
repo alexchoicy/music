@@ -38,6 +38,7 @@ import {
 	SheetTrigger,
 } from "#/components/coss/sheet";
 import { Slider } from "#/components/coss/slider";
+import { Switch } from "#/components/coss/switch";
 import { Toggle } from "#/components/coss/toggle";
 import { formatMsToTimer } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
@@ -344,12 +345,16 @@ function QueueSheet({
 }
 
 type PlaybackQualitySettingsProps = {
+	playTalkTrack: boolean;
 	playbackQuality: PlaybackQuality;
+	setPlayTalkTrack: (playTalkTrack: boolean) => void;
 	setPlaybackQuality: (quality: PlaybackQuality) => void;
 };
 
 function PlaybackQualitySettings({
+	playTalkTrack,
 	playbackQuality,
+	setPlayTalkTrack,
 	setPlaybackQuality,
 }: PlaybackQualitySettingsProps) {
 	return (
@@ -408,6 +413,18 @@ function PlaybackQualitySettings({
 							</span>
 						</Label>
 					</RadioGroup>
+					<Label className="flex items-center justify-between gap-3 border-t pt-3">
+						<span className="flex flex-col gap-1">
+							<span>Play Talk track</span>
+							<span className="text-xs font-normal text-muted-foreground">
+								Include Talk tracks during playback.
+							</span>
+						</span>
+						<Switch
+							checked={playTalkTrack}
+							onCheckedChange={setPlayTalkTrack}
+						/>
+					</Label>
 				</div>
 			</PopoverPopup>
 		</Popover>
@@ -427,6 +444,7 @@ export function AudioPlayer() {
 	);
 	const index = useAudioPlayerStore((state) => state.index);
 	const playbackQuality = useAudioPlayerStore((state) => state.playbackQuality);
+	const playTalkTrack = useAudioPlayerStore((state) => state.playTalkTrack);
 	const queueLength = useAudioPlayerStore((state) => state.queue.length);
 	const repeatMode = useAudioPlayerStore((state) => state.repeatMode);
 	const queue = useAudioPlayerStore((state) => state.queue);
@@ -441,6 +459,9 @@ export function AudioPlayer() {
 	const pause = useAudioPlayerStore((state) => state.pause);
 	const setPlaybackQuality = useAudioPlayerStore(
 		(state) => state.setPlaybackQuality,
+	);
+	const setPlayTalkTrack = useAudioPlayerStore(
+		(state) => state.setPlayTalkTrack,
 	);
 	const setVolume = useAudioPlayerStore((state) => state.setVolume);
 	const togglePlay = useAudioPlayerStore((state) => state.togglePlay);
@@ -825,7 +846,9 @@ export function AudioPlayer() {
 						queueLength={queueLength}
 					/>
 					<PlaybackQualitySettings
+						playTalkTrack={playTalkTrack}
 						playbackQuality={playbackQuality}
+						setPlayTalkTrack={setPlayTalkTrack}
 						setPlaybackQuality={setPlaybackQuality}
 					/>
 				</div>

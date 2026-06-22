@@ -38,6 +38,7 @@ export function albumTrackDetailsToAudioPlayerTrack(
 		trackId: String(track.trackId),
 		albumId: String(album.albumId),
 		albumTitle: album.title,
+		contentType: track.contentType,
 		title: track.title,
 		party: track.credits.map((credit) => ({
 			partyId: String(credit.partyId),

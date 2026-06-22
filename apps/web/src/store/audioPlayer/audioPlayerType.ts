@@ -13,6 +13,7 @@ export type AudioPlayerTrack = {
 	albumId: string;
 	albumTitle: string;
 	title: string;
+	contentType: components["schemas"]["TrackContentType"];
 	party: {
 		partyId: string;
 		name: string;
@@ -32,6 +33,7 @@ export type AudioPlayerState = {
 	repeatMode: RepeatMode;
 	shuffle: boolean;
 	playbackQuality: "Auto" | "Original" | "Opus96";
+	playTalkTrack: boolean;
 };
 
 export type AudioPlayerAction = {
@@ -51,6 +53,7 @@ export type AudioPlayerAction = {
 	setPlaybackQuality: (
 		playbackQuality: AudioPlayerState["playbackQuality"],
 	) => void;
+	setPlayTalkTrack: (playTalkTrack: boolean) => void;
 
 	markReady: () => void;
 	markPlaying: (playing: boolean) => void;
