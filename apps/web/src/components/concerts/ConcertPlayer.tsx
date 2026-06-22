@@ -11,7 +11,7 @@ import {
 	Volume2Icon,
 	VolumeXIcon,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 // import shaka from "shaka-player";
 import shaka from "shaka-player/dist/shaka-player.compiled.debug";
 
@@ -96,6 +96,7 @@ export function ConcertPlayer({
 	const pauseAudioPlayer = useAudioPlayerStore((state) => state.pause);
 
 	const videoRef = useRef<HTMLVideoElement>(null);
+	const containerRef = useRef<HTMLDivElement>(null);
 	const playerRef = useRef<shaka.Player | null>(null);
 	const loadRequestIdRef = useRef(0);
 	const hasFile = currentFile !== null;
@@ -207,6 +208,17 @@ export function ConcertPlayer({
 		};
 	}, [setAudioPlayerHidden]);
 
+	useEffect(() => {
+		const syncFullscreen = () => {
+			setIsFullscreen(document.fullscreenElement === containerRef.current);
+		};
+
+		document.addEventListener("fullscreenchange", syncFullscreen);
+		return () => {
+			document.removeEventListener("fullscreenchange", syncFullscreen);
+		};
+	}, []);
+
 	const seekTo = (time: number) => {
 		setCurrentTime(time);
 		if (videoRef.current) {
@@ -242,6 +254,116 @@ export function ConcertPlayer({
 		}
 	};
 
+	const toggleFullscreen = () => {
+		const container = containerRef.current;
+		if (!container) return;
+
+		if (document.fullscreenElement) {
+			void document.exitFullscreen();
+			return;
+		}
+
+		void container.requestFullscreen();
+	};
+
+	const onMediaSessionPlay = useEffectEvent(() => {
+		if (!currentFile) return;
+		void videoRef.current?.play();
+	});
+
+	const onMediaSessionPause = useEffectEvent(() => {
+		videoRef.current?.pause();
+	});
+
+	const onMediaSessionSeekBackward = useEffectEvent(
+		(details: MediaSessionActionDetails) => {
+			seekBy(-(details.seekOffset ?? 10));
+		},
+	);
+
+	const onMediaSessionSeekForward = useEffectEvent(
+		(details: MediaSessionActionDetails) => {
+			seekBy(details.seekOffset ?? 10);
+		},
+	);
+
+	const onMediaSessionSeekTo = useEffectEvent(
+		(details: MediaSessionActionDetails) => {
+			if (details.seekTime === undefined) return;
+
+			const video = videoRef.current;
+			if (details.fastSeek && video?.fastSeek) {
+				video.fastSeek(details.seekTime);
+				return;
+			}
+
+			seekTo(details.seekTime);
+		},
+	);
+
+	useEffect(() => {
+		if (!("mediaSession" in navigator)) return;
+
+		const artwork = currentFile
+			? (currentFile.file.attachedPicture?.url ??
+				currentFile.file.thumbnail640x360?.url)
+			: null;
+
+		navigator.mediaSession.metadata = currentFile
+			? new MediaMetadata({
+					artwork: artwork ? [{ src: artwork }] : undefined,
+					title: currentFile.title,
+				})
+			: null;
+
+		navigator.mediaSession.playbackState = currentFile
+			? isPlaying
+				? "playing"
+				: "paused"
+			: "none";
+	}, [currentFile, isPlaying]);
+
+	useEffect(() => {
+		if (!("mediaSession" in navigator) || !currentFile || duration <= 0) return;
+
+		try {
+			navigator.mediaSession.setPositionState({
+				duration,
+				playbackRate: videoRef.current?.playbackRate ?? 1,
+				position: Math.min(currentTime, duration),
+			});
+		} catch {}
+	}, [currentFile, currentTime, duration]);
+
+	useEffect(() => {
+		if (!("mediaSession" in navigator) || !hasFile) return;
+
+		const actions: [MediaSessionAction, MediaSessionActionHandler][] = [
+			["play", onMediaSessionPlay],
+			["pause", onMediaSessionPause],
+			["seekbackward", onMediaSessionSeekBackward],
+			["seekforward", onMediaSessionSeekForward],
+			["seekto", onMediaSessionSeekTo],
+		];
+
+		for (const [action, handler] of actions) {
+			try {
+				navigator.mediaSession.setActionHandler(action, handler);
+			} catch {}
+		}
+
+		return () => {
+			for (const [action] of actions) {
+				try {
+					navigator.mediaSession.setActionHandler(action, null);
+				} catch {}
+			}
+
+			navigator.mediaSession.metadata = null;
+			navigator.mediaSession.playbackState = "none";
+		};
+	}, [hasFile]);
+
 	const showPlayButton = hasFile && !isPlaying;
 	const showControls = hasFile;
 	const audioOptions = audioTracks.map((track, index) => ({
@@ -276,10 +398,11 @@ export function ConcertPlayer({
 				"group relative flex aspect-video w-full overflow-hidden rounded-3xl border border-border/60 bg-black shadow-sm",
 				hasFile && "cursor-pointer",
 				isTheaterMode && "max-h-[calc(100svh-8rem)]",
-				isFullscreen && "aspect-auto h-screen rounded-none border-none",
+				isFullscreen && "rounded-none border-none",
 			)}
 			onClick={togglePlayback}
 			data-slot="concert-player"
+			ref={containerRef}
 		>
 			<video
 				className="h-full w-full"
@@ -447,7 +570,7 @@ export function ConcertPlayer({
 							<Button
 								aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
 								className="text-white hover:bg-white/10 hover:text-white"
-								onClick={() => setIsFullscreen((value) => !value)}
+								onClick={toggleFullscreen}
 								size="icon-sm"
 								variant="ghost"
 							>

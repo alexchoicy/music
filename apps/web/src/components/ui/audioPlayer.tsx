@@ -438,6 +438,7 @@ export function AudioPlayer() {
 	const playNext = useAudioPlayerStore((state) => state.playNext);
 	const playPrev = useAudioPlayerStore((state) => state.playPrev);
 	const playQueueTrack = useAudioPlayerStore((state) => state.playQueueTrack);
+	const pause = useAudioPlayerStore((state) => state.pause);
 	const setPlaybackQuality = useAudioPlayerStore(
 		(state) => state.setPlaybackQuality,
 	);
@@ -512,6 +513,72 @@ export function AudioPlayer() {
 			}
 		};
 	}, [audioRef, refreshTimeLabel]);
+
+	const onMediaSessionPlay = useEffectEvent(() => {
+		if (status === "playing" || status === "loading") return;
+		void togglePlay();
+	});
+
+	const onMediaSessionPause = useEffectEvent(() => {
+		pause();
+	});
+
+	const onMediaSessionPreviousTrack = useEffectEvent(() => {
+		playPrev();
+	});
+
+	const onMediaSessionNextTrack = useEffectEvent(() => {
+		playNext();
+	});
+
+	useEffect(() => {
+		if (!("mediaSession" in navigator)) return;
+
+		navigator.mediaSession.metadata = currentTrack
+			? new MediaMetadata({
+					album: currentTrack.albumTitle,
+					artist: currentTrack.party.map((party) => party.name).join(", "),
+					artwork: currentTrack.albumCoverUrl
+						? [{ src: currentTrack.albumCoverUrl }]
+						: undefined,
+					title: currentTrack.title,
+				})
+			: null;
+
+		navigator.mediaSession.playbackState = currentTrack
+			? status === "playing"
+				? "playing"
+				: "paused"
+			: "none";
+	}, [currentTrack, status]);
+
+	useEffect(() => {
+		if (!("mediaSession" in navigator)) return;
+
+		const actions: [MediaSessionAction, MediaSessionActionHandler | null][] = [
+			["play", onMediaSessionPlay],
+			["pause", onMediaSessionPause],
+			["previoustrack", hasPrev ? onMediaSessionPreviousTrack : null],
+			["nexttrack", hasNext ? onMediaSessionNextTrack : null],
+		];
+
+		for (const [action, handler] of actions) {
+			try {
+				navigator.mediaSession.setActionHandler(action, handler);
+			} catch {}
+		}
+
+		return () => {
+			for (const [action] of actions) {
+				try {
+					navigator.mediaSession.setActionHandler(action, null);
+				} catch {}
+			}
+
+			navigator.mediaSession.metadata = null;
+			navigator.mediaSession.playbackState = "none";
+		};
+	}, [hasNext, hasPrev]);
 
 	useEffect(() => {
 		const audio = audioRef.current;
