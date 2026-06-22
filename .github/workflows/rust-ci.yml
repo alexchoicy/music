@@ -1,45 +1,45 @@
 name: Rust CI
 
 permissions:
-  contents: read
+    contents: read
 
 concurrency:
-  group: rust-ci-${{ github.ref }}
-  cancel-in-progress: true
+    group: rust-ci-${{ github.ref }}
+    cancel-in-progress: true
 
 on:
-  pull_request:
-    branches: ["master", "main"]
-    paths:
-      - "desktop/**"
-      - ".github/workflows/rust-*.yml"
-  workflow_dispatch:
+    pull_request:
+        branches: ["master", "main"]
+        paths:
+            - "desktop/**"
+            - ".github/workflows/rust-*.yml"
+    workflow_dispatch:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: desktop
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+    test:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: desktop
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
+            - name: Install Rust toolchain
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  components: rustfmt, clippy
 
-      - name: Restore Rust cache
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: "desktop -> target"
+            - name: Restore Rust cache
+              uses: swatinem/rust-cache@v2
+              with:
+                  workspaces: "desktop -> target"
 
-      - name: Check formatting
-        run: cargo fmt --all --check
+            - name: Check formatting
+              run: cargo fmt --all --check
 
-      - name: Run clippy
-        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+            - name: Run clippy
+              run: cargo clippy --workspace --all-targets --locked -- -D warnings
 
-      - name: Run tests
-        run: cargo test --workspace --all-targets --locked
+            - name: Run tests
+              run: cargo test --workspace --all-targets --locked
