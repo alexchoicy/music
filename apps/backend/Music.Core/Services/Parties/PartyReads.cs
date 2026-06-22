@@ -14,6 +14,10 @@ namespace Music.Core.Services.Parties;
 public sealed class PartyListRequest
 {
     public string? Search { get; init; }
+    public CountryCode? Country { get; init; }
+    public PartyType? Type { get; init; }
+    public PartyKind? Kind { get; init; }
+    public PartyGender? Gender { get; init; }
 }
 
 public sealed class PartyAlias
@@ -32,6 +36,7 @@ public sealed class PartyItems
     public PartyType Type { get; init; } = PartyType.Individual;
     public required PartyKind Kind { get; init; }
     public PartyGender Gender { get; init; } = PartyGender.Unknown;
+    public double Similarity { get; init; }
     public required int AlbumCount { get; init; }
     public required IReadOnlyList<PartyAlias> Aliases { get; init; } = [];
 }

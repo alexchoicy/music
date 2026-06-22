@@ -11,7 +11,10 @@ public interface IPartyService
         CancellationToken cancellationToken = default
     );
 
-    Task<IList<PartyItems>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IList<PartyItems>> GetAllAsync(
+        PartyListRequest request,
+        CancellationToken cancellationToken = default
+    );
 
     Task<IReadOnlyList<PartySummary>> GetAllPartiesAsync(
         CancellationToken cancellationToken = default

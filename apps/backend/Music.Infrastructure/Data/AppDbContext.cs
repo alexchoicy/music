@@ -37,6 +37,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
     public DbSet<WorkerJob> WorkerJobs { get; set; }
 
+    [DbFunction("immutable_unaccent", "public")]
+    public static string ImmutableUnaccent(string value) =>
+        throw new NotSupportedException("Only for use in EF queries.");
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

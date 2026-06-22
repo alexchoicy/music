@@ -41,9 +41,12 @@ public class PartyController(IPartyService partyService) : ControllerBase
     [Authorize]
     [Produces("application/json")]
     [ProducesResponseType(typeof(IReadOnlyList<PartyItems>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllParties(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAllParties(
+        [FromQuery] PartyListRequest request,
+        CancellationToken cancellationToken
+    )
     {
-        IList<PartyItems> parties = await _partyService.GetAllAsync(cancellationToken);
+        IList<PartyItems> parties = await _partyService.GetAllAsync(request, cancellationToken);
         return Ok(parties);
     }
 

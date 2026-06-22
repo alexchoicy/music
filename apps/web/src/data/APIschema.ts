@@ -754,7 +754,13 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    Search?: string;
+                    Country?: components["schemas"]["CountryCode"];
+                    Type?: components["schemas"]["PartyType"];
+                    Kind?: components["schemas"]["PartyKind"];
+                    Gender?: components["schemas"]["PartyGender"];
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -943,6 +949,56 @@ export interface paths {
                 };
                 /** @description Unauthorized */
                 401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workers/concert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RerunConcertWorkerRequest"];
+                    "text/json": components["schemas"]["RerunConcertWorkerRequest"];
+                    "application/*+json": components["schemas"]["RerunConcertWorkerRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -1167,6 +1223,8 @@ export interface components {
             /** Format: int32 */
             concertId: number | string;
             title: string;
+            /** Format: double */
+            similarity?: number | string;
             description?: string;
             /** Format: date-time */
             date?: null | string;
@@ -1444,6 +1502,8 @@ export interface components {
             type?: components["schemas"]["PartyType"];
             kind: components["schemas"]["PartyKind"];
             gender?: components["schemas"]["PartyGender"];
+            /** Format: double */
+            similarity?: number | string;
             /** Format: int32 */
             albumCount: number | string;
             aliases: components["schemas"]["PartyAlias"][];
@@ -1459,6 +1519,10 @@ export interface components {
             status?: null | number | string;
             detail?: null | string;
             instance?: null | string;
+        };
+        RerunConcertWorkerRequest: {
+            /** Format: uuid */
+            objectId: string;
         };
         TrackAudioDetails: {
             /** Format: int32 */
