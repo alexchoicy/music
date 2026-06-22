@@ -16,19 +16,21 @@ import {
 import type { components } from "#/data/APIschema";
 import { COUNTRY_CODE, PARTY_KIND, PARTY_TYPE } from "#/enums/partyEnums";
 import { getInitials } from "#/lib/utils/string";
+import { cn } from "#/lib/utils/styles";
 
 type Party = components["schemas"]["PartyItems"];
 
 type PartyCardProps = {
+	className?: string;
 	party: Party;
 };
 
-export function PartyCard({ party }: PartyCardProps) {
+export function PartyCard({ className, party }: PartyCardProps) {
 	const albumCount = Number(party.albumCount);
 	const gender = party.gender !== "Unknown" ? party.gender : undefined;
 
 	return (
-		<div data-slot="party-card">
+		<div className={cn(className)} data-slot="party-card">
 			<Link
 				className="block h-full rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				params={{ id: String(party.partyId) }}

@@ -17,14 +17,16 @@ import type { components } from "#/data/APIschema";
 import { getCoverUrl } from "#/lib/utils/album";
 import { formatDate } from "#/lib/utils/date";
 import { formatDurationInHoursAndMinutes } from "#/lib/utils/music";
+import { cn } from "#/lib/utils/styles";
 
 type Concert = components["schemas"]["ConcertListItem"];
 
 type ConcertCardProps = {
+	className?: string;
 	concert: Concert;
 };
 
-export function ConcertCard({ concert }: ConcertCardProps) {
+export function ConcertCard({ className, concert }: ConcertCardProps) {
 	const coverUrl = getCoverUrl(concert.coverVariants);
 	const dateLabel = formatDate(concert.date) ?? "No date";
 	const durationLabel =
@@ -35,7 +37,7 @@ export function ConcertCard({ concert }: ConcertCardProps) {
 	const albumCount = Number(concert.albumCount);
 
 	return (
-		<div data-slot="concert-card">
+		<div className={cn(className)} data-slot="concert-card">
 			<Link
 				className="block h-full rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				params={{ id: String(concert.concertId) }}

@@ -66,6 +66,9 @@ export function AlbumTabContent() {
 	async function handleSubmit() {
 		try {
 			await submitAlbums();
+			setAlbumDraftToEdit(null);
+			setAlbumDraftToMerge(null);
+			setTrackDraftToEdit(null);
 			toastManager.add({
 				title: "Album uploaded successfully",
 				type: "success",

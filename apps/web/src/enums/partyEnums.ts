@@ -3,6 +3,7 @@ import type { components } from "@/data/APIschema";
 import { enumOptions } from "./utils";
 
 type CountryCode = components["schemas"]["CountryCode"];
+type PartyGender = components["schemas"]["PartyGender"];
 type PartyKind = components["schemas"]["PartyKind"];
 type PartyType = components["schemas"]["PartyType"];
 
@@ -25,6 +26,14 @@ export const PARTY_KIND: Record<PartyKind, string> = {
 } as const;
 
 export const PARTY_KIND_OPTIONS = enumOptions(PARTY_KIND);
+
+export const PARTY_GENDER: Record<PartyGender, string> = {
+	Unknown: "Unknown",
+	Male: "Male",
+	Female: "Female",
+} as const;
+
+export const PARTY_GENDER_OPTIONS = enumOptions(PARTY_GENDER);
 
 export const PARTY_TYPE: Record<PartyType, string> = {
 	Individual: "Individual",

@@ -254,9 +254,7 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 						});
 					}
 
-					set((state) => {
-						state.submitStatus = "completed";
-					});
+					get().clear();
 				} catch (error) {
 					const errorMessage =
 						error instanceof Error ? error.message : "Failed to upload album";
