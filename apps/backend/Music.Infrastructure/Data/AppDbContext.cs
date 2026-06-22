@@ -35,6 +35,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<ConcertParty> ConcertParties { get; set; }
     public DbSet<ConcertFile> ConcertFiles { get; set; }
 
+    public DbSet<WorkerJob> WorkerJobs { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

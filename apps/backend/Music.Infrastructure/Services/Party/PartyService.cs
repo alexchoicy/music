@@ -15,10 +15,8 @@ namespace Music.Infrastructure.Services.Party;
 public class PartyService(
     AppDbContext dbContext,
     IAssetsService assetsService,
-    IBackgroundTaskQueue backgroundTaskQueue,
-    ILogger<PartyService> logger
-)
-    : IPartyService
+    IBackgroundTaskQueue backgroundTaskQueue
+) : IPartyService
 {
     public async Task<int> CreatePartyAsync(
         CreatePartyRequest request,
@@ -212,15 +210,20 @@ public class PartyService(
 
         return type switch
         {
-            PartyExternalInfoType.Spotify => $"https://open.spotify.com/artist/{EscapePathSegment(value)}",
-            PartyExternalInfoType.Twitter => $"https://x.com/{EscapePathSegment(value.TrimStart('@'))}",
+            PartyExternalInfoType.Spotify =>
+                $"https://open.spotify.com/artist/{EscapePathSegment(value)}",
+            PartyExternalInfoType.Twitter =>
+                $"https://x.com/{EscapePathSegment(value.TrimStart('@'))}",
             PartyExternalInfoType.OfficialWebsite => value,
             PartyExternalInfoType.YouTube => BuildYouTubeUrl(value),
             PartyExternalInfoType.YouTubeMusic => BuildYouTubeMusicUrl(value),
-            PartyExternalInfoType.Instagram => $"https://www.instagram.com/{EscapePathSegment(value.TrimStart('@'))}",
-            PartyExternalInfoType.AppleMusic => $"https://music.apple.com/artist/{EscapePathSegment(value)}",
+            PartyExternalInfoType.Instagram =>
+                $"https://www.instagram.com/{EscapePathSegment(value.TrimStart('@'))}",
+            PartyExternalInfoType.AppleMusic =>
+                $"https://music.apple.com/artist/{EscapePathSegment(value)}",
             PartyExternalInfoType.Mora => $"https://mora.jp/artist/{EscapePathSegment(value)}/",
-            PartyExternalInfoType.Ototoy => $"https://ototoy.jp/_/default/a/{EscapePathSegment(value)}",
+            PartyExternalInfoType.Ototoy =>
+                $"https://ototoy.jp/_/default/a/{EscapePathSegment(value)}",
             _ => value,
         };
     }

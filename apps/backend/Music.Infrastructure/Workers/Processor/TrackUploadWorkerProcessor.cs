@@ -74,7 +74,7 @@ public class TrackUploadWorkerProcessor(
                 $"File object with ID {job.FileObjectId} not found."
             );
 
-        fileObject.ProcessingStatus = FileProcessingStatus.Completed;
+        fileObject.ProcessingStatus = FileProcessingStatus.Processing;
         await dbContext.SaveChangesAsync(cancellationToken);
 
         try
@@ -88,13 +88,45 @@ public class TrackUploadWorkerProcessor(
             string fileName = $"track_{fileObject.Id}.{fileObject.Extension}";
             filePath = Path.Combine(tempDir, fileName);
 
+            logger.LogInformation(
+                "Processing track upload {FileObjectId}: temp source {SourcePath}, temp directory {TempDirectory}",
+                fileObject.Id,
+                filePath,
+                tempDir
+            );
+
+            logger.LogInformation(
+                "Downloading track source {FileObjectId} from {StoragePath} to {SourcePath}",
+                fileObject.Id,
+                fileObject.StoragePath,
+                filePath
+            );
+
             await contentService.DownloadFileToTemp(
                 fileObject.StoragePath,
                 filePath,
                 cancellationToken
             );
 
+            logger.LogInformation(
+                "Downloaded track source {FileObjectId}: {SizeInBytes} bytes",
+                fileObject.Id,
+                new FileInfo(filePath).Length
+            );
+
+            logger.LogInformation(
+                "Building audio metadata for track file object {FileObjectId}",
+                fileObject.Id
+            );
             AudioMetadataModel metadata = BuildAudioMetadata(fileObject);
+
+            logger.LogInformation(
+                "Built audio metadata for track file object {FileObjectId}: title {Title}, album {Album}, artists {Artists}",
+                fileObject.Id,
+                metadata.Title,
+                metadata.Album,
+                string.Join(", ", metadata.Artists)
+            );
 
             (coverPath, string? mimeType) = await TryDownloadAlbumCoverAsync(
                 fileObject,
@@ -133,6 +165,20 @@ public class TrackUploadWorkerProcessor(
                     cancellationToken
                 );
             }
+            else
+            {
+                logger.LogInformation(
+                    "Skipping Opus transcode for lossy track file object {FileObjectId}",
+                    fileObject.Id
+                );
+            }
+            fileObject.ProcessingStatus = FileProcessingStatus.Completed;
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation(
+                "Completed track upload processing for file object {FileObjectId}",
+                fileObject.Id
+            );
         }
         finally
         {
@@ -158,8 +204,18 @@ public class TrackUploadWorkerProcessor(
             ) == true
         )
         {
+            logger.LogInformation(
+                "Skipping waveform generation for track file object {FileObjectId}; waveform already exists",
+                fileObject.Id
+            );
             return;
         }
+
+        logger.LogInformation(
+            "Generating waveform for track file object {FileObjectId} at {OutputPath}",
+            fileObject.Id,
+            waveformPath
+        );
 
         bool waveformSuccess = await waveformService.GenerateWaveformJsonAsync(
             filePath,
@@ -169,6 +225,10 @@ public class TrackUploadWorkerProcessor(
 
         if (!waveformSuccess)
         {
+            logger.LogWarning(
+                "Unable to generate waveform for track file object {FileObjectId}",
+                fileObject.Id
+            );
             return;
         }
 
@@ -194,11 +254,23 @@ public class TrackUploadWorkerProcessor(
             ProcessingStatus = FileProcessingStatus.Completed,
         };
 
+        logger.LogInformation(
+            "Uploading waveform for track file object {FileObjectId} to {StoragePath}",
+            fileObject.Id,
+            waveformStoragePath
+        );
+
         await assetsService.UploadFileFromTempAsync(
             waveformStoragePath,
             waveformPath,
             waveformFileObject.MimeType,
             cancellationToken
+        );
+
+        logger.LogInformation(
+            "Uploaded waveform for track file object {FileObjectId}: {SizeInBytes} bytes",
+            fileObject.Id,
+            waveformFileObject.SizeInBytes
         );
 
         dbContext.FileObjects.Add(waveformFileObject);
@@ -221,6 +293,10 @@ public class TrackUploadWorkerProcessor(
             ) == true
         )
         {
+            logger.LogInformation(
+                "Skipping tagged original for track file object {FileObjectId}; tagged original already exists",
+                fileObject.Id
+            );
             return;
         }
 
@@ -229,6 +305,12 @@ public class TrackUploadWorkerProcessor(
 
         if (string.Equals(fileObject.Codec, "opus", StringComparison.OrdinalIgnoreCase))
         {
+            logger.LogInformation(
+                "Writing Opus metadata for track file object {FileObjectId} to {TaggedPath}",
+                fileObject.Id,
+                taggedPath
+            );
+
             string? coverImageBase64 = await FFmpegHelper.ConvertImageToBase64BlockImageAsync(
                 coverPath,
                 mimetype,
@@ -247,6 +329,12 @@ public class TrackUploadWorkerProcessor(
         }
         else
         {
+            logger.LogInformation(
+                "Writing audio metadata for track file object {FileObjectId} to {TaggedPath}",
+                fileObject.Id,
+                taggedPath
+            );
+
             attemptedCoverArt = coverPath is not null;
             success = await mediaFFmpegService.WriteAudioMetadataAsync(
                 sourcePath,
@@ -315,11 +403,23 @@ public class TrackUploadWorkerProcessor(
             ProcessingStatus = FileProcessingStatus.Completed,
         };
 
+        logger.LogInformation(
+            "Uploading tagged original for track file object {FileObjectId} to {StoragePath}",
+            fileObject.Id,
+            taggedStoragePath
+        );
+
         await contentService.UploadFileFromTempAsync(
             taggedStoragePath,
             taggedPath,
             taggedFileObject.MimeType,
             cancellationToken
+        );
+
+        logger.LogInformation(
+            "Uploaded tagged original for track file object {FileObjectId}: {SizeInBytes} bytes",
+            fileObject.Id,
+            taggedFileObject.SizeInBytes
         );
 
         dbContext.FileObjects.Add(taggedFileObject);
@@ -341,6 +441,10 @@ public class TrackUploadWorkerProcessor(
             == true
         )
         {
+            logger.LogInformation(
+                "Skipping Opus transcode for track file object {FileObjectId}; Opus variant already exists",
+                fileObject.Id
+            );
             return;
         }
 
@@ -352,6 +456,13 @@ public class TrackUploadWorkerProcessor(
 
         int targetBitRate = FFmpegHelper.GetTargetOpusBitrateKbpsForAudio(
             fileObject.AudioChannels ?? 2
+        );
+
+        logger.LogInformation(
+            "Transcoding track file object {FileObjectId} to Opus at {TargetBitRate} kbps: {OutputPath}",
+            fileObject.Id,
+            targetBitRate,
+            outputPath
         );
 
         bool success = await mediaFFmpegService.ConvertToOpusAsync(
@@ -436,11 +547,23 @@ public class TrackUploadWorkerProcessor(
             ProcessingStatus = FileProcessingStatus.Completed,
         };
 
+        logger.LogInformation(
+            "Uploading Opus transcode for track file object {FileObjectId} to {StoragePath}",
+            fileObject.Id,
+            newStoragePath
+        );
+
         await contentService.UploadFileFromTempAsync(
             newStoragePath,
             outputPath,
             newFileObject.MimeType,
             cancellationToken
+        );
+
+        logger.LogInformation(
+            "Uploaded Opus transcode for track file object {FileObjectId}: {SizeInBytes} bytes",
+            fileObject.Id,
+            newFileObject.SizeInBytes
         );
 
         dbContext.FileObjects.Add(newFileObject);
@@ -494,7 +617,13 @@ public class TrackUploadWorkerProcessor(
             .FirstOrDefault(albumTrack => albumTrack.AlbumDisc?.Album is not null);
 
         if (albumTrack?.AlbumDisc?.Album is not Album album)
+        {
+            logger.LogInformation(
+                "No album cover found for track file object {FileObjectId}; no album is linked",
+                fileObject.Id
+            );
             return (null, null);
+        }
 
         int albumDiscId = albumTrack.AlbumDiscId;
 
@@ -514,7 +643,13 @@ public class TrackUploadWorkerProcessor(
             .FirstOrDefault();
 
         if (coverFileObject is null)
+        {
+            logger.LogInformation(
+                "No album cover file object found for track file object {FileObjectId}",
+                fileObject.Id
+            );
             return (null, null);
+        }
 
         string coverPath = Path.Combine(
             tempDir,
@@ -525,6 +660,13 @@ public class TrackUploadWorkerProcessor(
             coverFileObject.StoragePath,
             coverPath,
             cancellationToken
+        );
+
+        logger.LogInformation(
+            "Downloaded album cover for track file object {FileObjectId} from {StoragePath} to {CoverPath}",
+            fileObject.Id,
+            coverFileObject.StoragePath,
+            coverPath
         );
 
         return (coverPath, coverFileObject.MimeType);

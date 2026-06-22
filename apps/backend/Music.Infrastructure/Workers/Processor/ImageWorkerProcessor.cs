@@ -24,6 +24,9 @@ class ImageUploadWorkerProcessor(AppDbContext dbContext)
                 $"File object with ID {job.FileObjectId} not found."
             );
 
+        sourceFileObject.ProcessingStatus = FileProcessingStatus.Processing;
+        await dbContext.SaveChangesAsync(cancellationToken);
+
         sourceFileObject.ProcessingStatus = FileProcessingStatus.Completed;
         await dbContext.SaveChangesAsync(cancellationToken);
     }

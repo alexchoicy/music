@@ -53,6 +53,9 @@ public class ConcertUploadWorkerProcessor(
         if (sourceFileObject.ProcessingStatus == FileProcessingStatus.Completed)
             throw new InvalidOperationException("Cannot process a completed file object.");
 
+        sourceFileObject.ProcessingStatus = FileProcessingStatus.Processing;
+        await dbContext.SaveChangesAsync(cancellationToken);
+
         Guid derivedFileId = Guid.CreateVersion7();
 
         string? sourcePath = null;
@@ -68,8 +71,17 @@ public class ConcertUploadWorkerProcessor(
             Directory.CreateDirectory(outputDirectory);
 
             logger.LogInformation(
-                "Processing concert upload for file object ID {FileObjectId}",
-                sourceFileObject.Id
+                "Processing concert upload {FileObjectId}: temp source {SourcePath}, output {OutputDirectory}",
+                sourceFileObject.Id,
+                sourcePath,
+                outputDirectory
+            );
+
+            logger.LogInformation(
+                "Downloading concert source {FileObjectId} from {StoragePath} to {SourcePath}",
+                sourceFileObject.Id,
+                sourceFileObject.StoragePath,
+                sourcePath
             );
 
             await contentService.DownloadFileToTemp(
@@ -79,8 +91,15 @@ public class ConcertUploadWorkerProcessor(
             );
 
             logger.LogInformation(
-                "Probing media file for file object ID {FileObjectId}",
-                sourceFileObject.Id
+                "Downloaded concert source {FileObjectId}: {SizeInBytes} bytes",
+                sourceFileObject.Id,
+                new FileInfo(sourcePath).Length
+            );
+
+            logger.LogInformation(
+                "Parsing concert media {FileObjectId} with ffprobe from {SourcePath}",
+                sourceFileObject.Id,
+                sourcePath
             );
 
             MediaProbeResult? probeResult =
@@ -95,6 +114,16 @@ public class ConcertUploadWorkerProcessor(
             );
             List<ProbeStream> audioStreams = FFprobeHelper.GetAudioStreams(probeResult);
 
+            logger.LogInformation(
+                "Parsed concert media {FileObjectId}: video codec {VideoCodec}, {Width}x{Height}, audio streams {AudioStreamCount}, duration {DurationSeconds}s",
+                sourceFileObject.Id,
+                videoStream.CodecName,
+                videoStream.Width,
+                videoStream.Height,
+                audioStreams.Count,
+                probeResult.Format?.Duration
+            );
+
             UpdateSourceFileObject(sourceFileObject, videoStream, audioStreams, probeResult);
 
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -104,6 +133,12 @@ public class ConcertUploadWorkerProcessor(
                 videoStream,
                 audioStreams,
                 probeResult
+            );
+
+            logger.LogInformation(
+                "Selected concert processing plan {ProcessingPlan} for file object {FileObjectId}",
+                processingPlan,
+                sourceFileObject.Id
             );
 
             if (processingPlan == VideoProcessingPlan.ConvertToDashAv1)
@@ -130,6 +165,13 @@ public class ConcertUploadWorkerProcessor(
                     cancellationToken
                 );
             }
+            else
+            {
+                logger.LogInformation(
+                    "Using original concert file object {FileObjectId}; no derived video upload needed",
+                    sourceFileObject.Id
+                );
+            }
             string subtitlesDirectory = Path.Combine(outputDirectory, "subtitles");
             string artworkDirectory = Path.Combine(outputDirectory, "artwork");
 
@@ -153,6 +195,11 @@ public class ConcertUploadWorkerProcessor(
             );
 
             await dbContext.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation(
+                "Completed concert upload processing for file object {FileObjectId}",
+                sourceFileObject.Id
+            );
         }
         finally
         {
@@ -172,6 +219,12 @@ public class ConcertUploadWorkerProcessor(
         CancellationToken cancellationToken
     )
     {
+        logger.LogInformation(
+            "Converting concert file object {FileObjectId} to DASH AV1 in {OutputDirectory}",
+            sourceFileObject.Id,
+            outputDirectory
+        );
+
         bool success = await ffmpegService.ConvertVideoToAv1DashAsync(
             sourcePath,
             outputDirectory,
@@ -194,6 +247,12 @@ public class ConcertUploadWorkerProcessor(
 
         DashManifestHelper.InjectAudioLabelsIntoDashManifest(manifestPath, probeResult);
 
+        logger.LogInformation(
+            "Created DASH AV1 output for concert file object {FileObjectId}: manifest {ManifestPath}",
+            sourceFileObject.Id,
+            manifestPath
+        );
+
         string derivedVideoRoot = MediaFolderOptions
             .DerivedVideo.GetFolder(storage.MediaFolders)
             .TrimEnd('/');
@@ -212,12 +271,24 @@ public class ConcertUploadWorkerProcessor(
 
             dbContext.FileObjects.Add(derivedFileObject);
 
+            logger.LogInformation(
+                "Uploading DASH AV1 directory for concert file object {FileObjectId} to {StoragePath}",
+                sourceFileObject.Id,
+                derivedFileObject.StoragePath
+            );
+
             await WorkerFileOperations.UploadDirectoryAsync(
                 contentService,
                 outputDirectory,
                 derivedFileObject.StoragePath,
                 logger,
                 cancellationToken
+            );
+
+            logger.LogInformation(
+                "Uploaded DASH AV1 directory for concert file object {FileObjectId}: {SizeInBytes} bytes",
+                sourceFileObject.Id,
+                derivedFileObject.SizeInBytes
             );
             await dbContext.SaveChangesAsync(cancellationToken);
         }
@@ -242,6 +313,14 @@ public class ConcertUploadWorkerProcessor(
     {
         (string extension, string mimeType) = GetRemuxOutputFormat(videoStream, audioStream);
         string remuxPath = Path.Combine(outputDirectory, $"remuxed.{extension}");
+
+        logger.LogInformation(
+            "Remuxing concert file object {FileObjectId} to {Extension} at {OutputPath}",
+            sourceFileObject.Id,
+            extension,
+            remuxPath
+        );
+
         bool success = await ffmpegService.RemuxVideoForWebAsync(
             sourcePath,
             remuxPath,
@@ -270,11 +349,23 @@ public class ConcertUploadWorkerProcessor(
             Path.GetFileName(remuxPath)
         );
 
+        logger.LogInformation(
+            "Uploading remuxed concert file object {FileObjectId} to {StoragePath}",
+            sourceFileObject.Id,
+            storagePath
+        );
+
         await contentService.UploadFileFromTempAsync(
             storagePath,
             remuxPath,
             mimeType,
             cancellationToken
+        );
+
+        logger.LogInformation(
+            "Uploaded remuxed concert file object {FileObjectId}: {SizeInBytes} bytes",
+            sourceFileObject.Id,
+            new FileInfo(remuxPath).Length
         );
 
         FileObject remuxedFileObject = new()
@@ -449,6 +540,11 @@ public class ConcertUploadWorkerProcessor(
         CancellationToken cancellationToken
     )
     {
+        logger.LogInformation(
+            "Extracting subtitle assets for concert file object {FileObjectId}",
+            sourceFileObject.Id
+        );
+
         foreach (
             ProbeStream subtitleStream in (probeResult.Streams ?? [])
                 .Where(stream =>
@@ -475,6 +571,14 @@ public class ConcertUploadWorkerProcessor(
                 subtitlePlan.Value.extension
             );
             string subtitleOutputPath = Path.Combine(subtitlesDirectory, subtitleFileName);
+
+            logger.LogInformation(
+                "Extracting subtitle stream {StreamIndex} ({CodecName}) for concert file object {FileObjectId} to {OutputPath}",
+                subtitleStream.Index,
+                subtitleStream.CodecName,
+                sourceFileObject.Id,
+                subtitleOutputPath
+            );
 
             bool subtitleSuccess =
                 subtitlePlan.Value.variant == FileObjectVariant.SubtitleSup
@@ -532,6 +636,12 @@ public class ConcertUploadWorkerProcessor(
 
         if (attachedPictureStream is not null)
         {
+            logger.LogInformation(
+                "Extracting attached picture stream {StreamIndex} for concert file object {FileObjectId}",
+                attachedPictureStream.Index,
+                sourceFileObject.Id
+            );
+
             await ExtractAttachedPictureAsync(
                 sourcePath,
                 artworkDirectory,
@@ -541,6 +651,12 @@ public class ConcertUploadWorkerProcessor(
             );
             return;
         }
+
+        logger.LogInformation(
+            "Generating thumbnail from video stream {StreamIndex} for concert file object {FileObjectId}",
+            videoStream.Index,
+            sourceFileObject.Id
+        );
 
         await ExtractVideoThumbnailAsync(
             sourcePath,
@@ -653,11 +769,26 @@ public class ConcertUploadWorkerProcessor(
         string fileName = Path.GetFileName(assetPath);
         string storagePath = assetsService.GetStoragePath(assetsFolder, hash, mimeType, fileName);
 
+        logger.LogInformation(
+            "Uploading generated asset {Variant} for concert file object {FileObjectId} to {StoragePath}",
+            variant,
+            sourceFileObject.Id,
+            storagePath
+        );
+
         await assetsService.UploadFileFromTempAsync(
             storagePath,
             assetPath,
             mimeType,
             cancellationToken
+        );
+
+        logger.LogInformation(
+            "Uploaded generated asset {Variant} for concert file object {FileObjectId}: {FileName}, {SizeInBytes} bytes",
+            variant,
+            sourceFileObject.Id,
+            fileName,
+            new FileInfo(assetPath).Length
         );
 
         FileObject assetFileObject = new()
