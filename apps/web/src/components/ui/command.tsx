@@ -9,7 +9,7 @@ import {
 	Music2Icon,
 	UsersRoundIcon,
 } from "lucide-react";
-import { Fragment, useDeferredValue, useState } from "react";
+import { Fragment, useDeferredValue, useEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import {
@@ -105,6 +105,7 @@ function itemCoverUrl(item: SearchItem) {
 
 export function Command({ onOpenChange, open }: CommandProps) {
 	const navigate = useNavigate();
+	const inputRef = useRef<HTMLInputElement>(null);
 	const [query, setQuery] = useState("");
 	const [highlightedItem, setHighlightedItem] = useState<SearchItem>();
 	const deferredQuery = useDeferredValue(query.trim());
@@ -147,9 +148,16 @@ export function Command({ onOpenChange, open }: CommandProps) {
 		...parties,
 	];
 
+	useEffect(() => {
+		if (!open) return;
+
+		requestAnimationFrame(() => {
+			inputRef.current?.select();
+		});
+	}, [open]);
+
 	function openItem(item: SearchItem) {
 		onOpenChange(false);
-		setQuery("");
 
 		if (item.kind === "album") {
 			void navigate({
@@ -206,6 +214,7 @@ export function Command({ onOpenChange, open }: CommandProps) {
 							if (item) openItem(item);
 						}}
 						placeholder="Search albums, tracks, concerts, parties..."
+						ref={inputRef}
 					/>
 					<CommandEmpty>
 						{isFetching ? "Searching..." : "No results found."}
