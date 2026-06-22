@@ -1,5 +1,10 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Outlet,
+	redirect,
+	useNavigate,
+} from "@tanstack/react-router";
 import { useState } from "react";
 
 import { ScrollArea } from "#/components/coss/scroll-area";
@@ -31,9 +36,22 @@ export const Route = createFileRoute("/_authed")({
 
 function RouteComponent() {
 	const [openCommand, setOpenCommand] = useState(false);
-
+	const navigator = useNavigate();
 	useHotkey("Control+K", () => {
 		setOpenCommand((open) => !open);
+	});
+
+	useHotkey("1", () => {
+		navigator({ to: "/" });
+	});
+	useHotkey("2", () => {
+		navigator({ to: "/albums" });
+	});
+	useHotkey("3", () => {
+		navigator({ to: "/parties" });
+	});
+	useHotkey("4", () => {
+		navigator({ to: "/concerts" });
 	});
 
 	return (

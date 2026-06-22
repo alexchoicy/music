@@ -40,6 +40,7 @@ type NavigationItem = {
 	label: string;
 	icon: LucideIcon;
 	to: NavigationTo;
+	hotkey?: string;
 };
 
 function normalizePathname(pathname: string): string {
@@ -51,21 +52,25 @@ const mainNavigation = [
 		label: "Home",
 		icon: House,
 		to: "/",
+		hotkey: "1",
 	},
 	{
 		label: "Albums",
 		icon: Disc3,
 		to: "/albums",
+		hotkey: "2",
 	},
 	{
 		label: "Parties",
 		icon: UsersRound,
 		to: "/parties",
+		hotkey: "3",
 	},
 	{
 		label: "Concerts",
 		icon: MicVocal,
 		to: "/concerts",
+		hotkey: "4",
 	},
 	{
 		label: "Create",
@@ -126,6 +131,11 @@ export function AppSidebar({
 										>
 											<item.icon className="size-4" />
 											<span>{item.label}</span>
+											{item.hotkey && (
+												<KbdGroup className="absolute top-1/2 right-2 -translate-y-1/2">
+													<Kbd>{item.hotkey}</Kbd>
+												</KbdGroup>
+											)}
 										</SidebarMenuButton>
 									</SidebarMenuItem>
 								);
