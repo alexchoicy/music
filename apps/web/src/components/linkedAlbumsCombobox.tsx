@@ -1,5 +1,9 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import {
+	keepPreviousData,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 import {
 	Combobox,
@@ -10,11 +14,11 @@ import {
 	ComboboxItem,
 	ComboboxList,
 	ComboboxPopup,
+	ComboboxStatus,
 	ComboboxValue,
 } from "#/components/coss/combobox";
 import type { components } from "#/data/APIschema";
 import { albumQueries } from "#/lib/queries/album.queries";
-import { normalizeString } from "#/lib/utils/string";
 
 type AlbumItem = components["schemas"]["AlbumListItem"];
 type LinkedAlbumsComboboxId = number;
@@ -28,16 +32,7 @@ type LinkedAlbumsComboboxProps = {
 };
 
 const EMPTY_FILTER_OUT_IDS: LinkedAlbumsComboboxId[] = [];
-
-function albumMatchesQuery(album: AlbumItem, normalizedQuery: string): boolean {
-	if (!normalizedQuery) return true;
-
-	const values = [album.title, ...album.artists.map((artist) => artist.name)];
-
-	return values.some((value) =>
-		normalizeString(value).includes(normalizedQuery),
-	);
-}
+const SEARCH_DEBOUNCE_MS = 300;
 
 export function LinkedAlbumsCombobox({
 	ariaLabel = "Linked albums",
@@ -46,19 +41,55 @@ export function LinkedAlbumsCombobox({
 	selectedIds,
 	setSelectedIds,
 }: LinkedAlbumsComboboxProps) {
-	const { data: albums } = useSuspenseQuery(albumQueries.getAlbums());
+	const queryClient = useQueryClient();
 	const [query, setQuery] = useState("");
+	const [debouncedQuery, setDebouncedQuery] = useState("");
+	const trimmedQuery = query.trim();
+	const trimmedSearchQuery = debouncedQuery.trim();
+	const cachedAlbums =
+		queryClient.getQueryData<AlbumItem[]>(["albums", undefined]) ?? [];
+	const {
+		data: searchAlbums = [],
+		isFetching: isSearching,
+		isError: isSearchError,
+	} = useQuery({
+		...albumQueries.getAlbums(
+			trimmedSearchQuery ? { Search: trimmedSearchQuery } : undefined,
+		),
+		placeholderData: keepPreviousData,
+	});
+	const isSearchPending = trimmedQuery !== trimmedSearchQuery || isSearching;
 	const selectedIdKeys = new Set(selectedIds);
 	const hiddenIdKeys = new Set([...selectedIds, ...filterOutIds]);
+	const albums = Array.from(
+		new Map(
+			[...cachedAlbums, ...searchAlbums].map((album) => [
+				Number(album.albumId),
+				album,
+			]),
+		).values(),
+	);
 	const selectedAlbums = albums.filter((album) =>
 		selectedIdKeys.has(Number(album.albumId)),
 	);
-	const normalizedQuery = normalizeString(query);
-	const filteredAlbums = albums.filter(
-		(album) =>
-			!hiddenIdKeys.has(Number(album.albumId)) &&
-			albumMatchesQuery(album, normalizedQuery),
+	const filteredAlbums = searchAlbums.filter(
+		(album) => !hiddenIdKeys.has(Number(album.albumId)),
 	);
+
+	useEffect(() => {
+		if (filteredAlbums.length > 0) {
+			setDebouncedQuery(query);
+			return;
+		}
+
+		const timeoutId = window.setTimeout(() => {
+			setDebouncedQuery(query);
+		}, SEARCH_DEBOUNCE_MS);
+
+		return () => window.clearTimeout(timeoutId);
+	}, [filteredAlbums.length, query]);
+
+	const showSearchingStatus = isSearchPending && filteredAlbums.length === 0;
 
 	return (
 		<Combobox<AlbumItem, true>
@@ -96,6 +127,13 @@ export function LinkedAlbumsCombobox({
 				</ComboboxValue>
 			</ComboboxChips>
 			<ComboboxPopup>
+				<ComboboxStatus>
+					{showSearchingStatus
+						? "Searching..."
+						: isSearchError
+							? "Unable to search albums."
+							: null}
+				</ComboboxStatus>
 				<ComboboxEmpty>No albums found.</ComboboxEmpty>
 				<ComboboxList>
 					{(album: AlbumItem) => (
