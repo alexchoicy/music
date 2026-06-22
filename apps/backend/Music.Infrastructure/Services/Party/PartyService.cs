@@ -77,6 +77,11 @@ public class PartyService(
             query = query.Where(p => p.Gender == request.Gender);
         }
 
+        if (request.ExcludeNoAlbums)
+        {
+            query = query.Where(p => p.AlbumCredits.Count > 0);
+        }
+
         if (hasSearch)
         {
             query = query.Where(party =>
@@ -120,14 +125,18 @@ public class PartyService(
                         AppDbContext.ImmutableUnaccent(party.NormalizedName),
                         AppDbContext.ImmutableUnaccent(normalizedSearch)
                     ),
-                    dbContext.PartyAliases
-                        .Where(alias => alias.PartyId == party.Id && alias.DeletedAt == null)
+                    dbContext
+                        .PartyAliases.Where(alias =>
+                            alias.PartyId == party.Id && alias.DeletedAt == null
+                        )
                         .Max(alias =>
-                            (double?)EF.Functions.TrigramsSimilarity(
-                                AppDbContext.ImmutableUnaccent(alias.NormalizedName),
-                                AppDbContext.ImmutableUnaccent(normalizedSearch)
-                            )
-                        ) ?? 0.0
+                            (double?)
+                                EF.Functions.TrigramsSimilarity(
+                                    AppDbContext.ImmutableUnaccent(alias.NormalizedName),
+                                    AppDbContext.ImmutableUnaccent(normalizedSearch)
+                                )
+                        )
+                        ?? 0.0
                 )
                 : 0.0,
             AlbumCount = party.AlbumCredits.Count(credit => credit.Credit == CreditType.Artist),
@@ -140,10 +149,11 @@ public class PartyService(
                 .FirstOrDefault(),
         });
 
-        var parties = await (hasSearch
+        var parties = await (
+            hasSearch
                 ? partyQuery.OrderByDescending(p => p.Similarity).ThenBy(p => p.Name)
                 : partyQuery.OrderBy(p => p.PartyId)
-            ).ToListAsync(cancellationToken);
+        ).ToListAsync(cancellationToken);
 
         int[] partyIds = parties.Select(p => p.PartyId).ToArray();
         Dictionary<int, List<PartyAlias>> aliasesByPartyId = [];

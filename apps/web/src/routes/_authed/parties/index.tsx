@@ -50,6 +50,7 @@ type PartySearch = {
 	kind: PartyKindFilter;
 	search: string;
 	type: PartyTypeFilter;
+	excludeNoAlbums: boolean;
 };
 
 const PARTY_GENDER_VALUES: ReadonlySet<string> = new Set(
@@ -84,6 +85,7 @@ const partySearchDefaults: PartySearch = {
 	kind: "All",
 	search: "",
 	type: "All",
+	excludeNoAlbums: true,
 };
 
 export const Route = createFileRoute("/_authed/parties/")({
@@ -104,6 +106,7 @@ function RouteComponent() {
 		Kind: deferredFilters.kind === "All" ? undefined : deferredFilters.kind,
 		Search: deferredFilters.search || undefined,
 		Type: deferredFilters.type === "All" ? undefined : deferredFilters.type,
+		ExcludeNoAlbums: true,
 	};
 
 	const {

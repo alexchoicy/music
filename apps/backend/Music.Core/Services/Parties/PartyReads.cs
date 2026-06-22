@@ -18,6 +18,7 @@ public sealed class PartyListRequest
     public PartyType? Type { get; init; }
     public PartyKind? Kind { get; init; }
     public PartyGender? Gender { get; init; }
+    public bool ExcludeNoAlbums { get; init; } = false;
 }
 
 public sealed class PartyAlias

@@ -769,6 +769,7 @@ export interface paths {
                     Type?: components["schemas"]["PartyType"];
                     Kind?: components["schemas"]["PartyKind"];
                     Gender?: components["schemas"]["PartyGender"];
+                    ExcludeNoAlbums?: boolean;
                 };
                 header?: never;
                 path?: never;
@@ -902,17 +903,6 @@ export interface paths {
                         "text/plain": components["schemas"]["SearchResult"];
                         "application/json": components["schemas"]["SearchResult"];
                         "text/json": components["schemas"]["SearchResult"];
-                    };
-                };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };

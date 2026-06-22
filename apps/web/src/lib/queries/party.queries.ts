@@ -18,6 +18,7 @@ export const partyQueries = {
 				if (query?.Type) params.set("Type", query.Type);
 				if (query?.Kind) params.set("Kind", query.Kind);
 				if (query?.Gender) params.set("Gender", query.Gender);
+				if (query?.ExcludeNoAlbums) params.set("ExcludeNoAlbums", "true");
 
 				const url = params.size ? `/parties?${params}` : "/parties";
 

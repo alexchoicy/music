@@ -21,7 +21,9 @@ export const Route = createFileRoute("/_authed/")({
 		return Promise.all([
 			context.queryClient.ensureQueryData(albumQueries.getAlbums()),
 			context.queryClient.ensureQueryData(concertQueries.getConcerts()),
-			context.queryClient.ensureQueryData(partyQueries.getParties()),
+			context.queryClient.ensureQueryData(
+				partyQueries.getParties({ ExcludeNoAlbums: true }),
+			),
 		]);
 	},
 	component: RouteComponent,
@@ -30,7 +32,9 @@ export const Route = createFileRoute("/_authed/")({
 function RouteComponent() {
 	const { data: albums } = useSuspenseQuery(albumQueries.getAlbums());
 	const { data: concerts } = useSuspenseQuery(concertQueries.getConcerts());
-	const { data: parties } = useSuspenseQuery(partyQueries.getParties());
+	const { data: parties } = useSuspenseQuery(
+		partyQueries.getParties({ ExcludeNoAlbums: true }),
+	);
 
 	return (
 		<main className="flex min-h-full w-full flex-col gap-8 p-4 sm:p-6">
