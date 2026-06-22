@@ -5,7 +5,7 @@ on:
     types: [created]
 
 concurrency:
-  group: build-dev-${{ github.event.issue.number }}-${{ contains(github.event.comment.body, '/build backend') && 'backend' || 'web' }}
+  group: build-dev-${{ github.event.issue.number }}-${{ startsWith(github.event.comment.body, '/build backend') && 'backend' || startsWith(github.event.comment.body, '/build web') && 'web' || 'all' }}
   cancel-in-progress: true
 
 env:
@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   web:
-    if: github.event.issue.pull_request && contains(github.event.comment.body, '/build web') && github.actor == 'alexchoicy'
+    if: github.event.issue.pull_request && github.actor == 'alexchoicy' && (contains(github.event.comment.body, '/build web') || (contains(github.event.comment.body, '/build') && !contains(github.event.comment.body, '/build backend')))
     runs-on: ubuntu-latest
 
     steps:
@@ -46,8 +46,8 @@ jobs:
           file: apps/web/Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository }}-web:pr-${{ env.ISSUE_NUMBER }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
 
       - name: Comment success (web)
         if: success()
@@ -63,9 +63,9 @@ jobs:
             });
 
   backend:
-    if: github.event.issue.pull_request && contains(github.event.comment.body, '/build backend') && github.actor == 'alexchoicy'
+    if: github.event.issue.pull_request && github.actor == 'alexchoicy' && (contains(github.event.comment.body, '/build backend') || (contains(github.event.comment.body, '/build') && !contains(github.event.comment.body, '/build web')))
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -89,8 +89,8 @@ jobs:
           file: apps/backend/Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository }}-backend:pr-${{ env.ISSUE_NUMBER }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
 
       - name: Comment success (backend)
         if: success()
