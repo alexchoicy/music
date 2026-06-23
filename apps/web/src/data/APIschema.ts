@@ -965,6 +965,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PendingOriginalFileResult"][];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/uploads/{fileObjectId}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    fileObjectId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StartUploadResult"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/uploads/complete": {
         parameters: {
             query?: never;
@@ -1055,43 +1145,6 @@ export interface paths {
                         "text/plain": components["schemas"]["ProblemDetails"];
                         "application/json": components["schemas"]["ProblemDetails"];
                         "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/workers/images": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["LoadImageWorkersResult"];
-                        "application/json": components["schemas"]["LoadImageWorkersResult"];
-                        "text/json": components["schemas"]["LoadImageWorkersResult"];
                     };
                 };
             };
@@ -1444,7 +1497,7 @@ export interface components {
         };
         CreateUploadRequest: {
             /** Format: int32 */
-            fileId: number | string;
+            fileObjectId: number | string;
         };
         CreditRequest: {
             /** Format: int32 */
@@ -1495,6 +1548,7 @@ export interface components {
         };
         /** @enum {unknown} */
         FileObjectVariant: "Original" | "TaggedOriginal" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup" | "RemuxedOriginal" | "ImageCover1024x1024" | "ImageAvatar512x512" | "ImageBanner1500x500" | "ImageWide1280x720";
+        FileProcessingStatus: number;
         FileRequest: {
             blake3Hash: string;
             mimeType: string;
@@ -1533,10 +1587,6 @@ export interface components {
             /** Format: int32 */
             id: number | string;
             language: string;
-        };
-        LoadImageWorkersResult: {
-            /** Format: int32 */
-            count: number | string;
         };
         LoginRequest: {
             username: string;
@@ -1610,6 +1660,17 @@ export interface components {
         PartyKind: "Human" | "VTuber" | "Vocaloid";
         /** @enum {unknown} */
         PartyType: "Individual" | "Group" | "Project";
+        PendingOriginalFileResult: {
+            /** Format: int32 */
+            fileId: number | string;
+            /** Format: uuid */
+            fileObjectId: string;
+            fileName: string;
+            blake3Hash: string;
+            processingStatus: components["schemas"]["FileProcessingStatus"];
+            /** Format: date-time */
+            createdAt: string;
+        };
         ProblemDetails: {
             type?: null | string;
             title?: null | string;
@@ -1626,6 +1687,11 @@ export interface components {
             albums: components["schemas"]["AlbumListItem"][];
             concerts: components["schemas"]["ConcertListItem"][];
             parties: components["schemas"]["PartyItems"][];
+        };
+        StartUploadResult: {
+            blake3Hash: string;
+            fileObject: components["schemas"]["PendingOriginalFileResult"];
+            multipartUpload: components["schemas"]["MultipartUploadResults"];
         };
         TrackAudioDetails: {
             /** Format: int32 */

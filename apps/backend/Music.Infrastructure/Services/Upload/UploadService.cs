@@ -27,7 +27,7 @@ namespace Music.Infrastructure.Services.Upload
             StoredFile? storedFile =
                 await _dbContext
                     .StoredFiles.Include(f => f.FileObjects)
-                    .FirstOrDefaultAsync(f => f.Id == createUploadRequest.FileId, cancellationToken)
+                    .FirstOrDefaultAsync(f => f.Id == createUploadRequest.FileObjectId, cancellationToken)
                 ?? throw new EntityNotFoundException("File not found");
 
             FileObject? originalFileObject =
@@ -41,6 +41,80 @@ namespace Music.Infrastructure.Services.Upload
                 originalFileObject.SizeInBytes,
                 cancellationToken
             );
+        }
+
+        public async Task<IReadOnlyList<PendingOriginalFileResult>> GetPendingOriginalFiles(
+            string userID,
+            CancellationToken cancellationToken = default
+        ) =>
+            await _dbContext
+                .FileObjects.AsNoTracking()
+                .Where(fo =>
+                    fo.File != null
+                    && fo.File.UploadedByUserId == userID
+                    && fo.FileObjectVariant == FileObjectVariant.Original
+                    && fo.ProcessingStatus == FileProcessingStatus.Pending
+                )
+                .OrderByDescending(fo => fo.CreatedAt)
+                .Select(fo => new PendingOriginalFileResult
+                {
+                    FileId = fo.FileId,
+                    FileObjectId = fo.Id,
+                    FileName = fo.File!.OriginalFileName,
+                    Blake3Hash = fo.File.OriginalBlake3Hash,
+                    ProcessingStatus = fo.ProcessingStatus,
+                    CreatedAt = fo.CreatedAt,
+                })
+                .ToListAsync(cancellationToken);
+
+        public async Task<StartUploadResult> Start(
+            Guid fileObjectID,
+            string userID,
+            CancellationToken cancellationToken = default
+        )
+        {
+            FileObject fileObject =
+                await _dbContext
+                    .FileObjects.Include(fo => fo.File)
+                    .FirstOrDefaultAsync(fo => fo.Id == fileObjectID, cancellationToken)
+                ?? throw new EntityNotFoundException("File object not found");
+
+            if (fileObject.FileObjectVariant != FileObjectVariant.Original)
+                throw new ConflictException("Only original file object uploads can be started");
+
+            if (fileObject.ProcessingStatus != FileProcessingStatus.Pending)
+                throw new ConflictException("Only pending file object uploads can be started");
+
+            StoredFile storedFile =
+                fileObject.File ?? throw new EntityNotFoundException("File not found");
+
+            if (storedFile.UploadedByUserId != userID)
+                throw new ConflictException("Stored file uploader does not match current user");
+
+            MultipartUploadResults multipartUpload =
+                await _contentService.CreateMultipartUploadAsync(
+                    fileObject.StoragePath,
+                    fileObject.MimeType,
+                    fileObject.SizeInBytes,
+                    cancellationToken
+                );
+
+            PendingOriginalFileResult pendingFile = new()
+            {
+                FileId = fileObject.FileId,
+                FileObjectId = fileObject.Id,
+                FileName = storedFile.OriginalFileName,
+                Blake3Hash = storedFile.OriginalBlake3Hash,
+                ProcessingStatus = fileObject.ProcessingStatus,
+                CreatedAt = fileObject.CreatedAt,
+            };
+
+            return new StartUploadResult
+            {
+                Blake3Hash = storedFile.OriginalBlake3Hash,
+                FileObject = pendingFile,
+                MultipartUpload = multipartUpload,
+            };
         }
 
         public async Task Complete(
