@@ -17,8 +17,10 @@ public sealed class AlbumListRequest
 {
     public string? Search { get; init; }
     public IReadOnlyList<AlbumType>? Types { get; init; }
+    public IReadOnlyList<int>? LanguageIds { get; init; }
     public IReadOnlyList<int>? PartyIds { get; init; }
     public bool IsIncludeInTrackCredit { get; init; }
+    public ListSortOption Sort { get; init; } = ListSortOption.TitleAsc;
 }
 
 public sealed class AlbumSummary

@@ -122,7 +122,7 @@ public static class DashManifestHelper
 
         element.Value = contentService.GetPresignedUrl(
             CombineStoragePath(storagePath, value),
-            DateTime.UtcNow.AddHours(5),
+            DateTime.UtcNow.AddHours(24),
             null,
             cancellationToken
         );

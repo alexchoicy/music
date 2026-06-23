@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
+using Music.Core.Common.Enums;
 using Music.Core.Common.Exceptions;
 using Music.Core.Common.Utils;
 using Music.Core.Entities;
@@ -285,6 +286,14 @@ public class ConcertService(
             );
         }
 
+        query = request.Sort switch
+        {
+            ListSortOption.TitleDesc => query.OrderByDescending(concert => concert.Title),
+            ListSortOption.CreatedAtDesc => query.OrderByDescending(concert => concert.CreatedAt),
+            ListSortOption.CreatedAtAsc => query.OrderBy(concert => concert.CreatedAt),
+            _ => query.OrderBy(concert => concert.Title),
+        };
+
         List<Core.Entities.Concert> concerts = await query
             .AsSplitQuery()
             .Include(concert => concert.Images)
@@ -296,7 +305,6 @@ public class ConcertService(
             .Include(concert => concert.ConcertFiles)
                 .ThenInclude(concertFile => concertFile.File)
                     .ThenInclude(file => file!.FileObjects)
-            .OrderByDescending(concert => concert.CreatedAt)
             .ToListAsync(cancellationToken);
 
         return concerts.Select(concert => concert.ToListItem(assetsService)).ToList();

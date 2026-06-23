@@ -16,10 +16,15 @@ export const albumQueries = {
 				if (query?.Search) params.append("Search", query.Search);
 				if (query?.Types)
 					query.Types.map((item) => params.append("Types", item));
+				if (query?.LanguageIds)
+					query.LanguageIds.map((item) =>
+						params.append("LanguageIds", String(item)),
+					);
 				if (query?.PartyIds)
 					query.PartyIds.map((item) => params.append("PartyIds", String(item)));
 				if (query?.IsIncludeInTrackCredit)
 					params.append("IsIncludeInTrackCredit", "true");
+				if (query?.Sort) params.set("Sort", query.Sort);
 
 				const url = params.size ? `/albums?${params.toString()}` : "/albums";
 

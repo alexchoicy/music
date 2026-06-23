@@ -119,6 +119,7 @@ public class PartyService(
             party.Type,
             party.Kind,
             party.Gender,
+            party.CreatedAt,
             Similarity = hasSearch
                 ? Math.Max(
                     EF.Functions.TrigramsSimilarity(
@@ -149,11 +150,15 @@ public class PartyService(
                 .FirstOrDefault(),
         });
 
-        var parties = await (
-            hasSearch
-                ? partyQuery.OrderByDescending(p => p.Similarity).ThenBy(p => p.Name)
-                : partyQuery.OrderBy(p => p.PartyId)
-        ).ToListAsync(cancellationToken);
+        partyQuery = request.Sort switch
+        {
+            ListSortOption.TitleDesc => partyQuery.OrderByDescending(p => p.Name),
+            ListSortOption.CreatedAtDesc => partyQuery.OrderByDescending(p => p.CreatedAt),
+            ListSortOption.CreatedAtAsc => partyQuery.OrderBy(p => p.CreatedAt),
+            _ => partyQuery.OrderBy(p => p.Name),
+        };
+
+        var parties = await partyQuery.ToListAsync(cancellationToken);
 
         int[] partyIds = parties.Select(p => p.PartyId).ToArray();
         Dictionary<int, List<PartyAlias>> aliasesByPartyId = [];

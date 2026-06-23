@@ -18,6 +18,7 @@ export const concertQueries = {
 					query.PartyIds.map((item) => params.append("PartyIds", String(item)));
 				if (query?.IsIncludeInGuestCredit)
 					params.append("IsIncludeInGuestCredit", "true");
+				if (query?.Sort) params.set("Sort", query.Sort);
 
 				const url = params.size
 					? `/concerts?${params.toString()}`

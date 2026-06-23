@@ -1,3 +1,4 @@
+using Music.Core.Common.Enums;
 using Music.Core.Services.Albums;
 using Music.Core.Services.Albums.Enums;
 using Music.Core.Services.Albums.Requests;
@@ -20,6 +21,7 @@ public sealed class ConcertListRequest
     public string? Search { get; init; }
     public IReadOnlyList<int>? PartyIds { get; init; }
     public bool IsIncludeInGuestCredit { get; init; }
+    public ListSortOption Sort { get; init; } = ListSortOption.TitleAsc;
 }
 
 public sealed class ConcertPartySummary

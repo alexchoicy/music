@@ -4,11 +4,16 @@ import {
 	stripSearchParams,
 	useNavigate,
 } from "@tanstack/react-router";
-import { SearchIcon, UsersRoundIcon } from "lucide-react";
+import { ChevronDownIcon, SearchIcon, UsersRoundIcon } from "lucide-react";
 import { useDeferredValue } from "react";
 import { z } from "zod";
 
 import { Card, CardPanel } from "#/components/coss/card";
+import {
+	Collapsible,
+	CollapsiblePanel,
+	CollapsibleTrigger,
+} from "#/components/coss/collapsible";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -18,6 +23,12 @@ import { Skeleton } from "#/components/coss/skeleton";
 import { EnumFieldSelect } from "#/components/enumFieldSelect";
 import { LibraryEmptyState } from "#/components/LibraryEmptyState";
 import { PartyCard } from "#/components/parties/PartyCard";
+import {
+	DEFAULT_LIST_SORT,
+	isListSortOption,
+	LIST_SORT_OPTIONS,
+} from "#/enums/listSortEnums";
+import type { ListSortOption } from "#/enums/listSortEnums";
 import {
 	PARTY_GENDER_OPTIONS,
 	PARTY_KIND_OPTIONS,
@@ -49,6 +60,7 @@ type PartySearch = {
 	gender: PartyGenderFilter;
 	kind: PartyKindFilter;
 	search: string;
+	sort: ListSortOption;
 	type: PartyTypeFilter;
 	excludeNoAlbums: boolean;
 };
@@ -77,6 +89,10 @@ const partySearchSchema = z.object({
 	gender: filterSchema<Exclude<PartyGenderFilter, "All">>(PARTY_GENDER_VALUES),
 	kind: filterSchema<Exclude<PartyKindFilter, "All">>(PARTY_KIND_VALUES),
 	search: z.string().catch("").default(""),
+	sort: z
+		.custom<ListSortOption>(isListSortOption)
+		.catch(DEFAULT_LIST_SORT)
+		.default(DEFAULT_LIST_SORT),
 	type: filterSchema<Exclude<PartyTypeFilter, "All">>(PARTY_TYPE_VALUES),
 });
 
@@ -84,6 +100,7 @@ const partySearchDefaults: PartySearch = {
 	gender: "All",
 	kind: "All",
 	search: "",
+	sort: DEFAULT_LIST_SORT,
 	type: "All",
 	excludeNoAlbums: true,
 };
@@ -105,6 +122,7 @@ function RouteComponent() {
 			deferredFilters.gender === "All" ? undefined : deferredFilters.gender,
 		Kind: deferredFilters.kind === "All" ? undefined : deferredFilters.kind,
 		Search: deferredFilters.search || undefined,
+		Sort: deferredFilters.sort,
 		Type: deferredFilters.type === "All" ? undefined : deferredFilters.type,
 		ExcludeNoAlbums: true,
 	};
@@ -125,6 +143,57 @@ function RouteComponent() {
 		});
 	}
 
+	const filterControls = (className: string) => (
+		<div className={className}>
+			<InputGroup className="sm:w-64">
+				<InputGroupAddon>
+					<SearchIcon aria-hidden="true" />
+				</InputGroupAddon>
+				<InputGroupInput
+					aria-label="Search parties"
+					placeholder="Search parties..."
+					type="search"
+					value={filters.search}
+					onChange={(event) => {
+						updateSearch({ search: event.target.value });
+					}}
+				/>
+			</InputGroup>
+			<div className="sm:w-44">
+				<EnumFieldSelect
+					label="Type"
+					onValueChange={(type) => updateSearch({ type })}
+					options={PARTY_TYPE_FILTER_OPTIONS}
+					value={filters.type}
+				/>
+			</div>
+			<div className="sm:w-44">
+				<EnumFieldSelect
+					label="Kind"
+					onValueChange={(kind) => updateSearch({ kind })}
+					options={PARTY_KIND_FILTER_OPTIONS}
+					value={filters.kind}
+				/>
+			</div>
+			<div className="sm:w-44">
+				<EnumFieldSelect
+					label="Gender"
+					onValueChange={(gender) => updateSearch({ gender })}
+					options={PARTY_GENDER_FILTER_OPTIONS}
+					value={filters.gender}
+				/>
+			</div>
+			<div className="sm:ml-auto sm:w-56">
+				<EnumFieldSelect
+					label="Sort"
+					onValueChange={(sort) => updateSearch({ sort })}
+					options={LIST_SORT_OPTIONS}
+					value={filters.sort}
+				/>
+			</div>
+		</div>
+	);
+
 	return (
 		<main className="flex min-h-full w-full flex-col gap-6 p-4 sm:p-6">
 			<header className="flex flex-col gap-4">
@@ -135,46 +204,18 @@ function RouteComponent() {
 					</h1>
 				</div>
 
-				<div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-					<InputGroup className="sm:max-w-sm">
-						<InputGroupAddon>
-							<SearchIcon aria-hidden="true" />
-						</InputGroupAddon>
-						<InputGroupInput
-							aria-label="Search parties"
-							placeholder="Search parties..."
-							type="search"
-							value={filters.search}
-							onChange={(event) => {
-								updateSearch({ search: event.target.value });
-							}}
-						/>
-					</InputGroup>
-					<div className="sm:w-44">
-						<EnumFieldSelect
-							label="Type"
-							onValueChange={(type) => updateSearch({ type })}
-							options={PARTY_TYPE_FILTER_OPTIONS}
-							value={filters.type}
-						/>
-					</div>
-					<div className="sm:w-44">
-						<EnumFieldSelect
-							label="Kind"
-							onValueChange={(kind) => updateSearch({ kind })}
-							options={PARTY_KIND_FILTER_OPTIONS}
-							value={filters.kind}
-						/>
-					</div>
-					<div className="sm:w-44">
-						<EnumFieldSelect
-							label="Gender"
-							onValueChange={(gender) => updateSearch({ gender })}
-							options={PARTY_GENDER_FILTER_OPTIONS}
-							value={filters.gender}
-						/>
-					</div>
-				</div>
+				<Collapsible defaultOpen={false}>
+					<CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm font-medium sm:hidden">
+						Filters
+						<ChevronDownIcon aria-hidden="true" className="size-4" />
+					</CollapsibleTrigger>
+					<CollapsiblePanel className="sm:hidden">
+						{filterControls("flex flex-col gap-3 pt-3")}
+					</CollapsiblePanel>
+				</Collapsible>
+				{filterControls(
+					"hidden flex-col gap-3 sm:flex sm:flex-row sm:flex-wrap sm:items-end",
+				)}
 			</header>
 
 			{isPending ? (

@@ -62,8 +62,10 @@ export interface paths {
                 query?: {
                     Search?: string;
                     Types?: components["schemas"]["AlbumType"][];
+                    LanguageIds?: (number | string)[];
                     PartyIds?: (number | string)[];
                     IsIncludeInTrackCredit?: boolean;
+                    Sort?: components["schemas"]["ListSortOption"];
                 };
                 header?: never;
                 path?: never;
@@ -478,6 +480,7 @@ export interface paths {
                     Search?: string;
                     PartyIds?: (number | string)[];
                     IsIncludeInGuestCredit?: boolean;
+                    Sort?: components["schemas"]["ListSortOption"];
                 };
                 header?: never;
                 path?: never;
@@ -809,6 +812,7 @@ export interface paths {
                     Kind?: components["schemas"]["PartyKind"];
                     Gender?: components["schemas"]["PartyGender"];
                     ExcludeNoAlbums?: boolean;
+                    Sort?: components["schemas"]["ListSortOption"];
                 };
                 header?: never;
                 path?: never;
@@ -1629,6 +1633,8 @@ export interface components {
             id: number | string;
             language: string;
         };
+        /** @enum {unknown} */
+        ListSortOption: "TitleAsc" | "TitleDesc" | "CreatedAtDesc" | "CreatedAtAsc";
         LoginRequest: {
             username: string;
             password: string;

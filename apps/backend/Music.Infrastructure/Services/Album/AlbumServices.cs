@@ -47,6 +47,13 @@ public class AlbumService(
             query = query.Where(album => request.Types.Contains(album.Type));
         }
 
+        if (request.LanguageIds?.Count > 0)
+        {
+            query = query.Where(album =>
+                album.LanguageId.HasValue && request.LanguageIds.Contains(album.LanguageId.Value)
+            );
+        }
+
         if (request.PartyIds?.Count > 0)
         {
             query = query.Where(album =>
@@ -111,6 +118,14 @@ public class AlbumService(
             );
         }
 
+        query = request.Sort switch
+        {
+            ListSortOption.TitleDesc => query.OrderByDescending(album => album.Title),
+            ListSortOption.CreatedAtDesc => query.OrderByDescending(album => album.CreatedAt),
+            ListSortOption.CreatedAtAsc => query.OrderBy(album => album.CreatedAt),
+            _ => query.OrderBy(album => album.Title),
+        };
+
         List<Core.Entities.Album> albums = await query
             .AsSplitQuery()
             .Include(a => a.Credits)
@@ -122,7 +137,6 @@ public class AlbumService(
             .Include(a => a.Images)
                 .ThenInclude(i => i.File)
                     .ThenInclude(f => f!.FileObjects)
-            .OrderByDescending(a => a.CreatedAt)
             .ToListAsync(cancellationToken);
 
         Dictionary<int, HashSet<int>> matchedTrackIdsByAlbumId = [];

@@ -1,3 +1,4 @@
+using Music.Core.Common.Enums;
 using Music.Core.Services.Albums;
 using Music.Core.Services.Albums.Enums;
 using Music.Core.Services.Albums.Requests;
@@ -19,6 +20,7 @@ public sealed class PartyListRequest
     public PartyKind? Kind { get; init; }
     public PartyGender? Gender { get; init; }
     public bool ExcludeNoAlbums { get; init; } = false;
+    public ListSortOption Sort { get; init; } = ListSortOption.TitleAsc;
 }
 
 public sealed class PartyAlias
