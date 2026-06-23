@@ -245,7 +245,7 @@ public class PartyInfoEnrichmentWorkerProcessor(
                 StoragePath = storagePath,
                 ObjectBlake3Hash = blake3Hash,
                 FileObjectVariant = FileObjectVariant.Original,
-                ProcessingStatus = FileProcessingStatus.Completed,
+                ProcessingStatus = FileProcessingStatus.Pending,
                 SizeInBytes = new FileInfo(imagePath).Length,
                 MimeType = mimeType,
                 Container = extension,
