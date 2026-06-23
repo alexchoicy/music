@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
@@ -111,7 +113,14 @@ public class S3ContentService(
     {
         using TransferUtility transferUtility = new(client);
 
-        await transferUtility.DownloadAsync(destinationPath, bucket, objectPath, cancellationToken);
+        var result = await transferUtility.DownloadWithResponseAsync(
+            destinationPath,
+            bucket,
+            objectPath,
+            cancellationToken
+        );
+
+        Console.WriteLine(JsonSerializer.Serialize(result));
     }
 
     public string GetPresignedUrl(

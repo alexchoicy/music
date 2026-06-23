@@ -106,7 +106,9 @@ public sealed class BackgroundTaskQueue : IBackgroundTaskQueue
         AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         List<WorkerJob> jobs = await dbContext
             .WorkerJobs.Where(job =>
-                job.Status == WorkerJobStatus.Pending || job.Status == WorkerJobStatus.Processing
+                job.Status == WorkerJobStatus.Pending
+                || job.Status == WorkerJobStatus.Processing
+                || job.Status == WorkerJobStatus.Failed
             )
             .OrderBy(job => job.CreatedAt)
             .ToListAsync(cancellationToken);
