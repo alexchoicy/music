@@ -48,4 +48,16 @@ public class FileController(IFileUrlService fileUrlService) : ControllerBase
         string manifest = await fileUrlService.GetDashManifestAsync(id, cancellationToken);
         return Content(manifest, "application/dash+xml");
     }
+
+    [HttpGet("{id:guid}/download")]
+    [Authorize]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    public async Task<IActionResult> DownloadTrack(
+        [FromRoute] [Required] Guid id,
+        CancellationToken cancellationToken
+    )
+    {
+        string url = await fileUrlService.GetDownloadUrlAsync(id, cancellationToken);
+        return Ok(url);
+    }
 }

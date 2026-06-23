@@ -336,15 +336,14 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					set({ queue: album, index, status: "loading" });
 					loadAndPlay(get().playbackQuality, track);
 				},
-				addToQueue: (track: AudioPlayerTrack) => {
+				addToQueue: (track: AudioPlayerTrack[]) => {
 					console.log("[audio-player] addToQueue", {
-						trackId: track.trackId,
-						title: track.title,
+						trackCount: track.length,
 					});
 
 					set((state) => {
 						const wasEmpty = state.queue.length === 0;
-						state.queue.push(track);
+						state.queue.push(...track);
 
 						if (wasEmpty) state.index = 0;
 					});

@@ -1,28 +1,46 @@
 import {
 	ChevronDownIcon,
 	Disc3Icon,
+	Download,
 	DownloadIcon,
+	EllipsisVertical,
+	ListPlusIcon,
+	Option,
 	PlayIcon,
 } from "lucide-react";
+import pMap from "p-map";
 
 import { Badge } from "#/components/coss/badge";
 import { Button } from "#/components/coss/button";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { formatDate } from "#/lib/utils/date";
 import { formatDurationInHoursMinutesSeconds } from "#/lib/utils/music";
+import { getPresignedUrl } from "#/store/audioPlayer/audioPlayerFunction";
 
+import {
+	Menu,
+	MenuGroup,
+	MenuGroupLabel,
+	MenuItem,
+	MenuPopup,
+	MenuSeparator,
+	MenuTrigger,
+} from "../coss/menu";
+import { toastManager } from "../coss/toast";
 import { getAlbumHoverCoverUrl, getCreditNames } from "./albumDetailUtils";
 import type { AlbumDetails } from "./albumDetailUtils";
 
 type AlbumDetailHeroProps = {
 	album: AlbumDetails;
 	onPlayAlbum: () => void;
+	onAddToQueue: () => void;
 	playAlbumDisabled?: boolean;
 };
 
 export function AlbumDetailHero({
 	album,
 	onPlayAlbum,
+	onAddToQueue,
 	playAlbumDisabled,
 }: AlbumDetailHeroProps) {
 	const coverUrl = getAlbumCoverUrl(album.cover.album);
@@ -31,6 +49,144 @@ export function AlbumDetailHero({
 	const duration =
 		formatDurationInHoursMinutesSeconds(album.totalDurationInMs) ?? "0s";
 	const releaseDate = formatDate(album.releaseDate);
+
+	async function downloadAlbum(fileType: "source" | "tagged" | "opus") {
+		const presignUrls: { fileName: string; url: string }[] = [];
+
+		for (const disc of album.discs) {
+			for (const track of disc.tracks) {
+				const pinAudio = track.audios.find((audio) => audio.pinned);
+				if (!pinAudio) continue;
+
+				switch (fileType) {
+					case "source": {
+						const presign = await getPresignedUrl(pinAudio.file.original.url);
+						if (!presign) {
+							toastManager.add({
+								title: "No source available",
+								description: `${track.title} has no source URL available`,
+								type: "error",
+							});
+							continue;
+						}
+						presignUrls.push({
+							fileName: `${disc.discNumber} - ${track.trackNumber} ${track.title}.${pinAudio.file.original.extension}`,
+							url: presign,
+						});
+
+						break;
+					}
+					case "tagged": {
+						if (!pinAudio.file.taggedOriginal) {
+							toastManager.add({
+								title: "No tagged original available",
+								description: `${track.title} has no tagged original URL available`,
+								type: "error",
+							});
+							continue;
+						}
+						const presign = await getPresignedUrl(
+							pinAudio.file.taggedOriginal.url,
+						);
+						if (!presign) {
+							toastManager.add({
+								title: "No tagged original available",
+								description: `${track.title} has no tagged original URL available`,
+								type: "error",
+							});
+							continue;
+						}
+						presignUrls.push({
+							fileName: `${disc.discNumber} - ${track.trackNumber} ${track.title}.${pinAudio.file.taggedOriginal.extension}`,
+							url: presign,
+						});
+						break;
+					}
+					case "opus": {
+						if (!pinAudio.file.opus96) {
+							toastManager.add({
+								title: "No opus available",
+								description: `${track.title} has no opus URL available`,
+								type: "error",
+							});
+							continue;
+						}
+						const presign = await getPresignedUrl(pinAudio.file.opus96.url);
+						if (!presign) {
+							toastManager.add({
+								title: "No opus available",
+								description: `${track.title} has no opus URL available`,
+								type: "error",
+							});
+							continue;
+						}
+						presignUrls.push({
+							fileName: `${disc.discNumber} - ${track.trackNumber} ${track.title}.${pinAudio.file.opus96.extension}`,
+							url: presign,
+						});
+					}
+				}
+			}
+		}
+		await toastManager.promise(downloadAlbumZip(fileType, presignUrls), {
+			loading: {
+				title: "Preparing download",
+				description: "Fetching tracks and building your ZIP...",
+			},
+			success: ({ zipName, total }) => ({
+				title: "Download ready",
+				description: `${total} tracks downloaded as ${zipName}.`,
+			}),
+			error: (error) => ({
+				title: "Download failed",
+				description:
+					error instanceof Error ? error.message : "Something went wrong.",
+			}),
+		});
+	}
+
+	async function downloadAlbumZip(
+		fileType: "source" | "tagged" | "opus",
+		presignUrls: { fileName: string; url: string }[],
+	) {
+		const zipName = `${album.title}-${fileType}.zip`;
+		const JSZip = (await import("jszip")).default;
+
+		const zip = new JSZip();
+		const total = presignUrls.length;
+		let loaded = 0;
+
+		await pMap(
+			presignUrls,
+			async (track) => {
+				const res = await fetch(track.url);
+
+				if (!res.ok) {
+					throw new Error(`Failed to fetch ${track.fileName}`);
+				}
+
+				const data = await res.arrayBuffer();
+				zip.file(track.fileName, data);
+
+				loaded++;
+			},
+			{ concurrency: 3 },
+		);
+
+		const zipBlob = await zip.generateAsync({ type: "blob" });
+
+		const objectUrl = URL.createObjectURL(zipBlob);
+		const a = document.createElement("a");
+		a.href = objectUrl;
+		a.download = zipName;
+		a.rel = "noopener noreferrer";
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+		URL.revokeObjectURL(objectUrl);
+
+		return { zipName, total };
+	}
 
 	return (
 		<section className="flex flex-col gap-5 md:flex-row md:items-end">
@@ -96,11 +252,35 @@ export function AlbumDetailHero({
 						<PlayIcon aria-hidden="true" />
 						Play Album
 					</Button>
-					<Button variant="outline">
-						<DownloadIcon aria-hidden="true" />
-						Download
-						<ChevronDownIcon aria-hidden="true" />
-					</Button>
+					<Menu>
+						<MenuTrigger
+							render={
+								<Button variant="outline">
+									<EllipsisVertical />
+								</Button>
+							}
+						/>
+						<MenuPopup align="start">
+							<MenuGroup>
+								<MenuGroupLabel>Playback</MenuGroupLabel>
+								<MenuItem onClick={onAddToQueue}>
+									<ListPlusIcon aria-hidden="true" />
+									Add to queue
+								</MenuItem>
+							</MenuGroup>
+							<MenuSeparator />
+							<MenuGroup>
+								<MenuGroupLabel>Download</MenuGroupLabel>
+								<MenuItem onClick={() => downloadAlbum("source")}>
+									Source Files
+								</MenuItem>
+								<MenuItem onClick={() => downloadAlbum("tagged")}>
+									Source Tagged Files
+								</MenuItem>
+								<MenuItem onClick={() => downloadAlbum("opus")}>Opus</MenuItem>
+							</MenuGroup>
+						</MenuPopup>
+					</Menu>
 				</div>
 			</div>
 		</section>

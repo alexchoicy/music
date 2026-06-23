@@ -15,6 +15,10 @@ import {
 	MenuGroupLabel,
 	MenuItem,
 	MenuPopup,
+	MenuSeparator,
+	MenuSub,
+	MenuSubPopup,
+	MenuSubTrigger,
 	MenuTrigger,
 } from "#/components/coss/menu";
 import { formatDuration } from "#/lib/utils/file";
@@ -22,9 +26,11 @@ import { cn } from "#/lib/utils/styles";
 import {
 	albumDetailsToAudioPlayerTracks,
 	albumTrackDetailsToAudioPlayerTrack,
+	getPresignedDownloadUrl,
 } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
+import { toastManager } from "../coss/toast";
 import { getContentTypeLabel, getCreditNames } from "./albumDetailUtils";
 import type { AlbumDetails } from "./albumDetailUtils";
 
@@ -53,6 +59,33 @@ export function AlbumTrackListCard({
 				?.scrollIntoView({ behavior: "smooth", block: "center" });
 		});
 	}, [highlightedTrackKey]);
+
+	async function downloadFile(
+		trackName: string,
+		source: string,
+		getUrl: string,
+	) {
+		const presignUrl = await getPresignedDownloadUrl(getUrl);
+
+		if (!presignUrl) {
+			toastManager.add({
+				type: "error",
+				title: "File Download Failed",
+				description: `Failed to download ${trackName}.`,
+			});
+			return;
+		}
+
+		const anchor = document.createElement("a");
+		anchor.href = presignUrl;
+		anchor.click();
+		anchor.remove();
+
+		toastManager.add({
+			title: "Downloaded",
+			description: `${album.title} - ${trackName} - ${source}`,
+		});
+	}
 
 	return (
 		<Card className="overflow-hidden">
@@ -163,7 +196,11 @@ export function AlbumTrackListCard({
 												>
 													<MoreHorizontalIcon aria-hidden="true" />
 												</Button>
-												<MenuPopup align="end" className="w-44" sideOffset={6}>
+												<MenuPopup
+													align="start"
+													className="w-44"
+													sideOffset={6}
+												>
 													<MenuGroup>
 														<MenuGroupLabel>Playback</MenuGroupLabel>
 														<MenuItem
@@ -171,19 +208,75 @@ export function AlbumTrackListCard({
 															onClick={() => {
 																if (!canAddToQueue) return;
 
-																addToQueue(
+																addToQueue([
 																	albumTrackDetailsToAudioPlayerTrack(
 																		album,
 																		disc,
 																		track,
 																	),
-																);
+																]);
 															}}
 														>
 															<ListPlusIcon aria-hidden="true" />
 															Add to queue
 														</MenuItem>
 													</MenuGroup>
+													<MenuSeparator />
+													<MenuSub>
+														<MenuSubTrigger>Download</MenuSubTrigger>
+														<MenuSubPopup>
+															{track.audios.map((variant) => (
+																<MenuGroup key={variant.rank}>
+																	<MenuGroupLabel>
+																		{[
+																			`Rank ${variant.rank}`,
+																			variant.pinned ? "Pinned" : null,
+																			variant.source,
+																		]
+																			.filter(Boolean)
+																			.join(" - ")}
+																	</MenuGroupLabel>
+																	<MenuItem
+																		onClick={() =>
+																			downloadFile(
+																				track.title,
+																				variant.source,
+																				variant.file.original.url,
+																			)
+																		}
+																	>
+																		Original
+																	</MenuItem>
+																	{variant.file.taggedOriginal && (
+																		<MenuItem
+																			onClick={() =>
+																				downloadFile(
+																					track.title,
+																					variant.source,
+																					variant.file.taggedOriginal!.url,
+																				)
+																			}
+																		>
+																			Tagged Original
+																		</MenuItem>
+																	)}
+																	{variant.file.opus96 && (
+																		<MenuItem
+																			onClick={() =>
+																				downloadFile(
+																					track.title,
+																					variant.source,
+																					variant.file.opus96!.url,
+																				)
+																			}
+																		>
+																			Opus 96
+																		</MenuItem>
+																	)}
+																</MenuGroup>
+															))}
+														</MenuSubPopup>
+													</MenuSub>
 												</MenuPopup>
 											</Menu>
 										</div>

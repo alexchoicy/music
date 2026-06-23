@@ -25,6 +25,7 @@ function RouteComponent() {
 		select: (state) => state.location.hash,
 	});
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
+	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
 	const coverUrl = getAlbumCoverUrl(album.cover.album);
 	const audioPlayerTracks = albumDetailsToAudioPlayerTracks(album);
 
@@ -45,6 +46,7 @@ function RouteComponent() {
 				<AlbumDetailHero
 					album={album}
 					onPlayAlbum={() => playAlbum(audioPlayerTracks)}
+					onAddToQueue={() => addToQueue(audioPlayerTracks)}
 					playAlbumDisabled={audioPlayerTracks.length === 0}
 				/>
 

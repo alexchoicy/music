@@ -121,14 +121,14 @@ function getMetadata(
 	file: File,
 	parties: PartyItem[],
 ) {
-	const albumTitle = metadata.common?.album?.trim() || ALBUM_TITLE;
+	const albumTitle = metadata.common.album?.trim() || ALBUM_TITLE;
 	const albumParty = resolveParty(metadata.common.albumartists ?? [], parties);
-	const trackTitle = metadata.common?.title?.trim() || TRACK_TITLE;
+	const trackTitle = metadata.common.title?.trim() || TRACK_TITLE;
 	const trackParty = resolveParty(metadata.common.artists ?? [], parties);
 
-	const discNumber = metadata.common?.disk?.no ?? 1;
-	const trackNumber = metadata.common?.track?.no ?? 1;
-	const durationInMs = Math.round((metadata.format?.duration ?? 0) * 1000);
+	const discNumber = metadata.common.disk.no ?? 1;
+	const trackNumber = metadata.common.track.no ?? 1;
+	const durationInMs = Math.round((metadata.format.duration ?? 0) * 1000);
 
 	const trackContentType = getTrackContentType(trackTitle, file.name);
 	const trackVersionType = getTrackVersionType(trackTitle, file.name);
@@ -202,7 +202,7 @@ function createTrackAudioRequest(
 			width: null,
 			height: null,
 			audioSampleRate: fileData.metadata.format.sampleRate ?? null,
-			bitrate: Math.round(fileData.metadata.format.bitrate ?? 0) ?? null,
+			bitrate: Math.round(fileData.metadata.format.bitrate ?? 0),
 			frameRate: null,
 			durationInMs,
 			originalFileName: fileData.file.name,
@@ -685,7 +685,6 @@ export function updateAlbumDraft(
 	input: UpdateAlbumDraftInput,
 ) {
 	const album = state.albumsById[albumId];
-	if (!album) return;
 
 	const nextUnsolvedCredits = input.clearUnsolvedAlbumCredits
 		? []

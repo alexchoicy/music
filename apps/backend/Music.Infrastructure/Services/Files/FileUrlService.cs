@@ -11,6 +11,12 @@ namespace Music.Infrastructure.Services.Files;
 
 public class FileUrlService(IContentService contentService, AppDbContext context) : IFileUrlService
 {
+    private static string SanitizeFileName(string fileName)
+    {
+        char[] invalidFileNameChars = Path.GetInvalidFileNameChars();
+        return string.Concat(fileName.Select(ch => invalidFileNameChars.Contains(ch) ? '_' : ch));
+    }
+
     private static bool IsDashVariant(FileObjectVariant variant)
     {
         return variant == FileObjectVariant.DashAV1;
@@ -77,6 +83,55 @@ public class FileUrlService(IContentService contentService, AppDbContext context
             fileObject.StoragePath,
             DateTime.UtcNow.AddMinutes(30),
             null,
+            cancellationToken
+        );
+    }
+
+    public async Task<string> GetDownloadUrlAsync(
+        Guid fileObjectId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Core.Entities.FileObject fileObject =
+            await context.FileObjects.FirstOrDefaultAsync(
+                file => file.Id == fileObjectId,
+                cancellationToken
+            )
+            ?? throw new EntityNotFoundException($"File object with ID {fileObjectId} not found.");
+
+        var track = await context
+            .AlbumTracks.AsNoTracking()
+            .Where(albumTrack =>
+                albumTrack.Track!.Audios.Any(audio => audio.FileId == fileObject.FileId)
+            )
+            .OrderBy(albumTrack => albumTrack.AlbumDisc!.AlbumId)
+            .ThenBy(albumTrack => albumTrack.AlbumDisc!.DiscNumber)
+            .ThenBy(albumTrack => albumTrack.TrackNumber)
+            .Select(albumTrack => new
+            {
+                DiscNumber = albumTrack.AlbumDisc!.DiscNumber,
+                albumTrack.TrackNumber,
+                TrackTitle = albumTrack.Track!.Title,
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        string? title = track is null
+            ? await context
+                .ConcertFiles.AsNoTracking()
+                .Where(concertFile => concertFile.FileId == fileObject.FileId)
+                .OrderBy(concertFile => concertFile.Order)
+                .Select(concertFile => concertFile.Title)
+                .FirstOrDefaultAsync(cancellationToken)
+            : $"{track.DiscNumber} - {track.TrackNumber} {track.TrackTitle}";
+
+        string fileName = SanitizeFileName(
+            $"{title ?? Path.GetFileNameWithoutExtension(fileObject.StoragePath)}.{fileObject.Extension}"
+        );
+
+        return contentService.GetPresignedUrl(
+            fileObject.StoragePath,
+            DateTime.UtcNow.AddMinutes(30),
+            fileName,
             cancellationToken
         );
     }

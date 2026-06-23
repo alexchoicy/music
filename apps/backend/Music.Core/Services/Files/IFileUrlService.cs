@@ -14,4 +14,8 @@ public interface IFileUrlService
         Guid fileObjectId,
         CancellationToken cancellationToken = default
     );
+    Task<string> GetDownloadUrlAsync(
+        Guid fileObjectId,
+        CancellationToken cancellationToken = default
+    );
 }

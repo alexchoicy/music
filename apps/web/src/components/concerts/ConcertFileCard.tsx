@@ -12,7 +12,10 @@ import { Button, buttonVariants } from "#/components/coss/button";
 import type { components } from "#/data/APIschema";
 import { formatMsToTimer } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
-import { getPresignedUrl } from "#/store/audioPlayer/audioPlayerFunction";
+import {
+	getPresignedDownloadUrl,
+	getPresignedUrl,
+} from "#/store/audioPlayer/audioPlayerFunction";
 
 type ConcertFile = components["schemas"]["ConcertFileDetails"];
 
@@ -51,15 +54,13 @@ export function ConcertFileCard({
 	const handleDownload = async (event: MouseEvent<HTMLAnchorElement>) => {
 		event.preventDefault();
 
-		const url = await getPresignedUrl(originalUrl);
+		const url = await getPresignedDownloadUrl(originalUrl);
 		if (!url) return;
 
 		const anchor = document.createElement("a");
 		anchor.href = url;
-		anchor.download = "";
-		anchor.rel = "noreferrer";
-		anchor.target = "_blank";
 		anchor.click();
+		anchor.remove();
 	};
 
 	return (

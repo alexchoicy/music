@@ -119,3 +119,27 @@ export async function getPresignedUrl(url: string): Promise<string | null> {
 		return null;
 	}
 }
+
+export async function getPresignedDownloadUrl(
+	url: string,
+): Promise<string | null> {
+	try {
+		const response = await fetch(`${url}/download`, {
+			method: "GET",
+			credentials: "include",
+		});
+
+		if (!response.ok) {
+			return null;
+		}
+
+		return await response.text();
+	} catch (error) {
+		if (error instanceof DOMException && error.name === "AbortError") {
+			throw error;
+		}
+
+		console.log("Error fetching presigned download URL:", error);
+		return null;
+	}
+}
