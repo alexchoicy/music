@@ -52,7 +52,14 @@ export function ConcertFileCard({
 		event.preventDefault();
 
 		const url = await getPresignedUrl(originalUrl);
-		if (url) window.location.href = url;
+		if (!url) return;
+
+		const anchor = document.createElement("a");
+		anchor.href = url;
+		anchor.download = "";
+		anchor.rel = "noreferrer";
+		anchor.target = "_blank";
+		anchor.click();
 	};
 
 	return (
@@ -163,8 +170,6 @@ export function ConcertFileCard({
 							buttonVariants({ size: "xs", variant: "secondary" }),
 							"flex-1 text-muted-foreground hover:border-primary/40 hover:text-foreground",
 						)}
-						download
-						href={originalUrl}
 						onClick={handleDownload}
 					>
 						<DownloadIcon aria-hidden="true" />
