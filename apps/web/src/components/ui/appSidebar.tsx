@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
 	CirclePlus,
 	Disc3,
@@ -8,7 +8,7 @@ import {
 	MoreVertical,
 	SearchIcon,
 	Settings2,
-	Upload,
+	UploadCloud,
 	UsersRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -88,17 +88,22 @@ const mainNavigation = [
 ] satisfies Array<NavigationItem>;
 
 function SidebarUploadStatus(): React.ReactElement {
+	const navigate = useNavigate();
 	const fileByBlake3 = useUploadStore((state) => state.fileByBlake3);
 	const activeUploads = Object.entries(fileByBlake3).filter(
 		([, record]) =>
-			record.status === "queued" ||
-			record.status === "uploading" ||
-			record.status === "failed",
+			record.status === "Queued" ||
+			record.status === "Uploading" ||
+			record.status === "Failed",
 	);
 	const hasActiveUpload = activeUploads.length > 0;
 
 	return (
-		<Popover>
+		<Popover
+			onOpenChange={(_, details) => {
+				if (details.reason === "trigger-press") details.cancel();
+			}}
+		>
 			<PopoverTrigger
 				closeDelay={150}
 				delay={0}
@@ -107,12 +112,13 @@ function SidebarUploadStatus(): React.ReactElement {
 					<Button
 						aria-label="Upload status"
 						className="text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+						onClick={() => void navigate({ to: "/uploads" })}
 						size="icon-sm"
 						variant="ghost"
 					/>
 				}
 			>
-				<Upload aria-hidden="true" className="size-4" />
+				<UploadCloud aria-hidden="true" className="size-4" />
 				{hasActiveUpload && (
 					<span className="absolute top-1 right-1 size-2 rounded-full bg-primary" />
 				)}
@@ -139,8 +145,8 @@ function SidebarUploadStatus(): React.ReactElement {
 											{upload.status}
 										</span>
 									</div>
-									{upload.status === "uploading" && <Progress value={value} />}
-									{upload.status === "failed" && upload.error && (
+									{upload.status === "Uploading" && <Progress value={value} />}
+									{upload.status === "Failed" && upload.error && (
 										<div className="min-w-0 truncate text-destructive">
 											{upload.error}
 										</div>

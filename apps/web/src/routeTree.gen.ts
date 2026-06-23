@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as PublicLoginIndexRouteImport } from './routes/_public/login/index'
+import { Route as AuthedUploadsIndexRouteImport } from './routes/_authed/uploads/index'
 import { Route as AuthedPartiesIndexRouteImport } from './routes/_authed/parties/index'
 import { Route as AuthedCreateIndexRouteImport } from './routes/_authed/create/index'
 import { Route as AuthedConcertsIndexRouteImport } from './routes/_authed/concerts/index'
@@ -33,6 +34,11 @@ const PublicLoginIndexRoute = PublicLoginIndexRouteImport.update({
   id: '/_public/login/',
   path: '/login/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedUploadsIndexRoute = AuthedUploadsIndexRouteImport.update({
+  id: '/uploads/',
+  path: '/uploads/',
+  getParentRoute: () => AuthedRouteRoute,
 } as any)
 const AuthedPartiesIndexRoute = AuthedPartiesIndexRouteImport.update({
   id: '/parties/',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/concerts/': typeof AuthedConcertsIndexRoute
   '/create/': typeof AuthedCreateIndexRoute
   '/parties/': typeof AuthedPartiesIndexRoute
+  '/uploads/': typeof AuthedUploadsIndexRoute
   '/login/': typeof PublicLoginIndexRoute
 }
 export interface FileRoutesByTo {
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/concerts': typeof AuthedConcertsIndexRoute
   '/create': typeof AuthedCreateIndexRoute
   '/parties': typeof AuthedPartiesIndexRoute
+  '/uploads': typeof AuthedUploadsIndexRoute
   '/login': typeof PublicLoginIndexRoute
 }
 export interface FileRoutesById {
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/_authed/concerts/': typeof AuthedConcertsIndexRoute
   '/_authed/create/': typeof AuthedCreateIndexRoute
   '/_authed/parties/': typeof AuthedPartiesIndexRoute
+  '/_authed/uploads/': typeof AuthedUploadsIndexRoute
   '/_public/login/': typeof PublicLoginIndexRoute
 }
 export interface FileRouteTypes {
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/concerts/'
     | '/create/'
     | '/parties/'
+    | '/uploads/'
     | '/login/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/concerts'
     | '/create'
     | '/parties'
+    | '/uploads'
     | '/login'
   id:
     | '__root__'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/_authed/concerts/'
     | '/_authed/create/'
     | '/_authed/parties/'
+    | '/_authed/uploads/'
     | '/_public/login/'
   fileRoutesById: FileRoutesById
 }
@@ -169,6 +181,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/login/'
       preLoaderRoute: typeof PublicLoginIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authed/uploads/': {
+      id: '/_authed/uploads/'
+      path: '/uploads'
+      fullPath: '/uploads/'
+      preLoaderRoute: typeof AuthedUploadsIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
     '/_authed/parties/': {
       id: '/_authed/parties/'
@@ -231,6 +250,7 @@ interface AuthedRouteRouteChildren {
   AuthedConcertsIndexRoute: typeof AuthedConcertsIndexRoute
   AuthedCreateIndexRoute: typeof AuthedCreateIndexRoute
   AuthedPartiesIndexRoute: typeof AuthedPartiesIndexRoute
+  AuthedUploadsIndexRoute: typeof AuthedUploadsIndexRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
@@ -242,6 +262,7 @@ const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedConcertsIndexRoute: AuthedConcertsIndexRoute,
   AuthedCreateIndexRoute: AuthedCreateIndexRoute,
   AuthedPartiesIndexRoute: AuthedPartiesIndexRoute,
+  AuthedUploadsIndexRoute: AuthedUploadsIndexRoute,
 }
 
 const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(

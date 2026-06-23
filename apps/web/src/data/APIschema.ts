@@ -1548,7 +1548,8 @@ export interface components {
         };
         /** @enum {unknown} */
         FileObjectVariant: "Original" | "TaggedOriginal" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup" | "RemuxedOriginal" | "ImageCover1024x1024" | "ImageAvatar512x512" | "ImageBanner1500x500" | "ImageWide1280x720";
-        FileProcessingStatus: number;
+        /** @enum {unknown} */
+        FileProcessingStatus: "Pending" | "Processing" | "Completed" | "Failed" | "Uploaded";
         FileRequest: {
             blake3Hash: string;
             mimeType: string;

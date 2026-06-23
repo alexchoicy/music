@@ -7,11 +7,11 @@ import { completeUpload } from "#/lib/api/uploads";
 import { uploadMultipartFile } from "#/lib/upload/multipartUpload";
 
 export type UploadJobStatus =
-	| "waiting"
-	| "queued"
-	| "uploading"
-	| "completed"
-	| "failed";
+	| "Waiting"
+	| "Queued"
+	| "Uploading"
+	| "Completed"
+	| "Failed";
 
 export type MultipartUploadInfo =
 	| components["schemas"]["CreateConcertUploadItemResult"]
@@ -61,7 +61,7 @@ function getMultipartUpload(info: MultipartUploadInfo) {
 
 function hasQueuedUpload(state: UploadStoreState) {
 	return Object.values(state.fileByBlake3).some(
-		(record) => record.status === "queued",
+		(record) => record.status === "Queued",
 	);
 }
 
@@ -77,13 +77,13 @@ export const useUploadStore = create<UploadStoreState>()(
 						fileName: file.name,
 						uploadedPartCount: 0,
 						totalPartCount: 0,
-						status: "waiting",
+						status: "Waiting",
 					};
 				});
 			},
 			removeFile: (blake3: string) => {
 				set((state) => {
-					if (state.fileByBlake3[blake3]?.status === "uploading") return;
+					if (state.fileByBlake3[blake3]?.status === "Uploading") return;
 					delete state.fileByBlake3[blake3];
 				});
 			},
@@ -99,7 +99,7 @@ export const useUploadStore = create<UploadStoreState>()(
 						record.multipartUploadInfo = info;
 						record.uploadedPartCount = 0;
 						record.totalPartCount = multipartUpload.parts.length;
-						record.status = "queued";
+						record.status = "Queued";
 						record.error = undefined;
 					}
 				});
@@ -117,7 +117,7 @@ export const useUploadStore = create<UploadStoreState>()(
 					for (;;) {
 						const entry = Object.entries(get().fileByBlake3).find(
 							([, record]) =>
-								record.status === "queued" && record.multipartUploadInfo,
+								record.status === "Queued" && record.multipartUploadInfo,
 						);
 						if (!entry) break;
 
@@ -127,14 +127,14 @@ export const useUploadStore = create<UploadStoreState>()(
 						if (!info) continue;
 						if (!file) {
 							set((state) => {
-								state.fileByBlake3[blake3].status = "failed";
+								state.fileByBlake3[blake3].status = "Failed";
 								state.fileByBlake3[blake3].error = "Missing upload file";
 							});
 							continue;
 						}
 
 						set((state) => {
-							state.fileByBlake3[blake3].status = "uploading";
+							state.fileByBlake3[blake3].status = "Uploading";
 						});
 
 						try {
@@ -156,13 +156,13 @@ export const useUploadStore = create<UploadStoreState>()(
 							});
 
 							set((state) => {
-								state.fileByBlake3[blake3].status = "completed";
+								state.fileByBlake3[blake3].status = "Completed";
 								delete state.fileByBlake3[blake3].file;
 								delete state.fileByBlake3[blake3].multipartUploadInfo;
 							});
 						} catch (error) {
 							set((state) => {
-								state.fileByBlake3[blake3].status = "failed";
+								state.fileByBlake3[blake3].status = "Failed";
 								state.fileByBlake3[blake3].error =
 									error instanceof Error ? error.message : "Upload failed";
 							});
