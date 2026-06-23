@@ -193,7 +193,6 @@ function RouteComponent() {
 						</TableHeader>
 						<TableBody>
 							{pendingFileItems.map((item) => {
-								const uploadRecord = fileByBlake3[item.blake3Hash];
 								const status = item.uploadStatus ?? item.processingStatus;
 
 								return (
@@ -228,7 +227,7 @@ function RouteComponent() {
 											<UploadStatusBadge status={status} />
 										</TableCell>
 										<TableCell className="w-10 text-right" aria-label="Actions">
-											{uploadRecord.status === "Failed" && (
+											{status === "Failed" && (
 												<Button
 													variant="ghost"
 													size="icon-xs"
