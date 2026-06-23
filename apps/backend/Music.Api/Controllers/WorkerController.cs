@@ -48,7 +48,7 @@ public sealed class WorkerController(IContentService contentService, AppDbContex
         List<Guid> fileObjectIds = await dbContext
             .FileObjects.Where(fileObject =>
                 fileObject.FileObjectVariant == FileObjectVariant.Original
-                && fileObject.ProcessingStatus == FileProcessingStatus.Completed
+                && fileObject.ProcessingStatus != FileProcessingStatus.Processing
                 && (
                     dbContext.AlbumImages.Any(image => image.FileId == fileObject.FileId)
                     || dbContext.PartyImages.Any(image => image.FileId == fileObject.FileId)
