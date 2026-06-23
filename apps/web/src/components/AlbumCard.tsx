@@ -14,7 +14,7 @@ import {
 	TooltipTrigger,
 } from "#/components/coss/tooltip";
 import type { components } from "#/data/APIschema";
-import { getCoverUrl } from "#/lib/utils/album";
+import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { formatDurationInHoursAndMinutes } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 
@@ -32,11 +32,12 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 	const discCoverUrls: string[] = [];
 
 	for (const discCover of album.discCovers ?? []) {
-		const coverUrl = getCoverUrl(discCover.variants);
+		const coverUrl = getAlbumCoverUrl(discCover.variants);
 		if (coverUrl) discCoverUrls.push(coverUrl);
 	}
 
-	const primaryCoverUrl = discCoverUrls[0] ?? getCoverUrl(album.coverVariants);
+	const primaryCoverUrl =
+		discCoverUrls[0] ?? getAlbumCoverUrl(album.coverVariants);
 
 	const hoverCoverUrl = discCoverUrls[1];
 

@@ -26,7 +26,8 @@ import {
 } from "#/components/coss/command";
 import type { components } from "#/data/APIschema";
 import { searchQueries } from "#/lib/queries/search.queries";
-import { getCoverUrl } from "#/lib/utils/album";
+import { getAlbumCoverUrl } from "#/lib/utils/album";
+import { getConcertCoverUrl } from "#/lib/utils/concert";
 
 import { Kbd, KbdGroup } from "../coss/kbd";
 
@@ -97,8 +98,9 @@ function itemIcon(item: SearchItem) {
 }
 
 function itemCoverUrl(item: SearchItem) {
-	if (item.kind === "album") return getCoverUrl(item.value.coverVariants);
-	if (item.kind === "concert") return getCoverUrl(item.value.coverVariants);
+	if (item.kind === "album") return getAlbumCoverUrl(item.value.coverVariants);
+	if (item.kind === "concert")
+		return getConcertCoverUrl(item.value.coverVariants);
 	if (item.kind === "track") return item.coverUrl;
 	return item.value.coverUrl || null;
 }
@@ -127,7 +129,8 @@ export function Command({ onOpenChange, open }: CommandProps) {
 			return {
 				albumId: album.albumId,
 				coverUrl:
-					getCoverUrl(discCover?.variants) ?? getCoverUrl(album.coverVariants),
+					getAlbumCoverUrl(discCover?.variants) ??
+					getAlbumCoverUrl(album.coverVariants),
 				kind: "track" as const,
 				value,
 			};
