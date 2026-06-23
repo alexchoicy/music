@@ -27,7 +27,10 @@ namespace Music.Infrastructure.Services.Upload
             StoredFile? storedFile =
                 await _dbContext
                     .StoredFiles.Include(f => f.FileObjects)
-                    .FirstOrDefaultAsync(f => f.Id == createUploadRequest.FileObjectId, cancellationToken)
+                    .FirstOrDefaultAsync(
+                        f => f.Id == createUploadRequest.FileObjectId,
+                        cancellationToken
+                    )
                 ?? throw new EntityNotFoundException("File not found");
 
             FileObject? originalFileObject =
@@ -153,6 +156,9 @@ namespace Music.Infrastructure.Services.Upload
                     cancellationToken
                 );
             }
+
+            fileObject.ProcessingStatus = FileProcessingStatus.Uploaded;
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
             WorkerModel? workerModel = storedFile switch
             {

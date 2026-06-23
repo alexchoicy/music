@@ -6,4 +6,5 @@ public enum FileProcessingStatus
     Processing,
     Completed,
     Failed,
+    Uploaded,
 }
