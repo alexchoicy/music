@@ -1,5 +1,3 @@
-import type { IAudioMetadata } from "music-metadata";
-
 import type { components } from "#/data/APIschema";
 
 export type CreateAlbumRequest = components["schemas"]["CreateAlbumRequest"];
@@ -11,7 +9,6 @@ export type CreditRequest = components["schemas"]["CreditRequest"];
 export type LanguageItem = components["schemas"]["LanguageListItem"];
 export type TrackAudioRequest = components["schemas"]["TrackAudioRequest"];
 
-export type LocalFileBlake3Hash = string;
 export type AlbumLocalId = string;
 export type DiscLocalId = string;
 export type TrackLocalId = string;
@@ -23,28 +20,6 @@ export type AlbumUploadStatus =
 	| "completed"
 	| "failed";
 export type AlbumMatchingKey = string;
-export type AlbumUploadJobStatus =
-	| "queued"
-	| "uploading"
-	| "completed"
-	| "failed";
-
-export type AlbumTrackUploadJob = {
-	id: string;
-	fileObjectId: string;
-	blake3Hash: LocalFileBlake3Hash;
-	fileName: string;
-	uploadedPartCount: number;
-	totalPartCount: number;
-	status: AlbumUploadJobStatus;
-	error: string | null;
-};
-
-export type AlbumUploadRunState = {
-	jobOrder: string[];
-	jobsById: Record<string, AlbumTrackUploadJob>;
-	error: string | null;
-};
 
 export type TrackUploadResult = {
 	fileObjectId: string;
@@ -58,12 +33,6 @@ export type CroppedArea = {
 	y: number;
 	width: number;
 	height: number;
-};
-
-export type ProcessedUploadFile = {
-	blake3Hash: LocalFileBlake3Hash;
-	file: File;
-	metadata: IAudioMetadata;
 };
 
 export type CoverAsset = {
@@ -149,7 +118,6 @@ export type AddDroppedFilesResult = {
 };
 
 export type AlbumUploadState = {
-	filesByBlake3Hash: Record<LocalFileBlake3Hash, ProcessedUploadFile>;
 	coverAssetsIdByHash: Record<CoverAssetBlake3Hash, CoverAsset>;
 	albumOrder: AlbumLocalId[];
 	albumsById: Record<AlbumLocalId, AlbumDraft>;
@@ -158,7 +126,6 @@ export type AlbumUploadState = {
 	tracksById: Record<TrackLocalId, TrackDraft>;
 	isProcessing: boolean;
 	submitStatus: AlbumUploadStatus;
-	uploadRun: AlbumUploadRunState;
 	lastError: string | null;
 };
 

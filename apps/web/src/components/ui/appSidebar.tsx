@@ -8,6 +8,7 @@ import {
 	MoreVertical,
 	SearchIcon,
 	Settings2,
+	Upload,
 	UsersRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -15,6 +16,12 @@ import type { LucideIcon } from "lucide-react";
 import { Button } from "#/components/coss/button";
 import { Kbd, KbdGroup } from "#/components/coss/kbd";
 import { Menu, MenuItem, MenuPopup, MenuTrigger } from "#/components/coss/menu";
+import {
+	Popover,
+	PopoverPopup,
+	PopoverTrigger,
+} from "#/components/coss/popover";
+import { Progress } from "#/components/coss/progress";
 import {
 	Sidebar,
 	SidebarContent,
@@ -29,6 +36,7 @@ import {
 import { useUserInfo } from "#/context/UserInfoContext";
 import { getInitials } from "#/lib/utils/string";
 import type { FileRouteTypes } from "#/routeTree.gen";
+import { useUploadStore } from "#/store/uploadStore";
 
 type NavigationTo = Exclude<FileRouteTypes["to"], "/login">;
 
@@ -79,6 +87,76 @@ const mainNavigation = [
 	},
 ] satisfies Array<NavigationItem>;
 
+function SidebarUploadStatus(): React.ReactElement {
+	const fileByBlake3 = useUploadStore((state) => state.fileByBlake3);
+	const activeUploads = Object.entries(fileByBlake3).filter(
+		([, record]) =>
+			record.status === "queued" ||
+			record.status === "uploading" ||
+			record.status === "failed",
+	);
+	const hasActiveUpload = activeUploads.length > 0;
+
+	return (
+		<Popover>
+			<PopoverTrigger
+				closeDelay={150}
+				delay={0}
+				openOnHover
+				render={
+					<Button
+						aria-label="Upload status"
+						className="text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+						size="icon-sm"
+						variant="ghost"
+					/>
+				}
+			>
+				<Upload aria-hidden="true" className="size-4" />
+				{hasActiveUpload && (
+					<span className="absolute top-1 right-1 size-2 rounded-full bg-primary" />
+				)}
+			</PopoverTrigger>
+			<PopoverPopup align="end" className="w-64" side="right">
+				<div className="grid gap-2 text-xs">
+					<div className="font-medium text-foreground">Uploads</div>
+					{hasActiveUpload ? (
+						activeUploads.map(([blake3, upload]) => {
+							const value =
+								upload.totalPartCount > 0
+									? Math.round(
+											(upload.uploadedPartCount / upload.totalPartCount) * 100,
+										)
+									: 0;
+
+							return (
+								<div className="grid min-w-0 gap-1" key={blake3}>
+									<div className="flex min-w-0 items-center justify-between gap-3">
+										<span className="min-w-0 truncate text-foreground">
+											{upload.fileName}
+										</span>
+										<span className="shrink-0 text-muted-foreground capitalize">
+											{upload.status}
+										</span>
+									</div>
+									{upload.status === "uploading" && <Progress value={value} />}
+									{upload.status === "failed" && upload.error && (
+										<div className="min-w-0 truncate text-destructive">
+											{upload.error}
+										</div>
+									)}
+								</div>
+							);
+						})
+					) : (
+						<div className="text-muted-foreground">No active uploads</div>
+					)}
+				</div>
+			</PopoverPopup>
+		</Popover>
+	);
+}
+
 export function AppSidebar({
 	onOpenCommand,
 }: AppSidebarProps): React.ReactElement {
@@ -97,9 +175,12 @@ export function AppSidebar({
 	return (
 		<Sidebar collapsible="offcanvas">
 			<SidebarHeader className="gap-6 p-3">
-				<div className="flex items-center gap-2.5">
-					<img alt="" className="size-8 rounded-lg" src="/logo192.png" />
-					<span className="text-sm font-semibold">Music</span>
+				<div className="flex items-center justify-between gap-2.5">
+					<div className="flex items-center gap-2.5">
+						<img alt="" className="size-8 rounded-lg" src="/logo192.png" />
+						<span className="text-sm font-semibold">Music</span>
+					</div>
+					<SidebarUploadStatus />
 				</div>
 
 				<div className="hidden md:block">

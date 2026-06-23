@@ -43,7 +43,10 @@ import {
 	PARTY_TYPE_OPTIONS,
 } from "#/enums/partyEnums";
 import { partyMutation, partyQueries } from "#/lib/queries/party.queries";
-import { searchPartyByNormalizedName } from "#/lib/utils/party";
+import {
+	getPartyAvatarUrl,
+	searchPartyByNormalizedName,
+} from "#/lib/utils/party";
 import { normalizeString } from "#/lib/utils/string";
 import type { PartyItem } from "#/store/albumUploadStoreType";
 
@@ -87,7 +90,7 @@ function partyDetailsToItem(party: PartyDetails): PartyItem {
 		aliases: party.aliases,
 		albumCount: party.albums.length + party.appearsOnAlbums.length,
 		country: party.country,
-		coverUrl: party.avatarImages?.[0]?.url ?? "",
+		coverUrl: getPartyAvatarUrl(party.avatarImages) || "",
 		kind: party.kind,
 		name: party.name,
 		normalizedName: normalizeString(party.name),

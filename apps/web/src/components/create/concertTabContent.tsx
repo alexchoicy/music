@@ -14,12 +14,6 @@ import {
 } from "#/components/coss/card";
 import { Field, FieldLabel } from "#/components/coss/field";
 import { Input } from "#/components/coss/input";
-import {
-	Progress,
-	ProgressIndicator,
-	ProgressLabel,
-	ProgressTrack,
-} from "#/components/coss/progress";
 import { Textarea } from "#/components/coss/textarea";
 import { toastManager } from "#/components/coss/toast";
 import { ConcertFileDraftItem } from "#/components/create/concert/concertFileDraftItem";
@@ -48,7 +42,6 @@ export function ConcertTabContent() {
 	const files = useConcertUploadStore((state) => state.files);
 	const isProcessing = useConcertUploadStore((state) => state.isProcessing);
 	const submitStatus = useConcertUploadStore((state) => state.submitStatus);
-	const uploadRun = useConcertUploadStore((state) => state.uploadRun);
 	const setTitle = useConcertUploadStore((state) => state.setTitle);
 	const setDate = useConcertUploadStore((state) => state.setDate);
 	const setDescription = useConcertUploadStore((state) => state.setDescription);
@@ -70,11 +63,7 @@ export function ConcertTabContent() {
 		(state) => state.removeFileDraft,
 	);
 	const submitConcert = useConcertUploadStore((state) => state.submitConcert);
-	const uploadJobs = uploadRun.jobOrder.map(
-		(jobId) => uploadRun.jobsById[jobId],
-	);
-	const isSubmitting =
-		submitStatus === "creating" || submitStatus === "uploading";
+	const isSubmitting = submitStatus === "uploading";
 	const isSubmitDisabled =
 		!title.trim() ||
 		isProcessing ||
@@ -104,7 +93,7 @@ export function ConcertTabContent() {
 		try {
 			await submitConcert();
 			toastManager.add({
-				title: "Concert uploaded successfully",
+				title: "Concert upload started",
 				type: "success",
 			});
 		} catch (error) {
@@ -134,11 +123,9 @@ export function ConcertTabContent() {
 					<UploadIcon aria-hidden="true" />
 					{submitStatus === "uploading"
 						? "Uploading..."
-						: submitStatus === "creating"
-							? "Creating..."
-							: submitStatus === "completed"
-								? "Submitted"
-								: "Submit"}
+						: submitStatus === "completed"
+							? "Submitted"
+							: "Submit"}
 				</Button>
 			</div>
 
@@ -264,56 +251,6 @@ export function ConcertTabContent() {
 					</CardPanel>
 				</Card>
 			</div>
-
-			{uploadJobs.length > 0 && (
-				<div className="rounded-lg border bg-card p-4 shadow-sm">
-					<div className="mb-3 flex items-center justify-between gap-3">
-						<div>
-							<h2 className="text-sm font-medium">Concert uploads</h2>
-							<p className="text-xs text-muted-foreground">
-								Multipart upload progress by completed parts.
-							</p>
-						</div>
-						<span className="text-xs text-muted-foreground capitalize">
-							{submitStatus}
-						</span>
-					</div>
-					<div className="grid gap-3">
-						{uploadJobs.map((job) => {
-							const value =
-								job.totalPartCount > 0
-									? Math.round(
-											(job.uploadedPartCount / job.totalPartCount) * 100,
-										)
-									: 0;
-
-							return (
-								<Progress
-									aria-label={`Upload progress for ${job.fileName}`}
-									key={job.id}
-									value={value}
-								>
-									<div className="flex items-center justify-between gap-3 text-xs">
-										<ProgressLabel className="truncate text-xs">
-											{job.fileName}
-										</ProgressLabel>
-										<div className="flex shrink-0 items-center gap-2 text-muted-foreground">
-											<span className="capitalize">{job.status}</span>
-											<span className="tabular-nums">{value}%</span>
-										</div>
-									</div>
-									<ProgressTrack>
-										<ProgressIndicator />
-									</ProgressTrack>
-									{job.error && (
-										<p className="text-xs text-destructive">{job.error}</p>
-									)}
-								</Progress>
-							);
-						})}
-					</div>
-				</div>
-			)}
 		</section>
 	);
 }

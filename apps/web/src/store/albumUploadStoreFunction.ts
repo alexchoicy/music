@@ -23,7 +23,6 @@ import type { ProcessedFileData } from "#/lib/utils/upload";
 import type {
 	AlbumDraft,
 	AlbumLocalId,
-	AlbumTrackUploadJob,
 	AlbumUploadState,
 	CoverAsset,
 	CoverAssetBlake3Hash,
@@ -32,7 +31,6 @@ import type {
 	MergeAlbumDraftInput,
 	PartyItem,
 	TrackLocalId,
-	TrackUploadResult,
 	UpdateAlbumDraftInput,
 	UpdateTrackDraftInput,
 } from "./albumUploadStoreType";
@@ -99,23 +97,6 @@ export function buildAlbumRequests(
 			}),
 		};
 	});
-}
-
-export function makeTrackUploadJob(
-	trackUpload: TrackUploadResult,
-): AlbumTrackUploadJob {
-	const fileObjectId = trackUpload.fileObjectId;
-
-	return {
-		id: `trackAudio:${fileObjectId}`,
-		fileObjectId,
-		blake3Hash: trackUpload.blake3Hash,
-		fileName: trackUpload.fileName,
-		uploadedPartCount: 0,
-		totalPartCount: trackUpload.multipartUploadInfo.parts.length,
-		status: "queued",
-		error: null,
-	};
 }
 
 function getTrackContentType(
@@ -236,21 +217,21 @@ function createTrackAudioRequest(
 	};
 }
 
+function hasTrackAudio(state: AlbumUploadState, blake3Hash: string) {
+	return Object.values(state.tracksById).some((track) =>
+		track.audios.some((audio) => audio.file.blake3Hash === blake3Hash),
+	);
+}
+
 export function insertPreparedFile(
 	state: AlbumUploadState,
 	fileData: ProcessedFileData,
 	parties: PartyItem[],
 ) {
-	if (state.filesByBlake3Hash[fileData.blake3Hash]) {
+	if (hasTrackAudio(state, fileData.blake3Hash)) {
 		if (fileData.cover) URL.revokeObjectURL(fileData.cover.localURL);
 		return false;
 	}
-
-	state.filesByBlake3Hash[fileData.blake3Hash] = {
-		blake3Hash: fileData.blake3Hash,
-		file: fileData.file,
-		metadata: fileData.metadata,
-	};
 
 	const metadata = getMetadata(fileData.metadata, fileData.file, parties);
 
@@ -395,14 +376,6 @@ function cleanNewCoverAssets(
 
 	URL.revokeObjectURL(state.coverAssetsIdByHash[coverAssetIdByHash].localURL);
 	delete state.coverAssetsIdByHash[coverAssetIdByHash];
-}
-
-function cleanPreparedFile(state: AlbumUploadState, blake3Hash: string) {
-	const isUsedByTrack = Object.values(state.tracksById).some((track) =>
-		track.audios.some((audio) => audio.file.blake3Hash === blake3Hash),
-	);
-
-	if (!isUsedByTrack) delete state.filesByBlake3Hash[blake3Hash];
 }
 
 function moveTrackToDisc(
@@ -561,7 +534,6 @@ export function removeAlbumDraft(
 
 	const album = state.albumsById[albumId];
 	const coverAssetIdsToClean = new Set<CoverAssetBlake3Hash>();
-	const fileHashesToClean = new Set<string>();
 
 	if (album.coverAssetIdByHash) {
 		coverAssetIdsToClean.add(album.coverAssetIdByHash);
@@ -575,12 +547,6 @@ export function removeAlbumDraft(
 		}
 
 		for (const trackId of disc.trackIds) {
-			const track = state.tracksById[trackId];
-
-			for (const audio of track.audios) {
-				fileHashesToClean.add(audio.file.blake3Hash);
-			}
-
 			delete state.tracksById[trackId];
 		}
 
@@ -593,10 +559,6 @@ export function removeAlbumDraft(
 
 	for (const coverAssetId of coverAssetIdsToClean) {
 		cleanNewCoverAssets(state, coverAssetId);
-	}
-
-	for (const fileHash of fileHashesToClean) {
-		cleanPreparedFile(state, fileHash);
 	}
 
 	if (state.albumOrder.length === 0 && state.submitStatus === "creating") {

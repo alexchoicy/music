@@ -11,6 +11,25 @@ type UploadMultipartFileOptions = {
 };
 
 const retryableStatuses = new Set([408, 429, 500, 502, 503, 504]);
+const partUploadTimeoutMs = 110_000;
+
+function createTimeoutSignal(parentSignal?: AbortSignal) {
+	const controller = new AbortController();
+	const timeout = window.setTimeout(() => {
+		controller.abort(new DOMException("Part upload timed out", "TimeoutError"));
+	}, partUploadTimeoutMs);
+
+	const abort = () => controller.abort(parentSignal?.reason);
+	parentSignal?.addEventListener("abort", abort, { once: true });
+
+	return {
+		signal: controller.signal,
+		clear: () => {
+			window.clearTimeout(timeout);
+			parentSignal?.removeEventListener("abort", abort);
+		},
+	};
+}
 
 function sleep(ms: number, signal?: AbortSignal) {
 	return new Promise<void>((resolve, reject) => {
@@ -49,11 +68,13 @@ async function uploadPartWithRetry(
 	const maxAttempts = 4;
 
 	for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+		const timeoutSignal = createTimeoutSignal(signal);
+
 		try {
 			const response = await fetch(url, {
 				method: "PUT",
 				body,
-				signal,
+				signal: timeoutSignal.signal,
 			});
 
 			if (!response.ok) {
@@ -82,6 +103,8 @@ async function uploadPartWithRetry(
 			}
 
 			await sleep(getRetryDelayMs(attempt), signal);
+		} finally {
+			timeoutSignal.clear();
 		}
 	}
 

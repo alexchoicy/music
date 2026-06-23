@@ -12,11 +12,6 @@ export type ConcertUploadStatus =
 	| "uploading"
 	| "completed"
 	| "failed";
-export type ConcertUploadJobStatus =
-	| "queued"
-	| "uploading"
-	| "completed"
-	| "failed";
 
 export type ConcertImageAsset = {
 	blake3Hash: string;
@@ -48,23 +43,6 @@ export type UpdateConcertFileDraftInput = Partial<
 export type ConcertFileUploadResult =
 	components["schemas"]["CreateConcertUploadItemResult"];
 
-export type ConcertFileUploadJob = {
-	id: string;
-	fileObjectId: string;
-	simpleBlake3Hash: string;
-	fileName: string;
-	uploadedPartCount: number;
-	totalPartCount: number;
-	status: ConcertUploadJobStatus;
-	error: string | null;
-};
-
-export type ConcertUploadRunState = {
-	jobOrder: string[];
-	jobsById: Record<string, ConcertFileUploadJob>;
-	error: string | null;
-};
-
 export type AddConcertDroppedFilesResult = {
 	processedFileNames: string[];
 	ignoredFileNames: string[];
@@ -81,7 +59,6 @@ export type ConcertUploadState = {
 	files: ConcertFileDraft[];
 	isProcessing: boolean;
 	submitStatus: ConcertUploadStatus;
-	uploadRun: ConcertUploadRunState;
 	lastError: string | null;
 };
 

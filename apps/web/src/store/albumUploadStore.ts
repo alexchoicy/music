@@ -4,13 +4,11 @@ import { immer } from "zustand/middleware/immer";
 
 import { createAlbums } from "#/lib/api/albums";
 import { completeUpload } from "#/lib/api/uploads";
-import { uploadMultipartFile } from "#/lib/upload/multipartUpload";
 import { processDroppedFiles } from "#/lib/utils/upload";
 
 import {
 	buildAlbumRequests,
 	insertPreparedFile,
-	makeTrackUploadJob,
 	mergeAlbumDraft,
 	removeCreatedAlbumDraft,
 	removeAlbumDraft,
@@ -20,30 +18,21 @@ import {
 import type {
 	AlbumUploadStatus,
 	AlbumUploadActions,
-	AlbumUploadRunState,
 	AlbumUploadState,
 	AddDroppedFilesResult,
 	TrackUploadResult,
 } from "./albumUploadStoreType";
+import { useUploadStore } from "./uploadStore";
 
 type AlbumUploadStore = AlbumUploadState & AlbumUploadActions;
 type CreateAlbumResultUpload = NonNullable<
 	NonNullable<Awaited<ReturnType<typeof createAlbums>>[number]["upload"]>
 >;
 
-function createInitialUploadRun(): AlbumUploadRunState {
-	return {
-		jobOrder: [],
-		jobsById: {},
-		error: null,
-	};
-}
-
 function createInitialState(
 	lastStatus: AlbumUploadStatus = "idle",
 ): AlbumUploadState {
 	return {
-		filesByBlake3Hash: {},
 		coverAssetsIdByHash: {},
 		albumOrder: [],
 		albumsById: {},
@@ -51,8 +40,7 @@ function createInitialState(
 		discsById: {},
 		tracksById: {},
 		isProcessing: false,
-		submitStatus: lastStatus === "uploading" ? "uploading" : lastStatus,
-		uploadRun: createInitialUploadRun(),
+		submitStatus: lastStatus,
 		lastError: null,
 	};
 }
@@ -122,18 +110,29 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 				try {
 					const { failedFileNames, processedFiles } =
 						await processDroppedFiles(files);
+					const addedFiles: { file: File; blake3Hash: string }[] = [];
 
 					result.ignoredFileNames.push(...failedFileNames);
 
 					set((state) => {
 						for (const processedFile of processedFiles) {
 							if (insertPreparedFile(state, processedFile, parties)) {
+								addedFiles.push({
+									file: processedFile.file,
+									blake3Hash: processedFile.blake3Hash,
+								});
 								result.processedFileNames.push(processedFile.file.name);
 							} else {
 								result.ignoredFileNames.push(processedFile.file.name);
 							}
 						}
 					});
+
+					for (const addedFile of addedFiles) {
+						useUploadStore
+							.getState()
+							.addFile(addedFile.file, addedFile.blake3Hash);
+					}
 				} catch (error) {
 					const errorMessage =
 						error instanceof Error
@@ -165,9 +164,8 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 				}
 
 				set((state) => {
-					state.submitStatus = "creating";
+					state.submitStatus = "uploading";
 					state.lastError = null;
-					state.uploadRun = createInitialUploadRun();
 				});
 
 				try {
@@ -194,65 +192,15 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 						trackUploads.push(...(result.upload.tracks ?? []));
 					}
 
-					const jobs = trackUploads.map(makeTrackUploadJob);
-
 					set((state) => {
-						state.submitStatus = jobs.length > 0 ? "uploading" : "completed";
-						state.uploadRun.jobOrder = jobs.map((job) => job.id);
-						state.uploadRun.jobsById = Object.fromEntries(
-							jobs.map((job) => [job.id, job]),
-						);
+						state.submitStatus = "completed";
 
 						for (const albumId of successfulAlbumIds) {
 							removeCreatedAlbumDraft(state, albumId);
 						}
 					});
 
-					for (const trackUpload of trackUploads) {
-						const jobId = `trackAudio:${trackUpload.fileObjectId}`;
-
-						if (
-							!Object.hasOwn(get().filesByBlake3Hash, trackUpload.blake3Hash)
-						) {
-							set((state) => {
-								state.uploadRun.jobsById[jobId].status = "failed";
-								state.uploadRun.jobsById[jobId].error =
-									`Missing audio file for ${trackUpload.fileName}`;
-							});
-							throw new Error(`Missing audio file for ${trackUpload.fileName}`);
-						}
-
-						const fileData = get().filesByBlake3Hash[trackUpload.blake3Hash];
-
-						set((state) => {
-							state.uploadRun.jobsById[jobId].status = "uploading";
-						});
-
-						const parts = await uploadMultipartFile(
-							fileData.file,
-							trackUpload.multipartUploadInfo,
-							{
-								onPartUploaded: () => {
-									set((state) => {
-										state.uploadRun.jobsById[jobId].uploadedPartCount += 1;
-									});
-								},
-							},
-						);
-
-						await completeUpload({
-							fileObjectId: trackUpload.fileObjectId,
-							multipart: {
-								uploadId: trackUpload.multipartUploadInfo.uploadId,
-								parts,
-							},
-						});
-
-						set((state) => {
-							state.uploadRun.jobsById[jobId].status = "completed";
-							delete state.filesByBlake3Hash[trackUpload.blake3Hash];
-						});
-					}
+					useUploadStore.getState().startUpload(trackUploads);
 
 					get().clear();
 				} catch (error) {
@@ -262,14 +210,6 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 					set((state) => {
 						state.submitStatus = "failed";
 						state.lastError = errorMessage;
-						state.uploadRun.error = errorMessage;
-
-						for (const job of Object.values(state.uploadRun.jobsById)) {
-							if (job.status === "uploading") {
-								job.status = "failed";
-								job.error = errorMessage;
-							}
-						}
 					});
 
 					throw error;
@@ -282,7 +222,21 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 				});
 			},
 			removeAlbumDraft: (albumId) => {
+				const fileHashes = Object.hasOwn(get().albumsById, albumId)
+					? get().albumsById[albumId].discIds.flatMap((discId) =>
+							get().discsById[discId].trackIds.flatMap((trackId) =>
+								get().tracksById[trackId].audios.map(
+									(audio) => audio.file.blake3Hash,
+								),
+							),
+						)
+					: [];
+
 				set((state) => removeAlbumDraft(state, albumId));
+
+				for (const fileHash of fileHashes) {
+					useUploadStore.getState().removeFile(fileHash);
+				}
 			},
 			mergeAlbumDraft: (albumId, input) => {
 				set((state) => mergeAlbumDraft(state, albumId, input));

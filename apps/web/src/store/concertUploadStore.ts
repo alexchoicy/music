@@ -3,8 +3,6 @@ import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
 import { createConcert } from "#/lib/api/concerts";
-import { completeUpload } from "#/lib/api/uploads";
-import { uploadMultipartFile } from "#/lib/upload/multipartUpload";
 import {
 	getDimensions,
 	getExtensionFromFileName,
@@ -16,16 +14,14 @@ import type { CroppedArea } from "./albumUploadStoreType";
 import type {
 	AddConcertDroppedFilesResult,
 	ConcertFileDraft,
-	ConcertFileUploadJob,
-	ConcertFileUploadResult,
 	ConcertImageAsset,
 	ConcertUploadActions,
-	ConcertUploadRunState,
 	ConcertUploadState,
 	ConcertUploadStatus,
 	CreateConcertRequest,
 	UpdateConcertFileDraftInput,
 } from "./concertUploadStoreType";
+import { useUploadStore } from "./uploadStore";
 
 type ConcertUploadStore = ConcertUploadState & ConcertUploadActions;
 type ConcertUploadImageResult = NonNullable<
@@ -33,14 +29,6 @@ type ConcertUploadImageResult = NonNullable<
 >;
 
 const DEFAULT_CONCERT_FILE_SOURCE = "UserUpload";
-
-function createInitialUploadRun(): ConcertUploadRunState {
-	return {
-		jobOrder: [],
-		jobsById: {},
-		error: null,
-	};
-}
 
 function createInitialState(
 	lastStatus: ConcertUploadStatus = "idle",
@@ -55,8 +43,7 @@ function createInitialState(
 		image: null,
 		files: [],
 		isProcessing: false,
-		submitStatus: lastStatus === "uploading" ? "uploading" : lastStatus,
-		uploadRun: createInitialUploadRun(),
+		submitStatus: lastStatus,
 		lastError: null,
 	};
 }
@@ -73,7 +60,6 @@ function markDirty(state: ConcertUploadState) {
 	if (state.submitStatus !== "completed") return;
 
 	state.submitStatus = "idle";
-	state.uploadRun = createInitialUploadRun();
 	state.lastError = null;
 }
 
@@ -160,23 +146,6 @@ async function makeConcertFileDraft(file: File): Promise<ConcertFileDraft> {
 		sizeInBytes: file.size,
 		title: getTitleFromFileName(file.name),
 		type: "Performance",
-	};
-}
-
-function makeConcertFileUploadJob(
-	fileUpload: ConcertFileUploadResult,
-): ConcertFileUploadJob {
-	const fileObjectId = fileUpload.fileObjectId;
-
-	return {
-		id: `concertFile:${fileObjectId}`,
-		fileObjectId,
-		fileName: fileUpload.fileName,
-		simpleBlake3Hash: fileUpload.simpleBlake3Hash,
-		uploadedPartCount: 0,
-		totalPartCount: fileUpload.multipartUploadInfo.parts.length,
-		status: "queued",
-		error: null,
 	};
 }
 
@@ -272,6 +241,7 @@ export const useConcertUploadStore = create<ConcertUploadStore>()(
 
 				try {
 					const drafts: ConcertFileDraft[] = [];
+					const addedDrafts: ConcertFileDraft[] = [];
 
 					for (const file of files) {
 						try {
@@ -294,11 +264,18 @@ export const useConcertUploadStore = create<ConcertUploadStore>()(
 							}
 
 							state.files.push(draft);
+							addedDrafts.push(draft);
 							result.processedFileNames.push(draft.fileName);
 						}
 
 						markDirty(state);
 					});
+
+					for (const draft of addedDrafts) {
+						useUploadStore
+							.getState()
+							.addFile(draft.file, draft.simpleBlake3Hash);
+					}
 				} catch (error) {
 					const errorMessage =
 						error instanceof Error
@@ -329,17 +306,22 @@ export const useConcertUploadStore = create<ConcertUploadStore>()(
 				});
 			},
 			removeFileDraft: (id) => {
+				const fileHash = get().files.find(
+					(file) => file.id === id,
+				)?.simpleBlake3Hash;
+
 				set((state) => {
 					state.files = state.files.filter((file) => file.id !== id);
 					markDirty(state);
 				});
+
+				if (fileHash) useUploadStore.getState().removeFile(fileHash);
 			},
 			submitConcert: async () => {
 				const currentState = get();
 				if (
 					!currentState.title.trim() ||
 					currentState.isProcessing ||
-					currentState.submitStatus === "creating" ||
 					currentState.submitStatus === "uploading" ||
 					currentState.submitStatus === "completed"
 				) {
@@ -347,9 +329,8 @@ export const useConcertUploadStore = create<ConcertUploadStore>()(
 				}
 
 				set((state) => {
-					state.submitStatus = "creating";
+					state.submitStatus = "uploading";
 					state.lastError = null;
-					state.uploadRun = createInitialUploadRun();
 				});
 
 				try {
@@ -359,62 +340,7 @@ export const useConcertUploadStore = create<ConcertUploadStore>()(
 						await uploadConcertImage(concert.concertImage, get());
 					}
 
-					const fileUploads = concert.files ?? [];
-					const jobs = fileUploads.map(makeConcertFileUploadJob);
-
-					set((state) => {
-						state.submitStatus = jobs.length > 0 ? "uploading" : "completed";
-						state.uploadRun.jobOrder = jobs.map((job) => job.id);
-						state.uploadRun.jobsById = Object.fromEntries(
-							jobs.map((job) => [job.id, job]),
-						);
-					});
-
-					for (const fileUpload of fileUploads) {
-						const jobId = `concertFile:${fileUpload.fileObjectId}`;
-						const draft = get().files.find(
-							(file) => file.simpleBlake3Hash === fileUpload.simpleBlake3Hash,
-						);
-
-						if (!draft) {
-							set((state) => {
-								state.uploadRun.jobsById[jobId].status = "failed";
-								state.uploadRun.jobsById[jobId].error =
-									`Missing concert file for ${fileUpload.fileName}`;
-							});
-							throw new Error(
-								`Missing concert file for ${fileUpload.fileName}`,
-							);
-						}
-
-						set((state) => {
-							state.uploadRun.jobsById[jobId].status = "uploading";
-						});
-
-						const parts = await uploadMultipartFile(
-							draft.file,
-							fileUpload.multipartUploadInfo,
-							{
-								onPartUploaded: () => {
-									set((state) => {
-										state.uploadRun.jobsById[jobId].uploadedPartCount += 1;
-									});
-								},
-							},
-						);
-
-						await completeUpload({
-							fileObjectId: fileUpload.fileObjectId,
-							multipart: {
-								uploadId: fileUpload.multipartUploadInfo.uploadId,
-								parts,
-							},
-						});
-
-						set((state) => {
-							state.uploadRun.jobsById[jobId].status = "completed";
-						});
-					}
+					useUploadStore.getState().startUpload(concert.files ?? []);
 
 					get().clear();
 				} catch (error) {
@@ -424,14 +350,6 @@ export const useConcertUploadStore = create<ConcertUploadStore>()(
 					set((state) => {
 						state.submitStatus = "failed";
 						state.lastError = errorMessage;
-						state.uploadRun.error = errorMessage;
-
-						for (const job of Object.values(state.uploadRun.jobsById)) {
-							if (job.status === "queued" || job.status === "uploading") {
-								job.status = "failed";
-								job.error = errorMessage;
-							}
-						}
 					});
 
 					throw error;
