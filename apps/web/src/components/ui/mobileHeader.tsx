@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { MenuIcon, SearchIcon } from "lucide-react";
 
 import { Button } from "#/components/coss/button";
@@ -23,10 +24,12 @@ export function MobileHeader({
 				<MenuIcon className="size-5" />
 			</Button>
 
-			<div className="flex items-center gap-2">
-				<img alt="" className="size-7 rounded-md" src="/logo192.png" />
-				<span className="text-sm font-semibold">Music</span>
-			</div>
+			<Link to="/">
+				<div className="flex items-center gap-2">
+					<img alt="" className="size-7 rounded-md" src="/logo192.png" />
+					<span className="text-sm font-semibold">Music</span>
+				</div>
+			</Link>
 
 			<Button
 				aria-label="Search"

@@ -203,13 +203,6 @@ public class PartyService(
             .ToList();
     }
 
-    public Task<IReadOnlyList<PartySummary>> GetAllPartiesAsync(
-        CancellationToken cancellationToken = default
-    )
-    {
-        throw new NotImplementedException();
-    }
-
     public async Task<PartyDetails?> GetPartyByIdAsync(
         int partyId,
         CancellationToken cancellationToken = default

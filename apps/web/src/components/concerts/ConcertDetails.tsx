@@ -2,11 +2,12 @@ import { Link } from "@tanstack/react-router";
 import { CalendarIcon, ClockIcon, Disc3Icon } from "lucide-react";
 
 import { AlbumCard } from "#/components/AlbumCard";
-import { Avatar, AvatarFallback } from "#/components/coss/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "#/components/coss/avatar";
 import type { components } from "#/data/APIschema";
 import { getConcertCoverUrl } from "#/lib/utils/concert";
 import { formatDate } from "#/lib/utils/date";
 import { formatDurationInHoursAndMinutes } from "#/lib/utils/music";
+import { getPartyAvatarUrl } from "#/lib/utils/party";
 import { getInitials } from "#/lib/utils/string";
 
 type Concert = components["schemas"]["ConcertDetails"];
@@ -90,9 +91,9 @@ export function ConcertDetails({ concert }: ConcertDetailsProps) {
 					<h2 className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
 						Performers
 					</h2>
-					<div className="flex flex-wrap items-center gap-2">
+					<div className="flex flex-col gap-1">
 						{concert.linkedParties.map((party) => (
-							<PartyChip key={party.partyId} party={party} />
+							<PartyItem key={party.partyId} party={party} />
 						))}
 					</div>
 				</section>
@@ -114,25 +115,28 @@ export function ConcertDetails({ concert }: ConcertDetailsProps) {
 	);
 }
 
-function PartyChip({ party }: { party: ConcertParty }) {
+function PartyItem({ party }: { party: ConcertParty }) {
+	const avatarUrl = getPartyAvatarUrl(party.avatar);
+
 	return (
 		<Link
-			className="flex items-center gap-2.5 rounded-full border border-border bg-card py-1 pr-3 pl-1 transition-colors hover:border-primary/40"
+			className="-mx-2 block rounded-lg p-2 transition-colors outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
 			params={{ id: String(party.partyId) }}
 			to="/parties/$id"
 		>
-			<Avatar className="size-7">
-				<AvatarFallback className="text-xs font-bold">
-					{getInitials(party.name)}
-				</AvatarFallback>
-			</Avatar>
-			<div className="min-w-0">
-				<p className="text-xs leading-tight font-medium text-foreground">
-					{party.name}
-				</p>
-				<p className="text-[10px] leading-tight text-muted-foreground">
-					{PARTY_ROLE[party.role]} &middot; {party.type}
-				</p>
+			<div className="flex min-w-0 items-center gap-3">
+				<Avatar>
+					{avatarUrl && (
+						<AvatarImage alt={`${party.name} avatar`} src={avatarUrl} />
+					)}
+					<AvatarFallback>{getInitials(party.name)}</AvatarFallback>
+				</Avatar>
+				<div className="min-w-0">
+					<p className="truncate font-medium">{party.name}</p>
+					<p className="text-sm text-muted-foreground">
+						{PARTY_ROLE[party.role]} &middot; {party.type}
+					</p>
+				</div>
 			</div>
 		</Link>
 	);

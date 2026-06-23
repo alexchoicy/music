@@ -26,6 +26,7 @@ public sealed class ConcertPartySummary
 {
     public required int PartyId { get; init; }
     public required string Name { get; init; } = string.Empty;
+    public required ImageFileVariants Avatar { get; init; }
     public required PartyType Type { get; init; }
     public required ConcertPartyRole Role { get; init; }
 }

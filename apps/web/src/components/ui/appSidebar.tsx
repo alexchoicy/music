@@ -182,10 +182,12 @@ export function AppSidebar({
 		<Sidebar collapsible="offcanvas">
 			<SidebarHeader className="gap-6 p-3">
 				<div className="flex items-center justify-between gap-2.5">
-					<div className="flex items-center gap-2.5">
-						<img alt="" className="size-8 rounded-lg" src="/logo192.png" />
-						<span className="text-sm font-semibold">Music</span>
-					</div>
+					<Link to="/">
+						<div className="flex items-center gap-2.5">
+							<img alt="" className="size-8 rounded-lg" src="/logo192.png" />
+							<span className="text-sm font-semibold">Music</span>
+						</div>
+					</Link>
 					<SidebarUploadStatus />
 				</div>
 

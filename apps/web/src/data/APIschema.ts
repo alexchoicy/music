@@ -671,6 +671,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/files/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": string;
+                        "application/json": string;
+                        "text/json": string;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/languages": {
         parameters: {
             query?: never;
@@ -1396,6 +1435,7 @@ export interface components {
             /** Format: int32 */
             partyId: number | string;
             name: string;
+            avatar: components["schemas"]["ImageFileVariants"];
             type: components["schemas"]["PartyType"];
             role: components["schemas"]["ConcertPartyRole"];
         };

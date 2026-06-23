@@ -17,7 +17,7 @@ internal static class ConcertReadMapper
             Description = concert.Description,
             Date = concert.Date,
             CoverVariants = concert.ToConcertCoverVariants(assetsService),
-            Parties = concert.ConcertParties.ToConcertPartySummaries(),
+            Parties = concert.ConcertParties.ToConcertPartySummaries(assetsService),
             AlbumCount = concert.ConcertAlbums.Count,
             FileCount = concert.ConcertFiles.Count,
             TotalDurationInMs = concert.ConcertFiles.TotalDurationInMs(),
@@ -39,7 +39,7 @@ internal static class ConcertReadMapper
             Description = concert.Description,
             Date = concert.Date,
             CoverVariants = concert.ToConcertCoverVariants(assetsService),
-            LinkedParties = concert.ConcertParties.ToConcertPartySummaries(),
+            LinkedParties = concert.ConcertParties.ToConcertPartySummaries(assetsService),
             LinkedAlbums = concert
                 .ConcertAlbums.Where(concertAlbum => concertAlbum.Album is not null)
                 .OrderBy(concertAlbum => concertAlbum.Album!.Title)
@@ -78,7 +78,8 @@ internal static class ConcertReadMapper
     }
 
     public static IReadOnlyList<ConcertPartySummary> ToConcertPartySummaries(
-        this IEnumerable<ConcertParty> concertParties
+        this IEnumerable<ConcertParty> concertParties,
+        IAssetsService assetsService
     )
     {
         return concertParties
@@ -89,6 +90,7 @@ internal static class ConcertReadMapper
             {
                 PartyId = concertParty.PartyId,
                 Name = concertParty.Party!.Name,
+                Avatar = concertParty.Party.ToPrimaryAvatarImages(assetsService),
                 Type = concertParty.Party!.Type,
                 Role = concertParty.Role,
             })

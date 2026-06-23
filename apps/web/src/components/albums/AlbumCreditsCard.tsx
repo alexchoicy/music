@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router";
+
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/coss/avatar";
 import { Card, CardHeader, CardPanel, CardTitle } from "#/components/coss/card";
 import { Separator } from "#/components/coss/separator";
@@ -62,17 +64,23 @@ function CreditItem({ credit }: { credit: PartyCredit }) {
 	const avatarUrl = getPartyAvatarUrl(credit.avatar);
 
 	return (
-		<div className="flex min-w-0 items-center gap-3">
-			<Avatar>
-				{avatarUrl && (
-					<AvatarImage alt={`${credit.name} avatar`} src={avatarUrl} />
-				)}
-				<AvatarFallback>{getInitials(credit.name)}</AvatarFallback>
-			</Avatar>
-			<div className="min-w-0">
-				<p className="truncate font-medium">{credit.name}</p>
-				<p className="text-sm text-muted-foreground">{credit.creditType}</p>
+		<Link
+			className="-mx-2 block rounded-lg p-2 transition-colors outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+			to="/parties/$id"
+			params={{ id: String(credit.partyId) }}
+		>
+			<div className="flex min-w-0 items-center gap-3">
+				<Avatar>
+					{avatarUrl && (
+						<AvatarImage alt={`${credit.name} avatar`} src={avatarUrl} />
+					)}
+					<AvatarFallback>{getInitials(credit.name)}</AvatarFallback>
+				</Avatar>
+				<div className="min-w-0">
+					<p className="truncate font-medium">{credit.name}</p>
+					<p className="text-sm text-muted-foreground">{credit.creditType}</p>
+				</div>
 			</div>
-		</div>
+		</Link>
 	);
 }
