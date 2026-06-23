@@ -49,12 +49,10 @@ public sealed class WorkerController(IContentService contentService, AppDbContex
             .FileObjects.Where(fileObject =>
                 fileObject.FileObjectVariant == FileObjectVariant.Original
                 && fileObject.ProcessingStatus == FileProcessingStatus.Completed
-                && fileObject.File != null
-                && fileObject.File.Type == FileType.Image
                 && (
-                    fileObject.File.AlbumImages.Any()
-                    || fileObject.File.PartyImages.Any()
-                    || fileObject.File.ConcertImages.Any()
+                    dbContext.AlbumImages.Any(image => image.FileId == fileObject.FileId)
+                    || dbContext.PartyImages.Any(image => image.FileId == fileObject.FileId)
+                    || dbContext.ConcertImages.Any(image => image.FileId == fileObject.FileId)
                 )
             )
             .Select(fileObject => fileObject.Id)

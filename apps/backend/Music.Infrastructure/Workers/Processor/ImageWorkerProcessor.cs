@@ -51,6 +51,9 @@ class ImageUploadWorkerProcessor(
                 $"File object with ID {job.FileObjectId} not found."
             );
 
+        // if (sourceFileObject.ProcessingStatus == FileProcessingStatus.Completed)
+        //     throw new InvalidOperationException("Cannot process a completed file object.");
+
         sourceFileObject.ProcessingStatus = FileProcessingStatus.Processing;
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -78,11 +81,18 @@ class ImageUploadWorkerProcessor(
                 cancellationToken
             );
 
-            FileCroppedAreaRequest croppedArea = variantPlan.ToCroppedArea(image.Width, image.Height);
+            FileCroppedAreaRequest croppedArea = variantPlan.ToCroppedArea(
+                image.Width,
+                image.Height
+            );
             bool isExplicitCrop =
                 croppedArea.Width != image.Width || croppedArea.Height != image.Height;
 
-            if (!isExplicitCrop && image.Width <= variantPlan.TargetWidth && image.Height <= variantPlan.TargetHeight)
+            if (
+                !isExplicitCrop
+                && image.Width <= variantPlan.TargetWidth
+                && image.Height <= variantPlan.TargetHeight
+            )
             {
                 logger.LogInformation(
                     "Skipping image variant {Variant} for file object {FileObjectId}: source {Width}x{Height} fits within target {TargetWidth}x{TargetHeight}",
