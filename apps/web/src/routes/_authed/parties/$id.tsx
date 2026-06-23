@@ -4,7 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PartyDetailHero } from "#/components/parties/PartyDetailHero";
 import { PartyDetailTabs } from "#/components/parties/PartyDetailTabs";
 import { partyQueries } from "#/lib/queries/party.queries";
-import { getCoverUrl } from "#/lib/utils/album";
+import { getPartyAvatarUrl } from "#/lib/utils/party";
 
 export const Route = createFileRoute("/_authed/parties/$id")({
 	loader: ({ context, params }) => {
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authed/parties/$id")({
 function RouteComponent() {
 	const { id } = Route.useParams();
 	const { data: party } = useSuspenseQuery(partyQueries.getParty(id));
-	const avatarUrl = getCoverUrl(party.avatarImages);
+	const avatarUrl = getPartyAvatarUrl(party?.avatarImages);
 
 	return (
 		<main className="relative min-h-full w-full overflow-hidden bg-background">

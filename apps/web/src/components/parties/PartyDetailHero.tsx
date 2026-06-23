@@ -5,7 +5,7 @@ import { Badge } from "#/components/coss/badge";
 import { Button } from "#/components/coss/button";
 import type { components } from "#/data/APIschema";
 import { COUNTRY_CODE, PARTY_KIND, PARTY_TYPE } from "#/enums/partyEnums";
-import { getCoverUrl } from "#/lib/utils/album";
+import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { getInitials } from "#/lib/utils/string";
 
 type PartyDetails = components["schemas"]["PartyDetails"];
@@ -15,7 +15,7 @@ type PartyDetailHeroProps = {
 };
 
 export function PartyDetailHero({ party }: PartyDetailHeroProps) {
-	const avatarUrl = getCoverUrl(party.avatarImages);
+	const avatarUrl = getAlbumCoverUrl(party.avatarImages);
 	const gender = party.gender !== "Unknown" ? party.gender : undefined;
 	const description = party.description.trim();
 	const hasAdditionalInfo =

@@ -26,4 +26,5 @@ public enum FileObjectVariant
     ImageCover1024x1024 = 301,
     ImageAvatar512x512 = 302,
     ImageBanner1500x500 = 303,
+    ImageWide1280x720 = 304,
 }

@@ -636,11 +636,13 @@ public class TrackUploadWorkerProcessor(
             .FirstOrDefault(image => image.File?.FileObjects.Count > 0);
 
         FileObject? coverFileObject = cover
-            ?.File?.FileObjects.OrderBy(fileObject =>
-                fileObject.FileObjectVariant != FileObjectVariant.Original
+            ?.File?.FileObjects.FirstOrDefault(fileObject =>
+                fileObject.FileObjectVariant == FileObjectVariant.ImageCover1024x1024
             )
-            .ThenBy(fileObject => fileObject.FileObjectVariant)
-            .FirstOrDefault();
+            ?? cover
+                ?.File?.FileObjects.FirstOrDefault(fileObject =>
+                    fileObject.FileObjectVariant == FileObjectVariant.Original
+                );
 
         if (coverFileObject is null)
         {

@@ -44,15 +44,9 @@ public sealed class AlbumListMatchedTrack
     public string? BasedOnTrackTitle { get; init; }
 }
 
-public sealed class AlbumCoverVariant
-{
-    public required FileObjectVariant Variant { get; init; }
-    public required string Url { get; init; } = string.Empty;
-}
-
 public sealed class AlbumCoverDetails
 {
-    public required IReadOnlyList<AlbumCoverVariant> Album { get; init; } = [];
+    public required ImageFileVariants Album { get; init; }
     public required IReadOnlyList<AlbumDiscCoverDetails> Discs { get; init; } = [];
 }
 
@@ -60,7 +54,7 @@ public sealed class AlbumDiscCoverDetails
 {
     public required int AlbumDiscId { get; init; }
     public required int DiscNumber { get; init; }
-    public required IReadOnlyList<AlbumCoverVariant> Variants { get; init; } = [];
+    public required ImageFileVariants Variants { get; init; }
 }
 
 public sealed class AlbumListItem
@@ -75,7 +69,7 @@ public sealed class AlbumListItem
     public required DateTimeOffset CreatedAt { get; init; }
     public required DateTimeOffset UpdatedAt { get; init; }
 
-    public IReadOnlyList<AlbumCoverVariant> CoverVariants { get; init; } = [];
+    public ImageFileVariants CoverVariants { get; init; } = new();
     public IReadOnlyList<AlbumDiscCoverDetails> DiscCovers { get; init; } = [];
     public required IReadOnlyList<AlbumListArtist> Artists { get; init; } = [];
     public IReadOnlyList<AlbumListMatchedTrack> MatchedTracks { get; init; } = [];
@@ -106,7 +100,7 @@ public sealed class AlbumPartyCredit
     public required string Name { get; init; } = string.Empty;
     public required PartyType Type { get; init; }
     public required CreditType CreditType { get; init; }
-    public required IReadOnlyList<PartyImage> Avatar { get; init; }
+    public required ImageFileVariants Avatar { get; init; }
 }
 
 public sealed class AlbumDiscDetails
@@ -138,7 +132,7 @@ public sealed class TrackPartyCredit
     public required string Name { get; init; } = string.Empty;
     public required PartyType Type { get; init; }
     public required CreditType CreditType { get; init; }
-    public required IReadOnlyList<PartyImage> Avatar { get; init; }
+    public required ImageFileVariants Avatar { get; init; }
 }
 
 public sealed class TrackAudioDetails

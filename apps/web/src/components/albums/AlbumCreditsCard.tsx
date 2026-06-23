@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/coss/avatar";
 import { Card, CardHeader, CardPanel, CardTitle } from "#/components/coss/card";
 import { Separator } from "#/components/coss/separator";
-import { getCoverUrl } from "#/lib/utils/album";
+import { getPartyAvatarUrl } from "#/lib/utils/party";
 import { getInitials } from "#/lib/utils/string";
 
 import { getTrackCredits } from "./albumDetailUtils";
@@ -59,7 +59,7 @@ export function AlbumCreditsCard({ album }: AlbumCreditsCardProps) {
 }
 
 function CreditItem({ credit }: { credit: PartyCredit }) {
-	const avatarUrl = getCoverUrl(credit.avatar);
+	const avatarUrl = getPartyAvatarUrl(credit.avatar);
 
 	return (
 		<div className="flex min-w-0 items-center gap-3">

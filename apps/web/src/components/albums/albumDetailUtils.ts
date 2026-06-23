@@ -1,5 +1,5 @@
 import type { components } from "#/data/APIschema";
-import { getCoverUrl } from "#/lib/utils/album";
+import { getAlbumCoverUrl } from "#/lib/utils/album";
 
 export type AlbumDetails = components["schemas"]["AlbumDetails"];
 export type AlbumTrack = components["schemas"]["AlbumTrackDetails"];
@@ -7,15 +7,8 @@ export type PartyCredit =
 	| AlbumDetails["credits"][number]
 	| AlbumTrack["credits"][number];
 
-export function getAlbumCoverUrl(album: AlbumDetails) {
-	return (
-		getCoverUrl(album.cover.album) ??
-		getCoverUrl(album.cover.discs[0]?.variants)
-	);
-}
-
 export function getAlbumHoverCoverUrl(album: AlbumDetails) {
-	return getCoverUrl(album.cover.discs[1]?.variants);
+	return getAlbumCoverUrl(album.cover.discs[1]?.variants);
 }
 
 export function getCreditNames(credits: PartyCredit[]) {

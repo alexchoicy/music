@@ -358,6 +358,8 @@ public class AlbumService(
         if (album is null)
             throw new EntityNotFoundException($"Album {albumId} not found");
 
+        ImageFileVariants coverVariants = album.ToAlbumCoverVariants(_assetsService);
+
         return new AlbumSummary
         {
             Title = album.Title,
@@ -367,8 +369,7 @@ public class AlbumService(
                 .Distinct()
                 .OrderBy(name => name)
                 .ToList(),
-            CoverUrl =
-                album.ToAlbumCoverVariants(_assetsService).FirstOrDefault()?.Url ?? string.Empty,
+            CoverUrl = coverVariants.ImageCover1024x1024?.Url ?? coverVariants.Original?.Url ?? string.Empty,
         };
     }
 

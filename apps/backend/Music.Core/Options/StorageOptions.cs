@@ -10,6 +10,7 @@ public sealed class MediaFoldersOptions
     public string DerivedMusic { get; init; } = "media/derivatives/music";
     public string DerivedVideo { get; init; } = "media/derivatives/video";
 
+    public string AssetsCropped { get; init; } = "assets/cropped";
     public string AssetsCover { get; init; } = "assets/cover";
     public string AssetsParty { get; init; } = "assets/party";
     public string AssetsPeak { get; init; } = "assets/peak";

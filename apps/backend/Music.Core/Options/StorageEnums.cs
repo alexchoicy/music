@@ -13,6 +13,7 @@ public enum MediaFolderOptions
     DerivedMusic,
     DerivedVideo,
     AssetsCover,
+    AssetsCropped,
     PartyCover,
     PartyBanner,
     AssetsPeak,

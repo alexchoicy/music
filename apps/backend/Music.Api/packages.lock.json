@@ -280,7 +280,8 @@
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[10.0.8, )",
           "Microsoft.EntityFrameworkCore": "[10.0.8, )",
           "Music.Core": "[1.0.0, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )"
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
+          "SixLabors.ImageSharp": "[3.1.11, )"
         }
       },
       "AWSSDK.S3": {
@@ -336,6 +337,12 @@
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.4, 11.0.0)",
           "Npgsql": "10.0.2"
         }
+      },
+      "SixLabors.ImageSharp": {
+        "type": "CentralTransitive",
+        "requested": "[3.1.11, )",
+        "resolved": "3.1.11",
+        "contentHash": "JfPLyigLthuE50yi6tMt7Amrenr/fA31t2CvJyhy/kQmfulIBAqo5T/YFUSRHtuYPXRSaUHygFeh6Qd933EoSw=="
       }
     }
   }

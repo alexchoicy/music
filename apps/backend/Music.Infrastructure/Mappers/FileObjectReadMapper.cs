@@ -8,6 +8,48 @@ namespace Music.Infrastructure.Mappers;
 
 internal static class FileObjectReadMapper
 {
+    public static ImageFileVariants ToImageVariants(
+        this StoredFile? storedFile,
+        IAssetsService assetsService
+    )
+    {
+        if (storedFile?.FileObjects is null)
+            return new ImageFileVariants();
+
+        return new ImageFileVariants
+        {
+            Original = storedFile.GetAssetDetails(FileObjectVariant.Original, assetsService),
+            ImageCover1024x1024 = storedFile.GetAssetDetails(
+                FileObjectVariant.ImageCover1024x1024,
+                assetsService
+            ),
+            ImageAvatar512x512 = storedFile.GetAssetDetails(
+                FileObjectVariant.ImageAvatar512x512,
+                assetsService
+            ),
+            ImageBanner1500x500 = storedFile.GetAssetDetails(
+                FileObjectVariant.ImageBanner1500x500,
+                assetsService
+            ),
+            ImageWide1280x720 = storedFile.GetAssetDetails(
+                FileObjectVariant.ImageWide1280x720,
+                assetsService
+            ),
+        };
+    }
+
+    private static FileObjectDetails? GetAssetDetails(
+        this StoredFile storedFile,
+        FileObjectVariant variant,
+        IAssetsService assetsService
+    )
+    {
+        return storedFile
+            .FileObjects.Where(fileObject => fileObject.FileObjectVariant == variant)
+            .Select(fileObject => fileObject.ToAssetDetails(assetsService))
+            .FirstOrDefault();
+    }
+
     public static FileObjectDetails ToContentDetails(
         this FileObject fileObject,
         IContentService contentService,

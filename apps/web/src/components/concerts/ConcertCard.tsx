@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { MicVocalIcon } from "lucide-react";
 
-import { Badge } from "#/components/coss/badge";
 import {
 	Card,
 	CardDescription,
@@ -14,8 +13,7 @@ import {
 	TooltipTrigger,
 } from "#/components/coss/tooltip";
 import type { components } from "#/data/APIschema";
-import { getCoverUrl } from "#/lib/utils/album";
-import { formatDate } from "#/lib/utils/date";
+import { getConcertCoverUrl } from "#/lib/utils/concert";
 import { formatDurationInHoursAndMinutes } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 
@@ -27,8 +25,7 @@ type ConcertCardProps = {
 };
 
 export function ConcertCard({ className, concert }: ConcertCardProps) {
-	const coverUrl = getCoverUrl(concert.coverVariants);
-	const dateLabel = formatDate(concert.date) ?? "No date";
+	const coverUrl = getConcertCoverUrl(concert.coverVariants);
 	const durationLabel =
 		formatDurationInHoursAndMinutes(concert.totalDurationInMs) ?? "0m";
 	const partyNames =
@@ -56,10 +53,6 @@ export function ConcertCard({ className, concert }: ConcertCardProps) {
 								<MicVocalIcon aria-hidden="true" className="size-12" />
 							</div>
 						)}
-
-						<Badge className="absolute end-3 top-3 bg-card/85 text-card-foreground shadow-sm backdrop-blur-sm">
-							{dateLabel}
-						</Badge>
 					</div>
 
 					<CardPanel className="flex flex-col gap-3 p-4">

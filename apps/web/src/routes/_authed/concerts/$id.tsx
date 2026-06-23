@@ -6,7 +6,7 @@ import { ConcertDetails } from "#/components/concerts/ConcertDetails";
 import { ConcertFilesPanel } from "#/components/concerts/ConcertFilesPanel";
 import { ConcertPlayer } from "#/components/concerts/ConcertPlayer";
 import { concertQueries } from "#/lib/queries/concert.queries";
-import { getCoverUrl } from "#/lib/utils/album";
+import { getConcertCoverUrl } from "#/lib/utils/concert";
 import { cn } from "#/lib/utils/styles";
 
 export const Route = createFileRoute("/_authed/concerts/$id")({
@@ -27,7 +27,7 @@ function RouteComponent() {
 	>(null);
 	const currentFile =
 		concert.files.find((file) => file.concertFileId === currentFileId) ?? null;
-	const coverUrl = getCoverUrl(concert.coverVariants);
+	const coverUrl = getConcertCoverUrl(concert.coverVariants);
 
 	return (
 		<main className="relative min-h-full w-full overflow-hidden bg-background text-foreground">

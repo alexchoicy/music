@@ -3,10 +3,10 @@ import { createFileRoute, useRouterState } from "@tanstack/react-router";
 
 import { AlbumCreditsCard } from "#/components/albums/AlbumCreditsCard";
 import { AlbumDetailHero } from "#/components/albums/AlbumDetailHero";
-import { getAlbumCoverUrl } from "#/components/albums/albumDetailUtils";
 import { AlbumInfoCard } from "#/components/albums/AlbumInfoCard";
 import { AlbumTrackListCard } from "#/components/albums/AlbumTrackListCard";
 import { albumQueries } from "#/lib/queries/album.queries";
+import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
@@ -25,7 +25,7 @@ function RouteComponent() {
 		select: (state) => state.location.hash,
 	});
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
-	const coverUrl = getAlbumCoverUrl(album);
+	const coverUrl = getAlbumCoverUrl(album.cover.album);
 	const audioPlayerTracks = albumDetailsToAudioPlayerTracks(album);
 
 	return (

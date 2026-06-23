@@ -269,6 +269,11 @@ public class PartyInfoEnrichmentWorkerProcessor(
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
+            await assetsService.RunBackgroundProcessUploadFileAsync(
+                new ImageUploadProcessWorker { FileObjectId = fileObject.Id },
+                cancellationToken
+            );
+
             return true;
         }
         catch (Exception ex)
@@ -373,9 +378,7 @@ public class PartyInfoEnrichmentWorkerProcessor(
                 continue;
             }
 
-            if (
-                IsHostOrSubdomain(host, "twitter.com") || IsHostOrSubdomain(host, "x.com")
-            )
+            if (IsHostOrSubdomain(host, "twitter.com") || IsHostOrSubdomain(host, "x.com"))
             {
                 AddExternalInfo(
                     externalInfos,

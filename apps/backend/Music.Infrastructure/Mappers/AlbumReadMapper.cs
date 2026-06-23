@@ -4,6 +4,7 @@ using Music.Core.Services.Albums;
 using Music.Core.Services.Albums.Enums;
 using Music.Core.Services.Albums.Requests;
 using Music.Core.Services.Albums.Results;
+using Music.Core.Services.Files;
 using Music.Core.Storage;
 
 namespace Music.Infrastructure.Mappers;
@@ -37,9 +38,9 @@ internal static class AlbumReadMapper
                         .OrderByDescending(image => image.IsPrimary)
                         .ThenBy(image => image.CreatedAt)
                         .FirstOrDefault()
-                        .ToCoverVariants(assetsService),
+                        .ToImageVariants(assetsService),
                 })
-                .Where(discCover => discCover.Variants.Count > 0)
+                .Where(discCover => discCover.Variants.Original is not null)
                 .ToList(),
             Artists = album
                 .Credits.Where(credit =>
@@ -80,7 +81,7 @@ internal static class AlbumReadMapper
         };
     }
 
-    public static IReadOnlyList<AlbumCoverVariant> ToAlbumCoverVariants(
+    public static ImageFileVariants ToAlbumCoverVariants(
         this Album album,
         IAssetsService assetsService
     )
@@ -90,7 +91,7 @@ internal static class AlbumReadMapper
             .OrderByDescending(image => image.IsPrimary)
             .ThenBy(image => image.CreatedAt)
             .FirstOrDefault()
-            .ToCoverVariants(assetsService);
+            .ToImageVariants(assetsService);
     }
 
     public static AlbumCoverDetails ToAlbumCoverDetails(
@@ -109,9 +110,9 @@ internal static class AlbumReadMapper
                     .OrderByDescending(image => image.IsPrimary)
                     .ThenBy(image => image.CreatedAt)
                     .FirstOrDefault()
-                    .ToCoverVariants(assetsService),
+                    .ToImageVariants(assetsService),
             })
-            .Where(discCover => discCover.Variants.Count > 0)
+            .Where(discCover => discCover.Variants.Original is not null)
             .ToList();
 
         return new AlbumCoverDetails
@@ -121,19 +122,8 @@ internal static class AlbumReadMapper
         };
     }
 
-    private static IReadOnlyList<AlbumCoverVariant> ToCoverVariants(
+    private static ImageFileVariants ToImageVariants(
         this AlbumImage? image,
         IAssetsService assetsService
-    )
-    {
-        return image
-                ?.File?.FileObjects.OrderBy(fileObject => fileObject.FileObjectVariant)
-                .Select(fileObject => new AlbumCoverVariant
-                {
-                    Variant = fileObject.FileObjectVariant,
-                    Url = assetsService.GetUrl(fileObject.StoragePath),
-                })
-                .ToList()
-            ?? [];
-    }
+    ) => image?.File.ToImageVariants(assetsService) ?? new ImageFileVariants();
 }

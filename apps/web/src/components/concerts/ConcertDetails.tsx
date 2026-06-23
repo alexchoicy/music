@@ -4,7 +4,7 @@ import { CalendarIcon, ClockIcon, Disc3Icon } from "lucide-react";
 import { AlbumCard } from "#/components/AlbumCard";
 import { Avatar, AvatarFallback } from "#/components/coss/avatar";
 import type { components } from "#/data/APIschema";
-import { getCoverUrl } from "#/lib/utils/album";
+import { getConcertCoverUrl } from "#/lib/utils/concert";
 import { formatDate } from "#/lib/utils/date";
 import { formatDurationInHoursAndMinutes } from "#/lib/utils/music";
 import { getInitials } from "#/lib/utils/string";
@@ -29,7 +29,7 @@ export function ConcertDetails({ concert }: ConcertDetailsProps) {
 	const description = concert.description?.trim();
 	const albumCount = concert.linkedAlbums.length;
 	const fileCount = concert.files.length;
-	const coverUrl = getCoverUrl(concert.coverVariants);
+	const coverUrl = getConcertCoverUrl(concert.coverVariants);
 
 	return (
 		<section className="flex flex-col gap-6">

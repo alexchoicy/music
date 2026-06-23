@@ -29,3 +29,12 @@ public sealed class FileObjectDetails
     public required DateTimeOffset CreatedAt { get; init; }
     public required DateTimeOffset UpdatedAt { get; init; }
 }
+
+public sealed class ImageFileVariants
+{
+    public FileObjectDetails? Original { get; init; }
+    public FileObjectDetails? ImageCover1024x1024 { get; init; }
+    public FileObjectDetails? ImageAvatar512x512 { get; init; }
+    public FileObjectDetails? ImageBanner1500x500 { get; init; }
+    public FileObjectDetails? ImageWide1280x720 { get; init; }
+}

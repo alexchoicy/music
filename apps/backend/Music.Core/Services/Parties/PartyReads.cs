@@ -46,7 +46,7 @@ public sealed class PartySummary
 {
     public required int PartyId { get; init; }
     public required string Name { get; init; } = string.Empty;
-    public IReadOnlyList<PartyImage>? AvatarImages { get; init; }
+    public ImageFileVariants? AvatarImages { get; init; }
     public PartyType Type { get; init; } = PartyType.Individual;
     public required PartyKind Kind { get; init; }
     public PartyGender Gender { get; init; } = PartyGender.Unknown;
@@ -56,7 +56,7 @@ public sealed class PartyDetails
 {
     public required int PartyId { get; init; }
     public required string Name { get; init; } = string.Empty;
-    public IReadOnlyList<PartyImage>? AvatarImages { get; init; }
+    public ImageFileVariants? AvatarImages { get; init; }
     public required CountryCode Country { get; init; }
     public required string Description { get; init; } = string.Empty;
     public PartyType Type { get; init; } = PartyType.Individual;
@@ -71,11 +71,5 @@ public sealed class PartyDetails
 public sealed class PartyExternalInfoLink
 {
     public required PartyExternalInfoType Type { get; init; }
-    public required string Url { get; init; } = string.Empty;
-}
-
-public sealed class PartyImage
-{
-    public required FileObjectVariant Variant { get; init; }
     public required string Url { get; init; } = string.Empty;
 }

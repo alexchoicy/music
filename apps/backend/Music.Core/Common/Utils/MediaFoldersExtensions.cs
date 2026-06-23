@@ -13,6 +13,7 @@ public static class MediaFoldersExtensions
             MediaFolderOptions.DerivedMusic => folders.DerivedMusic,
             MediaFolderOptions.DerivedVideo => folders.DerivedVideo,
             MediaFolderOptions.AssetsCover => folders.AssetsCover,
+            MediaFolderOptions.AssetsCropped => folders.AssetsCropped,
             MediaFolderOptions.PartyCover => folders.AssetsParty + "/cover",
             MediaFolderOptions.PartyBanner => folders.AssetsParty + "/banner",
             MediaFolderOptions.AssetsPeak => folders.AssetsPeak,

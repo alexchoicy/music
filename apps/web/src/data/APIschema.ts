@@ -1065,17 +1065,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workers/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["LoadImageWorkersResult"];
+                        "application/json": components["schemas"]["LoadImageWorkersResult"];
+                        "text/json": components["schemas"]["LoadImageWorkersResult"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         AlbumCoverDetails: {
-            album: components["schemas"]["AlbumCoverVariant"][];
+            album: components["schemas"]["ImageFileVariants"];
             discs: components["schemas"]["AlbumDiscCoverDetails"][];
-        };
-        AlbumCoverVariant: {
-            variant: components["schemas"]["FileObjectVariant"];
-            url: string;
         };
         AlbumDetails: {
             /** Format: int32 */
@@ -1097,7 +1130,7 @@ export interface components {
             albumDiscId: number | string;
             /** Format: int32 */
             discNumber: number | string;
-            variants: components["schemas"]["AlbumCoverVariant"][];
+            variants: components["schemas"]["ImageFileVariants"];
         };
         AlbumDiscDetails: {
             /** Format: int32 */
@@ -1137,7 +1170,7 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
-            coverVariants?: components["schemas"]["AlbumCoverVariant"][];
+            coverVariants?: components["schemas"]["ImageFileVariants"];
             discCovers?: components["schemas"]["AlbumDiscCoverDetails"][];
             artists: components["schemas"]["AlbumListArtist"][];
             matchedTracks?: components["schemas"]["AlbumListMatchedTrack"][];
@@ -1164,7 +1197,7 @@ export interface components {
             name: string;
             type: components["schemas"]["PartyType"];
             creditType: components["schemas"]["CreditType"];
-            avatar: components["schemas"]["PartyImage"][];
+            avatar: components["schemas"]["ImageFileVariants"];
         };
         AlbumSummary: {
             title: string;
@@ -1219,10 +1252,6 @@ export interface components {
             fileObjectId: string;
             multipart?: null | components["schemas"]["CompleteMultipartUploadRequest"];
         };
-        ConcertCoverVariant: {
-            variant: components["schemas"]["FileObjectVariant"];
-            url: string;
-        };
         ConcertDetails: {
             /** Format: int32 */
             concertId: number | string;
@@ -1230,7 +1259,7 @@ export interface components {
             description?: string;
             /** Format: date-time */
             date?: null | string;
-            coverVariants: components["schemas"]["ConcertCoverVariant"][];
+            coverVariants: components["schemas"]["ImageFileVariants"];
             linkedParties: components["schemas"]["ConcertPartySummary"][];
             linkedAlbums: components["schemas"]["AlbumListItem"][];
             files: components["schemas"]["ConcertFileDetails"][];
@@ -1290,7 +1319,7 @@ export interface components {
             description?: string;
             /** Format: date-time */
             date?: null | string;
-            coverVariants: components["schemas"]["ConcertCoverVariant"][];
+            coverVariants: components["schemas"]["ImageFileVariants"];
             parties: components["schemas"]["ConcertPartySummary"][];
             /** Format: int32 */
             albumCount: number | string;
@@ -1465,7 +1494,7 @@ export interface components {
             updatedAt: string;
         };
         /** @enum {unknown} */
-        FileObjectVariant: "Original" | "TaggedOriginal" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup" | "RemuxedOriginal" | "ImageCover1024x1024" | "ImageAvatar512x512" | "ImageBanner1500x500";
+        FileObjectVariant: "Original" | "TaggedOriginal" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup" | "RemuxedOriginal" | "ImageCover1024x1024" | "ImageAvatar512x512" | "ImageBanner1500x500" | "ImageWide1280x720";
         FileRequest: {
             blake3Hash: string;
             mimeType: string;
@@ -1493,10 +1522,21 @@ export interface components {
             durationInMs?: null | number | string;
             originalFileName: string;
         };
+        ImageFileVariants: {
+            original?: null | components["schemas"]["FileObjectDetails"];
+            imageCover1024x1024?: null | components["schemas"]["FileObjectDetails"];
+            imageAvatar512x512?: null | components["schemas"]["FileObjectDetails"];
+            imageBanner1500x500?: null | components["schemas"]["FileObjectDetails"];
+            imageWide1280x720?: null | components["schemas"]["FileObjectDetails"];
+        };
         LanguageListItem: {
             /** Format: int32 */
             id: number | string;
             language: string;
+        };
+        LoadImageWorkersResult: {
+            /** Format: int32 */
+            count: number | string;
         };
         LoginRequest: {
             username: string;
@@ -1527,7 +1567,7 @@ export interface components {
             /** Format: int32 */
             partyId: number | string;
             name: string;
-            avatarImages?: null | components["schemas"]["PartyImage"][];
+            avatarImages?: null | components["schemas"]["ImageFileVariants"];
             country: components["schemas"]["CountryCode"];
             description: string;
             type?: components["schemas"]["PartyType"];
@@ -1546,10 +1586,6 @@ export interface components {
         PartyExternalInfoType: "Spotify" | "Twitter" | "OfficialWebsite" | "YouTube" | "YouTubeMusic" | "Instagram" | "AppleMusic" | "Mora" | "Ototoy";
         /** @enum {unknown} */
         PartyGender: "Unknown" | "Male" | "Female";
-        PartyImage: {
-            variant: components["schemas"]["FileObjectVariant"];
-            url: string;
-        };
         PartyImageRequest: {
             file: components["schemas"]["FileRequest"];
             croppedArea?: null | components["schemas"]["FileCroppedAreaRequest"];
@@ -1621,7 +1657,7 @@ export interface components {
             name: string;
             type: components["schemas"]["PartyType"];
             creditType: components["schemas"]["CreditType"];
-            avatar: components["schemas"]["PartyImage"][];
+            avatar: components["schemas"]["ImageFileVariants"];
         };
         /** @enum {unknown} */
         TrackVersionType: "Original" | "Instrumental" | "Remix" | "Live" | "Acoustic" | "RadioEdit" | "Demo" | "Other";

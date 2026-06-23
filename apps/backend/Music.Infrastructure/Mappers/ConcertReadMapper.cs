@@ -1,5 +1,6 @@
 using Music.Core.Entities;
 using Music.Core.Services.Concerts;
+using Music.Core.Services.Files;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Storage;
 
@@ -64,7 +65,7 @@ internal static class ConcertReadMapper
         };
     }
 
-    public static IReadOnlyList<ConcertCoverVariant> ToConcertCoverVariants(
+    public static ImageFileVariants ToConcertCoverVariants(
         this Concert concert,
         IAssetsService assetsService
     )
@@ -73,14 +74,7 @@ internal static class ConcertReadMapper
                 .Images?.OrderByDescending(image => image.IsPrimary)
                 .ThenBy(image => image.CreatedAt)
                 .FirstOrDefault()
-                ?.File?.FileObjects.OrderBy(fileObject => fileObject.FileObjectVariant)
-                .Select(fileObject => new ConcertCoverVariant
-                {
-                    Variant = fileObject.FileObjectVariant,
-                    Url = assetsService.GetUrl(fileObject.StoragePath),
-                })
-                .ToList()
-            ?? [];
+                ?.File.ToImageVariants(assetsService) ?? new ImageFileVariants();
     }
 
     public static IReadOnlyList<ConcertPartySummary> ToConcertPartySummaries(

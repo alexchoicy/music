@@ -1,7 +1,7 @@
 import type { components } from "#/data/APIschema";
 
-export function getAlbumCoverUrl(
+export function getConcertCoverUrl(
 	image?: components["schemas"]["ImageFileVariants"] | null,
 ): string | null {
-	return image?.imageCover1024x1024?.url ?? image?.original?.url ?? null;
+	return image?.imageWide1280x720?.url ?? image?.original?.url ?? null;
 }

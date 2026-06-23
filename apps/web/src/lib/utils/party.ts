@@ -79,3 +79,9 @@ export function getCreditNames(
 		(credit) => partyNameById.get(credit.partyId) ?? "Unknown artist",
 	);
 }
+
+export function getPartyAvatarUrl(
+	image?: components["schemas"]["ImageFileVariants"] | null,
+): string | null {
+	return image?.imageAvatar512x512?.url ?? image?.original?.url ?? null;
+}

@@ -1,6 +1,6 @@
 import type { components } from "#/data/APIschema";
 import type { AudioWaveformJson } from "#/data/AudioWaveForm";
-import { getCoverUrl } from "#/lib/utils/album";
+import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { isProbablyPhone } from "#/lib/utils/browser";
 
 import type {
@@ -33,7 +33,9 @@ export function albumTrackDetailsToAudioPlayerTrack(
 		(cover) => String(cover.albumDiscId) === String(disc.albumDiscId),
 	);
 	const albumCoverUrl =
-		getCoverUrl(discCover?.variants) ?? getCoverUrl(album.cover.album) ?? "";
+		getAlbumCoverUrl(discCover?.variants) ??
+		getAlbumCoverUrl(album.cover.album) ??
+		"";
 
 	if (!audio) {
 		throw new Error(`Track ${track.trackId} has no playable audio.`);

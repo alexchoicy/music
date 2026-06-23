@@ -7,14 +7,11 @@ import {
 
 import { Badge } from "#/components/coss/badge";
 import { Button } from "#/components/coss/button";
+import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { formatDate } from "#/lib/utils/date";
 import { formatDurationInHoursMinutesSeconds } from "#/lib/utils/music";
 
-import {
-	getAlbumCoverUrl,
-	getAlbumHoverCoverUrl,
-	getCreditNames,
-} from "./albumDetailUtils";
+import { getAlbumHoverCoverUrl, getCreditNames } from "./albumDetailUtils";
 import type { AlbumDetails } from "./albumDetailUtils";
 
 type AlbumDetailHeroProps = {
@@ -28,7 +25,7 @@ export function AlbumDetailHero({
 	onPlayAlbum,
 	playAlbumDisabled,
 }: AlbumDetailHeroProps) {
-	const coverUrl = getAlbumCoverUrl(album);
+	const coverUrl = getAlbumCoverUrl(album.cover.album);
 	const hoverCoverUrl = getAlbumHoverCoverUrl(album);
 	const artistNames = getCreditNames(album.credits) || "Unknown artist";
 	const duration =

@@ -22,12 +22,6 @@ public sealed class ConcertListRequest
     public bool IsIncludeInGuestCredit { get; init; }
 }
 
-public sealed class ConcertCoverVariant
-{
-    public required FileObjectVariant Variant { get; init; }
-    public required string Url { get; init; } = string.Empty;
-}
-
 public sealed class ConcertPartySummary
 {
     public required int PartyId { get; init; }
@@ -43,7 +37,7 @@ public sealed class ConcertListItem
     public double Similarity { get; init; }
     public string Description { get; init; } = string.Empty;
     public DateTimeOffset? Date { get; init; }
-    public required IReadOnlyList<ConcertCoverVariant> CoverVariants { get; init; } = [];
+    public required ImageFileVariants CoverVariants { get; init; }
     public required IReadOnlyList<ConcertPartySummary> Parties { get; init; } = [];
     public required int AlbumCount { get; init; }
     public required int FileCount { get; init; }
@@ -81,7 +75,7 @@ public sealed class ConcertDetails
     public required string Title { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public DateTimeOffset? Date { get; init; }
-    public required IReadOnlyList<ConcertCoverVariant> CoverVariants { get; init; } = [];
+    public required ImageFileVariants CoverVariants { get; init; }
     public required IReadOnlyList<ConcertPartySummary> LinkedParties { get; init; } = [];
     public required IReadOnlyList<AlbumListItem> LinkedAlbums { get; init; } = [];
     public required IReadOnlyList<ConcertFileDetails> Files { get; init; } = [];
