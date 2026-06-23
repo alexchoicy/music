@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authed/parties/$id")({
 function RouteComponent() {
 	const { id } = Route.useParams();
 	const { data: party } = useSuspenseQuery(partyQueries.getParty(id));
-	const avatarUrl = getPartyAvatarUrl(party?.avatarImages);
+	const avatarUrl = getPartyAvatarUrl(party.avatarImages);
 
 	return (
 		<main className="relative min-h-full w-full overflow-hidden bg-background">

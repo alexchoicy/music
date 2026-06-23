@@ -228,7 +228,7 @@ function RouteComponent() {
 											<UploadStatusBadge status={status} />
 										</TableCell>
 										<TableCell className="w-10 text-right" aria-label="Actions">
-											{uploadRecord?.status === "Failed" && (
+											{uploadRecord.status === "Failed" && (
 												<Button
 													variant="ghost"
 													size="icon-xs"
