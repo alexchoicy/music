@@ -25,11 +25,10 @@ public sealed class WorkerController(IContentService contentService, AppDbContex
     )
     {
         FileObject fileObject =
-            await dbContext
-                .FileObjects.FirstOrDefaultAsync(
-                    fo => fo.Id == request.ObjectId,
-                    cancellationToken
-                )
+            await dbContext.FileObjects.FirstOrDefaultAsync(
+                fo => fo.Id == request.ObjectId,
+                cancellationToken
+            )
             ?? throw new EntityNotFoundException(
                 $"File object with ID {request.ObjectId} not found."
             );
@@ -39,34 +38,6 @@ public sealed class WorkerController(IContentService contentService, AppDbContex
         await contentService.RunBackgroundProcessUploadFileAsync(worker, cancellationToken);
 
         return Ok();
-    }
-
-    [HttpPost("images")]
-    [ProducesResponseType(typeof(LoadImageWorkersResult), StatusCodes.Status200OK)]
-    public async Task<IActionResult> LoadImageWorkers(CancellationToken cancellationToken)
-    {
-        List<Guid> fileObjectIds = await dbContext
-            .FileObjects.Where(fileObject =>
-                fileObject.FileObjectVariant == FileObjectVariant.Original
-                && fileObject.ProcessingStatus != FileProcessingStatus.Processing
-                && (
-                    dbContext.AlbumImages.Any(image => image.FileId == fileObject.FileId)
-                    || dbContext.PartyImages.Any(image => image.FileId == fileObject.FileId)
-                    || dbContext.ConcertImages.Any(image => image.FileId == fileObject.FileId)
-                )
-            )
-            .Select(fileObject => fileObject.Id)
-            .ToListAsync(cancellationToken);
-
-        foreach (Guid fileObjectId in fileObjectIds)
-        {
-            _ = contentService.RunBackgroundProcessUploadFileAsync(
-                new ImageUploadProcessWorker { FileObjectId = fileObjectId },
-                CancellationToken.None
-            );
-        }
-
-        return Ok(new LoadImageWorkersResult { Count = fileObjectIds.Count });
     }
 }
 

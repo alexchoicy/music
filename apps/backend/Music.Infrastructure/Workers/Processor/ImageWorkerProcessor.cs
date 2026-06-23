@@ -51,8 +51,8 @@ class ImageUploadWorkerProcessor(
                 $"File object with ID {job.FileObjectId} not found."
             );
 
-        // if (sourceFileObject.ProcessingStatus == FileProcessingStatus.Completed)
-        //     throw new InvalidOperationException("Cannot process a completed file object.");
+        if (sourceFileObject.ProcessingStatus == FileProcessingStatus.Completed)
+            throw new InvalidOperationException("Cannot process a completed file object.");
 
         sourceFileObject.ProcessingStatus = FileProcessingStatus.Processing;
         await dbContext.SaveChangesAsync(cancellationToken);
