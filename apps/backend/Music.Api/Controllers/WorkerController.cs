@@ -45,8 +45,3 @@ public sealed record RerunConcertWorkerRequest
 {
     public required Guid ObjectId { get; init; }
 }
-
-public sealed record LoadImageWorkersResult
-{
-    public required int Count { get; init; }
-}

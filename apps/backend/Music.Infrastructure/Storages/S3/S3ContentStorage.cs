@@ -113,7 +113,7 @@ public class S3ContentService(
     {
         using TransferUtility transferUtility = new(client);
 
-        var result = await transferUtility.DownloadWithResponseAsync(
+        TransferUtilityDownloadResponse result = await transferUtility.DownloadWithResponseAsync(
             destinationPath,
             bucket,
             objectPath,
