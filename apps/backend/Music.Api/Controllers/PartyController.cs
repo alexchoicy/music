@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.Mvc;
-using Music.Core.Services.Interfaces;
-using Music.Api.Dtos.Requests;
-using Music.Core.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Music.Core.Services.Parties;
+using Music.Core.Services.Parties.Requests;
+using Music.Core.Services.Parties.Results;
 
 namespace Music.Api.Controllers;
 
@@ -15,59 +15,58 @@ public class PartyController(IPartyService partyService) : ControllerBase
 {
     private readonly IPartyService _partyService = partyService;
 
-
     [HttpPost]
     [Authorize]
     [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(CreatePartyResult), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreatePartyAsync([FromBody] CreatePartyRequest request)
+    public async Task<IActionResult> CreatePartyAsync(
+        [FromBody] CreatePartyRequest request,
+        CancellationToken cancellationToken
+    )
     {
         string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
 
-        bool created = await _partyService.CreatePartyAsync(new CreatePartyModel
-        {
-            Name = request.Name,
-            PartyType = request.PartyType,
-            LanguageId = request.LanguageId
-        }, userId);
+        int partyId = await _partyService.CreatePartyAsync(request, userId, cancellationToken);
 
-        if (!created)
+        if (partyId <= 0)
         {
             return BadRequest();
         }
 
-        return Created();
-    }
-
-    [HttpGet("list")]
-    [Authorize]
-    [Produces("application/json")]
-    [ProducesResponseType(typeof(IReadOnlyList<PartyListModel>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllForListAsync([FromQuery] PartyListParams @params)
-    {
-        IReadOnlyList<PartyListModel> list = await _partyService.GetAllForListAsync(@params ?? new PartyListParams());
-        return Ok(list);
+        return StatusCode(StatusCodes.Status201Created, new CreatePartyResult { PartyId = partyId });
     }
 
     [HttpGet]
     [Authorize]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(IReadOnlyList<PartyModel>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllParties()
+    [ProducesResponseType(typeof(IReadOnlyList<PartyItems>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllParties(
+        [FromQuery] PartyListRequest request,
+        CancellationToken cancellationToken
+    )
     {
-        IReadOnlyList<PartyModel> parties = await _partyService.GetAllPartiesAsync();
+        IList<PartyItems> parties = await _partyService.GetAllAsync(request, cancellationToken);
         return Ok(parties);
     }
 
     [HttpGet("{id:int}")]
     [Authorize]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(PartyDetailModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PartyDetails), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetParty(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetPartyById(
+        [FromRoute] [Required] int id,
+        CancellationToken cancellationToken
+    )
     {
-        PartyDetailModel? party = await _partyService.GetPartyByIdAsync(id, cancellationToken);
+        PartyDetails? party = await _partyService.GetPartyByIdAsync(id, cancellationToken);
+
+        if (party is null)
+        {
+            return NotFound();
+        }
+
         return Ok(party);
     }
 }

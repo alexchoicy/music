@@ -12,7 +12,7 @@ public class AlbumTrack
 
     public int TrackNumber { get; set; } = 1;
 
-    public byte[]? Version { get; set; }
+    public uint Version { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;

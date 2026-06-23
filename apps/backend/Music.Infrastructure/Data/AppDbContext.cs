@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Music.Core.Utils;
+using Music.Core.Common.Utils;
 using Music.Core.Entities;
 using Music.Infrastructure.Entities;
 
@@ -25,18 +25,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<AlbumImage> AlbumImages { get; set; }
     public DbSet<Track> Tracks { get; set; }
     public DbSet<AlbumTrack> AlbumTracks { get; set; }
-    public DbSet<TrackVariant> TrackVariants { get; set; }
+    public DbSet<TrackAudio> TrackAudios { get; set; }
     public DbSet<TrackCredit> TrackCredits { get; set; }
-    public DbSet<TrackSource> TrackSources { get; set; }
     public DbSet<StoredFile> StoredFiles { get; set; }
     public DbSet<FileObject> FileObjects { get; set; }
     public DbSet<Concert> Concerts { get; set; }
-    public DbSet<ConcertCover> ConcertCovers { get; set; }
+    public DbSet<ConcertImage> ConcertImages { get; set; }
     public DbSet<ConcertAlbum> ConcertAlbums { get; set; }
     public DbSet<ConcertParty> ConcertParties { get; set; }
     public DbSet<ConcertFile> ConcertFiles { get; set; }
 
+    public DbSet<WorkerJob> WorkerJobs { get; set; }
 
+    [DbFunction("immutable_unaccent", "public")]
+    public static string ImmutableUnaccent(string value) =>
+        throw new NotSupportedException("Only for use in EF queries.");
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -48,24 +51,24 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000001",
-                Name = Core.Enums.Roles.Admin.ToString(),
-                NormalizedName = Core.Enums.Roles.Admin.ToString().ToUpper(),
-                ConcurrencyStamp = "508a0eaf-dbca-47d9-baeb-597b81a4957e"
+                Name = Music.Core.Services.Auth.Enums.Roles.Admin.ToString(),
+                NormalizedName = Music.Core.Services.Auth.Enums.Roles.Admin.ToString().ToUpper(),
+                ConcurrencyStamp = "508a0eaf-dbca-47d9-baeb-597b81a4957e",
             },
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000002",
-                Name = Core.Enums.Roles.Uploader.ToString(),
-                NormalizedName = Core.Enums.Roles.Uploader.ToString().ToUpper(),
-                ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0"
+                Name = Music.Core.Services.Auth.Enums.Roles.Uploader.ToString(),
+                NormalizedName = Music.Core.Services.Auth.Enums.Roles.Uploader.ToString().ToUpper(),
+                ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0",
             },
             new IdentityRole
             {
                 Id = "00000000-0000-0000-0000-000000000003",
-                Name = Core.Enums.Roles.User.ToString(),
-                NormalizedName = Core.Enums.Roles.User.ToString().ToUpper(),
-                ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0"
-            }
+                Name = Music.Core.Services.Auth.Enums.Roles.User.ToString(),
+                NormalizedName = Music.Core.Services.Auth.Enums.Roles.User.ToString().ToUpper(),
+                ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0",
+            },
         ];
 
         builder.Entity<IdentityRole>().HasData(roles);
@@ -83,14 +86,38 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         return base.SaveChangesAsync(cancellationToken);
     }
 
+    private static void UpdateTimestamps(EntityEntry entry, DateTimeOffset now)
+    {
+        if (
+            entry.Metadata.FindProperty("CreatedAt") is not null
+            && entry.State == EntityState.Added
+        )
+        {
+            var createdAt = entry.Property("CreatedAt").CurrentValue;
+            if (createdAt is null || createdAt.Equals(default(DateTimeOffset)))
+            {
+                entry.Property("CreatedAt").CurrentValue = now;
+            }
+        }
+
+        if (entry.Metadata.FindProperty("UpdatedAt") is not null)
+        {
+            entry.Property("UpdatedAt").CurrentValue = now;
+        }
+    }
 
     private void NormalizeEntities()
     {
-        IEnumerable<EntityEntry> entries = ChangeTracker.Entries()
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+
+        IEnumerable<EntityEntry> entries = ChangeTracker
+            .Entries()
             .Where(entry => entry.State is EntityState.Added or EntityState.Modified);
 
         foreach (var entry in entries)
         {
+            UpdateTimestamps(entry, now);
+
             switch (entry.Entity)
             {
                 case Party party:
@@ -111,5 +138,4 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             }
         }
     }
-
 }

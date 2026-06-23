@@ -1,8 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
-import { getApiEndpoint } from "@/lib/ServerFunction/getApiEndpoint";
 
-// const API_Endpoint = import.meta.env.VITE_API_ENDPOINT;
+import { getApiEndpoint } from "@/lib/ServerFunction/getApiEndpoint";
 
 export type APIFetchResult<T> =
 	| { ok: true; status: number; data: T }
@@ -16,29 +15,42 @@ const isBrowser = !import.meta.env.SSR;
 
 let apiEndpointPromise: Promise<string> | null = null;
 
-export function getResolvedApiEndpoint() {
+function getResolvedApiEndpoint() {
 	if (!apiEndpointPromise) {
-		apiEndpointPromise = getApiEndpoint();
+		apiEndpointPromise = getApiEndpoint().catch((error) => {
+			apiEndpointPromise = null;
+			throw error;
+		});
 	}
 
 	return apiEndpointPromise;
+}
+
+function joinUrl(baseUrl: string, endpoint: string) {
+	return `${baseUrl.replace(/\/+$/, "")}/${endpoint.replace(/^\/+/, "")}`;
 }
 
 export async function $APIFetch<T>(
 	endpoint: string,
 	options: RequestInit = {},
 ): Promise<APIFetchResult<T>> {
-	const API_Endpoint = await getResolvedApiEndpoint();
-	const url = `${API_Endpoint}${endpoint}`;
+	const apiEndpoint = await getResolvedApiEndpoint();
+	const url = joinUrl(apiEndpoint, endpoint);
 	const cookieString = isBrowser ? undefined : await getServerHeaders();
+	const headers = new Headers(options.headers);
+
+	if (cookieString) {
+		headers.set("Cookie", cookieString);
+	}
+
+	if (typeof options.body === "string" && !headers.has("Content-Type")) {
+		headers.set("Content-Type", "application/json");
+	}
+
 	const response = await fetch(url, {
 		...options,
-		headers: {
-			"Content-Type": "application/json",
-			...(cookieString ? { Cookie: cookieString } : {}),
-			...(options?.headers || {}),
-		},
-		credentials: "include",
+		headers,
+		credentials: options.credentials ?? "include",
 	});
 
 	if (response.status === 401) {

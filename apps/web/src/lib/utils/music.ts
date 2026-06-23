@@ -1,45 +1,106 @@
-import type { components } from "@/data/APIschema";
-import type { AudioPlayerItem } from "@/models/audioPlayer";
+function normalizeSearchValue(value: string): string {
+	return value.normalize("NFKC").trim().toLowerCase();
+}
 
-export function checkIfMC(title: string, filename: string): boolean {
-	const mcIndicators = ["mc", "m.c.", "m.c", "ＭＣ", "talk"];
-	const lowerTitle = title.toLowerCase();
-	const lowerFilename = filename.toLowerCase();
-	return mcIndicators.some(
-		(indicator) =>
-			lowerTitle.includes(indicator) || lowerFilename.includes(indicator),
+const MC_INDICATORS = ["mc", "m.c.", "m.c", "talk"].map(normalizeSearchValue);
+const VARIOUS_ARTISTS_INDICATORS = ["various artists", "v/a", "va"].map(
+	normalizeSearchValue,
+);
+const INTRO_INDICATORS = ["intro"].map(normalizeSearchValue);
+const INTERLUDE_INDICATORS = ["interlude", "overture"].map(
+	normalizeSearchValue,
+);
+const INSTRUMENTAL_INDICATORS = ["instrumental"].map(normalizeSearchValue);
+
+function includesAny(value: string, indicators: string[]): boolean {
+	const normalizedValue = normalizeSearchValue(value);
+
+	return indicators.some((indicator) => normalizedValue.includes(indicator));
+}
+
+function includesSeparatedPhrase(value: string, indicators: string[]): boolean {
+	const normalizedValue = ` ${normalizeSearchValue(value)} `;
+
+	return indicators.some((indicator) =>
+		normalizedValue.includes(` ${indicator} `),
 	);
 }
 
-export function checkIfVariousArtists(artist: string[]): boolean {
-	const variousIndicators = ["various artists", "va"];
-	const lowerArtist = artist.map((a) => a.toLowerCase()).join(" ");
-	return variousIndicators.some((indicator) => lowerArtist.includes(indicator));
+export function checkIfVariousArtists(artist: string): boolean {
+	return includesSeparatedPhrase(artist, VARIOUS_ARTISTS_INDICATORS);
 }
 
-export function buildAudioPlayerItem(
-	album: components["schemas"]["AlbumDetailsModel"],
+export function checkIfMC(title: string, filename: string): boolean {
+	return (
+		includesAny(title, MC_INDICATORS) || includesAny(filename, MC_INDICATORS)
+	);
+}
+
+export function checkIfIntro(title: string, filename: string): boolean {
+	return (
+		includesAny(title, INTRO_INDICATORS) ||
+		includesAny(filename, INTRO_INDICATORS)
+	);
+}
+
+export function checkIfInterlude(title: string, filename: string): boolean {
+	return (
+		includesAny(title, INTERLUDE_INDICATORS) ||
+		includesAny(filename, INTERLUDE_INDICATORS)
+	);
+}
+
+export function checkIfInstrumental(title: string, filename: string): boolean {
+	return (
+		includesAny(title, INSTRUMENTAL_INDICATORS) ||
+		includesAny(filename, INSTRUMENTAL_INDICATORS)
+	);
+}
+
+export function formatDurationInHoursAndMinutes(
+	durationInMs?: null | number | string,
 ) {
-	const audioPlayerItems: AudioPlayerItem[] = [];
+	const duration = Number(durationInMs);
+	if (!Number.isFinite(duration) || duration <= 0) return null;
 
-	album.discs.forEach((disc) => {
-		disc.tracks.forEach((track) => {
-			const item: AudioPlayerItem = {
-				albumId: Number(album.albumId),
-				albumTitle: album.title,
-				albumCoverUrl: album.coverImageUrl || undefined,
-				artists: track.credits.map((credit) => credit.name),
-				durationInMs: Number(track.durationInMs),
-				sources:
-					track.trackVariants.find(
-						(variant) => variant.variantType === "Default",
-					)?.sources || [],
-				trackId: Number(track.trackId),
-				trackTitle: track.title,
-			};
-			audioPlayerItems.push(item);
-		});
-	});
+	const totalMinutes = Math.round(duration / 1000 / 60);
+	const hours = Math.floor(totalMinutes / 60);
+	const minutes = totalMinutes % 60;
 
-	return audioPlayerItems;
+	if (hours === 0) return `${minutes}m`;
+	if (minutes === 0) return `${hours}h`;
+
+	return `${hours}h ${minutes}m`;
+}
+
+export function formatDurationInHoursMinutesSeconds(
+	durationInMs?: null | number | string,
+) {
+	const duration = Number(durationInMs);
+	if (!Number.isFinite(duration) || duration <= 0) return null;
+
+	const totalSeconds = Math.round(duration / 1000);
+	const hours = Math.floor(totalSeconds / 3600);
+	const minutes = Math.floor((totalSeconds % 3600) / 60);
+	const seconds = totalSeconds % 60;
+
+	if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+	if (minutes > 0) return `${minutes}m ${seconds}s`;
+
+	return `${seconds}s`;
+}
+
+export function formatMsToTimer(ms: number): string {
+	if (!Number.isFinite(ms) || ms < 0) return "0:00";
+
+	const totalSeconds = Math.round(ms / 1000);
+	const hours = Math.floor(totalSeconds / 3600);
+	const minutes = Math.floor((totalSeconds % 3600) / 60);
+	const seconds = totalSeconds % 60;
+
+	if (hours > 0) {
+		return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+	}
+
+	return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }

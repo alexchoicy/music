@@ -1,14 +1,13 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Music.Core.Enums;
-using Music.Core.Services.Interfaces;
-using Music.Core.Models;
-using Music.Infrastructure.Data;
+using Music.Core.Common.Constants;
 using Music.Core.Entities;
-using Microsoft.EntityFrameworkCore;
-using Music.Core.Constants;
+using Music.Core.Services.Auth;
+using Music.Core.Services.Auth.Enums;
+using Music.Infrastructure.Data;
 
 namespace Music.Infrastructure.Services.Auth;
 
@@ -23,24 +22,26 @@ public class TokenService : ITokenService
         _config = config;
         _dbContext = dbContext;
 
-        _key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_config["JWT:SecretKey"]!));
+        _key = new SymmetricSecurityKey(
+            System.Text.Encoding.UTF8.GetBytes(_config["JWT:SecretKey"]!)
+        );
     }
 
-    public async Task<string> GenerateUserToken(UserInfo user, IList<string> roles)
+    public async Task<string> GenerateUserToken(UserInfo user)
     {
         string jti = Guid.CreateVersion7().ToString("N");
 
         List<Claim> claims =
-           [
-               new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-               new Claim(JwtRegisteredClaimNames.Jti, jti),
-               new Claim(JwtRegisteredClaimNames.NameId, user.Id),
-               new Claim(ClaimTypes.NameIdentifier, user.Id),
-               new Claim(JwtRegisteredClaimNames.Name, user.UserName!),
-               new Claim(AuthClaimNames.AccessType, TokenUseType.UserAccess.ToString()),
-           ];
+        [
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+            new Claim(JwtRegisteredClaimNames.Jti, jti),
+            new Claim(JwtRegisteredClaimNames.NameId, user.Id),
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(JwtRegisteredClaimNames.Name, user.UserName!),
+            new Claim(AuthClaimNames.AccessType, TokenUseType.UserAccess.ToString()),
+        ];
 
-        foreach (var role in roles)
+        foreach (var role in user.Roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
@@ -62,7 +63,7 @@ public class TokenService : ITokenService
 
         string token = tokenHandler.WriteToken(securityToken);
 
-        await SaveAuthToken(user.Id, TokenUseType.Machine, jti, token);
+        await SaveAuthToken(user.Id, TokenUseType.UserAccess, jti, token);
         return token;
     }
 
@@ -71,13 +72,13 @@ public class TokenService : ITokenService
         string jti = Guid.CreateVersion7().ToString("N");
 
         List<Claim> claims =
-           [
-               new Claim(JwtRegisteredClaimNames.Sub, userId),
-               new Claim(JwtRegisteredClaimNames.Jti, jti),
-               new Claim(JwtRegisteredClaimNames.NameId, userId),
-               new Claim(ClaimTypes.NameIdentifier, userId),
-               new Claim(AuthClaimNames.AccessType, TokenUseType.Upload.ToString()),
-           ];
+        [
+            new Claim(JwtRegisteredClaimNames.Sub, userId),
+            new Claim(JwtRegisteredClaimNames.Jti, jti),
+            new Claim(JwtRegisteredClaimNames.NameId, userId),
+            new Claim(ClaimTypes.NameIdentifier, userId),
+            new Claim(AuthClaimNames.AccessType, TokenUseType.Upload.ToString()),
+        ];
 
         SigningCredentials creds = new(_key, SecurityAlgorithms.HmacSha512Signature);
 
@@ -87,7 +88,7 @@ public class TokenService : ITokenService
             SigningCredentials = creds,
             Issuer = _config["JWT:Issuer"],
             Audience = _config["JWT:Audience"],
-            Expires = DateTime.Now.AddHours(10)
+            Expires = DateTime.UtcNow.AddHours(10),
         };
 
         JwtSecurityTokenHandler tokenHandler = new();
@@ -104,13 +105,13 @@ public class TokenService : ITokenService
         string jti = Guid.CreateVersion7().ToString("N");
 
         List<Claim> claims =
-           [
-               new Claim(JwtRegisteredClaimNames.Sub, userId),
-               new Claim(JwtRegisteredClaimNames.Jti, jti),
-               new Claim(JwtRegisteredClaimNames.NameId, userId),
-               new Claim(ClaimTypes.NameIdentifier, userId),
-               new Claim(AuthClaimNames.AccessType, TokenUseType.Machine.ToString()),
-           ];
+        [
+            new Claim(JwtRegisteredClaimNames.Sub, userId),
+            new Claim(JwtRegisteredClaimNames.Jti, jti),
+            new Claim(JwtRegisteredClaimNames.NameId, userId),
+            new Claim(ClaimTypes.NameIdentifier, userId),
+            new Claim(AuthClaimNames.AccessType, TokenUseType.Machine.ToString()),
+        ];
 
         SigningCredentials creds = new(_key, SecurityAlgorithms.HmacSha512Signature);
 
@@ -132,21 +133,33 @@ public class TokenService : ITokenService
         return token;
     }
 
-    public async Task SaveAuthToken(string userId, TokenUseType tokenUseType, string jti, string token)
+    public async Task SaveAuthToken(
+        string userId,
+        TokenUseType tokenUseType,
+        string jti,
+        string token,
+        CancellationToken cancellationToken = default
+    )
     {
-        await _dbContext.AddAsync(new AuthToken
-        {
-            Jti = jti,
-            Last5Digit = new string(token.TakeLast(5).ToArray()),
-            TokenType = tokenUseType,
-            CreatedByUserId = userId,
-            Name = "",
-        });
+        await _dbContext.AddAsync(
+            new AuthToken
+            {
+                Jti = jti,
+                Last5Digit = new string(token.TakeLast(5).ToArray()),
+                TokenType = tokenUseType,
+                CreatedByUserId = userId,
+                Name = "",
+            },
+            cancellationToken
+        );
 
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> ValidateTokenAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
+    public async Task<bool> ValidateTokenAsync(
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken = default
+    )
     {
         string? accessType = principal.FindFirstValue(AuthClaimNames.AccessType);
         if (string.IsNullOrEmpty(accessType))
@@ -154,12 +167,16 @@ public class TokenService : ITokenService
             return false;
         }
 
-        if (accessType == TokenUseType.ContentAccess.ToString() || accessType == TokenUseType.Upload.ToString())
+        if (
+            accessType == TokenUseType.ContentAccess.ToString()
+            || accessType == TokenUseType.Upload.ToString()
+        )
         {
             return true;
         }
 
-        string? jti = principal.FindFirstValue(JwtRegisteredClaimNames.Jti)
+        string? jti =
+            principal.FindFirstValue(JwtRegisteredClaimNames.Jti)
             ?? principal.FindFirstValue("jti");
 
         if (string.IsNullOrEmpty(jti))
@@ -167,8 +184,10 @@ public class TokenService : ITokenService
             return false;
         }
 
-        AuthToken? authToken = await _dbContext.AuthTokens
-            .FirstOrDefaultAsync(token => token.Jti == jti, cancellationToken);
+        AuthToken? authToken = await _dbContext.AuthTokens.FirstOrDefaultAsync(
+            token => token.Jti == jti,
+            cancellationToken
+        );
 
         if (authToken is null || authToken.RevokedAt.HasValue)
         {
@@ -193,8 +212,10 @@ public class TokenService : ITokenService
             return;
         }
 
-        AuthToken? authToken = await _dbContext.AuthTokens
-            .FirstOrDefaultAsync(token => token.Jti == jti, cancellationToken);
+        AuthToken? authToken = await _dbContext.AuthTokens.FirstOrDefaultAsync(
+            token => token.Jti == jti,
+            cancellationToken
+        );
 
         if (authToken is null || authToken.RevokedAt.HasValue)
         {

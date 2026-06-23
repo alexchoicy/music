@@ -1,61 +1,59 @@
-using Microsoft.AspNetCore.Mvc;
-using Music.Core.Services.Interfaces;
-using Music.Api.Dtos.Requests;
-using Microsoft.AspNetCore.Authorization;
-using Music.Api.Dtos.Responses;
-using Music.Core.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using Music.Core.Constants;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Music.Core.Common.Constants;
+using Music.Core.Services.Auth;
 
 namespace Music.Api.Controllers;
 
 [ApiController]
 [Route("auth")]
-public class AuthController(IAuthService authService, ITokenService tokenService, IConfiguration configuration) : ControllerBase
+public class AuthController(
+    IAuthService authService,
+    ITokenService tokenService,
+    IConfiguration configuration
+) : ControllerBase
 {
     private readonly IAuthService _authService = authService;
     private readonly ITokenService _tokenService = tokenService;
-    private readonly string AuthCookieName = configuration.GetValue<string>("Cookies:Name") ?? "AlexCoolMusicAppToken";
-    private readonly string AuthCookieDomain = configuration.GetValue<string>("Cookies:Domain") ?? "localhost";
+    private readonly string AuthCookieName =
+        configuration.GetValue<string>("Cookies:Name") ?? "AlexCoolMusicAppToken";
+    private readonly string AuthCookieDomain =
+        configuration.GetValue<string>("Cookies:Domain") ?? "localhost";
 
     [HttpPost("login")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(LoginResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
+    public async Task<ActionResult<LoginResult>> Login([FromBody] LoginRequest request)
     {
-
-        AuthSession? result = await _authService.LoginAsync(request.Username, request.Password);
+        LoginResult? result = await _authService.LoginAsync(request.Username, request.Password);
 
         if (result is null)
         {
             return Problem(
                 title: "InvalidCredentials",
                 detail: "Invalid username or password.",
-                statusCode: StatusCodes.Status401Unauthorized);
+                statusCode: StatusCodes.Status401Unauthorized
+            );
         }
 
-        Response.Cookies.Append(AuthCookieName, result.Token, new CookieOptions
-        {
-            HttpOnly = true,
-            SameSite = SameSiteMode.Lax,
-            Secure = true,
-            IsEssential = true,
-            Expires = DateTimeOffset.UtcNow.AddDays(7),
-            Domain = AuthCookieDomain,
-        });
-
-        return Ok(new LoginResponse
-        {
-            Token = result.Token,
-            User = new UserDto
+        Response.Cookies.Append(
+            AuthCookieName,
+            result.Token,
+            new CookieOptions
             {
-                Id = result.User.Id,
-                UserName = result.User.UserName,
-                Roles = result.User.Roles,
-            },
-        });
+                HttpOnly = true,
+                SameSite = SameSiteMode.Lax,
+                Secure = true,
+                IsEssential = true,
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                Domain = AuthCookieDomain,
+            }
+        );
+
+        return Ok(result);
     }
 
     [HttpGet]
@@ -72,7 +70,8 @@ public class AuthController(IAuthService authService, ITokenService tokenService
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<string>> CreateBotToken()
     {
-        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+        string userId =
+            User.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new ValidationException("Missing user identifier claim.");
 
         string token = await _tokenService.GenerateBotToken(userId);
@@ -83,7 +82,17 @@ public class AuthController(IAuthService authService, ITokenService tokenService
     [Authorize]
     public IActionResult Logout()
     {
-        Response.Cookies.Delete(AuthCookieName);
+        Response.Cookies.Delete(
+            AuthCookieName,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                SameSite = SameSiteMode.Lax,
+                Secure = true,
+                IsEssential = true,
+                Domain = AuthCookieDomain,
+            }
+        );
         return Ok();
     }
 }

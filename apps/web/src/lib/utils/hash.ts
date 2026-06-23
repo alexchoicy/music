@@ -42,6 +42,7 @@ export async function hashBlake3Simple(file: File) {
 	const firstChunk = new Uint8Array(
 		await file.slice(0, SAMPLE_SIZE).arrayBuffer(),
 	);
+
 	const lastChunk = new Uint8Array(
 		await file.slice(file.size - SAMPLE_SIZE).arrayBuffer(),
 	);

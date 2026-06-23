@@ -1,8 +1,19 @@
+.git
+.DS_Store
+
 node_modules
 .output
+.nitro
+.tanstack
+.vinxi
+.wrangler
+dist
+dist-ssr
 
 .env
-.env.*
+*.local
+todos.json
 
-.tanstack
-vscode
+.vscode
+Dockerfile
+README.md

@@ -1,11 +1,9 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Music.Core.Models;
-using Music.Core.Services.Interfaces;
+using Music.Core.Services.Auth;
 
 namespace Music.Api.Controllers;
-
 
 [ApiController]
 [Route("me")]
@@ -19,7 +17,7 @@ public class MeController(IMeService meService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<UserInfo>> GetMe()
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         if (string.IsNullOrEmpty(userId))
         {

@@ -1,4 +1,6 @@
-using Music.Core.Enums;
+using Music.Core.Services.Parties;
+using Music.Core.Services.Parties.Enums;
+using Music.Core.Services.Parties.Requests;
 
 namespace Music.Core.Entities;
 
@@ -10,20 +12,21 @@ public class Party
 
     public string NormalizedName { get; set; } = string.Empty;
 
+    public required string Description { get; set; } = "";
+
     public string? MusicBrainzId { get; set; }
-    public string? Country { get; set; }
+    public required CountryCode Country { get; set; }
 
-    public DateTimeOffset ReleaseDate { get; set; }
-
-    public int? LanguageId { get; set; }
-    public Language? Language { get; set; }
+    public DateTimeOffset? DebutDate { get; set; }
 
     public PartyType Type { get; set; } = PartyType.Individual;
+    public required PartyKind Kind { get; set; }
+    public PartyGender Gender { get; set; } = PartyGender.Unknown;
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
-    public byte[]? Version { get; set; }
+    public uint Version { get; set; }
 
     public ICollection<PartyMembership> Members { get; set; } = [];
     public ICollection<PartyMembership> MemberOf { get; set; } = [];

@@ -1,0 +1,31 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"singleQuote": false,
+	"useTabs": true,
+	"trailingComma": "all",
+	"printWidth": 80,
+	"sortImports": true,
+	"sortTailwindcss": {
+		"stylesheet": "./src/styles.css",
+		"functions": ["clsx", "cn"],
+		"preserveWhitespace": true
+	},
+	"sortPackageJson": true,
+	"ignorePatterns": [
+		"**/.nitro/**",
+		"**/.output/**",
+		"**/.vinxi/**",
+		"**/build/**",
+		"**/coverage/**",
+		"**/dist/**",
+		"**/vite.config.*.timestamp-*.*",
+		"package-lock.json",
+		"pnpm-lock.yaml",
+		"yarn.lock",
+		"**/src/routeTree.gen.ts",
+		"**/src/styles.css",
+		"**/coss/**/*",
+		"**/.vscode/**/*",
+		"**/data/APIschema.ts"
+	]
+}

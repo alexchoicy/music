@@ -2,82 +2,87 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Music.Api.Dtos.Requests;
-using Music.Core.Constants;
-using Music.Core.Models;
-using Music.Core.Services.Interfaces;
+using Music.Core.Common.Constants;
+using Music.Core.Services.Uploads;
+using Music.Core.Services.Uploads.Requests;
+using Music.Core.Services.Uploads.Results;
 
 namespace Music.Api.Controllers;
 
 [ApiController]
-[Authorize(AuthorizationPolicies.UploadAllowed)]
+[Authorize]
 [Route("uploads")]
-public class UploadController(IContentService contentService) : ControllerBase
+public class UploadController(IUploadService uploadService) : ControllerBase
 {
-    // [HttpPost("audio/test-process")]
-    // [Produces("application/json")]
-    // [ProducesResponseType(StatusCodes.Status200OK)]
-    // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    // public IActionResult QueueAudioUploadProcess(
-    //     [FromBody] TrackUploadProcessTestRequest request)
-    // {
-    //     TrackUploadProcessWorkerModel workerModel = new()
-    //     {
-    //         FileObjectId = request.FileObjectId,
-    //     };
+    private readonly IUploadService _uploadService = uploadService;
 
-    //     contentService.RunBackgroundProcessAudioUploadFile(workerModel);
-
-    //     return Ok();
-    // }
-
-    // audio only, for extra/concert do it in other methods
-    [HttpPost("audio/complete-multipart")]
+    [HttpPost("Init")]
     [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [Authorize(AuthorizationPolicies.UploadAllowed)]
+    [ProducesResponseType(typeof(MultipartUploadResults), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> CompleteAudioMultipartUpload(
-        [FromBody] List<CompleteMultipartUploadRequest> request,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> Init(
+        [FromBody] CreateUploadRequest request,
+        CancellationToken cancellationToken
+    )
     {
-        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new ValidationException("Missing user identifier claim.");
-
-        await contentService.CompleteAudioMultipartUploadAsync(request, userId, cancellationToken);
-
-        return Ok();
+        MultipartUploadResults result = await _uploadService.Init(request, cancellationToken);
+        return Ok(result);
     }
 
-    [HttpPost("concert/complete-multipart")]
+    [HttpGet]
     [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IReadOnlyList<PendingOriginalFileResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> CompleteConcertMultipartUpload(
-        [FromBody] CompleteMultipartUploadRequest request,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> GetPendingOriginalFiles(CancellationToken cancellationToken)
     {
-        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+        string userId =
+            User.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new ValidationException("Missing user identifier claim.");
 
-        await contentService.CompleteConcertMultipartUploadAsync(request, userId, cancellationToken);
+        IReadOnlyList<PendingOriginalFileResult> result =
+            await _uploadService.GetPendingOriginalFiles(userId, cancellationToken);
 
-        return Ok();
+        return Ok(result);
     }
 
-    [HttpPost("concert/test-process")]
+    [HttpPost("{fileObjectId:guid}/start")]
     [Produces("application/json")]
+    [Authorize(AuthorizationPolicies.UploadAllowed)]
+    [ProducesResponseType(typeof(StartUploadResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Start(
+        [FromRoute] [Required] Guid fileObjectId,
+        CancellationToken cancellationToken
+    )
+    {
+        string userId =
+            User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new ValidationException("Missing user identifier claim.");
+
+        StartUploadResult result = await _uploadService.Start(
+            fileObjectId,
+            userId,
+            cancellationToken
+        );
+
+        return Ok(result);
+    }
+
+    [HttpPost("complete")]
+    [Authorize(AuthorizationPolicies.UploadAllowed)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public IActionResult QueueAudioUploadProcess(
-        [FromBody] TrackUploadProcessTestRequest request)
+    public async Task<IActionResult> Complete(
+        [FromBody] CompleteUploadRequest request,
+        CancellationToken cancellationToken
+    )
     {
-        ConcertUploadProcessWorkerModel workerModel = new()
-        {
-            FileObjectId = request.FileObjectId,
-        };
+        string userId =
+            User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new ValidationException("Missing user identifier claim.");
 
-        contentService.RunBackgroundProcessUploadFile(workerModel);
-
+        await _uploadService.Complete(request, userId, cancellationToken);
         return Ok();
     }
 }

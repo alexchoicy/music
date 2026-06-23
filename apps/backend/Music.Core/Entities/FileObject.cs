@@ -1,4 +1,6 @@
-using Music.Core.Enums;
+using Music.Core.Services.Files;
+using Music.Core.Services.Files.Enums;
+using Music.Core.Services.Files.Requests;
 
 namespace Music.Core.Entities;
 
@@ -11,13 +13,12 @@ public class FileObject
 
     public FileProcessingStatus ProcessingStatus { get; set; } = FileProcessingStatus.Pending;
 
+    public required StorageArea StorageArea { get; set; }
+
     // storageType/variant/Blake3Hash.ext
     public required string StoragePath { get; set; } // can be S3 path, local path, etc.
 
-    public required string OriginalBlake3Hash { get; set; } // I have this idea because this file will be changed with metadata after upload
-    public required string CurrentBlake3Hash { get; set; }
-
-    public required FileObjectType Type { get; set; }
+    public required string ObjectBlake3Hash { get; set; }
 
     public required FileObjectVariant FileObjectVariant { get; set; }
 
@@ -26,6 +27,12 @@ public class FileObject
     public required string Container { get; set; } // e.g., "mp4", "mp3", "flac", etc.
     public required string Extension { get; set; } // e.g., "mp4", "mp3", "flac", etc
     public string? Codec { get; set; } // e.g., "aac", "vorbis", "opus", etc. // empty because image don't have codec
+
+    public required bool Lossless { get; set; }
+
+    public int? AudioChannels { get; set; }
+
+    public int? BitsPerSample { get; set; }
 
     public int? Width { get; set; }
     public int? Height { get; set; }
@@ -36,9 +43,6 @@ public class FileObject
     public decimal? FrameRate { get; set; }
 
     public int? DurationInMs { get; set; } = null;
-
-    public required string OriginalFileName { get; set; } // for user reference, not used for storage
-    public string? CreatedByUserId { get; set; } // null = system
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;

@@ -1,3 +1,6 @@
+using Music.Core.Services.Images;
+using Music.Core.Services.Images.Enums;
+
 namespace Music.Core.Entities;
 
 // Only handle cover
@@ -11,8 +14,13 @@ public class AlbumImage
     public int AlbumId { get; set; }
     public Album? Album { get; set; }
 
+    public int? AlbumDiscId { get; set; }
+    public AlbumDisc? AlbumDisc { get; set; }
+
     public int FileId { get; set; }
     public StoredFile? File { get; set; }
+
+    public ImageRole ImageRole { get; set; } = ImageRole.Cover;
 
     public int? CropX { get; set; }
     public int? CropY { get; set; }
@@ -22,4 +30,5 @@ public class AlbumImage
     public bool IsPrimary { get; set; } = false;
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

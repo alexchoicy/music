@@ -1,86 +1,117 @@
+using Amazon.S3;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Music.Core.Enums;
-using Music.Core.Models;
-using Music.Core.Services.Interfaces;
+using Music.Core.Media;
+using Music.Core.Media.FFmpeg;
+using Music.Core.Options;
+using Music.Core.Services.Albums;
+using Music.Core.Services.Albums.Enums;
+using Music.Core.Services.Albums.Requests;
+using Music.Core.Services.Albums.Results;
+using Music.Core.Services.Auth;
+using Music.Core.Services.Auth.Enums;
+using Music.Core.Services.Concerts;
+using Music.Core.Services.Files;
+using Music.Core.Services.Languages;
+using Music.Core.Services.Parties;
+using Music.Core.Services.Search;
+using Music.Core.Services.Uploads;
+using Music.Core.Services.Uploads.Requests;
+using Music.Core.Services.Uploads.Results;
+using Music.Core.Storage;
+using Music.Core.Workers;
 using Music.Infrastructure.Data;
+using Music.Infrastructure.Entities;
 using Music.Infrastructure.Services.Album;
 using Music.Infrastructure.Services.Auth;
-using Music.Infrastructure.Services.Party;
-using Music.Infrastructure.Services.Storage;
-using Music.Infrastructure.Entities;
-using Amazon.S3;
-using Music.Infrastructure.Services.Files;
-using Music.Infrastructure.Services.Me;
-using Music.Infrastructure.Services.Worker;
-using Music.Infrastructure.Services.Migrations;
-using Music.Core.Services.FFmpeg;
-using Music.Infrastructure.Services.FFmpeg;
-using Music.Infrastructure.Services.Audio;
 using Music.Infrastructure.Services.Concert;
+using Music.Infrastructure.Services.External;
+using Music.Infrastructure.Services.Files;
+using Music.Infrastructure.Services.Language;
+using Music.Infrastructure.Services.Me;
+using Music.Infrastructure.Services.Media;
+using Music.Infrastructure.Services.Party;
+using Music.Infrastructure.Services.Search;
+using Music.Infrastructure.Services.Upload;
+using Music.Infrastructure.Storages.S3;
+using Music.Infrastructure.Workers;
+using Music.Infrastructure.Workers.Processor;
 
 namespace Music.Infrastructure;
-
 
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration,
-        IHostEnvironment environment)
+        IHostEnvironment environment
+    )
     {
-
         services.AddDbContextPool<AppDbContext>(opt =>
         {
-            opt.UseNpgsql(
-                configuration["Database:DBConnectionString"]);
+            opt.UseNpgsql(configuration["Database:DBConnectionString"]);
         });
 
-        services.AddIdentityCore<User>(opt =>
-        {
-            if (environment.IsDevelopment())
+        services
+            .AddIdentityCore<User>(opt =>
             {
-                opt.Password.RequireDigit = false;
-                opt.Password.RequireLowercase = false;
-                opt.Password.RequireNonAlphanumeric = false;
-                opt.Password.RequireUppercase = false;
-                opt.Password.RequiredLength = 4;
-            }
-        }).AddRoles<IdentityRole>()
-        .AddEntityFrameworkStores<AppDbContext>();
+                if (environment.IsDevelopment())
+                {
+                    opt.Password.RequireDigit = false;
+                    opt.Password.RequireLowercase = false;
+                    opt.Password.RequireNonAlphanumeric = false;
+                    opt.Password.RequireUppercase = false;
+                    opt.Password.RequiredLength = 4;
+                }
+            })
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<AppDbContext>();
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, TokenService>();
-        services.AddScoped<IPartyService, PartyService>();
         services.AddScoped<IAlbumService, AlbumService>();
-        services.AddScoped<IConcertService, ConcertService>();
-        services.AddScoped<IFileUrlService, FileUrlService>();
+        services.AddScoped<ILanguageService, LanguageService>();
+        services.AddScoped<IUploadService, UploadService>();
         services.AddScoped<IMeService, MeService>();
-        services.AddScoped<IMigrationService, MigrationService>();
+        services.AddScoped<IPartyService, PartyService>();
+        services.AddScoped<IConcertService, ConcertService>();
+        services.AddScoped<ISearchService, SearchService>();
+        services.AddScoped<IFileUrlService, FileUrlService>();
+        // services.AddScoped<IMigrationService, MigrationService>();
+
+        services.AddScoped<ImageUploadWorkerProcessor>();
+        services.AddScoped<TrackUploadWorkerProcessor>();
+        services.AddScoped<PartyInfoEnrichmentWorkerProcessor>();
+        services.AddScoped<ConcertUploadWorkerProcessor>();
+
+        services.AddScoped<PartyAvatarService>();
+        services.AddScoped<TwitterService>();
+        services.AddScoped<MusicBrainzService>();
+
+        services.AddScoped<IMediaProbeService, FFprobeService>();
+        services.AddScoped<IFFmpegService, FFmpegService>();
+        services.AddScoped<IWaveformService, WaveformService>();
+        services.AddScoped<IHashService, HashService>();
+        services.AddHttpClient();
+
         services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         services.AddHostedService<BackgroundWorker>();
 
-        services.AddScoped<IMediaProbeService, MediaProbeService>();
-        services.AddScoped<IMediaFFmpegService, MediaFFmpegService>();
-        services.AddScoped<IHashService, HashService>();
-        services.AddScoped<IWaveformService, WaveformService>();
-        services.AddScoped<IPartyExternalEnrichmentService, PartyExternalEnrichmentService>();
-        services.AddHttpClient();
-
-        StorageOptions storage = configuration
-            .GetSection("Storage")
-            .Get<StorageOptions>()
+        StorageOptions storage =
+            configuration.GetSection("Storage").Get<StorageOptions>()
             ?? throw new InvalidOperationException("Storage config missing");
 
         if (storage.Assets.Provider == StorageProvider.S3)
         {
             services.AddSingleton<AssetsS3Client>(_ =>
             {
-                var opt = storage.Assets.S3 ?? throw new InvalidOperationException("Assets S3 settings missing.");
+                var opt =
+                    storage.Assets.S3
+                    ?? throw new InvalidOperationException("Assets S3 settings missing.");
                 var cfg = new AmazonS3Config
                 {
                     ServiceURL = opt.Endpoint,
@@ -94,9 +125,11 @@ public static class DependencyInjection
 
         if (storage.Content.Provider == StorageProvider.S3)
         {
-            services.AddSingleton<Content3Client>(_ =>
+            services.AddSingleton<ContentS3Client>(_ =>
             {
-                var opt = storage.Content.S3 ?? throw new InvalidOperationException("Content S3 settings missing.");
+                var opt =
+                    storage.Content.S3
+                    ?? throw new InvalidOperationException("Content S3 settings missing.");
                 var cfg = new AmazonS3Config
                 {
                     ServiceURL = opt.Endpoint,
@@ -104,7 +137,7 @@ public static class DependencyInjection
                     AuthenticationRegion = opt.Region,
                 };
 
-                return new Content3Client(opt.AccessKey, opt.SecretKey, cfg);
+                return new ContentS3Client(opt.AccessKey, opt.SecretKey, cfg);
             });
         }
 
@@ -117,17 +150,23 @@ public static class DependencyInjection
             return provider switch
             {
                 StorageProvider.S3 => sp.GetRequiredService<S3ContentService>(),
-                _ => throw new NotSupportedException($"Unsupported storage provider for content: {provider}")
+                _ => throw new NotSupportedException(
+                    $"Unsupported storage provider for content: {provider}"
+                ),
             };
         });
 
         services.AddScoped<IAssetsService>(sp =>
         {
-            StorageProvider provider = sp.GetRequiredService<IOptions<StorageOptions>>().Value.Assets.Provider;
+            StorageProvider provider = sp.GetRequiredService<
+                IOptions<StorageOptions>
+            >().Value.Assets.Provider;
             return provider switch
             {
                 StorageProvider.S3 => sp.GetRequiredService<S3AssetsService>(),
-                _ => throw new NotSupportedException($"Unsupported storage provider for assets: {provider}")
+                _ => throw new NotSupportedException(
+                    $"Unsupported storage provider for assets: {provider}"
+                ),
             };
         });
 

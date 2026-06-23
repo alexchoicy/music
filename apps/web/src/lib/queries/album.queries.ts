@@ -1,68 +1,55 @@
 import { queryOptions } from "@tanstack/react-query";
-import type { components } from "@/data/APIschema";
+
+import type { components, paths } from "#/data/APIschema";
+
 import { $APIFetch } from "../APIFetchClient";
 
+export type AlbumQuery = paths["/albums"]["get"]["parameters"]["query"];
+
 export const albumQueries = {
-	list: () =>
+	getAlbums: (query?: AlbumQuery) =>
 		queryOptions({
-			queryKey: ["albums"],
+			queryKey: ["albums", query],
 			queryFn: async () => {
-				const result = await $APIFetch<
-					components["schemas"]["AlbumListItemModel"][]
-				>("/albums", {
-					method: "GET",
-				});
-				if (!result.ok) return [];
+				const params = new URLSearchParams();
+
+				if (query?.Search) params.append("Search", query.Search);
+				if (query?.Types)
+					query.Types.map((item) => params.append("Types", item));
+				if (query?.LanguageIds)
+					query.LanguageIds.map((item) =>
+						params.append("LanguageIds", String(item)),
+					);
+				if (query?.PartyIds)
+					query.PartyIds.map((item) => params.append("PartyIds", String(item)));
+				if (query?.IsIncludeInTrackCredit)
+					params.append("IsIncludeInTrackCredit", "true");
+				if (query?.Sort) params.set("Sort", query.Sort);
+
+				const url = params.size ? `/albums?${params.toString()}` : "/albums";
+
+				const result =
+					await $APIFetch<components["schemas"]["AlbumListItem"][]>(url);
+				if (!result.ok) throw new Error("Unable to load albums");
 				return result.data;
 			},
 		}),
-	item: (albumId: string) =>
+	getAlbum: (id: number | string) =>
 		queryOptions({
-			queryKey: ["albums", albumId],
+			queryKey: ["albums", id],
 			queryFn: async () => {
-				const result = await $APIFetch<
-					components["schemas"]["AlbumDetailsModel"]
-				>(`/albums/${albumId}`, {
-					method: "GET",
-				});
-				if (!result.ok) throw new Error("Failed to fetch album");
+				const result = await $APIFetch<components["schemas"]["AlbumDetails"]>(
+					`/albums/${id}`,
+					{
+						method: "GET",
+					},
+				);
+
+				if (!result.ok) {
+					throw new Error("Unable to load album");
+				}
+
 				return result.data;
 			},
 		}),
-};
-
-export async function downloadAlbumTracks(
-	albumId: number | string,
-	variant: components["schemas"]["FileObjectVariant"],
-) {
-	const result = await $APIFetch<
-		components["schemas"]["AlbumTrackDownloadItemModel"][]
-	>(`/albums/${albumId}/download?variant=${variant}`, {
-		method: "GET",
-	});
-
-	if (!result.ok) {
-		throw new Error("Failed to download album tracks");
-	}
-
-	return result.data;
-}
-
-export const albumMutations = {
-	create: () => ({
-		mutationFn: async (data: components["schemas"]["CreateAlbumRequest"][]) => {
-			const result = await $APIFetch<
-				components["schemas"]["CreateAlbumResult"][]
-			>("/albums", {
-				method: "POST",
-				body: JSON.stringify(data),
-			});
-
-			if (!result.ok) {
-				throw new Error("Failed to create party");
-			}
-
-			return result;
-		},
-	}),
 };

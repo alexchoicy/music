@@ -1,4 +1,5 @@
-using Music.Core.Enums;
+using Music.Core.Common.Enums;
+using Music.Core.Services.Tracks;
 
 namespace Music.Core.Entities;
 
@@ -12,5 +13,5 @@ public class TrackCredit
     public int PartyId { get; set; }
     public Party? Party { get; set; }
 
-    public required TrackCreditType Credit { get; set; }
+    public required CreditType Credit { get; set; }
 }

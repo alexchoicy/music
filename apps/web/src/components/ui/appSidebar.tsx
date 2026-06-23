@@ -1,98 +1,275 @@
-import { Link } from "@tanstack/react-router";
-import { Album, Search, Settings, Upload, User } from "lucide-react";
-import { AppMusicIcon } from "../icon";
-import { Button } from "../shadcn/button";
-import { Kbd, KbdGroup } from "../shadcn/kbd";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import {
+	CirclePlus,
+	Disc3,
+	House,
+	LogOut,
+	MicVocal,
+	MoreVertical,
+	SearchIcon,
+	Settings2,
+	UploadCloud,
+	UsersRound,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+import { Button } from "#/components/coss/button";
+import { Kbd, KbdGroup } from "#/components/coss/kbd";
+import { Menu, MenuItem, MenuPopup, MenuTrigger } from "#/components/coss/menu";
+import {
+	Popover,
+	PopoverPopup,
+	PopoverTrigger,
+} from "#/components/coss/popover";
+import { Progress } from "#/components/coss/progress";
 import {
 	Sidebar,
 	SidebarContent,
 	SidebarFooter,
 	SidebarGroup,
 	SidebarGroupContent,
-	SidebarGroupLabel,
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-} from "../shadcn/sidebar";
+} from "#/components/coss/sidebar";
+import { useUserInfo } from "#/context/UserInfoContext";
+import { getInitials } from "#/lib/utils/string";
+import type { FileRouteTypes } from "#/routeTree.gen";
+import { useUploadStore } from "#/store/uploadStore";
 
-export function AppSidebar() {
+type NavigationTo = Exclude<FileRouteTypes["to"], "/login">;
+
+type AppSidebarProps = {
+	onOpenCommand: () => void;
+};
+
+type NavigationItem = {
+	label: string;
+	icon: LucideIcon;
+	to: NavigationTo;
+	hotkey?: string;
+};
+
+function normalizePathname(pathname: string): string {
+	return pathname === "/" ? pathname : pathname.replace(/\/$/, "");
+}
+
+const mainNavigation = [
+	{
+		label: "Home",
+		icon: House,
+		to: "/",
+		hotkey: "1",
+	},
+	{
+		label: "Albums",
+		icon: Disc3,
+		to: "/albums",
+		hotkey: "2",
+	},
+	{
+		label: "Parties",
+		icon: UsersRound,
+		to: "/parties",
+		hotkey: "3",
+	},
+	{
+		label: "Concerts",
+		icon: MicVocal,
+		to: "/concerts",
+		hotkey: "4",
+	},
+	{
+		label: "Create",
+		icon: CirclePlus,
+		to: "/create",
+	},
+] satisfies Array<NavigationItem>;
+
+function SidebarUploadStatus(): React.ReactElement {
+	const navigate = useNavigate();
+	const fileByBlake3 = useUploadStore((state) => state.fileByBlake3);
+	const activeUploads = Object.entries(fileByBlake3).filter(
+		([, record]) =>
+			record.status === "Queued" ||
+			record.status === "Uploading" ||
+			record.status === "Failed",
+	);
+	const hasActiveUpload = activeUploads.length > 0;
+
 	return (
-		<Sidebar>
-			<SidebarHeader>
-				<Link
-					to="/"
-					className="text-2xl font-bold items-center flex justify-center"
-				>
-					<AppMusicIcon className="w-8 h-8 mr-2" />
-					Music
-				</Link>
-				<Button className="w-full justify-between" variant="outline">
-					<Search className="w-5 h-5 mr-2" />
-					<div>Search</div>
-					<KbdGroup>
-						<Kbd>Ctrl</Kbd>
-						<Kbd>K</Kbd>
-					</KbdGroup>
-				</Button>
+		<Popover
+			onOpenChange={(_, details) => {
+				if (details.reason === "trigger-press") details.cancel();
+			}}
+		>
+			<PopoverTrigger
+				closeDelay={150}
+				delay={0}
+				openOnHover
+				render={
+					<Button
+						aria-label="Upload status"
+						className="text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+						onClick={() => void navigate({ to: "/uploads" })}
+						size="icon-sm"
+						variant="ghost"
+					/>
+				}
+			>
+				<UploadCloud aria-hidden="true" className="size-4" />
+				{hasActiveUpload && (
+					<span className="absolute top-1 right-1 size-2 rounded-full bg-primary" />
+				)}
+			</PopoverTrigger>
+			<PopoverPopup align="end" className="w-64" side="right">
+				<div className="grid gap-2 text-xs">
+					<div className="font-medium text-foreground">Uploads</div>
+					{hasActiveUpload ? (
+						activeUploads.map(([blake3, upload]) => {
+							const value =
+								upload.totalPartCount > 0
+									? Math.round(
+											(upload.uploadedPartCount / upload.totalPartCount) * 100,
+										)
+									: 0;
+
+							return (
+								<div className="grid min-w-0 gap-1" key={blake3}>
+									<div className="flex min-w-0 items-center justify-between gap-3">
+										<span className="min-w-0 truncate text-foreground">
+											{upload.fileName}
+										</span>
+										<span className="shrink-0 text-muted-foreground capitalize">
+											{upload.status}
+										</span>
+									</div>
+									{upload.status === "Uploading" && <Progress value={value} />}
+									{upload.status === "Failed" && upload.error && (
+										<div className="min-w-0 truncate text-destructive">
+											{upload.error}
+										</div>
+									)}
+								</div>
+							);
+						})
+					) : (
+						<div className="text-muted-foreground">No active uploads</div>
+					)}
+				</div>
+			</PopoverPopup>
+		</Popover>
+	);
+}
+
+export function AppSidebar({
+	onOpenCommand,
+}: AppSidebarProps): React.ReactElement {
+	const userInfo = useUserInfo();
+	const pathname = useRouterState({
+		select: (state) => state.location.pathname,
+	});
+	const currentPathname = normalizePathname(pathname);
+	const activeNavigationIndex = mainNavigation.findIndex(
+		(item) => item.to === currentPathname,
+	);
+	const displayName = userInfo.userName.trim() || "User";
+	const roleLabel =
+		userInfo.roles.length > 0 ? userInfo.roles.join(", ") : "Member";
+
+	return (
+		<Sidebar collapsible="offcanvas">
+			<SidebarHeader className="gap-6 p-3">
+				<div className="flex items-center justify-between gap-2.5">
+					<Link to="/">
+						<div className="flex items-center gap-2.5">
+							<img alt="" className="size-8 rounded-lg" src="/logo192.png" />
+							<span className="text-sm font-semibold">Music</span>
+						</div>
+					</Link>
+					<SidebarUploadStatus />
+				</div>
+
+				<div className="hidden md:block">
+					<Button
+						className="h-9 w-full justify-start px-3 text-muted-foreground hover:bg-sidebar-accent focus-visible:bg-sidebar-accent focus-visible:ring-0 focus-visible:ring-offset-0"
+						onClick={onOpenCommand}
+						variant="outline"
+					>
+						<SearchIcon aria-hidden="true" />
+						Search
+						<KbdGroup className="absolute top-1/2 right-2 -translate-y-1/2">
+							<Kbd>⌘</Kbd>
+							<Kbd>K</Kbd>
+						</KbdGroup>
+					</Button>
+				</div>
 			</SidebarHeader>
+
 			<SidebarContent>
 				<SidebarGroup>
-					<SidebarGroupLabel>Find Music</SidebarGroupLabel>
-					<SidebarMenu>
-						<SidebarMenuItem>
-							<SidebarMenuButton
-								render={
-									<Link to="/albums">
-										<Album />
-										Albums
-									</Link>
-								}
-							></SidebarMenuButton>
-						</SidebarMenuItem>
-						<SidebarMenuItem>
-							<SidebarMenuButton
-								render={
-									<Link to="/parties">
-										<User />
-										Parties
-									</Link>
-								}
-							></SidebarMenuButton>
-						</SidebarMenuItem>
-					</SidebarMenu>
-				</SidebarGroup>
-				<SidebarGroup className="mt-auto">
 					<SidebarGroupContent>
 						<SidebarMenu>
-							<SidebarMenuItem>
-								<SidebarMenuButton
-									render={
-										<Link
-											to="/create"
-											className="w-full flex justify-center items-center gap-2"
+							{mainNavigation.map((item, index) => {
+								return (
+									<SidebarMenuItem key={item.label}>
+										<SidebarMenuButton
+											isActive={index === activeNavigationIndex}
+											render={<Link to={item.to} />}
 										>
-											<Upload />
-											<span>Create</span>
-										</Link>
-									}
-								></SidebarMenuButton>
-							</SidebarMenuItem>
+											<item.icon className="size-4" />
+											<span>{item.label}</span>
+											{item.hotkey && (
+												<KbdGroup className="absolute top-1/2 right-2 -translate-y-1/2">
+													<Kbd>{item.hotkey}</Kbd>
+												</KbdGroup>
+											)}
+										</SidebarMenuButton>
+									</SidebarMenuItem>
+								);
+							})}
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
 			</SidebarContent>
+
+			{/*<SidebarSeparator />*/}
+
 			<SidebarFooter>
 				<SidebarMenu>
 					<SidebarMenuItem>
-						<SidebarMenuButton
-							render={
-								<Link to="/settings">
-									<Settings />
+						<Menu>
+							<SidebarMenuButton
+								className="h-auto py-2"
+								render={<MenuTrigger aria-label="Open account menu" />}
+								size="lg"
+							>
+								<div className="flex size-8 items-center justify-center rounded-full border text-xs font-medium">
+									{getInitials(displayName)}
+								</div>
+								<div className="min-w-0 flex-1">
+									<div className="truncate text-sm font-semibold">
+										{displayName}
+									</div>
+									<div className="truncate text-xs text-muted-foreground">
+										{roleLabel}
+									</div>
+								</div>
+								<MoreVertical className="ms-auto size-4" />
+							</SidebarMenuButton>
+
+							<MenuPopup align="start" className="w-48" side="top">
+								<MenuItem>
+									<Settings2 className="size-4" />
 									Settings
-								</Link>
-							}
-						></SidebarMenuButton>
+								</MenuItem>
+								<MenuItem variant="destructive">
+									<LogOut className="size-4" />
+									Log out
+								</MenuItem>
+							</MenuPopup>
+						</Menu>
 					</SidebarMenuItem>
 				</SidebarMenu>
 			</SidebarFooter>

@@ -1,104 +1,96 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useState } from "react";
-import { UploadConcertContent } from "@/components/create/concert/UploadConertContent";
-import { UploadAlbumContent } from "@/components/create/uploadAlbumContent";
-import { Button } from "@/components/shadcn/button";
-import { Switch } from "@/components/shadcn/switch";
-import { Tabs, TabsList, TabsTrigger } from "@/components/shadcn/tabs";
-import { AppLayout } from "@/components/ui/appLayout";
-import { MusicUploadProvider } from "@/contexts/uploadMusicContext";
+import { AlbumIcon, MicVocalIcon, UsersIcon } from "lucide-react";
+import { lazy, Suspense } from "react";
+
+import {
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger,
+} from "#/components/coss/tabs";
+import { albumQueries } from "#/lib/queries/album.queries";
+import { languageQueries } from "#/lib/queries/language.queries";
+import { partyQueries } from "#/lib/queries/party.queries";
+
+const AlbumTabContent = lazy(() =>
+	import("#/components/create/albumTabContent").then((module) => ({
+		default: module.AlbumTabContent,
+	})),
+);
+
+const ConcertTabContent = lazy(() =>
+	import("#/components/create/concertTabContent").then((module) => ({
+		default: module.ConcertTabContent,
+	})),
+);
+
+const PartyTabContent = lazy(() =>
+	import("#/components/create/partyTabContent").then((module) => ({
+		default: module.PartyTabContent,
+	})),
+);
 
 export const Route = createFileRoute("/_authed/create/")({
 	component: RouteComponent,
+	loader: ({ context }) => {
+		context.queryClient.prefetchQuery(albumQueries.getAlbums());
+		context.queryClient.prefetchQuery(languageQueries.getLanguages());
+		context.queryClient.prefetchQuery(partyQueries.getParties());
+	},
 });
+
 function RouteComponent() {
 	return (
-		<MusicUploadProvider>
-			<CreatePageContent />
-		</MusicUploadProvider>
+		<main className="flex min-h-full w-full flex-col p-4 sm:p-6">
+			<Tabs className="min-h-0 flex-1 gap-4" defaultValue="album">
+				<TabsList className="mx-auto">
+					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="album">
+						<AlbumIcon />
+						Album
+					</TabsTrigger>
+					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="concert">
+						<MicVocalIcon />
+						Concert
+					</TabsTrigger>
+					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="party">
+						<UsersIcon />
+						Party
+					</TabsTrigger>
+				</TabsList>
+
+				<TabsContent
+					className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
+					value="album"
+				>
+					<Suspense fallback={<CreateTabFallback label="album" />}>
+						<AlbumTabContent />
+					</Suspense>
+				</TabsContent>
+				<TabsContent
+					className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
+					value="concert"
+				>
+					<Suspense fallback={<CreateTabFallback label="concert" />}>
+						<ConcertTabContent />
+					</Suspense>
+				</TabsContent>
+				<TabsContent
+					className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
+					value="party"
+				>
+					<Suspense fallback={<CreateTabFallback label="party" />}>
+						<PartyTabContent />
+					</Suspense>
+				</TabsContent>
+			</Tabs>
+		</main>
 	);
 }
-function CreatePageContent() {
-	const [isProcessing, setIsProcessing] = useState(false);
-	const [isUploadExternal, setIsUploadExternal] = useState(true);
 
-	type CreationTab = "albums" | "concert";
-
-	const [creationTab, setCreationTab] = useState<CreationTab>("albums");
-	// magical upload handling
-	// onUploadReady will update the uploadAction
-	// the upload button will trigger the handleUpload(check if uploadAction exists)
-	const [uploadAction, setUploadAction] = useState<
-		(() => Promise<void>) | null
-	>(null);
-
-	const onUploadReady = useCallback(
-		(nextUploadAction: (() => Promise<void>) | null) => {
-			setUploadAction(() => nextUploadAction);
-		},
-		[],
-	);
-
-	const handleUpload = useCallback(() => {
-		if (!uploadAction) {
-			return;
-		}
-
-		void uploadAction();
-	}, [uploadAction]);
-
+function CreateTabFallback({ label }: { label: string }) {
 	return (
-		<AppLayout
-			header={
-				<>
-					<div className="flex justify-center">
-						<Tabs
-							value={creationTab}
-							onValueChange={(value: CreationTab) => setCreationTab(value)}
-						>
-							<TabsList>
-								<TabsTrigger value="albums">Albums</TabsTrigger>
-								<TabsTrigger value="concert">Concerts</TabsTrigger>
-							</TabsList>
-						</Tabs>
-					</div>
-					<div className="flex items-center justify-end gap-3">
-						<span className="text-sm text-muted-foreground">
-							{isUploadExternal ? "External" : "Local"}
-						</span>
-
-						<Switch
-							checked={isUploadExternal}
-							onCheckedChange={setIsUploadExternal}
-							disabled
-						/>
-
-						<Button
-							disabled={isProcessing || !uploadAction}
-							onClick={handleUpload}
-						>
-							Upload
-						</Button>
-					</div>
-				</>
-			}
-		>
-			{creationTab === "albums" && (
-				<UploadAlbumContent
-					isProcessing={isProcessing}
-					setIsProcessing={setIsProcessing}
-					onUploadReady={onUploadReady}
-				/>
-			)}
-
-			{creationTab === "concert" && (
-				<UploadConcertContent
-					isUploadExternal={isUploadExternal}
-					isProcessing={isProcessing}
-					setIsProcessing={setIsProcessing}
-					onUploadReady={onUploadReady}
-				/>
-			)}
-		</AppLayout>
+		<section className="rounded-lg border bg-card p-4 text-sm text-muted-foreground shadow-sm">
+			Loading {label} tools...
+		</section>
 	);
 }

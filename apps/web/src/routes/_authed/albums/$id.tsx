@@ -1,105 +1,64 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { User } from "lucide-react";
-import { Suspense, useCallback, useMemo } from "react";
-import { AlbumInfoCard } from "@/components/album/albumInfoCard";
-import { AlbumTrackList } from "@/components/album/albumTrackList";
-import { Avatar, AvatarFallback } from "@/components/shadcn/avatar";
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle,
-} from "@/components/shadcn/card";
-import { AppLayout } from "@/components/ui/appLayout";
-import { useAudioPlayerActions } from "@/contexts/audioPlayerContext";
-import { albumQueries } from "@/lib/queries/album.queries";
-import { buildAudioPlayerItem } from "@/lib/utils/music";
+import { createFileRoute, useRouterState } from "@tanstack/react-router";
+
+import { AlbumCreditsCard } from "#/components/albums/AlbumCreditsCard";
+import { AlbumDetailHero } from "#/components/albums/AlbumDetailHero";
+import { AlbumInfoCard } from "#/components/albums/AlbumInfoCard";
+import { AlbumTrackListCard } from "#/components/albums/AlbumTrackListCard";
+import { albumQueries } from "#/lib/queries/album.queries";
+import { getAlbumCoverUrl } from "#/lib/utils/album";
+import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
+import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
 export const Route = createFileRoute("/_authed/albums/$id")({
+	loader: ({ context, params }) => {
+		return context.queryClient.ensureQueryData(
+			albumQueries.getAlbum(params.id),
+		);
+	},
 	component: RouteComponent,
 });
-
 function RouteComponent() {
-	return (
-		<AppLayout>
-			<Suspense fallback={<div>Loading...</div>}>
-				<AlbumContent />
-			</Suspense>
-		</AppLayout>
-	);
-}
-
-function AlbumContent() {
 	const { id } = Route.useParams();
-	const { data: album } = useSuspenseQuery(albumQueries.item(id));
-
-	const trackParties = useMemo(() => {
-		return Array.from(
-			new Map(
-				album.discs
-					.flatMap((d) => d.tracks)
-					.flatMap((t) => t.credits)
-					.map((c) => [c.partyId, c]),
-			).values(),
-		);
-	}, [album]);
-
-	const { playWithPlaylist, playWithPlaylistByTrackId } =
-		useAudioPlayerActions();
-
-	const audioPlayerItems = useMemo(() => {
-		return buildAudioPlayerItem(album);
-	}, [album]);
-
-	const handlePlay = useCallback(
-		(trackId?: number) => {
-			if (trackId) {
-				playWithPlaylistByTrackId(audioPlayerItems, trackId);
-			} else {
-				playWithPlaylist(audioPlayerItems);
-			}
-		},
-		[playWithPlaylist, audioPlayerItems, playWithPlaylistByTrackId],
-	);
+	const { data: album } = useSuspenseQuery(albumQueries.getAlbum(id));
+	const hash = useRouterState({
+		select: (state) => state.location.hash,
+	});
+	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
+	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
+	const coverUrl = getAlbumCoverUrl(album.cover.album);
+	const audioPlayerTracks = albumDetailsToAudioPlayerTracks(album);
 
 	return (
-		<div className="flex flex-col gap-4 p-6">
-			<AlbumInfoCard album={album} handlePlay={handlePlay} />
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-				<Card className="lg:col-span-2">
-					<AlbumTrackList album={album} handlePlay={handlePlay} />
-				</Card>
-				<Card className="h-max">
-					<CardHeader>
-						<CardTitle>Parties</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-2">
-						{trackParties.length > 0 &&
-							trackParties.map((party) => (
-								<Link
-									key={party.partyId}
-									to="/parties/$id"
-									params={{ id: party.partyId.toString() }}
-								>
-									<div className="flex items-center gap-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer p-2">
-										<Avatar>
-											{/*<AvatarImage :src="artist.image" />*/}
-											<AvatarFallback>
-												<User className="size-fit" />
-											</AvatarFallback>
-										</Avatar>
-										<div className="flex-1 min-w-0">
-											<h4 className="text-muted-foreground truncate font-medium">
-												{party.name}
-											</h4>
-										</div>
-									</div>
-								</Link>
-							))}
-					</CardContent>
-				</Card>
+		<main className="relative min-h-full w-full overflow-hidden bg-background">
+			<div className="pointer-events-none absolute inset-x-0 top-0 h-[30rem] overflow-hidden [mask-image:var(--album-bg-mask)] [--album-bg-mask:linear-gradient(to_bottom,black_0%,black_55%,transparent_100%)]">
+				{coverUrl && (
+					<img
+						alt=""
+						className="absolute -inset-16 h-[calc(100%+8rem)] w-[calc(100%+8rem)] scale-110 object-cover opacity-30 blur-3xl saturate-150"
+						src={coverUrl}
+					/>
+				)}
+				<div className="absolute inset-0 bg-linear-to-b from-background/20 via-background/85 to-background" />
 			</div>
-		</div>
+
+			<div className="relative flex min-h-full w-full flex-col gap-6 p-4 sm:p-6">
+				<AlbumDetailHero
+					album={album}
+					onPlayAlbum={() => playAlbum(audioPlayerTracks)}
+					onAddToQueue={() => addToQueue(audioPlayerTracks)}
+					playAlbumDisabled={audioPlayerTracks.length === 0}
+				/>
+
+				<div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+					<AlbumTrackListCard album={album} highlightedTrackKey={hash} />
+
+					<aside className="flex flex-col gap-6">
+						<AlbumCreditsCard album={album} />
+						<AlbumInfoCard album={album} />
+					</aside>
+				</div>
+			</div>
+		</main>
 	);
 }

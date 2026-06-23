@@ -1,11 +1,13 @@
 import { queryOptions } from "@tanstack/react-query";
+
 import type { components } from "@/data/APIschema";
+
 import { $APIFetch } from "../APIFetchClient";
 
 export const authMutations = {
 	login: () => ({
 		mutationFn: async (data: components["schemas"]["LoginRequest"]) => {
-			const result = await $APIFetch<components["schemas"]["LoginResponse"]>(
+			const result = await $APIFetch<components["schemas"]["LoginResult"]>(
 				"/auth/login",
 				{
 					method: "POST",
@@ -31,6 +33,26 @@ export const authQueries = {
 				return result.ok;
 			},
 			staleTime: 1000,
+			retry: false,
+		}),
+	userInfo: () =>
+		queryOptions({
+			queryKey: ["auth", "me"],
+			queryFn: async () => {
+				const result = await $APIFetch<components["schemas"]["UserInfo"]>(
+					"/me",
+					{
+						method: "GET",
+					},
+				);
+
+				if (!result.ok) {
+					throw new Error("Unable to load user info");
+				}
+
+				return result.data;
+			},
+			staleTime: 60 * 1000,
 			retry: false,
 		}),
 };

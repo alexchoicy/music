@@ -1,186 +1,368 @@
 using Microsoft.EntityFrameworkCore;
-using Music.Core.Models;
-using Music.Core.Services.Interfaces;
-using Music.Core.Utils;
+using Music.Core.Common.Enums;
+using Music.Core.Common.Utils;
+using Music.Core.Services.Images.Enums;
+using Music.Core.Services.Parties;
+using Music.Core.Services.Parties.Enums;
+using Music.Core.Services.Parties.Requests;
+using Music.Core.Storage;
+using Music.Core.Workers;
 using Music.Infrastructure.Data;
-using Music.Core.Entities;
-using Music.Core.Exceptions;
-using Microsoft.Extensions.Logging;
 using Music.Infrastructure.Mappers;
 
 namespace Music.Infrastructure.Services.Party;
 
-public class PartyService(AppDbContext dbContext, IAssetsService assetsService, IBackgroundTaskQueue backgroundTaskQueue, ILogger<PartyService> logger) : IPartyService
+public class PartyService(
+    AppDbContext dbContext,
+    IAssetsService assetsService,
+    IBackgroundTaskQueue backgroundTaskQueue
+) : IPartyService
 {
-    private readonly AppDbContext _dbContext = dbContext;
-    private readonly IAssetsService _assetsService = assetsService;
-    private readonly IBackgroundTaskQueue _backgroundTaskQueue = backgroundTaskQueue;
-    private readonly ILogger<PartyService> _logger = logger;
-
-    public async Task<bool> CreatePartyAsync(CreatePartyModel request, string userId)
+    public async Task<int> CreatePartyAsync(
+        CreatePartyRequest request,
+        string userId,
+        CancellationToken cancellationToken = default
+    )
     {
         Core.Entities.Party party = new()
         {
             Name = request.Name,
-            Type = request.PartyType,
-            LanguageId = request.LanguageId == 0 ? null : (int?)request.LanguageId,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow
+            Type = request.Type,
+            Kind = request.Kind,
+            Gender = request.Gender,
+            Country = request.Country,
+            MusicBrainzId = request.MusicBrainzID,
+            Description = "",
         };
 
-        _dbContext.Parties.Add(party);
+        dbContext.Parties.Add(party);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
-        int changes = await _dbContext.SaveChangesAsync();
+        await backgroundTaskQueue.QueueWorkerAsync(
+            new PartyInfoEnrichmentWorker { PartyId = party.Id },
+            cancellationToken
+        );
 
-        if (changes > 0)
+        return party.Id;
+    }
+
+    public async Task<IList<PartyItems>> GetAllAsync(
+        PartyListRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        IQueryable<Core.Entities.Party> query = dbContext.Parties.AsNoTracking();
+
+        string normalizedSearch = StringUtils.NormalizeString(request.Search ?? string.Empty);
+        string searchPattern = $"%{normalizedSearch}%";
+        bool hasSearch = normalizedSearch.Length > 0;
+
+        if (request.Country != null)
         {
-            try
-            {
-                _backgroundTaskQueue.QueueWorkerAsync(new PartyInfoEnrichmentWorkerModel
-                {
-                    PartyId = party.Id
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Unable to queue external enrichment for party {PartyId}", party.Id);
-            }
+            query = query.Where(p => p.Country == request.Country);
         }
 
-        return changes > 0;
-    }
-
-    public async Task<IReadOnlyList<PartyListModel>> GetAllForListAsync(PartyListParams partyListParams)
-    {
-        IQueryable<Core.Entities.Party> baseQuery = _dbContext.Parties.AsNoTracking();
-
-        if (!string.IsNullOrEmpty(partyListParams.Search))
+        if (request.Type != null)
         {
-            string serachNormalized = StringUtils.NormalizeString(partyListParams.Search);
-            baseQuery = baseQuery.Where(p => p.NormalizedName.Contains(serachNormalized) ||
-                                             p.Aliases.Any(a => a.NormalizedName.Contains(serachNormalized)));
+            query = query.Where(p => p.Type == request.Type);
         }
 
-        List<PartyListModel> parties = await baseQuery
-            .Select(p => new PartyListModel
-            {
-                PartyId = p.Id,
-                PartyName = p.Name,
-                PartyNormalizedName = p.NormalizedName,
-                PartyAliases = p.Aliases.Select(a => new PartyAliasModel
-                {
-                    AliasName = a.Name,
-                    AliasNormalizedName = a.NormalizedName
-                }).ToList()
-            })
-            .ToListAsync();
+        if (request.Kind != null)
+        {
+            query = query.Where(p => p.Kind == request.Kind);
+        }
 
-        return parties;
-    }
+        if (request.Gender != null)
+        {
+            query = query.Where(p => p.Gender == request.Gender);
+        }
 
-    public async Task<IReadOnlyList<PartyModel>> GetAllPartiesAsync()
-    {
-        List<PartyModel> parties = await _dbContext.Parties.AsNoTracking()
-        .Where(p => p.AlbumCredits.Any())
-            .Select(p => new PartyModel
-            {
-                PartyId = p.Id,
-                PartyName = p.Name,
-                AvatarImages = p.Images
-                    .Where(pi => pi.PartyImageType == Core.Enums.PartyImageType.Avatar && pi.IsPrimary && pi.File != null)
-                    .SelectMany(pi => pi.File!.FileObjects)
-                    .ToPartyImageModels(_assetsService),
-                Type = p.Type
-            })
-            .ToListAsync();
+        if (request.ExcludeNoAlbums)
+        {
+            query = query.Where(p => p.AlbumCredits.Count > 0);
+        }
 
-        return parties;
-    }
+        if (hasSearch)
+        {
+            query = query.Where(party =>
+                EF.Functions.Like(
+                    AppDbContext.ImmutableUnaccent(party.NormalizedName),
+                    AppDbContext.ImmutableUnaccent(searchPattern)
+                )
+                || EF.Functions.TrigramsAreSimilar(
+                    AppDbContext.ImmutableUnaccent(party.NormalizedName),
+                    AppDbContext.ImmutableUnaccent(normalizedSearch)
+                )
+                || dbContext.PartyAliases.Any(alias =>
+                    alias.PartyId == party.Id
+                    && alias.DeletedAt == null
+                    && (
+                        EF.Functions.Like(
+                            AppDbContext.ImmutableUnaccent(alias.NormalizedName),
+                            AppDbContext.ImmutableUnaccent(searchPattern)
+                        )
+                        || EF.Functions.TrigramsAreSimilar(
+                            AppDbContext.ImmutableUnaccent(alias.NormalizedName),
+                            AppDbContext.ImmutableUnaccent(normalizedSearch)
+                        )
+                    )
+                )
+            );
+        }
 
-    public async Task<PartyDetailModel?> GetPartyByIdAsync(int partyId, CancellationToken cancellationToken)
-    {
-        Core.Entities.Party? party = await _dbContext.Parties
-            .AsSplitQuery()
-            .Include(p => p.Aliases)
-            .Include(p => p.Language)
-            .Include(p => p.Images)
-            .ThenInclude(pi => pi.File)
-            .ThenInclude(f => f!.FileObjects)
-            .Include(p => p.AlbumCredits)
-            .ThenInclude(ac => ac.Album)
-            .ThenInclude(a => a!.Discs)
-            .ThenInclude(d => d.Tracks)
-            .ThenInclude(at => at.Track)
-            .Include(p => p.AlbumCredits)
-            .ThenInclude(ac => ac.Album)
-            .ThenInclude(a => a!.Credits)
-            .ThenInclude(ac => ac.Party)
-            .Include(p => p.AlbumCredits)
-            .ThenInclude(ac => ac.Album)
-            .ThenInclude(a => a!.Images)
-            .ThenInclude(ai => ai.File)
-            .ThenInclude(f => f!.FileObjects)
-            .Include(ac => ac.TrackCredits)
-            .ThenInclude(tc => tc.Track)
-            .ThenInclude(t => t!.AlbumTracks)
-            .ThenInclude(at => at.AlbumDisc)
-            .ThenInclude(ad => ad!.Album)
-            .ThenInclude(a => a!.Discs)
-            .ThenInclude(d => d.Tracks)
-            .ThenInclude(at => at.Track)
-            .Include(ac => ac.TrackCredits)
-            .ThenInclude(tc => tc.Track)
-            .ThenInclude(t => t!.AlbumTracks)
-            .ThenInclude(at => at.AlbumDisc)
-            .ThenInclude(ad => ad!.Album)
-            .ThenInclude(a => a!.Credits)
-            .ThenInclude(ac => ac.Party)
-            .Include(ac => ac.TrackCredits)
-            .ThenInclude(tc => tc.Track)
-            .ThenInclude(t => t!.AlbumTracks)
-            .ThenInclude(at => at.AlbumDisc)
-            .ThenInclude(ad => ad!.Album)
-            .ThenInclude(a => a!.Images)
-            .ThenInclude(ai => ai.File)
-            .ThenInclude(f => f!.FileObjects)
-            .FirstOrDefaultAsync(p => p.Id == partyId, cancellationToken)
-        ?? throw new EntityNotFoundException($"Party with id {partyId} not found.");
-
-        HashSet<int> partyAlbumIds = party.AlbumCredits.Select(a => a.AlbumId).ToHashSet();
-
-        PartyDetailModel partyDetail = new()
+        var partyQuery = query.Select(party => new
         {
             PartyId = party.Id,
-            PartyName = party.Name,
-            Type = party.Type,
-            Language = party.Language == null ? null : new LanguageModel
-            {
-                LanguageId = party.Language.Id,
-                Name = party.Language.Name,
-            },
-            IconUrl = party.Images.
-            FirstOrDefault(i => i.PartyImageType == Core.Enums.PartyImageType.Avatar && i.IsPrimary)?
-            .File?.FileObjects.ToPartyImageModels(_assetsService),
-            BannerUrl = party.Images.
-            FirstOrDefault(i => i.PartyImageType == Core.Enums.PartyImageType.Banner && i.IsPrimary)?
-            .File?.FileObjects.ToPartyImageModels(_assetsService),
-            PartyAlbums = party.AlbumCredits
-            .Select(ac => ac.Album)
-            .Select(album =>
-            {
-                partyAlbumIds.Add(album!.Id);
+            party.Name,
+            party.NormalizedName,
+            party.Country,
+            party.Type,
+            party.Kind,
+            party.Gender,
+            party.CreatedAt,
+            Similarity = hasSearch
+                ? Math.Max(
+                    EF.Functions.TrigramsSimilarity(
+                        AppDbContext.ImmutableUnaccent(party.NormalizedName),
+                        AppDbContext.ImmutableUnaccent(normalizedSearch)
+                    ),
+                    dbContext
+                        .PartyAliases.Where(alias =>
+                            alias.PartyId == party.Id && alias.DeletedAt == null
+                        )
+                        .Max(alias =>
+                            (double?)
+                                EF.Functions.TrigramsSimilarity(
+                                    AppDbContext.ImmutableUnaccent(alias.NormalizedName),
+                                    AppDbContext.ImmutableUnaccent(normalizedSearch)
+                                )
+                        )
+                        ?? 0.0
+                )
+                : 0.0,
+            AlbumCount = party.AlbumCredits.Count(credit => credit.Credit == CreditType.Artist),
+            CoverStoragePath = party
+                .Images.Where(image => image.ImageRole == ImageRole.Avatar && image.IsPrimary)
+                .OrderBy(image => image.CreatedAt)
+                .SelectMany(image => image.File!.FileObjects)
+                .OrderBy(fileObject => fileObject.FileObjectVariant)
+                .Select(fileObject => fileObject.StoragePath)
+                .FirstOrDefault(),
+        });
 
-                return album.ToListItemModel(_assetsService);
-            }).ToList(),
-            PartyPartOfAlbums = party.TrackCredits
-            .Select(tc => tc.Track)
-            .SelectMany(t => t!.AlbumTracks)
-            .Select(at => at.AlbumDisc?.Album)
-            .Where(a => a!.Id != 0 && !partyAlbumIds.Contains(a.Id))
-            .DistinctBy(a => a!.Id)
-            .Select(a => a!.ToListItemModel(_assetsService)).ToList()
+        partyQuery = request.Sort switch
+        {
+            ListSortOption.TitleDesc => partyQuery.OrderByDescending(p => p.Name),
+            ListSortOption.CreatedAtDesc => partyQuery.OrderByDescending(p => p.CreatedAt),
+            ListSortOption.CreatedAtAsc => partyQuery.OrderBy(p => p.CreatedAt),
+            _ => partyQuery.OrderBy(p => p.Name),
         };
 
-        return partyDetail;
+        var parties = await partyQuery.ToListAsync(cancellationToken);
+
+        int[] partyIds = parties.Select(p => p.PartyId).ToArray();
+        Dictionary<int, List<PartyAlias>> aliasesByPartyId = [];
+
+        if (partyIds.Length > 0)
+        {
+            var aliases = await dbContext
+                .PartyAliases.AsNoTracking()
+                .Where(alias => partyIds.Contains(alias.PartyId) && alias.DeletedAt == null)
+                .OrderBy(alias => alias.Name)
+                .Select(alias => new
+                {
+                    alias.PartyId,
+                    Alias = new PartyAlias
+                    {
+                        Name = alias.Name,
+                        NormalizedName = alias.NormalizedName,
+                    },
+                })
+                .ToListAsync(cancellationToken);
+
+            aliasesByPartyId = aliases
+                .GroupBy(alias => alias.PartyId)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Select(alias => alias.Alias).ToList()
+                );
+        }
+
+        return parties
+            .Select(p => new PartyItems
+            {
+                PartyId = p.PartyId,
+                Name = p.Name,
+                NormalizedName = p.NormalizedName,
+                CoverUrl = p.CoverStoragePath is null
+                    ? string.Empty
+                    : assetsService.GetUrl(p.CoverStoragePath),
+                Country = p.Country,
+                Type = p.Type,
+                Kind = p.Kind,
+                Gender = p.Gender,
+                Similarity = p.Similarity,
+                AlbumCount = p.AlbumCount,
+                Aliases = aliasesByPartyId.TryGetValue(p.PartyId, out var aliases) ? aliases : [],
+            })
+            .ToList();
+    }
+
+    public async Task<PartyDetails?> GetPartyByIdAsync(
+        int partyId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Core.Entities.Party? party = await dbContext
+            .Parties.AsNoTracking()
+            .AsSplitQuery()
+            .Include(p => p.Aliases)
+            .Include(p => p.PartyExternalInfos)
+            .Include(p => p.Images)
+                .ThenInclude(i => i.File)
+                    .ThenInclude(f => f!.FileObjects)
+            .FirstOrDefaultAsync(p => p.Id == partyId, cancellationToken);
+
+        if (party is null)
+        {
+            return null;
+        }
+
+        List<Core.Entities.Album> albums = await IncludeAlbumListData(
+                dbContext.Albums.AsNoTracking()
+            )
+            .Where(album =>
+                album.Credits.Any(credit =>
+                    credit.PartyId == partyId && credit.Credit == CreditType.Artist
+                )
+            )
+            .OrderByDescending(album => album.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        List<Core.Entities.Album> appearsOnAlbums = await IncludeAlbumListData(
+                dbContext.Albums.AsNoTracking()
+            )
+            .Where(album =>
+                !album.Credits.Any(credit =>
+                    credit.PartyId == partyId && credit.Credit == CreditType.Artist
+                )
+                && album.Discs.Any(disc =>
+                    disc.Tracks.Any(albumTrack =>
+                        albumTrack.Track!.Credits.Any(credit =>
+                            credit.PartyId == partyId && credit.Credit == CreditType.Artist
+                        )
+                    )
+                )
+            )
+            .OrderByDescending(album => album.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        return new PartyDetails
+        {
+            PartyId = party.Id,
+            Name = party.Name,
+            AvatarImages = party.ToPrimaryAvatarImages(assetsService),
+            Country = party.Country,
+            Description = party.Description,
+            Type = party.Type,
+            Kind = party.Kind,
+            Gender = party.Gender,
+            Aliases = party
+                .Aliases.Where(alias => alias.DeletedAt is null)
+                .OrderBy(alias => alias.Name)
+                .Select(alias => new PartyAlias
+                {
+                    Name = alias.Name,
+                    NormalizedName = alias.NormalizedName,
+                })
+                .ToList(),
+            ExternalInfoLinks = party
+                .PartyExternalInfos.OrderBy(externalInfo => externalInfo.Type)
+                .Select(externalInfo => new PartyExternalInfoLink
+                {
+                    Type = externalInfo.Type,
+                    Url = BuildExternalInfoUrl(externalInfo.Type, externalInfo.ExternalId),
+                })
+                .ToList(),
+            Albums = albums.Select(album => album.ToListItem(assetsService)).ToList(),
+            AppearsOnAlbums = appearsOnAlbums
+                .Select(album => album.ToListItem(assetsService))
+                .ToList(),
+        };
+    }
+
+    private static IQueryable<Core.Entities.Album> IncludeAlbumListData(
+        IQueryable<Core.Entities.Album> query
+    )
+    {
+        return query
+            .AsSplitQuery()
+            .Include(album => album.Credits)
+                .ThenInclude(credit => credit.Party)
+            .Include(album => album.Discs)
+                .ThenInclude(disc => disc.Tracks)
+                    .ThenInclude(albumTrack => albumTrack.Track)
+            .Include(album => album.Images)
+                .ThenInclude(image => image.File)
+                    .ThenInclude(file => file!.FileObjects);
+    }
+
+    private static string BuildExternalInfoUrl(PartyExternalInfoType type, string externalId)
+    {
+        string value = externalId.Trim();
+
+        if (Uri.TryCreate(value, UriKind.Absolute, out Uri? uri))
+        {
+            return uri.ToString();
+        }
+
+        return type switch
+        {
+            PartyExternalInfoType.Spotify =>
+                $"https://open.spotify.com/artist/{EscapePathSegment(value)}",
+            PartyExternalInfoType.Twitter =>
+                $"https://x.com/{EscapePathSegment(value.TrimStart('@'))}",
+            PartyExternalInfoType.OfficialWebsite => value,
+            PartyExternalInfoType.YouTube => BuildYouTubeUrl(value),
+            PartyExternalInfoType.YouTubeMusic => BuildYouTubeMusicUrl(value),
+            PartyExternalInfoType.Instagram =>
+                $"https://www.instagram.com/{EscapePathSegment(value.TrimStart('@'))}",
+            PartyExternalInfoType.AppleMusic =>
+                $"https://music.apple.com/artist/{EscapePathSegment(value)}",
+            PartyExternalInfoType.Mora => $"https://mora.jp/artist/{EscapePathSegment(value)}/",
+            PartyExternalInfoType.Ototoy =>
+                $"https://ototoy.jp/_/default/a/{EscapePathSegment(value)}",
+            _ => value,
+        };
+    }
+
+    private static string BuildYouTubeUrl(string value)
+    {
+        if (value.StartsWith('@'))
+        {
+            return $"https://www.youtube.com/{value}";
+        }
+
+        if (value.StartsWith("UC", StringComparison.Ordinal))
+        {
+            return $"https://www.youtube.com/channel/{EscapePathSegment(value)}";
+        }
+
+        return $"https://www.youtube.com/{EscapePathSegment(value)}";
+    }
+
+    private static string BuildYouTubeMusicUrl(string value)
+    {
+        if (value.StartsWith('@'))
+        {
+            return $"https://music.youtube.com/{value}";
+        }
+
+        return $"https://music.youtube.com/channel/{EscapePathSegment(value)}";
+    }
+
+    private static string EscapePathSegment(string value)
+    {
+        return Uri.EscapeDataString(value);
     }
 }

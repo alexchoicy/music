@@ -1,19 +1,16 @@
 {
-  "projectName": "web",
-  "mode": "file-router",
-  "typescript": true,
-  "tailwind": true,
-  "packageManager": "pnpm",
-  "git": true,
-  "install": true,
-  "addOnOptions": {},
-  "version": 1,
-  "framework": "react-cra",
-  "chosenAddOns": [
-    "tanstack-query",
-    "form",
-    "nitro",
-    "biome",
-    "start"
-  ]
+	"projectName": "web",
+	"mode": "file-router",
+	"typescript": true,
+	"packageManager": "pnpm",
+	"includeExamples": false,
+	"tailwind": true,
+	"addOnOptions": {},
+	"envVarValues": {},
+	"git": false,
+	"install": true,
+	"routerOnly": false,
+	"version": 1,
+	"framework": "react",
+	"chosenAddOns": ["nitro", "form", "tanstack-query", "compiler"]
 }

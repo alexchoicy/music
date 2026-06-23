@@ -1,5 +1,5 @@
-using Music.Core.Enums;
 using Music.Core.Entities;
+using Music.Core.Services.Parties.Enums;
 
 namespace Music.Infrastructure.Data.Seed;
 
@@ -14,6 +14,9 @@ public class PartySeed
         {
             Name = "Unknown",
             Type = PartyType.Individual,
+            Kind = PartyKind.Human,
+            Country = CountryCode.XX,
+            Description = "",
         };
 
         context.Parties.Add(unknownParty);

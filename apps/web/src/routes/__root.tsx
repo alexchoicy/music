@@ -1,13 +1,18 @@
 import { TanStackDevtools } from "@tanstack/react-devtools";
+import { hotkeysDevtoolsPlugin } from "@tanstack/react-hotkeys-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import {
-	createRootRouteWithContext,
 	HeadContent,
 	Scripts,
+	createRootRouteWithContext,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { Toaster } from "@/components/shadcn/sonner";
+
+import { AnchoredToastProvider, ToastProvider } from "#/components/coss/toast";
+import { TooltipProvider } from "#/components/coss/tooltip";
+
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
+
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
@@ -21,9 +26,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				charSet: "utf-8",
 			},
 			{
+				name: "viewport",
+				content: "width=device-width, initial-scale=1",
+			},
+			{
 				title: "Alex Music App",
 			},
-			{ name: "viewport", content: "width=device-width, initial-scale=1" },
 		],
 		links: [
 			{
@@ -32,8 +40,8 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			},
 		],
 	}),
-	notFoundComponent: () => <div>Not found</div>,
 	shellComponent: RootDocument,
+	notFoundComponent: () => <div>Not found</div>,
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
@@ -42,9 +50,16 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<head>
 				<HeadContent />
 			</head>
-			<body>
-				{children}
-				<Toaster />
+			<body className="relative font-sans">
+				<TooltipProvider>
+					<ToastProvider>
+						<AnchoredToastProvider>
+							<div className="relative isolate flex min-h-svh flex-col">
+								{children}
+							</div>
+						</AnchoredToastProvider>
+					</ToastProvider>
+				</TooltipProvider>
 				<TanStackDevtools
 					config={{
 						position: "bottom-right",
@@ -55,6 +70,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 							render: <TanStackRouterDevtoolsPanel />,
 						},
 						TanStackQueryDevtools,
+						hotkeysDevtoolsPlugin(),
 					]}
 				/>
 				<Scripts />

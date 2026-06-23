@@ -12,28 +12,28 @@ public class AlbumTrackConfiguration : IEntityTypeConfiguration<AlbumTrack>
 
         builder.HasKey(at => at.Id);
 
-        builder.Property(at => at.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(at => at.Id).ValueGeneratedOnAdd();
 
         builder.Property(at => at.AlbumDiscId).IsRequired();
 
-        builder.Property(at => at.TrackId)
-            .IsRequired();
+        builder.Property(at => at.TrackId).IsRequired();
 
-        builder.Property(at => at.Version)
-             .IsRowVersion();
+        builder.Property(at => at.Version).IsRowVersion();
 
-        builder.HasOne(at => at.AlbumDisc)
+        builder
+            .HasOne(at => at.AlbumDisc)
             .WithMany(albumDisc => albumDisc.Tracks)
             .HasForeignKey(at => at.AlbumDiscId)
-       .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(at => at.Track)
+        builder
+            .HasOne(at => at.Track)
             .WithMany(track => track.AlbumTracks)
             .HasForeignKey(at => at.TrackId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(at => at.AlbumDiscId); builder.HasIndex(at => at.TrackId);
+        builder.HasIndex(at => at.AlbumDiscId);
+        builder.HasIndex(at => at.TrackId);
         builder.HasIndex(at => at.CreatedAt);
 
         builder.HasIndex(at => new { at.AlbumDiscId, at.TrackNumber });

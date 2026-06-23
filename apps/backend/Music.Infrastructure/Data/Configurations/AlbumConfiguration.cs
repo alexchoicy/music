@@ -13,13 +13,12 @@ public class AlbumConfiguration : IEntityTypeConfiguration<Album>
 
         builder.HasKey(a => a.Id);
 
-        builder.Property(a => a.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(a => a.Id).ValueGeneratedOnAdd();
 
-        builder.Property(a => a.Version)
-             .IsRowVersion();
+        builder.Property(a => a.Version).IsRowVersion();
 
-        builder.HasOne<User>()
+        builder
+            .HasOne<User>()
             .WithMany(user => user.CreatedAlbums)
             .HasForeignKey(album => album.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);

@@ -12,18 +12,18 @@ public class ConcertAlbumConfiguration : IEntityTypeConfiguration<ConcertAlbum>
 
         builder.HasKey(ca => new { ca.ConcertId, ca.AlbumId });
 
-        builder.Property(ca => ca.ConcertId)
-            .IsRequired();
+        builder.Property(ca => ca.ConcertId).IsRequired();
 
-        builder.Property(ca => ca.AlbumId)
-            .IsRequired();
+        builder.Property(ca => ca.AlbumId).IsRequired();
 
-        builder.HasOne(ca => ca.Concert)
+        builder
+            .HasOne(ca => ca.Concert)
             .WithMany(c => c.ConcertAlbums)
             .HasForeignKey(ca => ca.ConcertId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(ca => ca.Album)
+        builder
+            .HasOne(ca => ca.Album)
             .WithMany()
             .HasForeignKey(ca => ca.AlbumId)
             .OnDelete(DeleteBehavior.Cascade);

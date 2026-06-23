@@ -1,55 +1,87 @@
-import type { components } from "@/data/APIschema";
+import type { components } from "#/data/APIschema";
+import type { CreditRequest, PartyItem } from "#/store/albumUploadStoreType";
+
+import { checkIfVariousArtists } from "./music";
 import { normalizeString } from "./string";
 
-export function splitArtists(artistString?: string): string[] {
+function splitArtists(artistString?: string): string[] {
 	if (!artistString) return [];
 
 	return artistString
-		.split(/[/,;]+/)
-		.map((a) => a.trim())
-		.filter(Boolean)
-		.filter((v, i, arr) => arr.indexOf(v) === i);
+		.trim()
+		.toLowerCase()
+		.split(/\s*(?:;|\bfeat\.?(?=\s|$)|\bft\.?(?=\s|$)|\bfeaturing\b)\s*/i)
+		.map((artist) => artist.trim())
+		.filter(Boolean);
 }
 
-export function searchParty(
-	parties: components["schemas"]["PartyListModel"][],
-	partyName: string,
+export function searchPartyByNormalizedName(
+	parties: components["schemas"]["PartyItems"][],
+	normalizedPartyName: string,
 ) {
-	const normalizedPartyName = normalizeString(partyName);
-
 	return parties.find(
 		(party) =>
-			party.partyNormalizedName === normalizedPartyName ||
-			party.partyAliases.some(
-				(alias) => alias.aliasNormalizedName === normalizedPartyName,
+			party.normalizedName === normalizedPartyName ||
+			party.aliases.some(
+				(alias) => alias.normalizedName === normalizedPartyName,
 			),
-	)?.partyId;
+	);
 }
 
 export function resolveParty(
-	rawMetadata: string | undefined,
-	parties: components["schemas"]["PartyListModel"][],
+	rawMetadata: string[],
+	parties: components["schemas"]["PartyItems"][],
 ) {
-	const artists = splitArtists(rawMetadata);
+	const artists = rawMetadata.flatMap((artist) => splitArtists(artist));
+	const hasVariousArtists = rawMetadata.some(checkIfVariousArtists);
 
-	return artists.reduce<{
-		albumParty: components["schemas"]["AlbumCreditRequest"][];
-		unsolved: string[];
-	}>(
-		(acc, artist) => {
-			const id = searchParty(parties, artist);
+	const albumParty: CreditRequest[] = [];
+	const unsolved: string[] = [];
 
-			if (id !== undefined) {
-				acc.albumParty.push({
-					partyId: id,
-					credit: "Artist",
-				});
-			} else {
-				acc.unsolved.push(artist);
-			}
+	const seenPartyIds = new Set<PartyItem["partyId"]>();
 
-			return acc;
-		},
-		{ albumParty: [], unsolved: [] },
+	for (const artist of artists) {
+		const party = searchPartyByNormalizedName(parties, normalizeString(artist));
+
+		if (party === undefined) {
+			unsolved.push(artist);
+			continue;
+		}
+
+		if (seenPartyIds.has(party.partyId)) {
+			continue;
+		}
+
+		seenPartyIds.add(party.partyId);
+
+		albumParty.push({
+			partyId: party.partyId,
+			credit: "Artist",
+		});
+	}
+
+	return {
+		albumParty,
+		unsolved,
+		hasVariousArtists,
+	};
+}
+
+export function getCreditNames(
+	parties: PartyItem[],
+	credits: CreditRequest[],
+): string[] {
+	const partyNameById = new Map(
+		parties.map((party) => [party.partyId, party.name]),
 	);
+
+	return credits.map(
+		(credit) => partyNameById.get(credit.partyId) ?? "Unknown artist",
+	);
+}
+
+export function getPartyAvatarUrl(
+	image?: components["schemas"]["ImageFileVariants"] | null,
+): string | null {
+	return image?.imageAvatar512x512?.url ?? image?.original?.url ?? null;
 }

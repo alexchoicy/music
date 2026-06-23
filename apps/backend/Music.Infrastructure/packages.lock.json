@@ -4,11 +4,11 @@
     "net10.0": {
       "AWSSDK.S3": {
         "type": "Direct",
-        "requested": "[4.0.23.4, )",
-        "resolved": "4.0.23.4",
-        "contentHash": "hcCTuMCPVk2cX83sQfvSF/e9uOPxK5KxpuhR9LZVFAKqwUMr2fnrsDXwWu3t3h4Vw+Urx4vTjV9V/PV2KLAUtQ==",
+        "requested": "[4.0.25.3, )",
+        "resolved": "4.0.25.3",
+        "contentHash": "xfvFNskg5x/Z10UkRA2XdQxADgMoBPE4LwrGDvE7EGoK7nqoO1CCmLNy1jteprZDBEHwUAZcIfagEDN7YFhH0Q==",
         "dependencies": {
-          "AWSSDK.Core": "[4.0.7.3, 5.0.0)"
+          "AWSSDK.Core": "[4.0.9.7, 5.0.0)"
         }
       },
       "Blake3": {
@@ -88,10 +88,16 @@
           "Npgsql": "10.0.2"
         }
       },
+      "SixLabors.ImageSharp": {
+        "type": "Direct",
+        "requested": "[3.1.11, )",
+        "resolved": "3.1.11",
+        "contentHash": "JfPLyigLthuE50yi6tMt7Amrenr/fA31t2CvJyhy/kQmfulIBAqo5T/YFUSRHtuYPXRSaUHygFeh6Qd933EoSw=="
+      },
       "AWSSDK.Core": {
         "type": "Transitive",
-        "resolved": "4.0.7.3",
-        "contentHash": "F7x7IREeF8nd5pQUz0bYQf7TyrREZBQBqUdswkeGf1BWg91uHT8/lvENTb8+cN5xLxbf+m06FANDOD+GK8NrHw=="
+        "resolved": "4.0.9.7",
+        "contentHash": "zCk+WKedXq45u92RcqWcZodzwvQryrqNpUWFdEPBm3ExuwDhY3BMF0VYMWiD/ko0ThhChqf9libgIpd/hQuBPQ=="
       },
       "Humanizer.Core": {
         "type": "Transitive",

@@ -1,11 +1,14 @@
 using Blake3;
-using Music.Core.Services.Interfaces;
+using Music.Core.Services.Files;
 
 namespace Music.Infrastructure.Services.Files;
 
 public sealed class HashService : IHashService
 {
-    public async Task<string> ComputeBlake3HashAsync(string sourcePath, CancellationToken cancellationToken = default)
+    public async Task<string> ComputeBlake3HashAsync(
+        string sourcePath,
+        CancellationToken cancellationToken = default
+    )
     {
         if (string.IsNullOrWhiteSpace(sourcePath))
             throw new ArgumentException("Value cannot be null or empty.", nameof(sourcePath));
@@ -17,8 +20,9 @@ public sealed class HashService : IHashService
                 Mode = FileMode.Open,
                 Access = FileAccess.Read,
                 Share = FileShare.Read,
-                Options = FileOptions.Asynchronous | FileOptions.SequentialScan
-            });
+                Options = FileOptions.Asynchronous | FileOptions.SequentialScan,
+            }
+        );
 
         using var hasher = Hasher.New();
 

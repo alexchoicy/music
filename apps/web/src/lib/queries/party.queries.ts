@@ -1,67 +1,68 @@
 import { queryOptions } from "@tanstack/react-query";
-import type { components } from "@/data/APIschema";
+
+import type { components, paths } from "#/data/APIschema";
+
 import { $APIFetch } from "../APIFetchClient";
 
+export type PartyQuery = paths["/parties"]["get"]["parameters"]["query"];
+
 export const partyQueries = {
-	getPartySearchList: (query?: string) =>
+	getParties: (query?: PartyQuery) =>
 		queryOptions({
-			queryKey: ["parties", "searchList", query],
+			queryKey: ["parties", query],
 			queryFn: async () => {
-				const result = await $APIFetch<
-					components["schemas"]["PartyListModel"][]
-				>(
-					"/parties/list?" +
-						new URLSearchParams({
-							Search: query || "",
-						}),
-					{
-						method: "GET",
-					},
-				);
-				if (!result.ok) return [];
+				const params = new URLSearchParams();
+
+				if (query?.Search) params.set("Search", query.Search);
+				if (query?.Country) params.set("Country", query.Country);
+				if (query?.Type) params.set("Type", query.Type);
+				if (query?.Kind) params.set("Kind", query.Kind);
+				if (query?.Gender) params.set("Gender", query.Gender);
+				if (query?.ExcludeNoAlbums) params.set("ExcludeNoAlbums", "true");
+				if (query?.Sort) params.set("Sort", query.Sort);
+
+				const url = params.size ? `/parties?${params}` : "/parties";
+
+				const result =
+					await $APIFetch<components["schemas"]["PartyItems"][]>(url);
+
+				if (!result.ok) {
+					throw new Error("Unable to load parties");
+				}
 				return result.data;
 			},
 		}),
-	getParties: () =>
-		queryOptions({
-			queryKey: ["parties"],
-			queryFn: async () => {
-				const result = await $APIFetch<components["schemas"]["PartyModel"][]>(
-					"/parties",
-					{
-						method: "GET",
-					},
-				);
-				if (!result.ok) return [];
-				return result.data;
-			},
-		}),
-	getParty: (id: string) =>
+	getParty: (id: number | string) =>
 		queryOptions({
 			queryKey: ["parties", id],
 			queryFn: async () => {
-				const result = await $APIFetch<
-					components["schemas"]["PartyDetailModel"]
-				>(`/parties/${id}`, {
-					method: "GET",
-				});
-				if (!result.ok) throw new Error("Failed to fetch party");
+				const result = await $APIFetch<components["schemas"]["PartyDetails"]>(
+					`/parties/${id}`,
+					{
+						method: "GET",
+					},
+				);
+
+				if (!result.ok) {
+					throw new Error("Unable to load party");
+				}
+
 				return result.data;
 			},
 		}),
 };
 
-export const partyMutations = {
-	create: () => ({
-		mutationFn: async (data: components["schemas"]["CreatePartyRequest"]) => {
-			const result = await $APIFetch("/parties", {
+export const partyMutation = {
+	createParty: () => ({
+		mutationFn: async (info: components["schemas"]["CreatePartyRequest"]) => {
+			const result = await $APIFetch<
+				components["schemas"]["CreatePartyResult"]
+			>("/parties", {
 				method: "POST",
-				body: JSON.stringify(data),
+				body: JSON.stringify(info),
 			});
-			if (!result.ok) {
-				throw new Error("Failed to create party");
-			}
-			return result;
+			if (!result.ok) throw new Error("Failed to create party");
+			return result.data;
 		},
 	}),
 };

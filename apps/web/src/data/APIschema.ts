@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/albums/{id}/simple": {
+    "/albums/{id}/summary": {
         parameters: {
             query?: never;
             header?: never;
@@ -28,53 +28,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["AlbumSimpleModel"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/albums/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: number;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["AlbumDetailsModel"];
+                        "application/json": components["schemas"]["AlbumSummary"];
                     };
                 };
                 /** @description Not Found */
@@ -105,7 +59,14 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    Search?: string;
+                    Types?: components["schemas"]["AlbumType"][];
+                    LanguageIds?: (number | string)[];
+                    PartyIds?: (number | string)[];
+                    IsIncludeInTrackCredit?: boolean;
+                    Sort?: components["schemas"]["ListSortOption"];
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -118,7 +79,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["AlbumListItemModel"][];
+                        "application/json": components["schemas"]["AlbumListItem"][];
                     };
                 };
             };
@@ -161,6 +122,17 @@ export interface paths {
                         "text/json": components["schemas"]["CreateAlbumResult"][];
                     };
                 };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CreateAlbumResult"][];
+                        "application/json": components["schemas"]["CreateAlbumResult"][];
+                        "text/json": components["schemas"]["CreateAlbumResult"][];
+                    };
+                };
                 /** @description Unauthorized */
                 401: {
                     headers: {
@@ -180,7 +152,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/albums/{id}/download": {
+    "/albums/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -189,9 +161,7 @@ export interface paths {
         };
         get: {
             parameters: {
-                query: {
-                    variant: components["schemas"]["FileObjectVariant"];
-                };
+                query?: never;
                 header?: never;
                 path: {
                     id: number;
@@ -206,16 +176,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["AlbumTrackDownloadItemModel"][];
-                    };
-                };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["AlbumDetails"];
                     };
                 };
                 /** @description Not Found */
@@ -267,9 +228,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["LoginResponse"];
-                        "application/json": components["schemas"]["LoginResponse"];
-                        "text/json": components["schemas"]["LoginResponse"];
+                        "text/plain": components["schemas"]["LoginResult"];
+                        "application/json": components["schemas"]["LoginResult"];
+                        "text/json": components["schemas"]["LoginResult"];
                     };
                 };
                 /** @description Unauthorized */
@@ -438,9 +399,9 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CreateConcertModel"];
-                    "text/json": components["schemas"]["CreateConcertModel"];
-                    "application/*+json": components["schemas"]["CreateConcertModel"];
+                    "application/json": components["schemas"]["CreateConcertRequest"];
+                    "text/json": components["schemas"]["CreateConcertRequest"];
+                    "application/*+json": components["schemas"]["CreateConcertRequest"];
                 };
             };
             responses: {
@@ -481,9 +442,9 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CreateConcertModel"];
-                    "text/json": components["schemas"]["CreateConcertModel"];
-                    "application/*+json": components["schemas"]["CreateConcertModel"];
+                    "application/json": components["schemas"]["CreateConcertRequest"];
+                    "text/json": components["schemas"]["CreateConcertRequest"];
+                    "application/*+json": components["schemas"]["CreateConcertRequest"];
                 };
             };
             responses: {
@@ -500,6 +461,98 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/concerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Search?: string;
+                    PartyIds?: (number | string)[];
+                    IsIncludeInGuestCredit?: boolean;
+                    Sort?: components["schemas"]["ListSortOption"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ConcertListItem"][];
+                        "application/json": components["schemas"]["ConcertListItem"][];
+                        "text/json": components["schemas"]["ConcertListItem"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/concerts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ConcertDetails"];
+                        "application/json": components["schemas"]["ConcertDetails"];
+                        "text/json": components["schemas"]["ConcertDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -563,12 +616,16 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Found */
-                302: {
+                /** @description OK */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": string;
+                        "application/json": string;
+                        "text/json": string;
+                    };
                 };
             };
         };
@@ -580,7 +637,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/files/{id}/init": {
+    "/files/{id}/manifest.mpd": {
         parameters: {
             query?: never;
             header?: never;
@@ -604,9 +661,81 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["MultipartUploadInfo"];
-                        "application/json": components["schemas"]["MultipartUploadInfo"];
-                        "text/json": components["schemas"]["MultipartUploadInfo"];
+                        "application/dash+xml": string;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": string;
+                        "application/json": string;
+                        "text/json": string;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/languages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LanguageListItem"][];
                     };
                 };
             };
@@ -667,59 +796,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/migrations/audio/missing-opus96": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Opus96BackfillResultModel"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/parties": {
         parameters: {
             query?: never;
@@ -729,7 +805,15 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    Search?: string;
+                    Country?: components["schemas"]["CountryCode"];
+                    Type?: components["schemas"]["PartyType"];
+                    Kind?: components["schemas"]["PartyKind"];
+                    Gender?: components["schemas"]["PartyGender"];
+                    ExcludeNoAlbums?: boolean;
+                    Sort?: components["schemas"]["ListSortOption"];
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -742,7 +826,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["PartyModel"][];
+                        "application/json": components["schemas"]["PartyItems"][];
                     };
                 };
             };
@@ -769,7 +853,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": unknown;
+                        "application/json": components["schemas"]["CreatePartyResult"];
                     };
                 };
                 /** @description Bad Request */
@@ -783,43 +867,6 @@ export interface paths {
                 };
             };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/parties/list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: {
-                    Search?: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["PartyListModel"][];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -850,7 +897,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["PartyDetailModel"];
+                        "application/json": components["schemas"]["PartyDetails"];
                     };
                 };
                 /** @description Not Found */
@@ -872,7 +919,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/tracks/{id}/download": {
+    "/search": {
         parameters: {
             query?: never;
             header?: never;
@@ -881,12 +928,145 @@ export interface paths {
         };
         get: {
             parameters: {
-                query: {
-                    variant: components["schemas"]["FileObjectVariant"];
+                query?: {
+                    Query?: string;
                 };
                 header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["SearchResult"];
+                        "application/json": components["schemas"]["SearchResult"];
+                        "text/json": components["schemas"]["SearchResult"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/uploads/Init": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateUploadRequest"];
+                    "text/json": components["schemas"]["CreateUploadRequest"];
+                    "application/*+json": components["schemas"]["CreateUploadRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MultipartUploadResults"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PendingOriginalFileResult"][];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/uploads/{fileObjectId}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
                 path: {
-                    id: number;
+                    fileObjectId: string;
                 };
                 cookie?: never;
             };
@@ -898,20 +1078,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["AlbumTrackDownloadItemModel"];
+                        "application/json": components["schemas"]["StartUploadResult"];
                     };
                 };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
+                /** @description Unauthorized */
+                401: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -921,15 +1092,13 @@ export interface paths {
                 };
             };
         };
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/uploads/audio/complete-multipart": {
+    "/uploads/complete": {
         parameters: {
             query?: never;
             header?: never;
@@ -947,9 +1116,9 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CompleteMultipartUploadRequest"][];
-                    "text/json": components["schemas"]["CompleteMultipartUploadRequest"][];
-                    "application/*+json": components["schemas"]["CompleteMultipartUploadRequest"][];
+                    "application/json": components["schemas"]["CompleteUploadRequest"];
+                    "text/json": components["schemas"]["CompleteUploadRequest"];
+                    "application/*+json": components["schemas"]["CompleteUploadRequest"];
                 };
             };
             responses: {
@@ -958,9 +1127,7 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "application/json": unknown;
-                    };
+                    content?: never;
                 };
                 /** @description Unauthorized */
                 401: {
@@ -968,7 +1135,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
                         "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -979,7 +1148,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users": {
+    "/workers/concert": {
         parameters: {
             query?: never;
             header?: never;
@@ -997,58 +1166,21 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CreateUserRequest"];
-                    "text/json": components["schemas"]["CreateUserRequest"];
-                    "application/*+json": components["schemas"]["CreateUserRequest"];
+                    "application/json": components["schemas"]["RerunConcertWorkerRequest"];
+                    "text/json": components["schemas"]["RerunConcertWorkerRequest"];
+                    "application/*+json": components["schemas"]["RerunConcertWorkerRequest"];
                 };
             };
             responses: {
-                /** @description Created */
-                201: {
+                /** @description OK */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "text/plain": components["schemas"]["UserDto"];
-                        "application/json": components["schemas"]["UserDto"];
-                        "text/json": components["schemas"]["UserDto"];
-                    };
+                    content?: never;
                 };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Conflict */
-                409: {
+                /** @description Not Found */
+                404: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -1070,18 +1202,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        AlbumCoverVariantModel: {
-            variant: components["schemas"]["FileObjectVariant"];
-            url: string;
+        AlbumCoverDetails: {
+            album: components["schemas"]["ImageFileVariants"];
+            discs: components["schemas"]["AlbumDiscCoverDetails"][];
         };
-        AlbumCreditRequest: {
-            /** Format: int32 */
-            partyId: number | string;
-            credit: components["schemas"]["AlbumCreditType"];
-        };
-        /** @enum {unknown} */
-        AlbumCreditType: "Artist";
-        AlbumDetailsModel: {
+        AlbumDetails: {
             /** Format: int32 */
             albumId: number | string;
             title: string;
@@ -1092,33 +1217,44 @@ export interface components {
             totalTrackCount: number | string;
             /** Format: int32 */
             totalDurationInMs: number | string;
-            coverImageUrl?: null | string;
-            credits: components["schemas"]["AlbumPartyCreditModel"][];
-            discs: components["schemas"]["AlbumDiscDetailsModel"][];
+            cover: components["schemas"]["AlbumCoverDetails"];
+            credits: components["schemas"]["AlbumPartyCredit"][];
+            discs: components["schemas"]["AlbumDiscDetails"][];
         };
-        AlbumDiscDetailsModel: {
+        AlbumDiscCoverDetails: {
+            /** Format: int32 */
+            albumDiscId: number | string;
+            /** Format: int32 */
+            discNumber: number | string;
+            variants: components["schemas"]["ImageFileVariants"];
+        };
+        AlbumDiscDetails: {
+            /** Format: int32 */
+            albumDiscId: number | string;
             /** Format: int32 */
             discNumber: number | string;
             subtitle?: string;
-            tracks: components["schemas"]["AlbumTrackDetailsModel"][];
+            tracks: components["schemas"]["AlbumTrackDetails"][];
         };
         AlbumDiscRequest: {
             /** Format: int32 */
             discNumber: number | string;
             subtitle?: string;
+            image?: null | components["schemas"]["AlbumImageRequest"];
             tracks: components["schemas"]["AlbumTrackRequest"][];
         };
         AlbumImageRequest: {
+            clientReferenceId: string;
             file: components["schemas"]["FileRequest"];
             description?: string;
-            fileCroppedArea?: null | components["schemas"]["FileCroppedArea"];
+            croppedArea?: null | components["schemas"]["FileCroppedAreaRequest"];
         };
-        AlbumListArtistModel: {
+        AlbumListArtist: {
             /** Format: int32 */
             partyId: number | string;
             name: string;
         };
-        AlbumListItemModel: {
+        AlbumListItem: {
             /** Format: int32 */
             albumId: number | string;
             title: string;
@@ -1130,60 +1266,71 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
-            coverVariants?: components["schemas"]["AlbumCoverVariantModel"][];
-            artists: components["schemas"]["AlbumListArtistModel"][];
+            coverVariants?: components["schemas"]["ImageFileVariants"];
+            discCovers?: components["schemas"]["AlbumDiscCoverDetails"][];
+            artists: components["schemas"]["AlbumListArtist"][];
+            matchedTracks?: components["schemas"]["AlbumListMatchedTrack"][];
             /** Format: int32 */
-            trackCount?: number | string;
+            trackCount: number | string;
             /** Format: int32 */
-            totalDurationInMs?: number | string;
+            totalDurationInMs: number | string;
         };
-        AlbumPartyCreditModel: {
-            /** Format: int32 */
-            partyId: number | string;
-            name: string;
-            type: components["schemas"]["PartyType"];
-            creditType: components["schemas"]["AlbumCreditType"];
-        };
-        AlbumSimpleModel: {
-            title: string;
-            credits: string[];
-            coverUrl: string;
-        };
-        AlbumTrackDetailsModel: {
-            /** Format: int32 */
-            trackId: number | string;
-            /** Format: int32 */
-            trackNumber: number | string;
-            title: string;
-            /** Format: int32 */
-            durationInMs: number | string;
-            credits: components["schemas"]["TrackPartyCreditModel"][];
-            trackVariants: components["schemas"]["TrackVariantDetailsModel"][];
-        };
-        AlbumTrackDownloadItemModel: {
+        AlbumListMatchedTrack: {
             /** Format: int32 */
             trackId: number | string;
             /** Format: int32 */
             discNumber: number | string;
             /** Format: int32 */
             trackNumber: number | string;
-            trackTitle: string;
-            variant: components["schemas"]["FileObjectVariant"];
-            fileName: string;
-            url: string;
+            title: string;
+            /** Format: int32 */
+            basedOnTrackId?: null | number | string;
+            basedOnTrackTitle?: null | string;
+        };
+        AlbumPartyCredit: {
+            /** Format: int32 */
+            partyId: number | string;
+            name: string;
+            type: components["schemas"]["PartyType"];
+            creditType: components["schemas"]["CreditType"];
+            avatar: components["schemas"]["ImageFileVariants"];
+        };
+        AlbumSummary: {
+            title: string;
+            credits: string[];
+            coverUrl: string;
+        };
+        AlbumTrackDetails: {
+            /** Format: int32 */
+            trackId: number | string;
+            /** Format: int32 */
+            trackNumber: number | string;
+            title: string;
+            /** Format: int32 */
+            durationInMs: number | string;
+            contentType: components["schemas"]["TrackContentType"];
+            versionType: components["schemas"]["TrackVersionType"];
+            /** Format: int32 */
+            basedOnTrackId?: null | number | string;
+            credits: components["schemas"]["TrackPartyCredit"][];
+            audios: components["schemas"]["TrackAudioDetails"][];
         };
         AlbumTrackRequest: {
+            clientTempTrackId: string;
             /** Format: int32 */
             trackNumber: number | string;
             title: string;
             description?: string;
-            isMC?: boolean;
             /** Format: int32 */
             durationInMs: number | string;
             /** Format: int32 */
             languageId?: null | number | string;
-            trackCredits: components["schemas"]["TrackCreditRequest"][];
-            trackVariants: components["schemas"]["TrackVariantRequest"][];
+            contentType?: components["schemas"]["TrackContentType"];
+            versionType?: components["schemas"]["TrackVersionType"];
+            /** Format: int32 */
+            basedOnTrackId?: null | number | string;
+            credits: components["schemas"]["CreditRequest"][];
+            audios: components["schemas"]["TrackAudioRequest"][];
         };
         /** @enum {unknown} */
         AlbumType: "Album" | "Single" | "Compilation" | "Live" | "Soundtrack" | "Remix" | "Other";
@@ -1193,20 +1340,123 @@ export interface components {
             eTag: string;
         };
         CompleteMultipartUploadRequest: {
-            blake3Id: string;
             uploadId: string;
             parts: components["schemas"]["CompleteMultipartUploadPart"][];
         };
+        CompleteUploadRequest: {
+            /** Format: uuid */
+            fileObjectId: string;
+            multipart?: null | components["schemas"]["CompleteMultipartUploadRequest"];
+        };
+        ConcertDetails: {
+            /** Format: int32 */
+            concertId: number | string;
+            title: string;
+            description?: string;
+            /** Format: date-time */
+            date?: null | string;
+            coverVariants: components["schemas"]["ImageFileVariants"];
+            linkedParties: components["schemas"]["ConcertPartySummary"][];
+            linkedAlbums: components["schemas"]["AlbumListItem"][];
+            files: components["schemas"]["ConcertFileDetails"][];
+            /** Format: int32 */
+            totalDurationInMs: number | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ConcertFileDetails: {
+            /** Format: int32 */
+            concertFileId: number | string;
+            title: string;
+            type: components["schemas"]["ConcertFileType"];
+            /** Format: int32 */
+            order: number | string;
+            source: components["schemas"]["MediaSource"];
+            sourceUrl?: null | string;
+            file: components["schemas"]["ConcertFileVariants"];
+        };
+        ConcertFileRequest: {
+            title: string;
+            type: components["schemas"]["ConcertFileType"];
+            /** Format: int32 */
+            order?: number | string;
+            source?: components["schemas"]["MediaSource"];
+            sourceUrl?: null | string;
+            simpleBlake3Hash: string;
+            mimeType: string;
+            /** Format: int64 */
+            sizeInBytes: number | string;
+            originalFileName: string;
+        };
         /** @enum {unknown} */
         ConcertFileType: "Performance" | "BehindTheScenes" | "Extra" | "Other";
+        ConcertFileVariants: {
+            original: components["schemas"]["FileObjectDetails"];
+            originalDash?: null | components["schemas"]["FileObjectDetails"];
+            remuxedOriginal?: null | components["schemas"]["FileObjectDetails"];
+            dashAV1?: null | components["schemas"]["FileObjectDetails"];
+            thumbnail640x360?: null | components["schemas"]["FileObjectDetails"];
+            attachedPicture?: null | components["schemas"]["FileObjectDetails"];
+            subtitleVtt: components["schemas"]["FileObjectDetails"][];
+            subtitleSup: components["schemas"]["FileObjectDetails"][];
+        };
+        ConcertImageRequest: {
+            file: components["schemas"]["FileRequest"];
+            croppedArea?: null | components["schemas"]["FileCroppedAreaRequest"];
+        };
+        ConcertListItem: {
+            /** Format: int32 */
+            concertId: number | string;
+            title: string;
+            /** Format: double */
+            similarity?: number | string;
+            description?: string;
+            /** Format: date-time */
+            date?: null | string;
+            coverVariants: components["schemas"]["ImageFileVariants"];
+            parties: components["schemas"]["ConcertPartySummary"][];
+            /** Format: int32 */
+            albumCount: number | string;
+            /** Format: int32 */
+            fileCount: number | string;
+            /** Format: int32 */
+            totalDurationInMs: number | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ConcertPartyRequest: {
+            /** Format: int32 */
+            partyId: number | string;
+            role: components["schemas"]["ConcertPartyRole"];
+        };
         /** @enum {unknown} */
         ConcertPartyRole: "MainArtist" | "Guest";
+        ConcertPartySummary: {
+            /** Format: int32 */
+            partyId: number | string;
+            name: string;
+            avatar: components["schemas"]["ImageFileVariants"];
+            type: components["schemas"]["PartyType"];
+            role: components["schemas"]["ConcertPartyRole"];
+        };
+        /** @enum {unknown} */
+        CountryCode: "XX" | "HK" | "JP" | "KR" | "US" | "CN" | "TW";
         CreateAlbumImageUploadItemResult: {
-            blake3Id: string;
+            clientReferenceId: string;
+            /** Format: int32 */
+            discNumber?: null | number | string;
+            /** Format: uuid */
+            fileObjectId: string;
+            blake3Hash: string;
             fileName: string;
             uploadUrl: string;
         };
         CreateAlbumRequest: {
+            clientTempAlbumId: string;
             title: string;
             description?: string;
             type: components["schemas"]["AlbumType"];
@@ -1214,58 +1464,41 @@ export interface components {
             languageId?: null | number | string;
             /** Format: date-time */
             releaseDate?: null | string;
-            albumCredits: components["schemas"]["AlbumCreditRequest"][];
-            albumImage?: null | components["schemas"]["AlbumImageRequest"];
+            credits: components["schemas"]["CreditRequest"][];
+            image?: null | components["schemas"]["AlbumImageRequest"];
             discs: components["schemas"]["AlbumDiscRequest"][];
         };
         CreateAlbumResult: {
+            clientTempAlbumId: string;
             albumTitle: string;
             isSuccess?: boolean;
             errorMessage?: null | string;
-            createAlbumUploadResults?: null | components["schemas"]["CreateAlbumUploadResult"];
+            upload?: null | components["schemas"]["CreateAlbumUploadResult"];
         };
         CreateAlbumTrackUploadItemResult: {
-            blake3Id: string;
+            /** Format: uuid */
+            fileObjectId: string;
+            blake3Hash: string;
             fileName: string;
-            multipartUploadInfo: components["schemas"]["MultipartUploadInfo"];
+            multipartUploadInfo: components["schemas"]["MultipartUploadResults"];
         };
         CreateAlbumUploadResult: {
             albumTitle: string;
-            albumImage?: null | components["schemas"]["CreateAlbumImageUploadItemResult"];
+            images?: components["schemas"]["CreateAlbumImageUploadItemResult"][];
             tracks?: components["schemas"]["CreateAlbumTrackUploadItemResult"][];
         };
-        CreateConcertFileModel: {
-            title: string;
-            type: components["schemas"]["ConcertFileType"];
-            /** Format: int32 */
-            order?: number | string;
-            simpleBlake3Hash: string;
-            mimeType: string;
-            /** Format: int64 */
-            fileSizeInBytes: number | string;
-            originalFileName: string;
-        };
-        CreateConcertImage: {
-            file: components["schemas"]["CreateFileModel"];
-            fileCroppedArea?: null | components["schemas"]["FileCroppedAreaModel"];
-        };
-        CreateConcertModel: {
+        CreateConcertRequest: {
             title: string;
             description?: string;
             /** Format: date-time */
             date?: null | string;
-            image?: null | components["schemas"]["CreateConcertImage"];
+            image?: null | components["schemas"]["ConcertImageRequest"];
             linkedAlbumIds?: (number | string)[];
-            linkedParties?: components["schemas"]["CreateConcertPartyModel"][];
-            files?: components["schemas"]["CreateConcertFileModel"][];
-        };
-        CreateConcertPartyModel: {
-            /** Format: int32 */
-            partyId: number | string;
-            role: components["schemas"]["ConcertPartyRole"];
+            linkedParties?: components["schemas"]["ConcertPartyRequest"][];
+            files?: components["schemas"]["ConcertFileRequest"][];
         };
         CreateConcertUploadImageResult: {
-            blake3Id: string;
+            blake3Hash: string;
             uploadUrl: string;
         };
         CreateConcertUploadItemResult: {
@@ -1273,7 +1506,7 @@ export interface components {
             /** Format: uuid */
             fileObjectId: string;
             simpleBlake3Hash: string;
-            multipartUploadInfo: components["schemas"]["MultipartUploadInfo"];
+            multipartUploadInfo: components["schemas"]["MultipartUploadResults"];
         };
         CreateConcertUploadResult: {
             concertTitle: string;
@@ -1292,42 +1525,32 @@ export interface components {
             concertTitle: string;
             files?: components["schemas"]["CreateConcertWithoutUploadItemResult"][];
         };
-        CreateFileModel: {
-            fileBlake3: string;
-            mimeType: string;
-            /** Format: int64 */
-            fileSizeInBytes: number | string;
-            container: string;
-            extension: string;
-            codec?: null | string;
-            /** Format: int32 */
-            width?: null | number | string;
-            /** Format: int32 */
-            height?: null | number | string;
-            /** Format: int32 */
-            audioSampleRate?: null | number | string;
-            /** Format: int32 */
-            bitrate?: null | number | string;
-            /** Format: double */
-            frameRate?: null | number | string;
-            /** Format: int32 */
-            durationInMs?: null | number | string;
-            originalFileName: string;
-        };
         CreatePartyRequest: {
             name: string;
-            partyType: components["schemas"]["PartyType"];
-            /** Format: int32 */
-            languageId?: number | string;
-            cover?: null | components["schemas"]["PartyImageRequest"];
+            type: components["schemas"]["PartyType"];
+            kind: components["schemas"]["PartyKind"];
+            gender?: components["schemas"]["PartyGender"];
+            country: components["schemas"]["CountryCode"];
+            musicBrainzID?: null | string;
+            avatar?: null | components["schemas"]["PartyImageRequest"];
             banner?: null | components["schemas"]["PartyImageRequest"];
         };
-        CreateUserRequest: {
-            username: string;
-            password: string;
-            role: components["schemas"]["Roles"];
+        CreatePartyResult: {
+            /** Format: int32 */
+            partyId: number | string;
         };
-        FileCroppedArea: {
+        CreateUploadRequest: {
+            /** Format: int32 */
+            fileObjectId: number | string;
+        };
+        CreditRequest: {
+            /** Format: int32 */
+            partyId: number | string;
+            credit: components["schemas"]["CreditType"];
+        };
+        /** @enum {unknown} */
+        CreditType: "Artist";
+        FileCroppedAreaRequest: {
             /** Format: int32 */
             width: number | string;
             /** Format: int32 */
@@ -1337,22 +1560,11 @@ export interface components {
             /** Format: int32 */
             y: number | string;
         };
-        FileCroppedAreaModel: {
-            /** Format: int32 */
-            width: number | string;
-            /** Format: int32 */
-            height: number | string;
-            /** Format: int32 */
-            x: number | string;
-            /** Format: int32 */
-            y: number | string;
-        };
-        FileObjectDetailsModel: {
+        FileObjectDetails: {
             /** Format: uuid */
             id: string;
             url: string;
-            type: components["schemas"]["FileObjectType"];
-            fileObjectVariant: components["schemas"]["FileObjectVariant"];
+            variant: components["schemas"]["FileObjectVariant"];
             /** Format: int64 */
             sizeInBytes: number | string;
             mimeType: string;
@@ -1367,27 +1579,34 @@ export interface components {
             audioSampleRate?: null | number | string;
             /** Format: int32 */
             bitrate?: null | number | string;
+            /** Format: int32 */
+            bitsPerSample?: null | number | string;
             /** Format: double */
             frameRate?: null | number | string;
             /** Format: int32 */
             durationInMs?: null | number | string;
-            originalFileName: string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
         };
-        FileObjectType: number;
         /** @enum {unknown} */
-        FileObjectVariant: "Original" | "CroppedOriginal" | "Cover600" | "Banner1200x400" | "Thumbnail640x360" | "Opus96" | "WaveformB8Pixel20";
+        FileObjectVariant: "Original" | "TaggedOriginal" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup" | "RemuxedOriginal" | "ImageCover1024x1024" | "ImageAvatar512x512" | "ImageBanner1500x500" | "ImageWide1280x720";
+        /** @enum {unknown} */
+        FileProcessingStatus: "Pending" | "Processing" | "Completed" | "Failed" | "Uploaded";
         FileRequest: {
-            fileBlake3: string;
+            blake3Hash: string;
             mimeType: string;
             /** Format: int64 */
-            fileSizeInBytes: number | string;
+            sizeInBytes: number | string;
             container: string;
             extension: string;
             codec?: null | string;
+            lossless?: boolean;
+            /** Format: int32 */
+            audioChannels?: null | number | string;
+            /** Format: int32 */
+            bitsPerSample?: null | number | string;
             /** Format: int32 */
             width?: null | number | string;
             /** Format: int32 */
@@ -1402,84 +1621,103 @@ export interface components {
             durationInMs?: null | number | string;
             originalFileName: string;
         };
-        LanguageModel: {
-            /** Format: int32 */
-            languageId: number | string;
-            name: string;
+        ImageFileVariants: {
+            original?: null | components["schemas"]["FileObjectDetails"];
+            imageCover1024x1024?: null | components["schemas"]["FileObjectDetails"];
+            imageAvatar512x512?: null | components["schemas"]["FileObjectDetails"];
+            imageBanner1500x500?: null | components["schemas"]["FileObjectDetails"];
+            imageWide1280x720?: null | components["schemas"]["FileObjectDetails"];
         };
+        LanguageListItem: {
+            /** Format: int32 */
+            id: number | string;
+            language: string;
+        };
+        /** @enum {unknown} */
+        ListSortOption: "TitleAsc" | "TitleDesc" | "CreatedAtDesc" | "CreatedAtAsc";
         LoginRequest: {
             username: string;
             password: string;
         };
-        LoginResponse: {
+        LoginResult: {
             token: string;
-            user: components["schemas"]["UserDto"];
+            user: components["schemas"]["UserInfo"];
         };
-        MultipartUploadInfo: {
-            uploadId: string;
-            /** Format: int64 */
-            partSizeInBytes: number | string;
-            parts: components["schemas"]["MultipartUploadPartInfo"][];
-        };
+        /** @enum {unknown} */
+        MediaSource: "Unknown" | "UserUpload" | "MORA" | "OTOTOY" | "CD" | "BluRay" | "Vinyl" | "YouTube" | "SoundCloud" | "Spotify" | "Twitter" | "Other";
         MultipartUploadPartInfo: {
             /** Format: int32 */
             partNumber: number | string;
             url: string;
         };
-        Opus96BackfillResultModel: {
-            /** Format: int32 */
-            scannedTrackSources: number | string;
-            /** Format: int32 */
-            eligibleTrackSources: number | string;
-            /** Format: int32 */
-            uniqueOriginalFileObjects: number | string;
-            /** Format: int32 */
-            queuedJobs: number | string;
-            /** Format: int32 */
-            skippedTrackSources: number | string;
+        MultipartUploadResults: {
+            uploadId: string;
+            /** Format: int64 */
+            partSizeInBytes: number | string;
+            parts: components["schemas"]["MultipartUploadPartInfo"][];
         };
-        PartyAliasModel: {
-            aliasName: string;
-            aliasNormalizedName: string;
+        PartyAlias: {
+            name: string;
+            normalizedName: string;
         };
-        PartyDetailModel: {
+        PartyDetails: {
             /** Format: int32 */
             partyId: number | string;
-            partyName: string;
-            iconUrl?: null | components["schemas"]["PartyImageModel"][];
-            bannerUrl?: null | components["schemas"]["PartyImageModel"][];
+            name: string;
+            avatarImages?: null | components["schemas"]["ImageFileVariants"];
+            country: components["schemas"]["CountryCode"];
+            description: string;
             type?: components["schemas"]["PartyType"];
-            language?: null | components["schemas"]["LanguageModel"];
-            partyAlbums: components["schemas"]["AlbumListItemModel"][];
-            partyPartOfAlbums: components["schemas"]["AlbumListItemModel"][];
+            kind: components["schemas"]["PartyKind"];
+            gender?: components["schemas"]["PartyGender"];
+            aliases: components["schemas"]["PartyAlias"][];
+            externalInfoLinks: components["schemas"]["PartyExternalInfoLink"][];
+            albums: components["schemas"]["AlbumListItem"][];
+            appearsOnAlbums: components["schemas"]["AlbumListItem"][];
         };
-        PartyImageModel: {
-            variant: components["schemas"]["FileObjectVariant"];
+        PartyExternalInfoLink: {
+            type: components["schemas"]["PartyExternalInfoType"];
             url: string;
         };
+        /** @enum {unknown} */
+        PartyExternalInfoType: "Spotify" | "Twitter" | "OfficialWebsite" | "YouTube" | "YouTubeMusic" | "Instagram" | "AppleMusic" | "Mora" | "Ototoy";
+        /** @enum {unknown} */
+        PartyGender: "Unknown" | "Male" | "Female";
         PartyImageRequest: {
-            imageType: components["schemas"]["PartyImageType"];
-            image: components["schemas"]["FileRequest"];
-            fileCroppedArea?: null | components["schemas"]["FileCroppedArea"];
+            file: components["schemas"]["FileRequest"];
+            croppedArea?: null | components["schemas"]["FileCroppedAreaRequest"];
+        };
+        PartyItems: {
+            /** Format: int32 */
+            partyId: number | string;
+            name: string;
+            normalizedName: string;
+            coverUrl: string;
+            country: components["schemas"]["CountryCode"];
+            type?: components["schemas"]["PartyType"];
+            kind: components["schemas"]["PartyKind"];
+            gender?: components["schemas"]["PartyGender"];
+            /** Format: double */
+            similarity?: number | string;
+            /** Format: int32 */
+            albumCount: number | string;
+            aliases: components["schemas"]["PartyAlias"][];
         };
         /** @enum {unknown} */
-        PartyImageType: "Avatar" | "Banner";
-        PartyListModel: {
-            /** Format: int32 */
-            partyId: number | string;
-            partyName: string;
-            partyNormalizedName: string;
-            partyAliases: components["schemas"]["PartyAliasModel"][];
-        };
-        PartyModel: {
-            /** Format: int32 */
-            partyId: number | string;
-            partyName: string;
-            avatarImages?: null | components["schemas"]["PartyImageModel"][];
-            type?: components["schemas"]["PartyType"];
-        };
+        PartyKind: "Human" | "VTuber" | "Vocaloid";
         /** @enum {unknown} */
         PartyType: "Individual" | "Group" | "Project";
+        PendingOriginalFileResult: {
+            /** Format: int32 */
+            fileId: number | string;
+            /** Format: uuid */
+            fileObjectId: string;
+            fileName: string;
+            blake3Hash: string;
+            processingStatus: components["schemas"]["FileProcessingStatus"];
+            /** Format: date-time */
+            createdAt: string;
+        };
         ProblemDetails: {
             type?: null | string;
             title?: null | string;
@@ -1488,55 +1726,54 @@ export interface components {
             detail?: null | string;
             instance?: null | string;
         };
-        /** @enum {unknown} */
-        Roles: "Admin" | "Uploader" | "User";
-        TrackCreditRequest: {
+        RerunConcertWorkerRequest: {
+            /** Format: uuid */
+            objectId: string;
+        };
+        SearchResult: {
+            albums: components["schemas"]["AlbumListItem"][];
+            concerts: components["schemas"]["ConcertListItem"][];
+            parties: components["schemas"]["PartyItems"][];
+        };
+        StartUploadResult: {
+            blake3Hash: string;
+            fileObject: components["schemas"]["PendingOriginalFileResult"];
+            multipartUpload: components["schemas"]["MultipartUploadResults"];
+        };
+        TrackAudioDetails: {
             /** Format: int32 */
-            partyId: number | string;
-            credit: components["schemas"]["TrackCreditType"];
+            rank: number | string;
+            pinned: boolean;
+            source: components["schemas"]["MediaSource"];
+            sourceUrl?: null | string;
+            file: components["schemas"]["TrackAudioFileVariants"];
+        };
+        TrackAudioFileVariants: {
+            original: components["schemas"]["FileObjectDetails"];
+            taggedOriginal?: null | components["schemas"]["FileObjectDetails"];
+            opus96?: null | components["schemas"]["FileObjectDetails"];
+            waveformB8Pixel20?: null | components["schemas"]["FileObjectDetails"];
+        };
+        TrackAudioRequest: {
+            file: components["schemas"]["FileRequest"];
+            /** Format: int32 */
+            rank?: number | string;
+            pinned?: boolean;
+            source?: components["schemas"]["MediaSource"];
+            sourceUrl?: null | string;
         };
         /** @enum {unknown} */
-        TrackCreditType: "Artist";
-        TrackPartyCreditModel: {
+        TrackContentType: "Music" | "MC" | "Interlude" | "Intro";
+        TrackPartyCredit: {
             /** Format: int32 */
             partyId: number | string;
             name: string;
             type: components["schemas"]["PartyType"];
-            creditType: components["schemas"]["TrackCreditType"];
+            creditType: components["schemas"]["CreditType"];
+            avatar: components["schemas"]["ImageFileVariants"];
         };
         /** @enum {unknown} */
-        TrackSource: "MORA" | "OTOTOY" | "CD" | "BluRay" | "Vinyl" | "YouTube" | "SoundCloud" | "OTHER";
-        TrackSourceDetailsModel: {
-            source: components["schemas"]["TrackSource"];
-            /** Format: int32 */
-            rank: number | string;
-            pinned: boolean;
-            file: components["schemas"]["TrackSourceFileVariantsModel"];
-        };
-        TrackSourceFileVariantsModel: {
-            original: components["schemas"]["FileObjectDetailsModel"];
-            opus96?: null | components["schemas"]["FileObjectDetailsModel"];
-            waveformB8Pixel20?: null | components["schemas"]["FileObjectDetailsModel"];
-        };
-        TrackSourceRequest: {
-            source: components["schemas"]["TrackSource"];
-            file: components["schemas"]["FileRequest"];
-        };
-        TrackVariantDetailsModel: {
-            variantType: components["schemas"]["TrackVariantType"];
-            sources: components["schemas"]["TrackSourceDetailsModel"][];
-        };
-        TrackVariantRequest: {
-            variantType: components["schemas"]["TrackVariantType"];
-            sources: components["schemas"]["TrackSourceRequest"][];
-        };
-        /** @enum {unknown} */
-        TrackVariantType: "Default" | "Instrumental";
-        UserDto: {
-            id: string;
-            userName: string;
-            roles: string[];
-        };
+        TrackVersionType: "Original" | "Instrumental" | "Remix" | "Live" | "Acoustic" | "RadioEdit" | "Demo" | "Other";
         UserInfo: {
             id: string;
             userName: string;

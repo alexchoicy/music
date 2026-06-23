@@ -1,4 +1,7 @@
-using Music.Core.Enums;
+using Music.Core.Services.Albums;
+using Music.Core.Services.Albums.Enums;
+using Music.Core.Services.Albums.Requests;
+using Music.Core.Services.Albums.Results;
 
 namespace Music.Core.Entities;
 
@@ -17,14 +20,15 @@ public class Album
     public int? LanguageId { get; set; }
     public Language? Language { get; set; }
 
-    public required string CreatedByUserId { get; set; }
+    public string? CreatedByUserId { get; set; }
 
     public DateTimeOffset? ReleaseDate { get; set; }
 
-    public byte[]? Version { get; set; }
+    public uint Version { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+
     // This credit is primary the main group of peoples
     // track can have different credits than album
     public ICollection<AlbumCredit> Credits { get; set; } = [];

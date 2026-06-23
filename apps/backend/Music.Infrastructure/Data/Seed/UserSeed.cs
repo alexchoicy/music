@@ -2,23 +2,26 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Music.Core.Enums;
-using Music.Core.Entities;
+using Music.Core.Services.Auth;
+using Music.Core.Services.Auth.Enums;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data.Seed;
 
 public class UserSeed
 {
-    public static async Task SeedAsync(AppDbContext context, ILogger<UserSeed> logger, UserManager<User> userManager, IConfiguration configuration, IHostEnvironment environment)
+    public static async Task SeedAsync(
+        AppDbContext context,
+        ILogger<UserSeed> logger,
+        UserManager<User> userManager,
+        IConfiguration configuration,
+        IHostEnvironment environment
+    )
     {
         if (context.Users.Any())
             return;
 
-        User adminUser = new()
-        {
-            UserName = configuration["Seed:AdminUser:UserName"] ?? "admin",
-        };
+        User adminUser = new() { UserName = configuration["Seed:AdminUser:UserName"] ?? "admin" };
 
         string? adminPassword = configuration["Seed:AdminUser:Password"];
 
@@ -35,5 +38,4 @@ public class UserSeed
             await userManager.AddToRoleAsync(adminUser, Roles.Admin.ToString());
         }
     }
-
 }

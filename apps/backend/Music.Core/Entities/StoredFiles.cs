@@ -1,4 +1,6 @@
-using Music.Core.Enums;
+using Music.Core.Services.Files;
+using Music.Core.Services.Files.Enums;
+using Music.Core.Services.Files.Requests;
 
 namespace Music.Core.Entities;
 
@@ -8,9 +10,24 @@ public class StoredFile
 
     public required FileType Type { get; set; }
 
-    // It will have the orginal file object, thumbnails, transcoded version
+    public MediaSource Source { get; set; } = MediaSource.Unknown;
+    public string? SourceUrl { get; set; }
+
+    public string OriginalBlake3Hash { get; set; } = string.Empty;
+    public string OriginalFileName { get; set; } = string.Empty;
+
+    public string? UploadedByUserId { get; set; }
+
+    // It will have the original file object, thumbnails, transcoded version
     public ICollection<FileObject> FileObjects { get; set; } = [];
-    public ICollection<TrackSource> TrackSources { get; set; } = [];
-    public ICollection<ConcertCover> ConcertCovers { get; set; } = [];
+
+    public ICollection<TrackAudio> TrackAudios { get; set; } = [];
+    public ICollection<AlbumImage> AlbumImages { get; set; } = [];
+    public ICollection<PartyImage> PartyImages { get; set; } = [];
+    public ICollection<ConcertImage> ConcertImages { get; set; } = [];
+
     public ICollection<ConcertFile> ConcertFiles { get; set; } = [];
+
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

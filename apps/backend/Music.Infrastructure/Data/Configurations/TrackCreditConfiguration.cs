@@ -12,21 +12,20 @@ public class TrackCreditConfiguration : IEntityTypeConfiguration<TrackCredit>
 
         builder.HasKey(tc => tc.Id);
 
-        builder.Property(tc => tc.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(tc => tc.Id).ValueGeneratedOnAdd();
 
-        builder.Property(tc => tc.TrackId)
-            .IsRequired();
+        builder.Property(tc => tc.TrackId).IsRequired();
 
-        builder.Property(tc => tc.PartyId)
-            .IsRequired();
+        builder.Property(tc => tc.PartyId).IsRequired();
 
-        builder.HasOne(tc => tc.Track)
+        builder
+            .HasOne(tc => tc.Track)
             .WithMany(t => t.Credits)
             .HasForeignKey(tc => tc.TrackId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(tc => tc.Party)
+        builder
+            .HasOne(tc => tc.Party)
             .WithMany(p => p.TrackCredits)
             .HasForeignKey(tc => tc.PartyId)
             .OnDelete(DeleteBehavior.Cascade);
@@ -35,6 +34,13 @@ public class TrackCreditConfiguration : IEntityTypeConfiguration<TrackCredit>
         builder.HasIndex(tc => tc.PartyId);
         builder.HasIndex(tc => tc.Credit);
 
-        builder.HasIndex(tc => new { tc.TrackId, tc.PartyId, tc.Credit }).IsUnique();
+        builder
+            .HasIndex(tc => new
+            {
+                tc.TrackId,
+                tc.PartyId,
+                tc.Credit,
+            })
+            .IsUnique();
     }
 }

@@ -1,4 +1,6 @@
-using Music.Core.Enums;
+using Music.Core.Services.Parties;
+using Music.Core.Services.Parties.Enums;
+using Music.Core.Services.Parties.Requests;
 
 namespace Music.Core.Entities;
 
@@ -10,7 +12,9 @@ public class PartyExternalInfo
     public Party? Party { get; set; }
 
     public required PartyExternalInfoType Type { get; set; }
-    public required string ExternalIds { get; set; }
+    public required string ExternalId { get; set; }
+
+    public string? AddedByUserId { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;

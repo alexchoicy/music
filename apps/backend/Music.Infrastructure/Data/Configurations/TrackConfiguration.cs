@@ -13,24 +13,34 @@ public class TrackConfiguration : IEntityTypeConfiguration<Track>
 
         builder.HasKey(t => t.Id);
 
-        builder.Property(t => t.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(t => t.Id).ValueGeneratedOnAdd();
 
-        builder.Property(t => t.Version)
-            .IsRowVersion();
+        builder.Property(t => t.VersionType).IsRequired();
 
-        builder.HasOne<User>()
+        builder.Property(t => t.Version).IsRowVersion();
+
+        builder
+            .HasOne<User>()
             .WithMany(user => user.CreatedTracks)
             .HasForeignKey(track => track.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder
+            .HasOne(t => t.BasedOnTrack)
+            .WithMany(t => t.DerivedTracks)
+            .HasForeignKey(t => t.BasedOnTrackId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasIndex(t => t.NormalizedTitle);
-        builder.HasIndex(t => t.IsMC);
+        builder.HasIndex(t => t.ContentType);
         builder.HasIndex(t => t.LanguageId);
         builder.HasIndex(t => t.CreatedByUserId);
+        builder.HasIndex(t => t.VersionType);
+        builder.HasIndex(t => t.BasedOnTrackId);
         builder.HasIndex(t => t.CreatedAt);
         builder.HasIndex(t => t.UpdatedAt);
 
-        builder.HasIndex(t => new { t.LanguageId, t.IsMC });
+        builder.HasIndex(t => new { t.LanguageId, t.ContentType });
+        builder.HasIndex(t => new { t.VersionType, t.BasedOnTrackId });
     }
 }

@@ -1,8 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 
 export const getApiEndpoint = createServerFn({ method: "GET" }).handler(() => {
-	// biome-ignore lint/style/noNonNullAssertion: bro you should set it in the .env file
-	return process.env.API_BASE_URL!;
+	const endpoint = process.env.API_BASE_URL;
+
+	if (!endpoint) {
+		throw new Error("Missing API_BASE_URL");
+	}
+
+	return endpoint.replace(/\/+$/, "");
 });
 
 // This tanstack start thingy is not yet for External API.

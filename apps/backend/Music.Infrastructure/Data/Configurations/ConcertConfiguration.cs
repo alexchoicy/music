@@ -13,30 +13,34 @@ public class ConcertConfiguration : IEntityTypeConfiguration<Concert>
 
         builder.HasKey(c => c.Id);
 
-        builder.Property(c => c.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(c => c.Id).ValueGeneratedOnAdd();
 
-        builder.HasOne<User>()
+        builder
+            .HasOne<User>()
             .WithMany(user => user.CreatedConcerts)
             .HasForeignKey(concert => concert.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(c => c.Cover)
-            .WithOne(cc => cc.Concert)
-            .HasForeignKey<ConcertCover>(cc => cc.ConcertId)
+        builder
+            .HasMany(c => c.Images)
+            .WithOne(image => image.Concert)
+            .HasForeignKey(image => image.ConcertId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(c => c.ConcertAlbums)
+        builder
+            .HasMany(c => c.ConcertAlbums)
             .WithOne(ca => ca.Concert)
             .HasForeignKey(ca => ca.ConcertId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(c => c.ConcertParties)
+        builder
+            .HasMany(c => c.ConcertParties)
             .WithOne(cp => cp.Concert)
             .HasForeignKey(cp => cp.ConcertId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(c => c.ConcertFiles)
+        builder
+            .HasMany(c => c.ConcertFiles)
             .WithOne(cf => cf.Concert)
             .HasForeignKey(cf => cf.ConcertId)
             .OnDelete(DeleteBehavior.Cascade);

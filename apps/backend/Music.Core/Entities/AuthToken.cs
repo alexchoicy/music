@@ -1,4 +1,5 @@
-using Music.Core.Enums;
+using Music.Core.Services.Auth;
+using Music.Core.Services.Auth.Enums;
 
 namespace Music.Core.Entities;
 

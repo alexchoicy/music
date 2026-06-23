@@ -10,20 +10,25 @@ public class ConcertPartyConfiguration : IEntityTypeConfiguration<ConcertParty>
     {
         builder.ToTable("ConcertParties");
 
-        builder.HasKey(cp => new { cp.ConcertId, cp.PartyId, cp.Role });
+        builder.HasKey(cp => new
+        {
+            cp.ConcertId,
+            cp.PartyId,
+            cp.Role,
+        });
 
-        builder.Property(cp => cp.ConcertId)
-            .IsRequired();
+        builder.Property(cp => cp.ConcertId).IsRequired();
 
-        builder.Property(cp => cp.PartyId)
-            .IsRequired();
+        builder.Property(cp => cp.PartyId).IsRequired();
 
-        builder.HasOne(cp => cp.Concert)
+        builder
+            .HasOne(cp => cp.Concert)
             .WithMany(c => c.ConcertParties)
             .HasForeignKey(cp => cp.ConcertId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(cp => cp.Party)
+        builder
+            .HasOne(cp => cp.Party)
             .WithMany()
             .HasForeignKey(cp => cp.PartyId)
             .OnDelete(DeleteBehavior.Cascade);
