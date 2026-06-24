@@ -1,3 +1,4 @@
+import { useHotkey } from "@tanstack/react-hotkeys";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
@@ -5,7 +6,7 @@ import {
 	useNavigate,
 } from "@tanstack/react-router";
 import { ChevronDownIcon, SearchIcon, UsersRoundIcon } from "lucide-react";
-import { useDeferredValue } from "react";
+import { useDeferredValue, useRef } from "react";
 import { z } from "zod";
 
 import { Card, CardPanel } from "#/components/coss/card";
@@ -115,6 +116,8 @@ export const Route = createFileRoute("/_authed/parties/")({
 
 function RouteComponent() {
 	const navigate = useNavigate({ from: Route.fullPath });
+	const partyGridRef = useRef<HTMLDivElement>(null);
+	const searchInputRef = useRef<HTMLInputElement>(null);
 	const filters = Route.useSearch();
 	const deferredFilters = useDeferredValue(filters);
 	const partyQuery: PartyQuery = {
@@ -143,6 +146,60 @@ function RouteComponent() {
 		});
 	}
 
+	function focusPartyCard(direction: "down" | "left" | "right" | "up") {
+		const grid = partyGridRef.current;
+		if (!grid) return;
+
+		const links = Array.from(grid.querySelectorAll<HTMLAnchorElement>("a"));
+		if (!links.length) return;
+
+		const firstRowTop = links[0]?.offsetTop;
+		const nextRowIndex = links.findIndex(
+			(link) => link.offsetTop !== firstRowTop,
+		);
+		const columnCount = nextRowIndex === -1 ? links.length : nextRowIndex;
+		const currentIndex = links.findIndex(
+			(link) => link === document.activeElement,
+		);
+		const nextIndex = {
+			down: currentIndex === -1 ? 0 : currentIndex + columnCount,
+			left: currentIndex === -1 ? 0 : currentIndex - 1,
+			right: currentIndex === -1 ? 0 : currentIndex + 1,
+			up: currentIndex === -1 ? 0 : currentIndex - columnCount,
+		}[direction];
+
+		links.at(Math.max(0, Math.min(links.length - 1, nextIndex)))?.focus();
+	}
+
+	useHotkey("Escape", () => {
+		if (document.activeElement instanceof HTMLElement) {
+			document.activeElement.blur();
+		}
+	});
+	useHotkey("W", () => focusPartyCard("up"));
+	useHotkey("A", () => focusPartyCard("left"));
+	useHotkey("S", () => focusPartyCard("down"));
+	useHotkey("D", () => focusPartyCard("right"));
+	useHotkey("Control+F", () => searchInputRef.current?.focus());
+	useHotkey("R", () => updateSearch(partySearchDefaults));
+	useHotkey("T", () => {
+		const currentIndex = LIST_SORT_OPTIONS.findIndex(
+			(option) => option.value === filters.sort,
+		);
+		updateSearch({
+			sort: LIST_SORT_OPTIONS[(currentIndex + 1) % LIST_SORT_OPTIONS.length]
+				.value,
+		});
+	});
+	useHotkey("E", () => {
+		const links =
+			partyGridRef.current?.querySelectorAll<HTMLAnchorElement>("a");
+		links?.[links.length - 1]?.focus();
+	});
+	useHotkey("Shift+E", () => {
+		partyGridRef.current?.querySelector<HTMLAnchorElement>("a")?.focus();
+	});
+
 	const filterControls = (className: string) => (
 		<div className={className}>
 			<InputGroup className="sm:w-64">
@@ -152,6 +209,7 @@ function RouteComponent() {
 				<InputGroupInput
 					aria-label="Search parties"
 					placeholder="Search parties..."
+					ref={searchInputRef}
 					type="search"
 					value={filters.search}
 					onChange={(event) => {
@@ -227,7 +285,10 @@ function RouteComponent() {
 					title="Unable to load parties"
 				/>
 			) : parties.length ? (
-				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+				<div
+					className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+					ref={partyGridRef}
+				>
 					{parties.map((party) => {
 						return <PartyCard key={party.partyId} party={party} />;
 					})}

@@ -1,3 +1,4 @@
+import { useHotkey } from "@tanstack/react-hotkeys";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
@@ -5,7 +6,7 @@ import {
 	useNavigate,
 } from "@tanstack/react-router";
 import { ChevronDownIcon, Disc3Icon, SearchIcon } from "lucide-react";
-import { useDeferredValue } from "react";
+import { useDeferredValue, useRef } from "react";
 import { z } from "zod";
 
 import { AlbumCard } from "#/components/AlbumCard";
@@ -101,6 +102,8 @@ export const Route = createFileRoute("/_authed/albums/")({
 
 function RouteComponent() {
 	const navigate = useNavigate({ from: Route.fullPath });
+	const albumGridRef = useRef<HTMLDivElement>(null);
+	const searchInputRef = useRef<HTMLInputElement>(null);
 	const filters = Route.useSearch();
 	const deferredFilters = useDeferredValue(filters);
 	const albumQuery: AlbumQuery = {
@@ -146,6 +149,61 @@ function RouteComponent() {
 		});
 	}
 
+	useHotkey("Escape", () => {
+		if (document.activeElement instanceof HTMLElement) {
+			document.activeElement.blur();
+		}
+	});
+
+	function focusAlbumCard(direction: "down" | "left" | "right" | "up") {
+		const grid = albumGridRef.current;
+		if (!grid) return;
+
+		const links = Array.from(grid.querySelectorAll<HTMLAnchorElement>("a"));
+		if (!links.length) return;
+
+		const firstRowTop = links[0]?.offsetTop;
+		const nextRowIndex = links.findIndex(
+			(link) => link.offsetTop !== firstRowTop,
+		);
+		const columnCount = nextRowIndex === -1 ? links.length : nextRowIndex;
+		const currentIndex = links.findIndex(
+			(link) => link === document.activeElement,
+		);
+		const nextIndex = {
+			down: currentIndex === -1 ? 0 : currentIndex + columnCount,
+			left: currentIndex === -1 ? 0 : currentIndex - 1,
+			right: currentIndex === -1 ? 0 : currentIndex + 1,
+			up: currentIndex === -1 ? 0 : currentIndex - columnCount,
+		}[direction];
+
+		links.at(Math.max(0, Math.min(links.length - 1, nextIndex)))?.focus();
+	}
+
+	useHotkey("W", () => focusAlbumCard("up"));
+	useHotkey("A", () => focusAlbumCard("left"));
+	useHotkey("S", () => focusAlbumCard("down"));
+	useHotkey("D", () => focusAlbumCard("right"));
+	useHotkey("Control+F", () => searchInputRef.current?.focus());
+	useHotkey("R", () => updateSearch(albumSearchDefaults));
+	useHotkey("T", () => {
+		const currentIndex = LIST_SORT_OPTIONS.findIndex(
+			(option) => option.value === filters.sort,
+		);
+		updateSearch({
+			sort: LIST_SORT_OPTIONS[(currentIndex + 1) % LIST_SORT_OPTIONS.length]
+				.value,
+		});
+	});
+	useHotkey("E", () => {
+		const links =
+			albumGridRef.current?.querySelectorAll<HTMLAnchorElement>("a");
+		links?.[links.length - 1]?.focus();
+	});
+	useHotkey("Shift+E", () => {
+		albumGridRef.current?.querySelector<HTMLAnchorElement>("a")?.focus();
+	});
+
 	const filterControls = (className: string, checkboxId: string) => (
 		<div className={className}>
 			<InputGroup className="min-w-0 md:w-64">
@@ -155,6 +213,7 @@ function RouteComponent() {
 				<InputGroupInput
 					aria-label="Search albums"
 					placeholder="Search albums..."
+					ref={searchInputRef}
 					type="search"
 					value={filters.search}
 					onChange={(event) => {
@@ -260,7 +319,10 @@ function RouteComponent() {
 					title="Unable to load albums"
 				/>
 			) : albums.length ? (
-				<div className="grid min-w-0 grid-cols-3 gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+				<div
+					className="grid min-w-0 grid-cols-3 gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+					ref={albumGridRef}
+				>
 					{albums.map((album) => {
 						return (
 							<AlbumCard

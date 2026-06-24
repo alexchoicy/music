@@ -1,3 +1,4 @@
+import { useHotkey } from "@tanstack/react-hotkeys";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
@@ -5,7 +6,7 @@ import {
 	useNavigate,
 } from "@tanstack/react-router";
 import { ChevronDownIcon, MicVocalIcon, SearchIcon } from "lucide-react";
-import { useDeferredValue } from "react";
+import { useDeferredValue, useRef } from "react";
 import { z } from "zod";
 
 import { ConcertCard } from "#/components/concerts/ConcertCard";
@@ -78,6 +79,8 @@ export const Route = createFileRoute("/_authed/concerts/")({
 
 function RouteComponent() {
 	const navigate = useNavigate({ from: Route.fullPath });
+	const concertGridRef = useRef<HTMLDivElement>(null);
+	const searchInputRef = useRef<HTMLInputElement>(null);
 	const filters = Route.useSearch();
 	const deferredFilters = useDeferredValue(filters);
 	const concertQuery: ConcertQuery = {
@@ -114,6 +117,60 @@ function RouteComponent() {
 		});
 	}
 
+	function focusConcertCard(direction: "down" | "left" | "right" | "up") {
+		const grid = concertGridRef.current;
+		if (!grid) return;
+
+		const links = Array.from(grid.querySelectorAll<HTMLAnchorElement>("a"));
+		if (!links.length) return;
+
+		const firstRowTop = links[0]?.offsetTop;
+		const nextRowIndex = links.findIndex(
+			(link) => link.offsetTop !== firstRowTop,
+		);
+		const columnCount = nextRowIndex === -1 ? links.length : nextRowIndex;
+		const currentIndex = links.findIndex(
+			(link) => link === document.activeElement,
+		);
+		const nextIndex = {
+			down: currentIndex === -1 ? 0 : currentIndex + columnCount,
+			left: currentIndex === -1 ? 0 : currentIndex - 1,
+			right: currentIndex === -1 ? 0 : currentIndex + 1,
+			up: currentIndex === -1 ? 0 : currentIndex - columnCount,
+		}[direction];
+
+		links.at(Math.max(0, Math.min(links.length - 1, nextIndex)))?.focus();
+	}
+
+	useHotkey("Escape", () => {
+		if (document.activeElement instanceof HTMLElement) {
+			document.activeElement.blur();
+		}
+	});
+	useHotkey("W", () => focusConcertCard("up"));
+	useHotkey("A", () => focusConcertCard("left"));
+	useHotkey("S", () => focusConcertCard("down"));
+	useHotkey("D", () => focusConcertCard("right"));
+	useHotkey("Control+F", () => searchInputRef.current?.focus());
+	useHotkey("R", () => updateSearch(concertSearchDefaults));
+	useHotkey("T", () => {
+		const currentIndex = LIST_SORT_OPTIONS.findIndex(
+			(option) => option.value === filters.sort,
+		);
+		updateSearch({
+			sort: LIST_SORT_OPTIONS[(currentIndex + 1) % LIST_SORT_OPTIONS.length]
+				.value,
+		});
+	});
+	useHotkey("E", () => {
+		const links =
+			concertGridRef.current?.querySelectorAll<HTMLAnchorElement>("a");
+		links?.[links.length - 1]?.focus();
+	});
+	useHotkey("Shift+E", () => {
+		concertGridRef.current?.querySelector<HTMLAnchorElement>("a")?.focus();
+	});
+
 	const filterControls = (className: string, checkboxId: string) => (
 		<div className={className}>
 			<InputGroup className="sm:w-64">
@@ -123,6 +180,7 @@ function RouteComponent() {
 				<InputGroupInput
 					aria-label="Search concerts"
 					placeholder="Search concerts..."
+					ref={searchInputRef}
 					type="search"
 					value={filters.search}
 					onChange={(event) => {
@@ -206,7 +264,10 @@ function RouteComponent() {
 					title="Unable to load concerts"
 				/>
 			) : concerts.length ? (
-				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+				<div
+					className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+					ref={concertGridRef}
+				>
 					{concerts.map((concert) => {
 						return <ConcertCard concert={concert} key={concert.concertId} />;
 					})}
