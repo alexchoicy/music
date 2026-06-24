@@ -139,6 +139,7 @@ export function CommandList({
 	return (
 		<AutocompleteList
 			className={cn("not-empty:scroll-py-2 not-empty:p-2", className)}
+			contentStyle={{ minWidth: 0 }}
 			data-slot="command-list"
 			{...props}
 		/>

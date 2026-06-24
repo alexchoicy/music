@@ -126,7 +126,7 @@ export function LinkedAlbumsCombobox({
 					)}
 				</ComboboxValue>
 			</ComboboxChips>
-			<ComboboxPopup>
+			<ComboboxPopup className="w-(--anchor-width)">
 				<ComboboxStatus>
 					{showSearchingStatus
 						? "Searching..."
@@ -135,12 +135,15 @@ export function LinkedAlbumsCombobox({
 							: null}
 				</ComboboxStatus>
 				<ComboboxEmpty>No albums found.</ComboboxEmpty>
-				<ComboboxList>
+				<ComboboxList contentStyle={{ minWidth: 0 }}>
 					{(album: AlbumItem) => (
 						<ComboboxItem key={album.albumId} value={album}>
 							<span className="flex min-w-0 flex-col">
-								<span className="truncate">{album.title}</span>
-								<span className="truncate text-xs text-muted-foreground">
+								<span className="truncate" title={album.title}>{album.title}</span>
+								<span
+									className="truncate text-xs text-muted-foreground"
+									title={album.artists.map((artist) => artist.name).join(", ") || "Unknown artist"}
+								>
 									{album.artists.map((artist) => artist.name).join(", ") ||
 										"Unknown artist"}
 								</span>

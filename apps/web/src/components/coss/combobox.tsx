@@ -207,31 +207,31 @@ export function ComboboxItem({
 	...props
 }: ComboboxPrimitive.Item.Props): React.ReactElement {
 	return (
-		<ComboboxPrimitive.Item
-			className={cn(
-				"grid min-h-8 cursor-default grid-cols-[1rem_1fr] items-center gap-2 rounded-sm py-1 ps-2 pe-4 text-base outline-none in-data-[side=none]:min-w-[calc(var(--anchor-width)+1.25rem)] data-disabled:pointer-events-none data-disabled:opacity-64 data-highlighted:bg-accent data-highlighted:text-accent-foreground sm:min-h-7 sm:text-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4",
-				className,
-			)}
-			data-slot="combobox-item"
-			{...props}
-		>
-			<ComboboxPrimitive.ItemIndicator className="col-start-1">
-				<svg
-					aria-hidden="true"
-					fill="none"
-					height="24"
-					stroke="currentColor"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					strokeWidth="2"
-					viewBox="0 0 24 24"
-					width="24"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<path d="M5.252 12.7 10.2 18.63 18.748 5.37" />
-				</svg>
-			</ComboboxPrimitive.ItemIndicator>
-			<div className="col-start-2">{children}</div>
+			<ComboboxPrimitive.Item
+				className={cn(
+					"grid min-h-8 min-w-0 cursor-default grid-cols-[1rem_1fr] items-center gap-2 rounded-sm py-1 ps-2 pe-4 text-base outline-none in-data-[side=none]:min-w-[calc(var(--anchor-width)+1.25rem)] data-disabled:pointer-events-none data-disabled:opacity-64 data-highlighted:bg-accent data-highlighted:text-accent-foreground sm:min-h-7 sm:text-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4",
+					className,
+				)}
+				data-slot="combobox-item"
+				{...props}
+			>
+				<ComboboxPrimitive.ItemIndicator className="col-start-1">
+					<svg
+						aria-hidden="true"
+						fill="none"
+						height="24"
+						stroke="currentColor"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						strokeWidth="2"
+						viewBox="0 0 24 24"
+						width="24"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<path d="M5.252 12.7 10.2 18.63 18.748 5.37" />
+					</svg>
+				</ComboboxPrimitive.ItemIndicator>
+				<div className="col-start-2 min-w-0">{children}</div>
 		</ComboboxPrimitive.Item>
 	)
 }
@@ -315,10 +315,13 @@ export function ComboboxValue({
 
 export function ComboboxList({
 	className,
+	contentStyle,
 	...props
-}: ComboboxPrimitive.List.Props): React.ReactElement {
+}: ComboboxPrimitive.List.Props & {
+	contentStyle?: React.CSSProperties
+}): React.ReactElement {
 	return (
-		<ScrollArea scrollbarGutter scrollFade>
+		<ScrollArea contentStyle={contentStyle} scrollbarGutter scrollFade>
 			<ComboboxPrimitive.List
 				className={cn(
 					"not-empty:scroll-py-1 not-empty:px-1 not-empty:py-1 in-data-has-overflow-y:pe-3",

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils/styles"
 export function ScrollArea({
 	className,
 	children,
+	contentStyle,
 	scrollFade = false,
 	scrollbarGutter = false,
 	fill = false,
@@ -14,6 +15,7 @@ export function ScrollArea({
 	scrollFade?: boolean
 	scrollbarGutter?: boolean
 	fill?: boolean
+	contentStyle?: React.CSSProperties
 }): React.ReactElement {
 	return (
 		<ScrollAreaPrimitive.Root
@@ -33,6 +35,7 @@ export function ScrollArea({
 				<ScrollAreaPrimitive.Content
 					className={cn(fill && "size-full")}
 					data-slot="scroll-area-content"
+					style={contentStyle}
 				>
 					{children}
 				</ScrollAreaPrimitive.Content>

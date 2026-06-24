@@ -301,7 +301,7 @@ export function PartyCombobox({
 						)}
 					</ComboboxValue>
 				</ComboboxChips>
-				<ComboboxPopup>
+				<ComboboxPopup className="w-(--anchor-width)">
 					<ComboboxStatus>
 						{showSearchingStatus
 							? "Searching..."
@@ -310,7 +310,7 @@ export function PartyCombobox({
 								: null}
 					</ComboboxStatus>
 					<ComboboxEmpty>No parties found.</ComboboxEmpty>
-					<ComboboxList>
+					<ComboboxList contentStyle={{ minWidth: 0 }}>
 						{(item: PartyComboboxItem) =>
 							item.creatableName ? (
 								<ComboboxItem
@@ -325,8 +325,13 @@ export function PartyCombobox({
 							) : (
 								<ComboboxItem key={item.partyId} value={item}>
 									<span className="flex min-w-0 flex-col">
-										<span className="truncate">{item.name}</span>
-										<span className="truncate text-xs text-muted-foreground">
+										<span className="truncate" title={item.name}>
+											{item.name}
+										</span>
+										<span
+											className="truncate text-xs text-muted-foreground"
+											title={`${COUNTRY_CODE[item.country]} · ${item.kind} · ${item.type ?? "Unknown"}`}
+										>
 											{COUNTRY_CODE[item.country]} · {item.kind} ·{" "}
 											{item.type ?? "Unknown"}
 										</span>
