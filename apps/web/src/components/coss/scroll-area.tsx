@@ -24,7 +24,7 @@ export function ScrollArea({
 		>
 			<ScrollAreaPrimitive.Viewport
 				className={cn(
-					"transition-shadows h-full rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background data-has-overflow-x:overscroll-x-contain data-has-overflow-y:overscroll-y-contain",
+					"transition-shadows h-full rounded-[inherit] outline-none data-has-overflow-x:overscroll-x-contain data-has-overflow-y:overscroll-y-contain",
 					scrollFade &&
 						"mask-t-from-[calc(100%-min(var(--fade-size),var(--scroll-area-overflow-y-start)))] mask-r-from-[calc(100%-min(var(--fade-size),var(--scroll-area-overflow-x-end)))] mask-b-from-[calc(100%-min(var(--fade-size),var(--scroll-area-overflow-y-end)))] mask-l-from-[calc(100%-min(var(--fade-size),var(--scroll-area-overflow-x-start)))] [--fade-size:1.5rem]",
 					scrollbarGutter &&
