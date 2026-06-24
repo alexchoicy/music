@@ -23,6 +23,7 @@ import {
 } from "../coss/menu";
 import { toastManager } from "../coss/toast";
 import { getAlbumHoverCoverUrl, getCreditNames } from "./albumDetailUtils";
+import pmap from "p-map";
 import type { AlbumDetails } from "./albumDetailUtils";
 
 type AlbumDownloadFile = {
@@ -175,19 +176,23 @@ export function AlbumDetailHero({
 
 		if ("showDirectoryPicker" in window) {
 			const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-			for (const track of presignUrls) {
-				const res = await fetch(track.url);
-				if (!res.ok) throw new Error(`Failed to download ${track.fileName}`);
-				const data = await res.arrayBuffer();
-				const fileHandle = await dirHandle.getFileHandle(track.fileName, {
-					create: true,
-				});
-				const writable = await fileHandle.createWritable();
-				await writable.write(data);
-				await writable.close();
-				total += 1;
-				onProgress(total, presignUrls.length, track.fileName);
-			}
+			await pmap(
+				presignUrls,
+				async (track) => {
+					const res = await fetch(track.url);
+					if (!res.ok) throw new Error(`Failed to download ${track.fileName}`);
+					const data = await res.arrayBuffer();
+					const fileHandle = await dirHandle.getFileHandle(track.fileName, {
+						create: true,
+					});
+					const writable = await fileHandle.createWritable();
+					await writable.write(data);
+					await writable.close();
+					total += 1;
+					onProgress(total, presignUrls.length, track.fileName);
+				},
+				{ concurrency: 5 },
+			);
 		} else {
 			for (const track of presignUrls) {
 				const iframe = document.createElement("iframe");
