@@ -19,10 +19,17 @@ import { partyQueries } from "#/lib/queries/party.queries";
 export const Route = createFileRoute("/_authed/")({
 	loader: ({ context }) => {
 		return Promise.all([
-			context.queryClient.ensureQueryData(albumQueries.getAlbums()),
-			context.queryClient.ensureQueryData(concertQueries.getConcerts()),
 			context.queryClient.ensureQueryData(
-				partyQueries.getParties({ ExcludeNoAlbums: true }),
+				albumQueries.getAlbums({ Sort: "CreatedAtDesc" }),
+			),
+			context.queryClient.ensureQueryData(
+				concertQueries.getConcerts({ Sort: "CreatedAtDesc" }),
+			),
+			context.queryClient.ensureQueryData(
+				partyQueries.getParties({
+					ExcludeNoAlbums: true,
+					Sort: "CreatedAtDesc",
+				}),
 			),
 		]);
 	},
@@ -30,10 +37,14 @@ export const Route = createFileRoute("/_authed/")({
 });
 
 function RouteComponent() {
-	const { data: albums } = useSuspenseQuery(albumQueries.getAlbums());
-	const { data: concerts } = useSuspenseQuery(concertQueries.getConcerts());
+	const { data: albums } = useSuspenseQuery(
+		albumQueries.getAlbums({ Sort: "CreatedAtDesc" }),
+	);
+	const { data: concerts } = useSuspenseQuery(
+		concertQueries.getConcerts({ Sort: "CreatedAtDesc" }),
+	);
 	const { data: parties } = useSuspenseQuery(
-		partyQueries.getParties({ ExcludeNoAlbums: true }),
+		partyQueries.getParties({ ExcludeNoAlbums: true, Sort: "CreatedAtDesc" }),
 	);
 
 	return (
