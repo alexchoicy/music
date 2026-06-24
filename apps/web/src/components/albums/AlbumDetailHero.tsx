@@ -190,9 +190,12 @@ export function AlbumDetailHero({
 			}
 		} else {
 			for (const track of presignUrls) {
-				const anchor = document.createElement("a");
-				anchor.href = track.url;
-				anchor.click();
+				const iframe = document.createElement("iframe");
+				iframe.style.display = "none";
+				iframe.src = track.url;
+
+				document.body.appendChild(iframe);
+				setTimeout(() => iframe.remove(), 5 * 60 * 1000);
 				total += 1;
 				onProgress(total, presignUrls.length, track.fileName);
 			}
