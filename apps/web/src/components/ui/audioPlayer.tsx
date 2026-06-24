@@ -12,10 +12,6 @@ import {
 	SkipBackIcon,
 	SkipForwardIcon,
 	ListMusicIcon,
-	Volume1Icon,
-	Volume2Icon,
-	VolumeIcon,
-	VolumeXIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useEffectEvent, useRef } from "react";
 import WaveSurfer from "wavesurfer.js";
@@ -37,7 +33,6 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "#/components/coss/sheet";
-import { Slider } from "#/components/coss/slider";
 import { Switch } from "#/components/coss/switch";
 import { Toggle } from "#/components/coss/toggle";
 import { formatMsToTimer } from "#/lib/utils/music";
@@ -52,6 +47,8 @@ import type {
 	AudioPlayerState,
 	AudioPlayerTrack,
 } from "#/store/audioPlayer/audioPlayerType";
+
+import { VolumeControl } from "#/components/VolumeControl";
 
 const AUDIO_TIME_EVENTS = ["timeupdate", "loadedmetadata", "seeking", "seeked"];
 type PlaybackQuality = AudioPlayerState["playbackQuality"];
@@ -116,13 +113,6 @@ function formatPlaybackQuality(
 	].filter((part) => part !== null);
 
 	return parts.length > 0 ? parts.join(" • ") : null;
-}
-
-function getVolumeIcon(muted: boolean, volume: number) {
-	if (muted) return VolumeXIcon;
-	if (volume === 0) return VolumeIcon;
-	if (volume < 0.5) return Volume1Icon;
-	return Volume2Icon;
 }
 
 type TrackInfoProps = {
@@ -202,67 +192,6 @@ function TrackInfo({ track }: TrackInfoProps) {
 				</p>
 			</div>
 		</div>
-	);
-}
-
-type VolumeControlProps = {
-	muted: boolean;
-	volume: number;
-	setVolume: (volume: number) => void;
-	toggleMute: () => void;
-};
-
-function VolumeControl({
-	muted,
-	volume,
-	setVolume,
-	toggleMute,
-}: VolumeControlProps) {
-	const VolumeIconComponent = getVolumeIcon(muted, volume);
-
-	return (
-		<Popover>
-			<PopoverTrigger
-				closeDelay={150}
-				delay={0}
-				openOnHover
-				render={
-					<Button
-						aria-label={muted ? "Unmute" : "Mute"}
-						onClick={(event) => {
-							event.preventDefault();
-							toggleMute();
-						}}
-						size="icon-sm"
-						variant="ghost"
-					/>
-				}
-			>
-				<VolumeIconComponent aria-hidden="true" />
-			</PopoverTrigger>
-			<PopoverPopup
-				align="center"
-				className="w-auto"
-				side="top"
-				sideOffset={8}
-				tooltipStyle
-			>
-				<Slider
-					aria-label="Volume level"
-					className="h-20 [&_[data-slot=slider-control]]:min-h-20"
-					max={1}
-					min={0}
-					onValueChange={(nextValue) => {
-						if (typeof nextValue === "number") {
-							setVolume(nextValue);
-						}
-					}}
-					orientation="vertical"
-					step={0.01}
-					value={muted ? 0 : volume}
-				/>
-			</PopoverPopup>
-		</Popover>
 	);
 }
 

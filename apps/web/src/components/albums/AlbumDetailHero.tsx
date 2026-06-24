@@ -4,6 +4,7 @@ import {
 	ListPlusIcon,
 	PlayIcon,
 } from "lucide-react";
+import pmap from "p-map";
 
 import { Badge } from "#/components/coss/badge";
 import { Button } from "#/components/coss/button";
@@ -23,7 +24,6 @@ import {
 } from "../coss/menu";
 import { toastManager } from "../coss/toast";
 import { getAlbumHoverCoverUrl, getCreditNames } from "./albumDetailUtils";
-import pmap from "p-map";
 import type { AlbumDetails } from "./albumDetailUtils";
 
 type AlbumDownloadFile = {

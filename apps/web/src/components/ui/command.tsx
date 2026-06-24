@@ -311,8 +311,13 @@ function SearchGroup({
 								)}
 							</span>
 							<span className="flex min-w-0 flex-col">
-								<span className="truncate" title={itemTitle(item)}>{itemTitle(item)}</span>
-								<span className="truncate text-xs text-muted-foreground" title={itemSubtitle(item)}>
+								<span className="truncate" title={itemTitle(item)}>
+									{itemTitle(item)}
+								</span>
+								<span
+									className="truncate text-xs text-muted-foreground"
+									title={itemSubtitle(item)}
+								>
 									{itemSubtitle(item)}
 								</span>
 							</span>
@@ -359,12 +364,18 @@ function TrackCommandItem({
 						{trackItem.value.discNumber}-
 						{String(trackItem.value.trackNumber).padStart(2, "0")}
 					</span>
-					<span className="truncate text-sm font-medium" title={trackItem.value.title}>
+					<span
+						className="truncate text-sm font-medium"
+						title={trackItem.value.title}
+					>
 						{trackItem.value.title}
 					</span>
 				</span>
 				{trackItem.value.basedOnTrackTitle && (
-					<span className="truncate text-[11px] text-muted-foreground" title={`Based on ${trackItem.value.basedOnTrackTitle}`}>
+					<span
+						className="truncate text-[11px] text-muted-foreground"
+						title={`Based on ${trackItem.value.basedOnTrackTitle}`}
+					>
 						Based on {trackItem.value.basedOnTrackTitle}
 					</span>
 				)}

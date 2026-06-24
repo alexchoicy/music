@@ -3,7 +3,7 @@ import {
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
 	Combobox,
@@ -18,6 +18,7 @@ import {
 	ComboboxValue,
 } from "#/components/coss/combobox";
 import type { components } from "#/data/APIschema";
+import { useDebouncedValue } from "#/hooks/use-debounced-value";
 import { albumQueries } from "#/lib/queries/album.queries";
 
 type AlbumItem = components["schemas"]["AlbumListItem"];
@@ -43,7 +44,7 @@ export function LinkedAlbumsCombobox({
 }: LinkedAlbumsComboboxProps) {
 	const queryClient = useQueryClient();
 	const [query, setQuery] = useState("");
-	const [debouncedQuery, setDebouncedQuery] = useState("");
+	const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 	const trimmedQuery = query.trim();
 	const trimmedSearchQuery = debouncedQuery.trim();
 	const cachedAlbums =
@@ -75,19 +76,6 @@ export function LinkedAlbumsCombobox({
 	const filteredAlbums = searchAlbums.filter(
 		(album) => !hiddenIdKeys.has(Number(album.albumId)),
 	);
-
-	useEffect(() => {
-		if (filteredAlbums.length > 0) {
-			setDebouncedQuery(query);
-			return;
-		}
-
-		const timeoutId = window.setTimeout(() => {
-			setDebouncedQuery(query);
-		}, SEARCH_DEBOUNCE_MS);
-
-		return () => window.clearTimeout(timeoutId);
-	}, [filteredAlbums.length, query]);
 
 	const showSearchingStatus = isSearchPending && filteredAlbums.length === 0;
 
@@ -139,10 +127,15 @@ export function LinkedAlbumsCombobox({
 					{(album: AlbumItem) => (
 						<ComboboxItem key={album.albumId} value={album}>
 							<span className="flex min-w-0 flex-col">
-								<span className="truncate" title={album.title}>{album.title}</span>
+								<span className="truncate" title={album.title}>
+									{album.title}
+								</span>
 								<span
 									className="truncate text-xs text-muted-foreground"
-									title={album.artists.map((artist) => artist.name).join(", ") || "Unknown artist"}
+									title={
+										album.artists.map((artist) => artist.name).join(", ") ||
+										"Unknown artist"
+									}
 								>
 									{album.artists.map((artist) => artist.name).join(", ") ||
 										"Unknown artist"}

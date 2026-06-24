@@ -6,7 +6,7 @@ import {
 	useQueries,
 } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 import { Button } from "#/components/coss/button";
 import {
@@ -42,6 +42,7 @@ import {
 	PARTY_KIND_OPTIONS,
 	PARTY_TYPE_OPTIONS,
 } from "#/enums/partyEnums";
+import { useDebouncedValue } from "#/hooks/use-debounced-value";
 import { partyMutation, partyQueries } from "#/lib/queries/party.queries";
 import {
 	getPartyAvatarUrl,
@@ -110,7 +111,7 @@ export function PartyCombobox({
 	const nameId = useId();
 	const queryClient = useQueryClient();
 	const [query, setQuery] = useState("");
-	const [debouncedQuery, setDebouncedQuery] = useState("");
+	const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 	const [createForm, setCreateForm] = useState<CreatePartyForm>(() =>
 		createPartyForm(""),
@@ -168,18 +169,7 @@ export function PartyCombobox({
 	const filteredParties = searchParties.filter(
 		(party) => !hiddenIdKeys.has(Number(party.partyId)),
 	);
-	useEffect(() => {
-		if (filteredParties.length > 0) {
-			setDebouncedQuery(query);
-			return;
-		}
 
-		const timeoutId = window.setTimeout(() => {
-			setDebouncedQuery(query);
-		}, SEARCH_DEBOUNCE_MS);
-
-		return () => window.clearTimeout(timeoutId);
-	}, [filteredParties.length, query]);
 	const showSearchingStatus = isSearchPending && filteredParties.length === 0;
 	const existingPartyForQuery = searchPartyByNormalizedName(
 		uniqueParties,

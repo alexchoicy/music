@@ -8,9 +8,6 @@ import {
 	PauseIcon,
 	PlayIcon,
 	RefreshCwIcon,
-	Volume1Icon,
-	Volume2Icon,
-	VolumeXIcon,
 } from "lucide-react";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 // import shaka from "shaka-player";
@@ -24,11 +21,6 @@ import {
 	EmptyTitle,
 } from "#/components/coss/empty";
 import {
-	Popover,
-	PopoverPopup,
-	PopoverTrigger,
-} from "#/components/coss/popover";
-import {
 	Select,
 	SelectItem,
 	SelectPopup,
@@ -36,6 +28,7 @@ import {
 	SelectValue,
 } from "#/components/coss/select";
 import { Slider } from "#/components/coss/slider";
+import { VolumeControl } from "#/components/VolumeControl";
 import type { components } from "#/data/APIschema";
 import { formatMsToTimer } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
@@ -80,12 +73,6 @@ function getPlayback(concertFile: ConcertFile): Playback {
 	}
 
 	return { isDash: false, url: concertFile.file.original.url };
-}
-
-function getVolumeIcon(muted: boolean, volume: number) {
-	if (muted || volume === 0) return VolumeXIcon;
-	if (volume < 0.5) return Volume1Icon;
-	return Volume2Icon;
 }
 
 export function ConcertPlayer({
@@ -417,7 +404,6 @@ export function ConcertPlayer({
 		value: String(index),
 	}));
 	const currentAudioOption = audioOptions.find((option) => option.track.active);
-	const VolumeIconComponent = getVolumeIcon(muted, volume);
 
 	const hotkeyConfig: UseHotkeyOptions = {
 		enabled: hasFile,
@@ -525,50 +511,16 @@ export function ConcertPlayer({
 							)}
 						</Button>
 
-						<Popover>
-							<PopoverTrigger
-								closeDelay={150}
-								delay={0}
-								openOnHover
-								render={
-									<Button
-										aria-label={muted ? "Unmute" : "Mute"}
-										className="text-white hover:bg-white/10 hover:text-white"
-										onClick={(event) => {
-											event.preventDefault();
-											setMuted((value) => !value);
-										}}
-										size="icon-sm"
-										variant="ghost"
-									/>
-								}
-							>
-								<VolumeIconComponent aria-hidden="true" />
-							</PopoverTrigger>
-							<PopoverPopup
-								align="center"
-								className="w-auto"
-								side="top"
-								sideOffset={8}
-								tooltipStyle
-							>
-								<Slider
-									aria-label="Volume level"
-									className="h-20 [&_[data-slot=slider-control]]:min-h-20"
-									max={1}
-									min={0}
-									onValueChange={(next) => {
-										if (typeof next === "number") {
-											setVolumeState(next);
-											if (videoRef.current) videoRef.current.volume = next;
-										}
-									}}
-									orientation="vertical"
-									step={0.01}
-									value={muted ? 0 : volume}
-								/>
-							</PopoverPopup>
-						</Popover>
+						<VolumeControl
+							buttonClassName="text-white hover:bg-white/10 hover:text-white"
+							muted={muted}
+							setVolume={(next) => {
+								setVolumeState(next);
+								if (videoRef.current) videoRef.current.volume = next;
+							}}
+							toggleMute={() => setMuted((value) => !value)}
+							volume={volume}
+						/>
 
 						<span className="ml-1 text-xs tabular-nums">
 							{formatMsToTimer(currentTime * 1000)} /{" "}
