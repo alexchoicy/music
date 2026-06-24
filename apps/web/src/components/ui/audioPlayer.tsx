@@ -720,7 +720,7 @@ export function AudioPlayer() {
 	return (
 		<div
 			className={cn(
-				"pointer-events-none z-20 shrink-0 p-2 sm:px-3",
+				"pointer-events-none z-20 shrink-0 px-2 pb-2 sm:px-3",
 				hidden && "hidden",
 			)}
 		>
