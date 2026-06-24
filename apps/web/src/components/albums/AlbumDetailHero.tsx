@@ -1,21 +1,16 @@
 import {
-	ChevronDownIcon,
 	Disc3Icon,
-	Download,
-	DownloadIcon,
 	EllipsisVertical,
 	ListPlusIcon,
-	Option,
 	PlayIcon,
 } from "lucide-react";
-import pMap from "p-map";
 
 import { Badge } from "#/components/coss/badge";
 import { Button } from "#/components/coss/button";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { formatDate } from "#/lib/utils/date";
 import { formatDurationInHoursMinutesSeconds } from "#/lib/utils/music";
-import { getPresignedUrl } from "#/store/audioPlayer/audioPlayerFunction";
+import { getPresignedDownloadUrl } from "#/store/audioPlayer/audioPlayerFunction";
 
 import {
 	Menu,
@@ -29,6 +24,57 @@ import {
 import { toastManager } from "../coss/toast";
 import { getAlbumHoverCoverUrl, getCreditNames } from "./albumDetailUtils";
 import type { AlbumDetails } from "./albumDetailUtils";
+
+type AlbumDownloadFile = {
+	url: string;
+	extension: string;
+};
+
+type AlbumDownloadType = "source" | "tagged" | "opus";
+type AlbumAudioFile =
+	AlbumDetails["discs"][number]["tracks"][number]["audios"][number]["file"];
+
+type AlbumDownloadTrack = {
+	fileName: string;
+	url: string;
+};
+
+function normalizeFileName(fileName: string) {
+	return (
+		Array.from(fileName.normalize("NFKC"))
+			.filter((char) => char >= " ")
+			.join("")
+			.replace(/[<>:"/\\|?*]/g, "-")
+			.replace(/\s+/g, " ")
+			.replace(/[. ]+$/g, "")
+			.slice(0, 240) || "track"
+	);
+}
+
+function getDownloadLabel(fileType: AlbumDownloadType) {
+	switch (fileType) {
+		case "source":
+			return "source";
+		case "tagged":
+			return "tagged original";
+		case "opus":
+			return "opus";
+	}
+}
+
+function getDownloadFile(
+	file: AlbumAudioFile,
+	fileType: AlbumDownloadType,
+): AlbumDownloadFile | undefined {
+	switch (fileType) {
+		case "source":
+			return file.original;
+		case "tagged":
+			return file.taggedOriginal!;
+		case "opus":
+			return file.opus96!;
+	}
+}
 
 type AlbumDetailHeroProps = {
 	album: AlbumDetails;
@@ -50,142 +96,109 @@ export function AlbumDetailHero({
 		formatDurationInHoursMinutesSeconds(album.totalDurationInMs) ?? "0s";
 	const releaseDate = formatDate(album.releaseDate);
 
-	async function downloadAlbum(fileType: "source" | "tagged" | "opus") {
-		const presignUrls: { fileName: string; url: string }[] = [];
+	async function downloadAlbum(fileType: AlbumDownloadType) {
+		const presignUrls: AlbumDownloadTrack[] = [];
 
 		for (const disc of album.discs) {
 			for (const track of disc.tracks) {
 				const pinAudio = track.audios.find((audio) => audio.pinned);
 				if (!pinAudio) continue;
 
-				switch (fileType) {
-					case "source": {
-						const presign = await getPresignedUrl(pinAudio.file.original.url);
-						if (!presign) {
-							toastManager.add({
-								title: "No source available",
-								description: `${track.title} has no source URL available`,
-								type: "error",
-							});
-							continue;
-						}
-						presignUrls.push({
-							fileName: `${disc.discNumber} - ${track.trackNumber} ${track.title}.${pinAudio.file.original.extension}`,
-							url: presign,
-						});
+				const file = getDownloadFile(pinAudio.file, fileType);
+				const label = getDownloadLabel(fileType);
 
-						break;
-					}
-					case "tagged": {
-						if (!pinAudio.file.taggedOriginal) {
-							toastManager.add({
-								title: "No tagged original available",
-								description: `${track.title} has no tagged original URL available`,
-								type: "error",
-							});
-							continue;
-						}
-						const presign = await getPresignedUrl(
-							pinAudio.file.taggedOriginal.url,
-						);
-						if (!presign) {
-							toastManager.add({
-								title: "No tagged original available",
-								description: `${track.title} has no tagged original URL available`,
-								type: "error",
-							});
-							continue;
-						}
-						presignUrls.push({
-							fileName: `${disc.discNumber} - ${track.trackNumber} ${track.title}.${pinAudio.file.taggedOriginal.extension}`,
-							url: presign,
-						});
-						break;
-					}
-					case "opus": {
-						if (!pinAudio.file.opus96) {
-							toastManager.add({
-								title: "No opus available",
-								description: `${track.title} has no opus URL available`,
-								type: "error",
-							});
-							continue;
-						}
-						const presign = await getPresignedUrl(pinAudio.file.opus96.url);
-						if (!presign) {
-							toastManager.add({
-								title: "No opus available",
-								description: `${track.title} has no opus URL available`,
-								type: "error",
-							});
-							continue;
-						}
-						presignUrls.push({
-							fileName: `${disc.discNumber} - ${track.trackNumber} ${track.title}.${pinAudio.file.opus96.extension}`,
-							url: presign,
-						});
-					}
+				if (!file) {
+					toastManager.add({
+						title: `No ${label} available`,
+						description: `${track.title} has no ${label} URL available`,
+						type: "error",
+					});
+					continue;
 				}
+
+				const presign = await getPresignedDownloadUrl(file.url);
+				if (!presign) {
+					toastManager.add({
+						title: `No ${label} available`,
+						description: `${track.title} has no ${label} URL available`,
+						type: "error",
+					});
+					continue;
+				}
+
+				presignUrls.push({
+					fileName: normalizeFileName(
+						`${disc.discNumber} - ${track.trackNumber} ${track.title}.${file.extension}`,
+					),
+					url: presign,
+				});
 			}
 		}
-		await toastManager.promise(downloadAlbumZip(fileType, presignUrls), {
-			loading: {
-				title: "Preparing download",
-				description: "Fetching tracks and building your ZIP...",
-			},
-			success: ({ zipName, total }) => ({
-				title: "Download ready",
-				description: `${total} tracks downloaded as ${zipName}.`,
-			}),
-			error: (error) => ({
+
+		if (presignUrls.length === 0) return;
+
+		const toastId = toastManager.add({
+			title: "Preparing download",
+			description: `0/${presignUrls.length} tracks downloaded.`,
+			type: "loading",
+		});
+
+		try {
+			const { total } = await download(presignUrls, (done, count, fileName) => {
+				toastManager.update(toastId, {
+					title: "Downloading album",
+					description: `${done}/${count} saved: ${fileName}`,
+					type: "loading",
+				});
+			});
+
+			toastManager.update(toastId, {
+				title: "Download successful",
+				description: `${total} tracks downloaded.`,
+				type: "success",
+			});
+		} catch (error) {
+			toastManager.update(toastId, {
 				title: "Download failed",
 				description:
 					error instanceof Error ? error.message : "Something went wrong.",
-			}),
-		});
+				type: "error",
+			});
+		}
 	}
 
-	async function downloadAlbumZip(
-		fileType: "source" | "tagged" | "opus",
-		presignUrls: { fileName: string; url: string }[],
+	async function download(
+		presignUrls: AlbumDownloadTrack[],
+		onProgress: (done: number, total: number, fileName: string) => void,
 	) {
-		const zipName = `${album.title}-${fileType}.zip`;
-		const JSZip = (await import("jszip")).default;
+		let total = 0;
 
-		const zip = new JSZip();
-		const total = presignUrls.length;
-		let loaded = 0;
-
-		await pMap(
-			presignUrls,
-			async (track) => {
+		if ("showDirectoryPicker" in window) {
+			const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+			for (const track of presignUrls) {
 				const res = await fetch(track.url);
-
-				if (!res.ok) {
-					throw new Error(`Failed to fetch ${track.fileName}`);
-				}
-
+				if (!res.ok) throw new Error(`Failed to download ${track.fileName}`);
 				const data = await res.arrayBuffer();
-				zip.file(track.fileName, data);
+				const fileHandle = await dirHandle.getFileHandle(track.fileName, {
+					create: true,
+				});
+				const writable = await fileHandle.createWritable();
+				await writable.write(data);
+				await writable.close();
+				total += 1;
+				onProgress(total, presignUrls.length, track.fileName);
+			}
+		} else {
+			for (const track of presignUrls) {
+				const anchor = document.createElement("a");
+				anchor.href = track.url;
+				anchor.click();
+				total += 1;
+				onProgress(total, presignUrls.length, track.fileName);
+			}
+		}
 
-				loaded++;
-			},
-			{ concurrency: 3 },
-		);
-
-		const zipBlob = await zip.generateAsync({ type: "blob" });
-
-		const objectUrl = URL.createObjectURL(zipBlob);
-		const a = document.createElement("a");
-		a.href = objectUrl;
-		a.download = zipName;
-		a.rel = "noopener noreferrer";
-		document.body.appendChild(a);
-		a.click();
-		a.remove();
-		URL.revokeObjectURL(objectUrl);
-
-		return { zipName, total };
+		return { total };
 	}
 
 	return (

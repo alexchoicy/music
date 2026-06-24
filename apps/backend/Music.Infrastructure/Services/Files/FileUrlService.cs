@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Music.Core.Common.Exceptions;
 using Music.Core.Common.Utils;
@@ -13,8 +15,9 @@ public class FileUrlService(IContentService contentService, AppDbContext context
 {
     private static string SanitizeFileName(string fileName)
     {
+        string normalized = fileName.Normalize(NormalizationForm.FormKC);
         char[] invalidFileNameChars = Path.GetInvalidFileNameChars();
-        return string.Concat(fileName.Select(ch => invalidFileNameChars.Contains(ch) ? '_' : ch));
+        return string.Concat(normalized.Select(ch => invalidFileNameChars.Contains(ch) ? '_' : ch));
     }
 
     private static bool IsDashVariant(FileObjectVariant variant)
