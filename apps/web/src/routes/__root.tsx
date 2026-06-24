@@ -52,7 +52,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body className="relative font-sans">
 				<TooltipProvider>
-					<ToastProvider>
+					<ToastProvider position="top-right">
 						<AnchoredToastProvider>
 							<div className="relative isolate flex min-h-svh flex-col">
 								{children}
