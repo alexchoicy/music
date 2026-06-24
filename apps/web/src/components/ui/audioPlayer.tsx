@@ -440,6 +440,7 @@ export function AudioPlayer() {
 	const rightLabelRef = useRef<HTMLSpanElement | null>(null);
 
 	const bindWaveSurfer = useAudioPlayerStore((state) => state.bindWaveSurfer);
+	const reloadAudio = useAudioPlayerStore((state) => state.reloadAudio);
 	const currentTrack = useAudioPlayerStore((state) =>
 		state.queue.at(state.index),
 	);
@@ -499,6 +500,11 @@ export function AudioPlayer() {
 
 	const onFinish = useEffectEvent(() => {
 		markFinished();
+	});
+
+	const onStalled = useEffectEvent((event: Event) => {
+		console.log("audio stalled", event);
+		void reloadAudio();
 	});
 
 	const refreshTimeLabel = useCallback(() => {
@@ -641,12 +647,16 @@ export function AudioPlayer() {
 			onFinish();
 		});
 
+		const handleStalled = (event: Event) => onStalled(event);
+
+		audio.addEventListener("stalled", handleStalled);
+
 		return () => {
 			unsubscribeReady();
 			unsubscribePlay();
 			unsubscribePause();
 			unsubscribeFinish();
-
+			audio.removeEventListener("stalled", handleStalled);
 			bindWaveSurfer(null);
 
 			player.destroy();

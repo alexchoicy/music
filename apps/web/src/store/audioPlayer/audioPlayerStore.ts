@@ -305,6 +305,45 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 
 					if (get().status === "idle") resetWaveSurferToIdle();
 				},
+				reloadAudio: async () => {
+					const { currentPlayingKey, index, playbackQuality, queue, status } =
+						get();
+					const track = queue.at(index);
+					if (!waveSurfer || !track || status === "idle") return;
+
+					const playbackSource = resolvePlaybackSource(playbackQuality, track);
+					const playUrl = await getPresignedUrl(playbackSource.url);
+					if (!playUrl) return;
+
+					const state = get();
+					if (
+						state.queue.at(state.index)?.trackId !== track.trackId ||
+						state.currentPlayingKey !== currentPlayingKey
+					) {
+						return;
+					}
+
+					const media = waveSurfer.getMediaElement();
+					const currentTime = waveSurfer.getCurrentTime();
+					const wasPlaying = waveSurfer.isPlaying();
+					const seekToCurrentTime = () => {
+						media.currentTime = currentTime;
+					};
+
+					media.addEventListener("loadedmetadata", seekToCurrentTime, {
+						once: true,
+					});
+					media.src = playUrl;
+					media.load();
+
+					if (wasPlaying) {
+						try {
+							await media.play();
+						} catch (error) {
+							console.log("[audio-player] reloadAudio:play failed", error);
+						}
+					}
+				},
 				playAlbum: (album: AudioPlayerTrack[], trackId?: string) => {
 					console.log("[audio-player] playAlbum", {
 						trackCount: album.length,
