@@ -7,6 +7,7 @@ import {
 	MinimizeIcon,
 	PauseIcon,
 	PlayIcon,
+	RefreshCwIcon,
 	Volume1Icon,
 	Volume2Icon,
 	VolumeXIcon,
@@ -252,6 +253,50 @@ export function ConcertPlayer({
 		} else {
 			video.pause();
 		}
+	};
+
+	const reloadPlayback = () => {
+		const file = currentFile;
+		const video = videoRef.current;
+		if (!file || !video) return;
+
+		const loadRequestId = ++loadRequestIdRef.current;
+		const playback = getPlayback(file);
+
+		const resumeTime = video.currentTime;
+		const wasPaused = video.paused;
+
+		void (async () => {
+			if (playback.isDash) {
+				const player = playerRef.current;
+				if (!player) return;
+
+				await player.load(playback.url, resumeTime);
+				if (loadRequestId !== loadRequestIdRef.current) return;
+
+				setAudioTracks(player.getAudioTracks());
+				if (!wasPaused) void video.play();
+				return;
+			}
+
+			const presignedUrl = await getPresignedUrl(playback.url);
+			if (!presignedUrl || loadRequestId !== loadRequestIdRef.current) return;
+
+			video.addEventListener(
+				"loadedmetadata",
+				() => {
+					if (loadRequestId !== loadRequestIdRef.current) return;
+					video.currentTime = Math.min(
+						resumeTime,
+						video.duration || resumeTime,
+					);
+					if (!wasPaused) void video.play();
+				},
+				{ once: true },
+			);
+			video.src = presignedUrl;
+			video.load();
+		})();
 	};
 
 	const toggleFullscreen = () => {
@@ -531,6 +576,15 @@ export function ConcertPlayer({
 						</span>
 
 						<div className="ml-auto flex items-center gap-1">
+							<Button
+								aria-label="Reload media"
+								className="text-white hover:bg-white/10 hover:text-white"
+								onClick={reloadPlayback}
+								size="icon-sm"
+								variant="ghost"
+							>
+								<RefreshCwIcon aria-hidden="true" />
+							</Button>
 							{audioOptions.length > 1 && (
 								<Select
 									items={audioOptions}
