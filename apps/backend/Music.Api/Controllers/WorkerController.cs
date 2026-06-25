@@ -13,8 +13,11 @@ namespace Music.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("workers")]
-public sealed class WorkerController(IContentService contentService, AppDbContext dbContext)
-    : ControllerBase
+public sealed class WorkerController(
+    IContentService contentService,
+    IBackgroundTaskQueue backgroundTaskQueue,
+    AppDbContext dbContext
+) : ControllerBase
 {
     [HttpPost("concert")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -39,9 +42,40 @@ public sealed class WorkerController(IContentService contentService, AppDbContex
 
         return Ok();
     }
+
+    [HttpPost("party")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RerunPartyInfoEnrichmentWorker(
+        [FromBody] RerunPartyInfoEnrichmentWorkerRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        bool partyExists = await dbContext.Parties.AnyAsync(
+            party => party.Id == request.PartyId,
+            cancellationToken
+        );
+
+        if (!partyExists)
+        {
+            throw new EntityNotFoundException($"Party with ID {request.PartyId} not found.");
+        }
+
+        await backgroundTaskQueue.QueueWorkerAsync(
+            new PartyInfoEnrichmentWorker { PartyId = request.PartyId },
+            cancellationToken
+        );
+
+        return Ok();
+    }
 }
 
 public sealed record RerunConcertWorkerRequest
 {
     public required Guid ObjectId { get; init; }
+}
+
+public sealed record RerunPartyInfoEnrichmentWorkerRequest
+{
+    public required int PartyId { get; init; }
 }
