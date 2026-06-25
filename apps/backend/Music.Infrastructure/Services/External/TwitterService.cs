@@ -1,13 +1,20 @@
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Music.Core.Options;
 using Music.Infrastructure.Utils;
 
 namespace Music.Infrastructure.Services.External;
 
-public class TwitterService(IHttpClientFactory httpClientFactory, ILogger<TwitterService> logger)
+public class TwitterService(
+    IHttpClientFactory httpClientFactory,
+    ILogger<TwitterService> logger,
+    IOptions<ExternalOptions> externalOptions
+)
 {
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient();
+    private readonly ExternalOptions _externalOptions = externalOptions.Value;
 
     private static readonly Regex AvatarSuffixReplaceRegex = new(
         @"_(?:normal|bigger|mini|400x400)(\.[a-zA-Z0-9]+)$",
@@ -44,7 +51,7 @@ public class TwitterService(IHttpClientFactory httpClientFactory, ILogger<Twitte
             requestUrl,
             _httpClient,
             "FxTwitter",
-            "",
+            _externalOptions.UserAgent,
             cancellationToken
         );
 
