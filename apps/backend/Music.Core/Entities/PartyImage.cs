@@ -25,6 +25,8 @@ public class PartyImage
 
     public required ImageRole ImageRole { get; set; }
 
+    public string? AddedByUserId { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

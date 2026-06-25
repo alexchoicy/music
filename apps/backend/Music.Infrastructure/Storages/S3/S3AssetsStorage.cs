@@ -107,6 +107,16 @@ public class S3AssetsService : StorageService, IAssetsService
             cancellationToken
         );
     }
+
+    public async Task DeleteFileAsync(
+        string objectPath,
+        CancellationToken cancellationToken = default
+    )
+    {
+        DeleteObjectRequest request = new() { BucketName = _bucket, Key = objectPath };
+
+        await _client.DeleteObjectAsync(request, cancellationToken);
+    }
 }
 
 public sealed class AssetsS3Client(string accessKey, string secretKey, AmazonS3Config cfg)

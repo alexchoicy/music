@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Music.Core.Entities;
+using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data.Configurations;
 
@@ -27,6 +28,12 @@ public class PartyImageConfiguration : IEntityTypeConfiguration<PartyImage>
             .WithMany(file => file.PartyImages)
             .HasForeignKey(pi => pi.FileId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne<User>()
+            .WithMany(user => user.PartyImages)
+            .HasForeignKey(pi => pi.AddedByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(pi => pi.PartyId);
         builder.HasIndex(pi => pi.FileId);

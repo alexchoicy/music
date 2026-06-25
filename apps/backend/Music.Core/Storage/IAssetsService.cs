@@ -22,4 +22,6 @@ public interface IAssetsService : IStorageService
         string destinationPath,
         CancellationToken cancellationToken = default
     );
+
+    Task DeleteFileAsync(string objectPath, CancellationToken cancellationToken = default);
 }

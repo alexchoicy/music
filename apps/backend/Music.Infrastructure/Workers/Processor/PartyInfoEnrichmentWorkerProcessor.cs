@@ -25,6 +25,9 @@ public class PartyInfoEnrichmentWorkerProcessor(
     ILogger<PartyInfoEnrichmentWorkerProcessor> logger
 )
 {
+    private const string UnavatarFailedImageHash =
+        "7bee1c0fac5138e699bccd929b283e658315d5fb7dd5c3875d9f88f01409b7b8";
+
     public async Task ProcessAsync(
         PartyInfoEnrichmentWorker partyInfoEnrichmentWorker,
         CancellationToken cancellationToken = default
@@ -45,6 +48,9 @@ public class PartyInfoEnrichmentWorkerProcessor(
             logger.LogWarning("Party {PartyId} not found for external enrichment", partyId);
             return;
         }
+
+        await ResetSystemProvidedPartyData(party, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         MusicBrainzSearchArtist? searchArtist =
             await musicBrainzService.SearchMusicBrainzByPartyName(
@@ -200,6 +206,50 @@ public class PartyInfoEnrichmentWorkerProcessor(
         }
     }
 
+    private async Task ResetSystemProvidedPartyData(
+        Party party,
+        CancellationToken cancellationToken
+    )
+    {
+        List<PartyExternalInfo> externalInfosToRemove = party
+            .PartyExternalInfos.Where(info => info.AddedByUserId is null)
+            .ToList();
+
+        List<Core.Entities.PartyImage> imagesToRemove = party
+            .Images.Where(image => image.AddedByUserId is null)
+            .ToList();
+
+        List<StoredFile> filesToRemove = imagesToRemove
+            .Select(image => image.File)
+            .OfType<StoredFile>()
+            .ToList();
+
+        List<string> storagePathsToDelete = filesToRemove
+            .SelectMany(file => file.FileObjects)
+            .Select(fileObject => fileObject.StoragePath)
+            .Distinct()
+            .ToList();
+
+        foreach (string storagePath in storagePathsToDelete)
+        {
+            await assetsService.DeleteFileAsync(storagePath, cancellationToken);
+        }
+
+        dbContext.PartyExternalInfos.RemoveRange(externalInfosToRemove);
+        dbContext.PartyImages.RemoveRange(imagesToRemove);
+        dbContext.StoredFiles.RemoveRange(filesToRemove);
+
+        foreach (PartyExternalInfo externalInfo in externalInfosToRemove)
+        {
+            party.PartyExternalInfos.Remove(externalInfo);
+        }
+
+        foreach (Core.Entities.PartyImage image in imagesToRemove)
+        {
+            party.Images.Remove(image);
+        }
+    }
+
     public async Task<bool> SavePartyImageAsync(
         Party party,
         string fileName,
@@ -215,6 +265,11 @@ public class PartyInfoEnrichmentWorkerProcessor(
                 imagePath,
                 cancellationToken
             );
+
+            if (blake3Hash == UnavatarFailedImageHash)
+            {
+                return false;
+            }
 
             string extension = MediaFiles.GetExtensionFromMimeType(mimeType, fileName);
             string storagePath = assetsService.GetStoragePath(
@@ -261,6 +316,7 @@ public class PartyInfoEnrichmentWorkerProcessor(
                 File = storedFile,
                 IsPrimary = true,
                 ImageRole = imageRole,
+                AddedByUserId = null,
             };
 
             dbContext.StoredFiles.Add(storedFile);
@@ -323,6 +379,11 @@ public class PartyInfoEnrichmentWorkerProcessor(
 
         if (existingExternalInfo is not null)
         {
+            if (existingExternalInfo.AddedByUserId is not null)
+            {
+                return;
+            }
+
             existingExternalInfo.ExternalId = externalId;
             return;
         }

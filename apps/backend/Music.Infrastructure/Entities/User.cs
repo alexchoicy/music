@@ -15,4 +15,5 @@ public class User : IdentityUser
     public ICollection<AuthToken> AuthTokens { get; set; } = [];
 
     public ICollection<PartyExternalInfo> PartyExternalInfos { get; set; } = [];
+    public ICollection<PartyImage> PartyImages { get; set; } = [];
 }
