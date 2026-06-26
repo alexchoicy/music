@@ -1,10 +1,11 @@
+import { useHotkey } from "@tanstack/react-hotkeys";
 import {
 	Disc3Icon,
 	ListPlusIcon,
 	MoreHorizontalIcon,
 	PlayIcon,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { Badge } from "#/components/coss/badge";
 import { Button } from "#/components/coss/button";
@@ -48,6 +49,7 @@ export function AlbumTrackListCard({
 	const currentTrack = useAudioPlayerStore((state) =>
 		state.queue.at(state.index),
 	);
+	const trackListRef = useRef<HTMLDivElement>(null);
 	const audioPlayerTracks = albumDetailsToAudioPlayerTracks(album);
 
 	useEffect(() => {
@@ -87,8 +89,38 @@ export function AlbumTrackListCard({
 		});
 	}
 
+	function focusTrack(offset: number) {
+		const rows = Array.from(
+			trackListRef.current?.querySelectorAll<HTMLDivElement>(
+				'[data-slot="album-track-row"]',
+			) ?? [],
+		);
+		if (!rows.length) return;
+
+		const currentIndex = rows.findIndex(
+			(row) => row === document.activeElement,
+		);
+		const nextIndex = currentIndex === -1 ? 0 : currentIndex + offset;
+
+		rows.at(Math.max(0, Math.min(rows.length - 1, nextIndex)))?.focus();
+	}
+
+	useHotkey("G", () => playAlbum(audioPlayerTracks));
+	useHotkey("W", () => focusTrack(-1));
+	useHotkey("A", () => focusTrack(-1));
+	useHotkey("S", () => focusTrack(1));
+	useHotkey("D", () => focusTrack(1));
+	useHotkey("Enter", () => {
+		if (
+			document.activeElement instanceof HTMLElement &&
+			trackListRef.current?.contains(document.activeElement)
+		) {
+			document.activeElement.click();
+		}
+	});
+
 	return (
-		<Card className="overflow-hidden">
+		<Card className="overflow-hidden" ref={trackListRef}>
 			{album.discs.map((disc) => {
 				return (
 					<section className="border-b last:border-b-0" key={disc.albumDiscId}>
@@ -127,6 +159,7 @@ export function AlbumTrackListCard({
 										)}
 										id={trackKey}
 										key={track.trackId}
+										data-slot="album-track-row"
 										tabIndex={0}
 										onClick={() => {
 											if (!canAddToQueue) return;

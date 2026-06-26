@@ -159,16 +159,18 @@ function RouteComponent() {
 		const grid = albumGridRef.current;
 		if (!grid) return;
 
-		const links = Array.from(grid.querySelectorAll<HTMLAnchorElement>("a"));
-		if (!links.length) return;
-
-		const firstRowTop = links[0]?.offsetTop;
-		const nextRowIndex = links.findIndex(
-			(link) => link.offsetTop !== firstRowTop,
+		const cards = Array.from(
+			grid.querySelectorAll<HTMLElement>('[data-slot="album-card"]'),
 		);
-		const columnCount = nextRowIndex === -1 ? links.length : nextRowIndex;
-		const currentIndex = links.findIndex(
-			(link) => link === document.activeElement,
+		if (!cards.length) return;
+
+		const firstRowTop = cards[0]?.offsetTop;
+		const nextRowIndex = cards.findIndex(
+			(card) => card.offsetTop !== firstRowTop,
+		);
+		const columnCount = nextRowIndex === -1 ? cards.length : nextRowIndex;
+		const currentIndex = cards.findIndex((card) =>
+			card.contains(document.activeElement),
 		);
 		const nextIndex = {
 			down: currentIndex === -1 ? 0 : currentIndex + columnCount,
@@ -177,7 +179,10 @@ function RouteComponent() {
 			up: currentIndex === -1 ? 0 : currentIndex - columnCount,
 		}[direction];
 
-		links.at(Math.max(0, Math.min(links.length - 1, nextIndex)))?.focus();
+		cards
+			.at(Math.max(0, Math.min(cards.length - 1, nextIndex)))
+			?.querySelector<HTMLAnchorElement>("a")
+			?.focus();
 	}
 
 	useHotkey("W", () => focusAlbumCard("up"));

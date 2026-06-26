@@ -1,6 +1,7 @@
+import { useHotkey } from "@tanstack/react-hotkeys";
 import { Link } from "@tanstack/react-router";
 import { ChevronRightIcon, Disc3Icon } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "#/components/coss/button";
 import {
@@ -26,13 +27,57 @@ const PREVIEW_ALBUM_LIMIT = 5;
 
 export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 	const [tab, setTab] = useState("overall");
+	const tabsRef = useRef<HTMLDivElement>(null);
 	const hasAlbums = party.albums.length > 0;
 	const hasFeaturedIn = party.appearsOnAlbums.length > 0;
 	const previewAlbums = party.albums.slice(0, PREVIEW_ALBUM_LIMIT);
 	const previewFeaturedIn = party.appearsOnAlbums.slice(0, PREVIEW_ALBUM_LIMIT);
+	const tabs = [
+		"overall",
+		hasAlbums ? "albums" : null,
+		hasFeaturedIn ? "featured-in" : null,
+	].filter((value): value is string => Boolean(value));
+
+	function focusAlbum(direction: "down" | "left" | "right" | "up") {
+		const panel = tabsRef.current?.querySelector(
+			'[data-slot="tabs-content"]:not([hidden])',
+		);
+		const cards = Array.from(
+			panel?.querySelectorAll<HTMLElement>('[data-slot="album-card"]') ?? [],
+		);
+		if (!cards.length) return;
+
+		const firstRowTop = cards[0]?.offsetTop;
+		const nextRowIndex = cards.findIndex(
+			(card) => card.offsetTop !== firstRowTop,
+		);
+		const columnCount = nextRowIndex === -1 ? cards.length : nextRowIndex;
+		const currentIndex = cards.findIndex((card) =>
+			card.contains(document.activeElement),
+		);
+		const nextIndex = {
+			down: currentIndex === -1 ? 0 : currentIndex + columnCount,
+			left: currentIndex === -1 ? 0 : currentIndex - 1,
+			right: currentIndex === -1 ? 0 : currentIndex + 1,
+			up: currentIndex === -1 ? 0 : currentIndex - columnCount,
+		}[direction];
+
+		cards
+			.at(Math.max(0, Math.min(cards.length - 1, nextIndex)))
+			?.querySelector<HTMLAnchorElement>("a")
+			?.focus();
+	}
+
+	useHotkey("T", () => {
+		setTab(tabs[(tabs.indexOf(tab) + 1) % tabs.length]);
+	});
+	useHotkey("W", () => focusAlbum("up"));
+	useHotkey("A", () => focusAlbum("left"));
+	useHotkey("S", () => focusAlbum("down"));
+	useHotkey("D", () => focusAlbum("right"));
 
 	return (
-		<Tabs className="gap-0" onValueChange={setTab} value={tab}>
+		<Tabs className="gap-0" onValueChange={setTab} ref={tabsRef} value={tab}>
 			<div className="border-b">
 				<TabsList variant="underline">
 					<TabsTab value="overall">Overall</TabsTab>
