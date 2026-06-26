@@ -47,6 +47,7 @@ type SearchItem =
 type TrackSearchItem = Extract<SearchItem, { kind: "track" }>;
 
 type CommandProps = {
+	initialQuery?: string;
 	onOpenChange: (open: boolean) => void;
 	open: boolean;
 };
@@ -105,7 +106,7 @@ function itemCoverUrl(item: SearchItem) {
 	return item.value.coverUrl || null;
 }
 
-export function Command({ onOpenChange, open }: CommandProps) {
+export function Command({ initialQuery, onOpenChange, open }: CommandProps) {
 	const navigate = useNavigate();
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [query, setQuery] = useState("");
@@ -150,6 +151,11 @@ export function Command({ onOpenChange, open }: CommandProps) {
 		...concerts,
 		...parties,
 	];
+
+	useEffect(() => {
+		if (initialQuery === undefined) return;
+		setQuery(initialQuery);
+	}, [initialQuery]);
 
 	useEffect(() => {
 		if (!open) return;
