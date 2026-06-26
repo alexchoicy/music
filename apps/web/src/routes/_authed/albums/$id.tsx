@@ -1,3 +1,4 @@
+import { useHotkey } from "@tanstack/react-hotkeys";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouterState } from "@tanstack/react-router";
 
@@ -28,6 +29,8 @@ function RouteComponent() {
 	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
 	const coverUrl = getAlbumCoverUrl(album.cover.album);
 	const audioPlayerTracks = albumDetailsToAudioPlayerTracks(album);
+
+	useHotkey("Control+Q", () => addToQueue(audioPlayerTracks));
 
 	return (
 		<main className="relative min-h-full w-full overflow-hidden bg-background">

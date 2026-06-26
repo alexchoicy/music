@@ -1,4 +1,5 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ChevronRightIcon, Disc3Icon } from "lucide-react";
 import { useRef, useState } from "react";
@@ -14,6 +15,9 @@ import {
 } from "#/components/coss/empty";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "#/components/coss/tabs";
 import type { components } from "#/data/APIschema";
+import { albumQueries } from "#/lib/queries/album.queries";
+import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
+import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
 import { PartyAlbumGrid } from "./PartyAlbumGrid";
 
@@ -26,8 +30,11 @@ type PartyDetailTabsProps = {
 const PREVIEW_ALBUM_LIMIT = 5;
 
 export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
+	const queryClient = useQueryClient();
 	const [tab, setTab] = useState("overall");
 	const tabsRef = useRef<HTMLDivElement>(null);
+	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
+	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const hasAlbums = party.albums.length > 0;
 	const hasFeaturedIn = party.appearsOnAlbums.length > 0;
 	const previewAlbums = party.albums.slice(0, PREVIEW_ALBUM_LIMIT);
@@ -68,6 +75,31 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 			?.focus();
 	}
 
+	async function getFocusedAlbumTracks() {
+		if (!(document.activeElement instanceof HTMLElement)) return;
+
+		const albumId = tabsRef.current
+			?.querySelector('[data-slot="tabs-content"]:not([hidden])')
+			?.querySelector<HTMLElement>('[data-slot="album-card"]:focus-within')
+			?.dataset.albumId;
+		if (!albumId) return;
+
+		const albumDetails = await queryClient.ensureQueryData(
+			albumQueries.getAlbum(Number(albumId)),
+		);
+		return albumDetailsToAudioPlayerTracks(albumDetails);
+	}
+
+	async function playFocusedAlbum() {
+		const tracks = await getFocusedAlbumTracks();
+		if (tracks) playAlbum(tracks);
+	}
+
+	async function queueFocusedAlbum() {
+		const tracks = await getFocusedAlbumTracks();
+		if (tracks) addToQueue(tracks);
+	}
+
 	useHotkey("T", () => {
 		setTab(tabs[(tabs.indexOf(tab) + 1) % tabs.length]);
 	});
@@ -75,6 +107,8 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 	useHotkey("A", () => focusAlbum("left"));
 	useHotkey("S", () => focusAlbum("down"));
 	useHotkey("D", () => focusAlbum("right"));
+	useHotkey("G", () => void playFocusedAlbum());
+	useHotkey("Control+Q", () => void queueFocusedAlbum());
 
 	return (
 		<Tabs className="gap-0" onValueChange={setTab} ref={tabsRef} value={tab}>

@@ -1,8 +1,6 @@
-import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Disc3Icon, PlayIcon } from "lucide-react";
-import { useRef } from "react";
 
 import { Badge } from "#/components/coss/badge";
 import { Button } from "#/components/coss/button";
@@ -33,7 +31,6 @@ type AlbumCardProps = {
 };
 
 export function AlbumCard({ album, className }: AlbumCardProps) {
-	const cardRef = useRef<HTMLDivElement>(null);
 	const queryClient = useQueryClient();
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const artistNames =
@@ -61,20 +58,11 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 		playAlbum(albumDetailsToAudioPlayerTracks(albumDetails));
 	}
 
-	useHotkey("G", () => {
-		if (
-			document.activeElement instanceof HTMLElement &&
-			cardRef.current?.contains(document.activeElement)
-		) {
-			void playCardAlbum();
-		}
-	});
-
 	return (
 		<div
 			className={cn("[container-type:inline-size] relative", className)}
+			data-album-id={album.albumId}
 			data-slot="album-card"
-			ref={cardRef}
 		>
 			<Button
 				aria-label={`Play ${album.title}`}

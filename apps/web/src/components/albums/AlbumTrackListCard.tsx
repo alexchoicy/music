@@ -45,6 +45,7 @@ export function AlbumTrackListCard({
 	highlightedTrackKey,
 }: AlbumTrackListCardProps) {
 	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
+	const addNextToQueue = useAudioPlayerStore((state) => state.addNextToQueue);
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const currentTrack = useAudioPlayerStore((state) =>
 		state.queue.at(state.index),
@@ -105,7 +106,23 @@ export function AlbumTrackListCard({
 		rows.at(Math.max(0, Math.min(rows.length - 1, nextIndex)))?.focus();
 	}
 
+	function addFocusedTrackNext() {
+		if (!(document.activeElement instanceof HTMLElement)) return;
+
+		const trackId = document.activeElement.dataset.trackId;
+		for (const disc of album.discs) {
+			const track = disc.tracks.find(
+				(item) => String(item.trackId) === trackId,
+			);
+			if (!track?.audios.length) continue;
+
+			addNextToQueue([albumTrackDetailsToAudioPlayerTrack(album, disc, track)]);
+			return;
+		}
+	}
+
 	useHotkey("G", () => playAlbum(audioPlayerTracks));
+	useHotkey("Control+G", addFocusedTrackNext);
 	useHotkey("W", () => focusTrack(-1));
 	useHotkey("A", () => focusTrack(-1));
 	useHotkey("S", () => focusTrack(1));
@@ -160,6 +177,7 @@ export function AlbumTrackListCard({
 										id={trackKey}
 										key={track.trackId}
 										data-slot="album-track-row"
+										data-track-id={track.trackId}
 										tabIndex={0}
 										onClick={() => {
 											if (!canAddToQueue) return;

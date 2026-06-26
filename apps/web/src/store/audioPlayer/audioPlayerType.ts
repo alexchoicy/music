@@ -47,6 +47,7 @@ export type AudioPlayerAction = {
 	reloadAudio: () => Promise<void>;
 	playAlbum: (album: AudioPlayerTrack[], trackId?: string) => void;
 	addToQueue: (track: AudioPlayerTrack[]) => void;
+	addNextToQueue: (track: AudioPlayerTrack[]) => void;
 	playQueueTrack: (index: number) => void;
 	playNext: () => void;
 	playPrev: () => void;

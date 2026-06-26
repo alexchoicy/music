@@ -1,5 +1,9 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+	keepPreviousData,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import {
 	createFileRoute,
 	stripSearchParams,
@@ -38,6 +42,8 @@ import type { ListSortOption } from "#/enums/listSortEnums";
 import { albumQueries } from "#/lib/queries/album.queries";
 import type { AlbumQuery } from "#/lib/queries/album.queries";
 import { languageQueries } from "#/lib/queries/language.queries";
+import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
+import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
 type AlbumTypeFilter = (typeof ALBUM_TYPE_OPTIONS)[number]["value"];
 type AlbumSearch = {
@@ -102,8 +108,11 @@ export const Route = createFileRoute("/_authed/albums/")({
 
 function RouteComponent() {
 	const navigate = useNavigate({ from: Route.fullPath });
+	const queryClient = useQueryClient();
 	const albumGridRef = useRef<HTMLDivElement>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
+	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
+	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const filters = Route.useSearch();
 	const deferredFilters = useDeferredValue(filters);
 	const albumQuery: AlbumQuery = {
@@ -185,10 +194,36 @@ function RouteComponent() {
 			?.focus();
 	}
 
+	async function getFocusedAlbumTracks() {
+		if (!(document.activeElement instanceof HTMLElement)) return;
+
+		const albumId = albumGridRef.current?.querySelector<HTMLElement>(
+			'[data-slot="album-card"]:focus-within',
+		)?.dataset.albumId;
+		if (!albumId) return;
+
+		const albumDetails = await queryClient.ensureQueryData(
+			albumQueries.getAlbum(Number(albumId)),
+		);
+		return albumDetailsToAudioPlayerTracks(albumDetails);
+	}
+
+	async function playFocusedAlbum() {
+		const tracks = await getFocusedAlbumTracks();
+		if (tracks) playAlbum(tracks);
+	}
+
+	async function queueFocusedAlbum() {
+		const tracks = await getFocusedAlbumTracks();
+		if (tracks) addToQueue(tracks);
+	}
+
 	useHotkey("W", () => focusAlbumCard("up"));
 	useHotkey("A", () => focusAlbumCard("left"));
 	useHotkey("S", () => focusAlbumCard("down"));
 	useHotkey("D", () => focusAlbumCard("right"));
+	useHotkey("G", () => void playFocusedAlbum());
+	useHotkey("Control+Q", () => void queueFocusedAlbum());
 	useHotkey("Control+F", () => searchInputRef.current?.focus());
 	useHotkey("R", () => updateSearch(albumSearchDefaults));
 	useHotkey("T", () => {
