@@ -381,6 +381,291 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/passkey-request-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    username?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["JsonElement"];
+                        "application/json": components["schemas"]["JsonElement"];
+                        "text/json": components["schemas"]["JsonElement"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/passkey-signin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["JsonElement"];
+                    "text/json": components["schemas"]["JsonElement"];
+                    "application/*+json": components["schemas"]["JsonElement"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["LoginResult"];
+                        "application/json": components["schemas"]["LoginResult"];
+                        "text/json": components["schemas"]["LoginResult"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/passkey-creation-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/passkey-register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["JsonElement"];
+                    "text/json": components["schemas"]["JsonElement"];
+                    "application/*+json": components["schemas"]["JsonElement"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PasskeyDto"];
+                        "application/json": components["schemas"]["PasskeyDto"];
+                        "text/json": components["schemas"]["PasskeyDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/passkeys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PasskeyEditRequest"];
+                    "text/json": components["schemas"]["PasskeyEditRequest"];
+                    "application/*+json": components["schemas"]["PasskeyEditRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PasskeyDeleteRequest"];
+                    "text/json": components["schemas"]["PasskeyDeleteRequest"];
+                    "application/*+json": components["schemas"]["PasskeyDeleteRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AuthSessionDto"][];
+                        "application/json": components["schemas"]["AuthSessionDto"][];
+                        "text/json": components["schemas"]["AuthSessionDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/concerts/create": {
         parameters: {
             query?: never;
@@ -958,6 +1243,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/search/opensearch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/uploads/Init": {
         parameters: {
             query?: never;
@@ -1148,6 +1466,159 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UserInfo"][];
+                        "application/json": components["schemas"]["UserInfo"][];
+                        "text/json": components["schemas"]["UserInfo"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateUserRequest"];
+                    "text/json": components["schemas"]["CreateUserRequest"];
+                    "application/*+json": components["schemas"]["CreateUserRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UserInfo"];
+                        "application/json": components["schemas"]["UserInfo"];
+                        "text/json": components["schemas"]["UserInfo"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateUserRequest"];
+                    "text/json": components["schemas"]["UpdateUserRequest"];
+                    "application/*+json": components["schemas"]["UpdateUserRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UserInfo"];
+                        "application/json": components["schemas"]["UserInfo"];
+                        "text/json": components["schemas"]["UserInfo"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/workers/concert": {
         parameters: {
             query?: never;
@@ -1169,6 +1640,56 @@ export interface paths {
                     "application/json": components["schemas"]["RerunConcertWorkerRequest"];
                     "text/json": components["schemas"]["RerunConcertWorkerRequest"];
                     "application/*+json": components["schemas"]["RerunConcertWorkerRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workers/party": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RerunPartyInfoEnrichmentWorkerRequest"];
+                    "text/json": components["schemas"]["RerunPartyInfoEnrichmentWorkerRequest"];
+                    "application/*+json": components["schemas"]["RerunPartyInfoEnrichmentWorkerRequest"];
                 };
             };
             responses: {
@@ -1334,6 +1855,18 @@ export interface components {
         };
         /** @enum {unknown} */
         AlbumType: "Album" | "Single" | "Compilation" | "Live" | "Soundtrack" | "Remix" | "Other";
+        AuthSessionDto: {
+            /** Format: uuid */
+            id: string;
+            last5Digit: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: null | string;
+            /** Format: date-time */
+            lastUsedAt: null | string;
+            isCurrent: boolean;
+        };
         CompleteMultipartUploadPart: {
             /** Format: int32 */
             partNumber: number | string;
@@ -1543,6 +2076,11 @@ export interface components {
             /** Format: int32 */
             fileObjectId: number | string;
         };
+        CreateUserRequest: {
+            username: string;
+            password: string;
+            role: components["schemas"]["Roles"];
+        };
         CreditRequest: {
             /** Format: int32 */
             partyId: number | string;
@@ -1628,6 +2166,7 @@ export interface components {
             imageBanner1500x500?: null | components["schemas"]["FileObjectDetails"];
             imageWide1280x720?: null | components["schemas"]["FileObjectDetails"];
         };
+        JsonElement: unknown;
         LanguageListItem: {
             /** Format: int32 */
             id: number | string;
@@ -1707,6 +2246,21 @@ export interface components {
         PartyKind: "Human" | "VTuber" | "Vocaloid";
         /** @enum {unknown} */
         PartyType: "Individual" | "Group" | "Project";
+        PasskeyDeleteRequest: {
+            id?: string;
+        };
+        PasskeyDto: {
+            id: string;
+            name: string;
+            /** Format: date-time */
+            createdAt: string;
+            transports: string[];
+            deviceType: string;
+        };
+        PasskeyEditRequest: {
+            id?: string;
+            name?: string;
+        };
         PendingOriginalFileResult: {
             /** Format: int32 */
             fileId: number | string;
@@ -1730,6 +2284,12 @@ export interface components {
             /** Format: uuid */
             objectId: string;
         };
+        RerunPartyInfoEnrichmentWorkerRequest: {
+            /** Format: int32 */
+            partyId: number | string;
+        };
+        /** @enum {unknown} */
+        Roles: "Admin" | "Uploader" | "User" | "Owner";
         SearchResult: {
             albums: components["schemas"]["AlbumListItem"][];
             concerts: components["schemas"]["ConcertListItem"][];
@@ -1774,6 +2334,11 @@ export interface components {
         };
         /** @enum {unknown} */
         TrackVersionType: "Original" | "Instrumental" | "Remix" | "Live" | "Acoustic" | "RadioEdit" | "Demo" | "Other";
+        UpdateUserRequest: {
+            username?: null | string;
+            password?: null | string;
+            role?: null | components["schemas"]["Roles"];
+        };
         UserInfo: {
             id: string;
             userName: string;

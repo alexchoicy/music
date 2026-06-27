@@ -30,6 +30,7 @@ public class TokenService : ITokenService
     public async Task<string> GenerateUserToken(UserInfo user)
     {
         string jti = Guid.CreateVersion7().ToString("N");
+        DateTime expiresAt = DateTime.UtcNow.AddDays(7);
 
         List<Claim> claims =
         [
@@ -54,7 +55,7 @@ public class TokenService : ITokenService
             SigningCredentials = creds,
             Issuer = _config["JWT:Issuer"],
             Audience = _config["JWT:Audience"],
-            Expires = DateTime.UtcNow.AddDays(7),
+            Expires = expiresAt,
         };
 
         JwtSecurityTokenHandler tokenHandler = new();
@@ -63,7 +64,7 @@ public class TokenService : ITokenService
 
         string token = tokenHandler.WriteToken(securityToken);
 
-        await SaveAuthToken(user.Id, TokenUseType.UserAccess, jti, token);
+        await SaveAuthToken(user.Id, TokenUseType.UserAccess, jti, token, expiresAt);
         return token;
     }
 
@@ -138,6 +139,7 @@ public class TokenService : ITokenService
         TokenUseType tokenUseType,
         string jti,
         string token,
+        DateTimeOffset? expiresAt = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -148,6 +150,7 @@ public class TokenService : ITokenService
                 Last5Digit = new string(token.TakeLast(5).ToArray()),
                 TokenType = tokenUseType,
                 CreatedByUserId = userId,
+                ExpiresAt = expiresAt,
                 Name = "",
             },
             cancellationToken
@@ -203,6 +206,26 @@ public class TokenService : ITokenService
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return true;
+    }
+
+    public async Task RevokeAllUserTokensAsync(
+        string userId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        List<AuthToken> tokens = await _dbContext
+            .AuthTokens.Where(token =>
+                token.CreatedByUserId == userId && token.RevokedAt == null
+            )
+            .ToListAsync(cancellationToken);
+
+        foreach (AuthToken token in tokens)
+        {
+            token.RevokedAt = DateTime.UtcNow;
+            token.LastUsedAt = DateTime.UtcNow;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RevokeTokenAsync(string? jti, CancellationToken cancellationToken = default)

@@ -20,6 +20,11 @@ export const authMutations = {
 			return result.data;
 		},
 	}),
+	logout: () => ({
+		mutationFn: async () => {
+			await $APIFetch("/auth/logout", { method: "POST" });
+		},
+	}),
 };
 
 export const authQueries = {
@@ -48,6 +53,23 @@ export const authQueries = {
 
 				if (!result.ok) {
 					throw new Error("Unable to load user info");
+				}
+
+				return result.data;
+			},
+			staleTime: 60 * 1000,
+			retry: false,
+		}),
+	sessions: () =>
+		queryOptions({
+			queryKey: ["auth", "sessions"],
+			queryFn: async () => {
+				const result = await $APIFetch<
+					components["schemas"]["AuthSessionDto"][]
+				>("/auth/sessions", { method: "GET" });
+
+				if (!result.ok) {
+					throw new Error("Unable to load token sessions");
 				}
 
 				return result.data;

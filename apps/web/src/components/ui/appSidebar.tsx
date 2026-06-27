@@ -1,4 +1,5 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
 	CirclePlus,
 	Disc3,
@@ -15,7 +16,13 @@ import type { LucideIcon } from "lucide-react";
 
 import { Button } from "#/components/coss/button";
 import { Kbd, KbdGroup } from "#/components/coss/kbd";
-import { Menu, MenuItem, MenuPopup, MenuTrigger } from "#/components/coss/menu";
+import {
+	Menu,
+	MenuItem,
+	MenuLinkItem,
+	MenuPopup,
+	MenuTrigger,
+} from "#/components/coss/menu";
 import {
 	Popover,
 	PopoverPopup,
@@ -32,8 +39,11 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	useSidebar,
 } from "#/components/coss/sidebar";
 import { useUserInfo } from "#/context/UserInfoContext";
+import { ROLE } from "#/enums/userEnums";
+import { authMutations } from "#/lib/queries/auth.queries";
 import { getInitials } from "#/lib/utils/string";
 import type { FileRouteTypes } from "#/routeTree.gen";
 import { useUploadStore } from "#/store/uploadStore";
@@ -49,11 +59,8 @@ type NavigationItem = {
 	icon: LucideIcon;
 	to: NavigationTo;
 	hotkey?: string;
+	uploader?: boolean;
 };
-
-function normalizePathname(pathname: string): string {
-	return pathname === "/" ? pathname : pathname.replace(/\/$/, "");
-}
 
 const mainNavigation = [
 	{
@@ -84,6 +91,7 @@ const mainNavigation = [
 		label: "Create",
 		icon: CirclePlus,
 		to: "/create",
+		uploader: true,
 	},
 ] satisfies Array<NavigationItem>;
 
@@ -166,17 +174,27 @@ function SidebarUploadStatus(): React.ReactElement {
 export function AppSidebar({
 	onOpenCommand,
 }: AppSidebarProps): React.ReactElement {
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+	const { isMobile, setOpenMobile } = useSidebar();
 	const userInfo = useUserInfo();
-	const pathname = useRouterState({
-		select: (state) => state.location.pathname,
-	});
-	const currentPathname = normalizePathname(pathname);
-	const activeNavigationIndex = mainNavigation.findIndex(
-		(item) => item.to === currentPathname,
+	const { isPending, mutateAsync: logout } = useMutation(
+		authMutations.logout(),
 	);
 	const displayName = userInfo.userName.trim() || "User";
 	const roleLabel =
 		userInfo.roles.length > 0 ? userInfo.roles.join(", ") : "Member";
+
+	async function handleLogout() {
+		if (isMobile) setOpenMobile(false);
+		await logout();
+		queryClient.removeQueries({ queryKey: ["auth"] });
+		await navigate({ to: "/login", search: { redirect: "" } });
+	}
+
+	function closeMobileSidebar() {
+		if (isMobile) setOpenMobile(false);
+	}
 
 	return (
 		<Sidebar collapsible="offcanvas">
@@ -211,12 +229,20 @@ export function AppSidebar({
 				<SidebarGroup>
 					<SidebarGroupContent>
 						<SidebarMenu>
-							{mainNavigation.map((item, index) => {
+							{mainNavigation.map((item) => {
+								if (item.uploader && userInfo.roles.includes(ROLE.User)) {
+									return;
+								}
 								return (
 									<SidebarMenuItem key={item.label}>
 										<SidebarMenuButton
-											isActive={index === activeNavigationIndex}
-											render={<Link to={item.to} />}
+											render={
+												<Link
+													activeOptions={{ exact: item.to === "/" }}
+													activeProps={{ "data-active": "true" }}
+													to={item.to}
+												/>
+											}
 										>
 											<item.icon className="size-4" />
 											<span>{item.label}</span>
@@ -241,8 +267,13 @@ export function AppSidebar({
 					<SidebarMenuItem>
 						<Menu>
 							<SidebarMenuButton
-								className="h-auto py-2"
-								render={<MenuTrigger aria-label="Open account menu" />}
+								className="h-auto py-2 data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground"
+								render={
+									<MenuTrigger
+										aria-label={`Open account menu for ${displayName}`}
+										openOnHover
+									/>
+								}
 								size="lg"
 							>
 								<div className="flex size-8 items-center justify-center rounded-full border text-xs font-medium">
@@ -259,14 +290,21 @@ export function AppSidebar({
 								<MoreVertical className="ms-auto size-4" />
 							</SidebarMenuButton>
 
-							<MenuPopup align="start" className="w-48" side="top">
-								<MenuItem>
+							<MenuPopup align="end" className="w-(--anchor-width)" side="top">
+								<MenuLinkItem
+									onClick={closeMobileSidebar}
+									render={<Link to="/settings" />}
+								>
 									<Settings2 className="size-4" />
 									Settings
-								</MenuItem>
-								<MenuItem variant="destructive">
+								</MenuLinkItem>
+								<MenuItem
+									disabled={isPending}
+									onClick={() => void handleLogout()}
+									variant="destructive"
+								>
 									<LogOut className="size-4" />
-									Log out
+									{isPending ? "Logging out..." : "Log out"}
 								</MenuItem>
 							</MenuPopup>
 						</Menu>

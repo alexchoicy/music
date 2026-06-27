@@ -69,6 +69,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
                 NormalizedName = Music.Core.Services.Auth.Enums.Roles.User.ToString().ToUpper(),
                 ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0",
             },
+            new IdentityRole
+            {
+                Id = "00000000-0000-0000-0000-000000000004",
+                Name = Music.Core.Services.Auth.Enums.Roles.Owner.ToString(),
+                NormalizedName = Music.Core.Services.Auth.Enums.Roles.Owner.ToString().ToUpper(),
+                ConcurrencyStamp = "70b645e2-64b9-4d69-8a37-46413af238b0",
+            },
         ];
 
         builder.Entity<IdentityRole>().HasData(roles);

@@ -1,6 +1,14 @@
+import {
+	browserSupportsWebAuthnAutofill,
+	startAuthentication,
+	startRegistration,
+	WebAuthnAbortService,
+} from "@simplewebauthn/browser";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { KeyRoundIcon } from "lucide-react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { z } from "zod";
 
 import { Button } from "#/components/coss/button";
@@ -18,6 +26,12 @@ import {
 	FieldLabel,
 } from "#/components/coss/field";
 import { Input } from "#/components/coss/input";
+import {
+	passkeyAuthenticationOptions,
+	passkeyRegistrationOptions,
+	registerPasskey,
+	signInWithPasskey,
+} from "#/lib/api/auth";
 import { authMutations, authQueries } from "#/lib/queries/auth.queries";
 
 export const Route = createFileRoute("/_public/login/")({
@@ -42,14 +56,89 @@ const loginRequestDto = z.object({
 const usernameInputId = "login-username";
 const passwordInputId = "login-password";
 
+async function authenticateWithPasskey({
+	username,
+	useBrowserAutofill = false,
+}: {
+	username?: string;
+	useBrowserAutofill?: boolean;
+} = {}) {
+	const optionsJSON = await passkeyAuthenticationOptions(username);
+	const assertion = await startAuthentication({
+		optionsJSON,
+		useBrowserAutofill,
+	});
+	return signInWithPasskey(assertion);
+}
+
+async function autoRegisterPasskey() {
+	const optionsJSON = await passkeyRegistrationOptions();
+	const attResp = await startRegistration({
+		optionsJSON,
+		useAutoRegister: true,
+	});
+	await registerPasskey(attResp);
+}
+
 function RouteComponent() {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 	const { redirect: redirectTo } = Route.useSearch();
+	const [passkeyError, setPasskeyError] = useState<string | null>(null);
 
 	const { isPending, mutateAsync: loginSubmit } = useMutation({
 		...authMutations.login(),
 	});
+	const { isPending: isPasskeyPending, mutateAsync: passkeySubmit } =
+		useMutation({
+			mutationFn: (username?: string) => authenticateWithPasskey({ username }),
+		});
+
+	async function finishLogin() {
+		await queryClient.invalidateQueries({ queryKey: ["auth"] });
+		await navigate({ to: redirectTo });
+	}
+
+	async function completedPasswordLogin() {
+		try {
+			await autoRegisterPasskey();
+		} catch {}
+
+		await finishLogin();
+	}
+
+	const startPasskeyAutofill = useEffectEvent(async () => {
+		try {
+			if (!(await browserSupportsWebAuthnAutofill())) return;
+			await authenticateWithPasskey({ useBrowserAutofill: true });
+		} catch (error) {
+			if (
+				error instanceof Error &&
+				error.message === "Passkey sign-in failed"
+			) {
+				setPasskeyError(error.message);
+			}
+			return;
+		}
+
+		await finishLogin();
+	});
+
+	async function handlePasskeyLogin() {
+		setPasskeyError(null);
+
+		try {
+			const username = form.state.values.username.trim() || undefined;
+			await passkeySubmit(username);
+		} catch (error) {
+			setPasskeyError(
+				error instanceof Error ? error.message : "Passkey sign-in failed",
+			);
+			return;
+		}
+
+		await finishLogin();
+	}
 
 	const form = useForm({
 		defaultValues: {
@@ -60,6 +149,8 @@ function RouteComponent() {
 			onSubmit: loginRequestDto,
 		},
 		onSubmit: async ({ value }) => {
+			setPasskeyError(null);
+
 			try {
 				await loginSubmit(value);
 			} catch {
@@ -73,10 +164,17 @@ function RouteComponent() {
 				return;
 			}
 
-			await queryClient.invalidateQueries({ queryKey: ["auth"] });
-			await navigate({ to: redirectTo });
+			await completedPasswordLogin();
 		},
 	});
+
+	useEffect(() => {
+		void startPasskeyAutofill();
+
+		return () => {
+			WebAuthnAbortService.cancelCeremony();
+		};
+	}, []);
 
 	return (
 		<main className="flex min-h-svh items-center justify-center p-6">
@@ -108,7 +206,7 @@ function RouteComponent() {
 									>
 										<FieldLabel htmlFor={usernameInputId}>Username</FieldLabel>
 										<Input
-											autoComplete="username"
+											autoComplete="username webauthn"
 											id={usernameInputId}
 											name={field.name}
 											onBlur={field.handleBlur}
@@ -164,7 +262,7 @@ function RouteComponent() {
 							{([canSubmit, isSubmitting]) => (
 								<Button
 									className="w-full"
-									disabled={!canSubmit}
+									disabled={!canSubmit || isPasskeyPending}
 									loading={isSubmitting || isPending}
 									type="submit"
 								>
@@ -172,6 +270,29 @@ function RouteComponent() {
 								</Button>
 							)}
 						</form.Subscribe>
+
+						<div className="flex items-center gap-3 text-xs text-muted-foreground">
+							<div className="h-px flex-1 bg-border" />
+							<span>or</span>
+							<div className="h-px flex-1 bg-border" />
+						</div>
+
+						<Button
+							className="w-full"
+							disabled={isPending || isPasskeyPending}
+							loading={isPasskeyPending}
+							onClick={() => void handlePasskeyLogin()}
+							type="button"
+							variant="outline"
+						>
+							<KeyRoundIcon />
+							Sign in with passkey
+						</Button>
+						{passkeyError && (
+							<p className="text-sm text-destructive-foreground" role="alert">
+								{passkeyError}
+							</p>
+						)}
 					</form>
 				</CardPanel>
 			</Card>
