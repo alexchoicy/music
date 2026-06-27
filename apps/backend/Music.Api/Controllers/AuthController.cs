@@ -1,11 +1,16 @@
 using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Music.Core.Common.Constants;
+using Music.Core.Entities;
 using Music.Core.Services.Auth;
+using Music.Core.Services.Auth.Enums;
+using Music.Infrastructure.Data;
 using Music.Infrastructure.Entities;
 
 namespace Music.Api.Controllers;
@@ -17,6 +22,7 @@ public class AuthController(
     ITokenService tokenService,
     UserManager<User> userManager,
     SignInManager<User> signInManager,
+    AppDbContext dbContext,
     IConfiguration configuration
 ) : ControllerBase
 {
@@ -24,6 +30,7 @@ public class AuthController(
     private readonly ITokenService _tokenService = tokenService;
     private readonly UserManager<User> _userManager = userManager;
     private readonly SignInManager<User> _signInManager = signInManager;
+    private readonly AppDbContext _dbContext = dbContext;
     private readonly string AuthCookieName =
         configuration.GetValue<string>("Cookies:Name") ?? "AlexCoolMusicAppToken";
     private readonly string AuthCookieDomain =
@@ -101,6 +108,49 @@ public class AuthController(
             }
         );
         return Ok();
+    }
+
+    [HttpGet("sessions")]
+    [Authorize]
+    [ProducesResponseType(typeof(List<AuthSessionDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<AuthSessionDto>>> Sessions(
+        CancellationToken cancellationToken
+    )
+    {
+        string userId =
+            User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new ValidationException("Missing user identifier claim.");
+        string? currentJti =
+            User.FindFirstValue(JwtRegisteredClaimNames.Jti) ?? User.FindFirstValue("jti");
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+
+        List<AuthToken> tokens = await _dbContext
+            .AuthTokens.Where(token =>
+                token.CreatedByUserId == userId
+                && token.TokenType == TokenUseType.UserAccess
+                && token.RevokedAt == null
+            )
+            .OrderByDescending(token => token.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        return Ok(
+            tokens
+                .Select(token =>
+                {
+                    DateTimeOffset? expiresAt = token.ExpiresAt ?? token.CreatedAt.AddDays(7);
+                    return new AuthSessionDto
+                    {
+                        Id = token.Id,
+                        Last5Digit = token.Last5Digit,
+                        CreatedAt = token.CreatedAt,
+                        ExpiresAt = expiresAt,
+                        LastUsedAt = token.LastUsedAt,
+                        IsCurrent = token.Jti == currentJti,
+                    };
+                })
+                .Where(session => session.ExpiresAt is null || session.ExpiresAt > now)
+                .ToList()
+        );
     }
 
     [HttpPost("passkey-request-options")]
@@ -232,7 +282,7 @@ public class AuthController(
                 Id = Convert.ToBase64String(result.Passkey.CredentialId),
                 Name = result.Passkey.Name ?? string.Empty,
                 CreatedAt = result.Passkey.CreatedAt,
-                Transports = result.Passkey.Transports.ToList(),
+                Transports = result.Passkey.Transports?.ToList() ?? [],
                 DeviceType = result.Passkey.IsBackupEligible ? "multiDevice" : "singleDevice",
             }
         );
@@ -254,7 +304,7 @@ public class AuthController(
                 Id = Convert.ToBase64String(p.CredentialId),
                 Name = p.Name ?? string.Empty,
                 CreatedAt = p.CreatedAt,
-                Transports = p.Transports.ToList(),
+                Transports = p.Transports?.ToList() ?? [],
                 DeviceType = p.IsBackupEligible ? "multiDevice" : "singleDevice",
             })
             .ToList();
@@ -318,6 +368,16 @@ public sealed class PasskeyDto
     public required DateTimeOffset CreatedAt { get; init; }
     public required List<string> Transports { get; init; }
     public required string DeviceType { get; init; }
+}
+
+public sealed class AuthSessionDto
+{
+    public required Guid Id { get; init; }
+    public required string Last5Digit { get; init; }
+    public required DateTimeOffset CreatedAt { get; init; }
+    public required DateTimeOffset? ExpiresAt { get; init; }
+    public required DateTimeOffset? LastUsedAt { get; init; }
+    public required bool IsCurrent { get; init; }
 }
 
 public class PasskeyEditRequest

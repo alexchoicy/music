@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
 	CirclePlus,
 	Disc3,
@@ -39,6 +39,7 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	useSidebar,
 } from "#/components/coss/sidebar";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { ROLE } from "#/enums/userEnums";
@@ -60,10 +61,6 @@ type NavigationItem = {
 	hotkey?: string;
 	uploader?: boolean;
 };
-
-function normalizePathname(pathname: string): string {
-	return pathname === "/" ? pathname : pathname.replace(/\/$/, "");
-}
 
 const mainNavigation = [
 	{
@@ -179,25 +176,24 @@ export function AppSidebar({
 }: AppSidebarProps): React.ReactElement {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
+	const { isMobile, setOpenMobile } = useSidebar();
 	const userInfo = useUserInfo();
 	const { isPending, mutateAsync: logout } = useMutation(
 		authMutations.logout(),
-	);
-	const pathname = useRouterState({
-		select: (state) => state.location.pathname,
-	});
-	const currentPathname = normalizePathname(pathname);
-	const activeNavigationIndex = mainNavigation.findIndex(
-		(item) => item.to === currentPathname,
 	);
 	const displayName = userInfo.userName.trim() || "User";
 	const roleLabel =
 		userInfo.roles.length > 0 ? userInfo.roles.join(", ") : "Member";
 
 	async function handleLogout() {
+		if (isMobile) setOpenMobile(false);
 		await logout();
 		queryClient.removeQueries({ queryKey: ["auth"] });
 		await navigate({ to: "/login", search: { redirect: "" } });
+	}
+
+	function closeMobileSidebar() {
+		if (isMobile) setOpenMobile(false);
 	}
 
 	return (
@@ -233,15 +229,20 @@ export function AppSidebar({
 				<SidebarGroup>
 					<SidebarGroupContent>
 						<SidebarMenu>
-							{mainNavigation.map((item, index) => {
+							{mainNavigation.map((item) => {
 								if (item.uploader && userInfo.roles.includes(ROLE.User)) {
 									return;
 								}
 								return (
 									<SidebarMenuItem key={item.label}>
 										<SidebarMenuButton
-											isActive={index === activeNavigationIndex}
-											render={<Link to={item.to} />}
+											render={
+												<Link
+													activeOptions={{ exact: item.to === "/" }}
+													activeProps={{ "data-active": "true" }}
+													to={item.to}
+												/>
+											}
 										>
 											<item.icon className="size-4" />
 											<span>{item.label}</span>
@@ -266,8 +267,13 @@ export function AppSidebar({
 					<SidebarMenuItem>
 						<Menu>
 							<SidebarMenuButton
-								className="h-auto py-2"
-								render={<MenuTrigger aria-label="Open account menu" />}
+								className="h-auto py-2 data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground"
+								render={
+									<MenuTrigger
+										aria-label={`Open account menu for ${displayName}`}
+										openOnHover
+									/>
+								}
 								size="lg"
 							>
 								<div className="flex size-8 items-center justify-center rounded-full border text-xs font-medium">
@@ -284,8 +290,11 @@ export function AppSidebar({
 								<MoreVertical className="ms-auto size-4" />
 							</SidebarMenuButton>
 
-							<MenuPopup align="start" className="w-48" side="top">
-								<MenuLinkItem render={<Link to="/settings" />}>
+							<MenuPopup align="end" className="w-(--anchor-width)" side="top">
+								<MenuLinkItem
+									onClick={closeMobileSidebar}
+									render={<Link to="/settings" />}
+								>
 									<Settings2 className="size-4" />
 									Settings
 								</MenuLinkItem>
@@ -295,7 +304,7 @@ export function AppSidebar({
 									variant="destructive"
 								>
 									<LogOut className="size-4" />
-									Log out
+									{isPending ? "Logging out..." : "Log out"}
 								</MenuItem>
 							</MenuPopup>
 						</Menu>

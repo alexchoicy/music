@@ -406,7 +406,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["JsonElement"];
+                        "application/json": components["schemas"]["JsonElement"];
+                        "text/json": components["schemas"]["JsonElement"];
+                    };
                 };
             };
         };
@@ -445,7 +449,22 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["LoginResult"];
+                        "application/json": components["schemas"]["LoginResult"];
+                        "text/json": components["schemas"]["LoginResult"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
                 };
             };
         };
@@ -517,10 +536,130 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
+                    content: {
+                        "text/plain": components["schemas"]["PasskeyDto"];
+                        "application/json": components["schemas"]["PasskeyDto"];
+                        "text/json": components["schemas"]["PasskeyDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/passkeys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
                     content?: never;
                 };
             };
         };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PasskeyEditRequest"];
+                    "text/json": components["schemas"]["PasskeyEditRequest"];
+                    "application/*+json": components["schemas"]["PasskeyEditRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PasskeyDeleteRequest"];
+                    "text/json": components["schemas"]["PasskeyDeleteRequest"];
+                    "application/*+json": components["schemas"]["PasskeyDeleteRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AuthSessionDto"][];
+                        "application/json": components["schemas"]["AuthSessionDto"][];
+                        "text/json": components["schemas"]["AuthSessionDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1716,6 +1855,18 @@ export interface components {
         };
         /** @enum {unknown} */
         AlbumType: "Album" | "Single" | "Compilation" | "Live" | "Soundtrack" | "Remix" | "Other";
+        AuthSessionDto: {
+            /** Format: uuid */
+            id: string;
+            last5Digit: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: null | string;
+            /** Format: date-time */
+            lastUsedAt: null | string;
+            isCurrent: boolean;
+        };
         CompleteMultipartUploadPart: {
             /** Format: int32 */
             partNumber: number | string;
@@ -2095,6 +2246,21 @@ export interface components {
         PartyKind: "Human" | "VTuber" | "Vocaloid";
         /** @enum {unknown} */
         PartyType: "Individual" | "Group" | "Project";
+        PasskeyDeleteRequest: {
+            id?: string;
+        };
+        PasskeyDto: {
+            id: string;
+            name: string;
+            /** Format: date-time */
+            createdAt: string;
+            transports: string[];
+            deviceType: string;
+        };
+        PasskeyEditRequest: {
+            id?: string;
+            name?: string;
+        };
         PendingOriginalFileResult: {
             /** Format: int32 */
             fileId: number | string;

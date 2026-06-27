@@ -20,6 +20,7 @@ import {
 	AlertDialogPopup,
 	AlertDialogTitle,
 } from "#/components/coss/alert-dialog";
+import { Badge } from "#/components/coss/badge";
 import { Button } from "#/components/coss/button";
 import {
 	Dialog,
@@ -52,6 +53,7 @@ import {
 	renamePasskey,
 } from "#/lib/api/auth";
 import type { Passkey } from "#/lib/api/auth";
+import { authQueries } from "#/lib/queries/auth.queries";
 import { formatDate } from "#/lib/utils/date";
 
 const PASSKEYS_QUERY_KEY = ["auth", "passkeys"] as const;
@@ -98,9 +100,14 @@ export function AuthTabContent() {
 		queryKey: PASSKEYS_QUERY_KEY,
 		queryFn: getPasskeys,
 	});
+	const {
+		data: sessions = [],
+		isError: sessionsIsError,
+		isPending: sessionsIsPending,
+	} = useQuery(authQueries.sessions());
 
 	return (
-		<section className="flex flex-col gap-4">
+		<section className="flex min-w-0 flex-col gap-4">
 			<div className="flex items-center justify-between gap-2">
 				<div>
 					<h2 className="font-heading text-xl font-semibold tracking-tight">
@@ -122,37 +129,40 @@ export function AuthTabContent() {
 				passkey={deletingPasskey}
 			/>
 
-			<div className="rounded-lg border">
-				<Table>
+			<div className="min-w-0 rounded-lg border">
+				<Table className="table-fixed">
 					<TableHeader>
 						<TableRow className="hover:bg-transparent">
 							<TableHead>Name</TableHead>
-							<TableHead>Created</TableHead>
-							<TableHead>ID</TableHead>
-							<TableHead className="w-0" />
+							<TableHead className="hidden w-44 sm:table-cell">
+								Created
+							</TableHead>
+							<TableHead className="hidden sm:table-cell">ID</TableHead>
+							<TableHead className="w-16" />
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{isPending ? (
 							<TableRow>
-								<TableCell className="h-24 text-center" colSpan={4}>
+								<TableCell className="h-24 text-center" colSpan={3}>
 									Loading...
 								</TableCell>
 							</TableRow>
 						) : isError ? (
 							<TableRow>
-								<TableCell className="h-24 text-center" colSpan={4}>
+								<TableCell className="h-24 text-center" colSpan={3}>
 									Failed to load passkeys.
 								</TableCell>
 							</TableRow>
 						) : passkeys.length === 0 ? (
 							<TableRow>
-								<TableCell className="h-24 text-center" colSpan={4}>
+								<TableCell className="h-24 text-center" colSpan={3}>
 									No passkeys found.
 								</TableCell>
 							</TableRow>
 						) : (
 							passkeys.map((passkey) => {
+								const name = passkey.name.trim();
 								const authType = getAuthTypeIcon(
 									passkey.transports,
 									passkey.deviceType,
@@ -160,53 +170,139 @@ export function AuthTabContent() {
 								const AuthIcon = AUTH_TYPE_ICON[authType];
 
 								return (
-								<TableRow key={passkey.id}>
-									<TableCell className="font-medium">
-										<div className="flex items-center gap-2">
-											<AuthIcon
-												aria-label={AUTH_TYPE_LABEL[authType]}
-												className="size-4 text-muted-foreground"
-											/>
-											{passkey.name.trim() || (
-												<span className="text-muted-foreground">
-													Unnamed passkey
+									<TableRow key={passkey.id}>
+										<TableCell className="min-w-0 font-medium">
+											<div className="flex min-w-0 items-center gap-2">
+												<AuthIcon
+													aria-label={AUTH_TYPE_LABEL[authType]}
+													className="size-4 shrink-0 text-muted-foreground"
+												/>
+												<span
+													className={
+														name
+															? "min-w-0 truncate"
+															: "min-w-0 truncate text-muted-foreground"
+													}
+												>
+													{name || "Unnamed passkey"}
 												</span>
+											</div>
+										</TableCell>
+										<TableCell className="hidden sm:table-cell">
+											<time dateTime={passkey.createdAt}>
+												{formatDate(passkey.createdAt)}
+											</time>
+										</TableCell>
+										<TableCell className="hidden max-w-72 truncate font-mono text-xs text-muted-foreground sm:table-cell">
+											{passkey.id}
+										</TableCell>
+										<TableCell className="w-16">
+											<div className="flex justify-end gap-1">
+												<Button
+													aria-label={`Rename ${passkey.name || "passkey"}`}
+													onClick={() => setEditingPasskey(passkey)}
+													size="icon-xs"
+													type="button"
+													variant="ghost"
+												>
+													<PencilIcon />
+												</Button>
+												<Button
+													aria-label={`Delete ${passkey.name || "passkey"}`}
+													onClick={() => setDeletingPasskey(passkey)}
+													size="icon-xs"
+													type="button"
+													variant="ghost"
+												>
+													<Trash2Icon />
+												</Button>
+											</div>
+										</TableCell>
+									</TableRow>
+								);
+							})
+						)}
+					</TableBody>
+				</Table>
+			</div>
+
+			<div className="pt-2">
+				<h2 className="font-heading text-xl font-semibold tracking-tight">
+					Token sessions
+				</h2>
+				<p className="text-sm text-muted-foreground">
+					Active sign-in tokens for your account.
+				</p>
+			</div>
+
+			<div className="min-w-0 rounded-lg border">
+				<Table className="table-fixed">
+					<TableHeader>
+						<TableRow className="hover:bg-transparent">
+							<TableHead>Token</TableHead>
+							<TableHead className="hidden w-44 sm:table-cell">
+								Expires
+							</TableHead>
+							<TableHead className="hidden sm:table-cell">Last used</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{sessionsIsPending ? (
+							<TableRow>
+								<TableCell className="h-24 text-center" colSpan={3}>
+									Loading...
+								</TableCell>
+							</TableRow>
+						) : sessionsIsError ? (
+							<TableRow>
+								<TableCell className="h-24 text-center" colSpan={3}>
+									Failed to load token sessions.
+								</TableCell>
+							</TableRow>
+						) : sessions.length === 0 ? (
+							<TableRow>
+								<TableCell className="h-24 text-center" colSpan={3}>
+									No active token sessions found.
+								</TableCell>
+							</TableRow>
+						) : (
+							sessions.map((session) => (
+								<TableRow key={session.id}>
+									<TableCell className="min-w-0 font-medium">
+										<div className="flex min-w-0 items-center gap-2">
+											<span className="font-mono text-xs">
+												{session.last5Digit}
+											</span>
+											{session.isCurrent && (
+												<Badge
+													variant="outline"
+													className="-my-0.5 shrink-0 text-xs font-normal"
+												>
+													Current token
+												</Badge>
 											)}
 										</div>
 									</TableCell>
-									<TableCell>
-										<time dateTime={passkey.createdAt}>
-											{formatDate(passkey.createdAt)}
-										</time>
+									<TableCell className="hidden sm:table-cell">
+										{session.expiresAt ? (
+											<time dateTime={session.expiresAt}>
+												{formatDate(session.expiresAt)}
+											</time>
+										) : (
+											"Never"
+										)}
 									</TableCell>
-									<TableCell className="max-w-72 truncate font-mono text-xs text-muted-foreground">
-										{passkey.id}
-									</TableCell>
-									<TableCell className="w-0">
-										<div className="flex justify-end gap-1">
-											<Button
-												aria-label={`Rename ${passkey.name || "passkey"}`}
-												onClick={() => setEditingPasskey(passkey)}
-												size="icon-xs"
-												type="button"
-												variant="ghost"
-											>
-												<PencilIcon />
-											</Button>
-											<Button
-												aria-label={`Delete ${passkey.name || "passkey"}`}
-												onClick={() => setDeletingPasskey(passkey)}
-												size="icon-xs"
-												type="button"
-												variant="ghost"
-											>
-												<Trash2Icon />
-											</Button>
-										</div>
+									<TableCell className="hidden text-muted-foreground sm:table-cell">
+										{session.lastUsedAt ? (
+											<time dateTime={session.lastUsedAt}>
+												{formatDate(session.lastUsedAt)}
+											</time>
+										) : (
+											"Never"
+										)}
 									</TableCell>
 								</TableRow>
-								);
-							})
+							))
 						)}
 					</TableBody>
 				</Table>

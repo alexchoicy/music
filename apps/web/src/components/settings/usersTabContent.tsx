@@ -82,7 +82,7 @@ export function UsersTabContent() {
 	const { data: currentUser } = useQuery(authQueries.userInfo());
 
 	return (
-		<section className="flex flex-col gap-4">
+		<section className="flex min-w-0 flex-col gap-4">
 			<div className="flex items-center justify-between gap-2">
 				<div>
 					<h2 className="font-heading text-xl font-semibold tracking-tight">
@@ -101,46 +101,47 @@ export function UsersTabContent() {
 				user={editingUser}
 			/>
 
-			<div className="rounded-lg border">
-				<Table>
+			<div className="min-w-0 rounded-lg border">
+				<Table className="table-fixed">
 					<TableHeader>
 						<TableRow className="hover:bg-transparent">
 							<TableHead>Username</TableHead>
-							<TableHead>Roles</TableHead>
-							<TableHead>ID</TableHead>
-							<TableHead className="w-0" />
+							<TableHead className="hidden w-48 sm:table-cell">Roles</TableHead>
+							<TableHead className="hidden sm:table-cell">ID</TableHead>
+
+							<TableHead className="w-10" />
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{isPending ? (
 							<TableRow>
-								<TableCell className="h-24 text-center" colSpan={4}>
+								<TableCell className="h-24 text-center" colSpan={3}>
 									Loading...
 								</TableCell>
 							</TableRow>
 						) : users.length === 0 ? (
 							<TableRow>
-								<TableCell className="h-24 text-center" colSpan={4}>
+								<TableCell className="h-24 text-center" colSpan={3}>
 									No users found.
 								</TableCell>
 							</TableRow>
 						) : (
 							users.map((user) => (
 								<TableRow key={user.id}>
-									<TableCell className="font-medium">
-										<div className="flex items-center gap-2">
-											{user.userName}
+									<TableCell className="min-w-0 font-medium">
+										<div className="flex min-w-0 items-center gap-2">
+											<span className="min-w-0 truncate">{user.userName}</span>
 											{currentUser && user.id === currentUser.id && (
 												<Badge
 													variant="outline"
-													className="-my-0.5 text-xs font-normal"
+													className="-my-0.5 shrink-0 text-xs font-normal"
 												>
 													Current user
 												</Badge>
 											)}
 										</div>
 									</TableCell>
-									<TableCell>
+									<TableCell className="hidden sm:table-cell">
 										<div className="flex flex-wrap gap-1">
 											{user.roles.map((role) => (
 												<Badge
@@ -156,10 +157,10 @@ export function UsersTabContent() {
 											))}
 										</div>
 									</TableCell>
-									<TableCell className="font-mono text-xs text-muted-foreground">
+									<TableCell className="hidden font-mono text-xs text-muted-foreground sm:table-cell">
 										{user.id}
 									</TableCell>
-									<TableCell className="w-0">
+									<TableCell className="w-10">
 										{canEditUser(currentUser, user) && (
 											<Button
 												size="icon-xs"

@@ -60,4 +60,21 @@ export const authQueries = {
 			staleTime: 60 * 1000,
 			retry: false,
 		}),
+	sessions: () =>
+		queryOptions({
+			queryKey: ["auth", "sessions"],
+			queryFn: async () => {
+				const result = await $APIFetch<
+					components["schemas"]["AuthSessionDto"][]
+				>("/auth/sessions", { method: "GET" });
+
+				if (!result.ok) {
+					throw new Error("Unable to load token sessions");
+				}
+
+				return result.data;
+			},
+			staleTime: 60 * 1000,
+			retry: false,
+		}),
 };

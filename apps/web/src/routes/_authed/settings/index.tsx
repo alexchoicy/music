@@ -35,7 +35,7 @@ function RouteComponent() {
 				<TabsList>
 					<TabsTrigger value="auth">
 						<KeyRoundIcon />
-						Web authentication
+						Account
 					</TabsTrigger>
 					{isAdmin ? (
 						<TabsTrigger value="users">

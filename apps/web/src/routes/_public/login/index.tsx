@@ -2,6 +2,7 @@ import {
 	browserSupportsWebAuthnAutofill,
 	startAuthentication,
 	startRegistration,
+	WebAuthnAbortService,
 } from "@simplewebauthn/browser";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -106,25 +107,22 @@ function RouteComponent() {
 		await finishLogin();
 	}
 
-	const startPasskeyAutofill = useEffectEvent(
-		async (isActive: () => boolean) => {
-			try {
-				if (!(await browserSupportsWebAuthnAutofill())) return;
-				await authenticateWithPasskey({ useBrowserAutofill: true });
-			} catch (error) {
-				if (
-					isActive() &&
-					error instanceof Error &&
-					error.message === "Passkey sign-in failed"
-				) {
-					setPasskeyError(error.message);
-				}
-				return;
+	const startPasskeyAutofill = useEffectEvent(async () => {
+		try {
+			if (!(await browserSupportsWebAuthnAutofill())) return;
+			await authenticateWithPasskey({ useBrowserAutofill: true });
+		} catch (error) {
+			if (
+				error instanceof Error &&
+				error.message === "Passkey sign-in failed"
+			) {
+				setPasskeyError(error.message);
 			}
+			return;
+		}
 
-			if (isActive()) await finishLogin();
-		},
-	);
+		await finishLogin();
+	});
 
 	async function handlePasskeyLogin() {
 		setPasskeyError(null);
@@ -171,11 +169,10 @@ function RouteComponent() {
 	});
 
 	useEffect(() => {
-		let active = true;
-		void startPasskeyAutofill(() => active);
+		void startPasskeyAutofill();
 
 		return () => {
-			active = false;
+			WebAuthnAbortService.cancelCeremony();
 		};
 	}, []);
 
