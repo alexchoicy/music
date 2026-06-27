@@ -9,7 +9,7 @@
 			"#/*": ["./src/*"],
 			"@/*": ["./src/*"]
 		},
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"lib": ["ES2022", "DOM", "DOM.Iterable", "ES2023.Array"],
 		"types": ["vite/client", "@types/wicg-file-system-access"],
 
 		/* Bundler mode */

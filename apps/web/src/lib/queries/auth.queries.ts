@@ -20,6 +20,11 @@ export const authMutations = {
 			return result.data;
 		},
 	}),
+	logout: () => ({
+		mutationFn: async () => {
+			await $APIFetch("/auth/logout", { method: "POST" });
+		},
+	}),
 };
 
 export const authQueries = {

@@ -16,6 +16,13 @@ public sealed class CreateUserRequest
     public required Roles Role { get; init; }
 }
 
+public sealed class UpdateUserRequest
+{
+    public string? Username { get; init; }
+    public string? Password { get; init; }
+    public Roles? Role { get; init; }
+}
+
 public sealed class UserInfo
 {
     public required string Id { get; init; }

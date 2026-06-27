@@ -1,9 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Music.Core.Common.Exceptions;
-using Music.Core.Entities;
 using Music.Core.Services.Auth;
-using Music.Core.Services.Auth.Enums;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Services.Auth;
@@ -12,6 +11,27 @@ public class AuthService(UserManager<User> userManager, ITokenService tokenServi
 {
     private readonly UserManager<User> _userManager = userManager;
     private readonly ITokenService _tokenService = tokenService;
+
+    public async Task<List<UserInfo>> GetUsersAsync()
+    {
+        List<User> users = await _userManager.Users.ToListAsync();
+
+        List<UserInfo> userInfos = new(users.Count);
+        foreach (User user in users)
+        {
+            IList<string> roles = await _userManager.GetRolesAsync(user);
+            userInfos.Add(
+                new UserInfo
+                {
+                    Id = user.Id,
+                    UserName = user.UserName!,
+                    Roles = roles,
+                }
+            );
+        }
+
+        return userInfos;
+    }
 
     public async Task<UserInfo> CreateUserAsync(
         CreateUserRequest request,
@@ -58,6 +78,77 @@ public class AuthService(UserManager<User> userManager, ITokenService tokenServi
         }
 
         IList<string> roles = await _userManager.GetRolesAsync(user);
+
+        return new UserInfo
+        {
+            Id = user.Id,
+            UserName = user.UserName!,
+            Roles = roles.ToList(),
+        };
+    }
+
+    public async Task<UserInfo> UpdateUserAsync(
+        string id,
+        UpdateUserRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        User? user =
+            await _userManager.FindByIdAsync(id)
+            ?? throw new KeyNotFoundException("User not found.");
+
+        if (request.Username != null)
+        {
+            user.UserName = request.Username;
+            IdentityResult updateResult = await _userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
+            {
+                string errorMessage = string.Join(
+                    " ",
+                    updateResult.Errors.Select(error => error.Description)
+                );
+                throw new ValidationException(errorMessage);
+            }
+        }
+
+        if (request.Password != null)
+        {
+            IdentityResult passwordResult = await _userManager.RemovePasswordAsync(user);
+
+            if (!passwordResult.Succeeded)
+            {
+                string errorMessage = string.Join(
+                    " ",
+                    passwordResult.Errors.Select(error => error.Description)
+                );
+                throw new ValidationException(errorMessage);
+            }
+
+            passwordResult = await _userManager.AddPasswordAsync(user, request.Password);
+
+            if (!passwordResult.Succeeded)
+            {
+                string errorMessage = string.Join(
+                    " ",
+                    passwordResult.Errors.Select(error => error.Description)
+                );
+                throw new ValidationException(errorMessage);
+            }
+        }
+
+        if (request.Role.HasValue)
+        {
+            IList<string> currentRoles = await _userManager.GetRolesAsync(user);
+            if (currentRoles.Count > 0)
+            {
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            }
+            await _userManager.AddToRoleAsync(user, request.Role.Value.ToString());
+        }
+
+        IList<string> roles = await _userManager.GetRolesAsync(user);
+
+        await _tokenService.RevokeAllUserTokensAsync(user.Id, cancellationToken);
 
         return new UserInfo
         {

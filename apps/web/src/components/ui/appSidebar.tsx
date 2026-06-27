@@ -15,7 +15,13 @@ import type { LucideIcon } from "lucide-react";
 
 import { Button } from "#/components/coss/button";
 import { Kbd, KbdGroup } from "#/components/coss/kbd";
-import { Menu, MenuItem, MenuPopup, MenuTrigger } from "#/components/coss/menu";
+import {
+	Menu,
+	MenuItem,
+	MenuLinkItem,
+	MenuPopup,
+	MenuTrigger,
+} from "#/components/coss/menu";
 import {
 	Popover,
 	PopoverPopup,
@@ -34,6 +40,7 @@ import {
 	SidebarMenuItem,
 } from "#/components/coss/sidebar";
 import { useUserInfo } from "#/context/UserInfoContext";
+import { ROLE } from "#/enums/userEnums";
 import { getInitials } from "#/lib/utils/string";
 import type { FileRouteTypes } from "#/routeTree.gen";
 import { useUploadStore } from "#/store/uploadStore";
@@ -49,6 +56,7 @@ type NavigationItem = {
 	icon: LucideIcon;
 	to: NavigationTo;
 	hotkey?: string;
+	uploader?: boolean;
 };
 
 function normalizePathname(pathname: string): string {
@@ -84,6 +92,7 @@ const mainNavigation = [
 		label: "Create",
 		icon: CirclePlus,
 		to: "/create",
+		uploader: true,
 	},
 ] satisfies Array<NavigationItem>;
 
@@ -212,6 +221,9 @@ export function AppSidebar({
 					<SidebarGroupContent>
 						<SidebarMenu>
 							{mainNavigation.map((item, index) => {
+								if (item.uploader && userInfo.roles.includes(ROLE.User)) {
+									return;
+								}
 								return (
 									<SidebarMenuItem key={item.label}>
 										<SidebarMenuButton
@@ -260,10 +272,10 @@ export function AppSidebar({
 							</SidebarMenuButton>
 
 							<MenuPopup align="start" className="w-48" side="top">
-								<MenuItem>
+								<MenuLinkItem render={<Link to="/settings" />}>
 									<Settings2 className="size-4" />
 									Settings
-								</MenuItem>
+								</MenuLinkItem>
 								<MenuItem variant="destructive">
 									<LogOut className="size-4" />
 									Log out

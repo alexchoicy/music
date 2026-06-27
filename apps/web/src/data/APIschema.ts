@@ -958,6 +958,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/search/opensearch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/uploads/Init": {
         parameters: {
             query?: never;
@@ -1148,6 +1181,159 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UserInfo"][];
+                        "application/json": components["schemas"]["UserInfo"][];
+                        "text/json": components["schemas"]["UserInfo"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateUserRequest"];
+                    "text/json": components["schemas"]["CreateUserRequest"];
+                    "application/*+json": components["schemas"]["CreateUserRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UserInfo"];
+                        "application/json": components["schemas"]["UserInfo"];
+                        "text/json": components["schemas"]["UserInfo"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateUserRequest"];
+                    "text/json": components["schemas"]["UpdateUserRequest"];
+                    "application/*+json": components["schemas"]["UpdateUserRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UserInfo"];
+                        "application/json": components["schemas"]["UserInfo"];
+                        "text/json": components["schemas"]["UserInfo"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/workers/concert": {
         parameters: {
             query?: never;
@@ -1169,6 +1355,56 @@ export interface paths {
                     "application/json": components["schemas"]["RerunConcertWorkerRequest"];
                     "text/json": components["schemas"]["RerunConcertWorkerRequest"];
                     "application/*+json": components["schemas"]["RerunConcertWorkerRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workers/party": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RerunPartyInfoEnrichmentWorkerRequest"];
+                    "text/json": components["schemas"]["RerunPartyInfoEnrichmentWorkerRequest"];
+                    "application/*+json": components["schemas"]["RerunPartyInfoEnrichmentWorkerRequest"];
                 };
             };
             responses: {
@@ -1543,6 +1779,11 @@ export interface components {
             /** Format: int32 */
             fileObjectId: number | string;
         };
+        CreateUserRequest: {
+            username: string;
+            password: string;
+            role: components["schemas"]["Roles"];
+        };
         CreditRequest: {
             /** Format: int32 */
             partyId: number | string;
@@ -1730,6 +1971,12 @@ export interface components {
             /** Format: uuid */
             objectId: string;
         };
+        RerunPartyInfoEnrichmentWorkerRequest: {
+            /** Format: int32 */
+            partyId: number | string;
+        };
+        /** @enum {unknown} */
+        Roles: "Admin" | "Uploader" | "User" | "Owner";
         SearchResult: {
             albums: components["schemas"]["AlbumListItem"][];
             concerts: components["schemas"]["ConcertListItem"][];
@@ -1774,6 +2021,11 @@ export interface components {
         };
         /** @enum {unknown} */
         TrackVersionType: "Original" | "Instrumental" | "Remix" | "Live" | "Acoustic" | "RadioEdit" | "Demo" | "Other";
+        UpdateUserRequest: {
+            username?: null | string;
+            password?: null | string;
+            role?: null | components["schemas"]["Roles"];
+        };
         UserInfo: {
             id: string;
             userName: string;

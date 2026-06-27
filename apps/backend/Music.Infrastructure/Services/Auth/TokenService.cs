@@ -205,6 +205,26 @@ public class TokenService : ITokenService
         return true;
     }
 
+    public async Task RevokeAllUserTokensAsync(
+        string userId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        List<AuthToken> tokens = await _dbContext
+            .AuthTokens.Where(token =>
+                token.CreatedByUserId == userId && token.RevokedAt == null
+            )
+            .ToListAsync(cancellationToken);
+
+        foreach (AuthToken token in tokens)
+        {
+            token.RevokedAt = DateTime.UtcNow;
+            token.LastUsedAt = DateTime.UtcNow;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task RevokeTokenAsync(string? jti, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(jti))

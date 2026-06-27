@@ -35,6 +35,7 @@ import {
 } from "#/components/coss/sheet";
 import { Switch } from "#/components/coss/switch";
 import { Toggle } from "#/components/coss/toggle";
+import { VolumeControl } from "#/components/VolumeControl";
 import { formatMsToTimer } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 import {
@@ -47,8 +48,6 @@ import type {
 	AudioPlayerState,
 	AudioPlayerTrack,
 } from "#/store/audioPlayer/audioPlayerType";
-
-import { VolumeControl } from "#/components/VolumeControl";
 
 const AUDIO_TIME_EVENTS = ["timeupdate", "loadedmetadata", "seeking", "seeked"];
 type PlaybackQuality = AudioPlayerState["playbackQuality"];
