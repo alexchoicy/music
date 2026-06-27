@@ -162,7 +162,7 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy(
         AuthorizationPolicies.RequireAdminRole,
-        policy => policy.RequireRole(Roles.Admin.ToString())
+        policy => policy.RequireRole(Roles.Admin.ToString(), Roles.Owner.ToString())
     );
 
     options.AddPolicy(
