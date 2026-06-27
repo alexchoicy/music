@@ -68,6 +68,16 @@ ConfigValidation.Validation(builder.Configuration);
 
 // Checked in Validation
 string cookieName = builder.Configuration.GetValue<string>("Cookies:Name")!;
+string ServerDomain = builder.Configuration.GetValue<string>("Cookies:Domain")!;
+
+builder.Services.Configure<IdentityPasskeyOptions>(options =>
+{
+    options.ServerDomain = ServerDomain!;
+    options.AuthenticatorTimeout = TimeSpan.FromMinutes(3);
+    options.ChallengeSize = 64;
+    options.UserVerificationRequirement = "required";
+    options.ResidentKeyRequirement = "preferred";
+});
 
 builder
     .Services.AddAuthentication(options =>
@@ -151,7 +161,8 @@ builder
                 },
             };
         }
-    );
+    )
+    .AddCookie(IdentityConstants.TwoFactorUserIdScheme);
 
 builder.Services.AddAuthorization(options =>
 {

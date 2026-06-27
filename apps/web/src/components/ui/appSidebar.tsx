@@ -1,3 +1,4 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
 	CirclePlus,
@@ -41,6 +42,7 @@ import {
 } from "#/components/coss/sidebar";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { ROLE } from "#/enums/userEnums";
+import { authMutations } from "#/lib/queries/auth.queries";
 import { getInitials } from "#/lib/utils/string";
 import type { FileRouteTypes } from "#/routeTree.gen";
 import { useUploadStore } from "#/store/uploadStore";
@@ -175,7 +177,12 @@ function SidebarUploadStatus(): React.ReactElement {
 export function AppSidebar({
 	onOpenCommand,
 }: AppSidebarProps): React.ReactElement {
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const userInfo = useUserInfo();
+	const { isPending, mutateAsync: logout } = useMutation(
+		authMutations.logout(),
+	);
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
 	});
@@ -186,6 +193,12 @@ export function AppSidebar({
 	const displayName = userInfo.userName.trim() || "User";
 	const roleLabel =
 		userInfo.roles.length > 0 ? userInfo.roles.join(", ") : "Member";
+
+	async function handleLogout() {
+		await logout();
+		queryClient.removeQueries({ queryKey: ["auth"] });
+		await navigate({ to: "/login", search: { redirect: "" } });
+	}
 
 	return (
 		<Sidebar collapsible="offcanvas">
@@ -276,7 +289,11 @@ export function AppSidebar({
 									<Settings2 className="size-4" />
 									Settings
 								</MenuLinkItem>
-								<MenuItem variant="destructive">
+								<MenuItem
+									disabled={isPending}
+									onClick={() => void handleLogout()}
+									variant="destructive"
+								>
 									<LogOut className="size-4" />
 									Log out
 								</MenuItem>

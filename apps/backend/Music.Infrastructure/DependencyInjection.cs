@@ -59,6 +59,8 @@ public static class DependencyInjection
         services
             .AddIdentityCore<User>(opt =>
             {
+                opt.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+
                 if (environment.IsDevelopment())
                 {
                     opt.Password.RequireDigit = false;
@@ -69,7 +71,10 @@ public static class DependencyInjection
                 }
             })
             .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<AppDbContext>();
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddSignInManager();
+
+        services.AddHttpContextAccessor();
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, TokenService>();
