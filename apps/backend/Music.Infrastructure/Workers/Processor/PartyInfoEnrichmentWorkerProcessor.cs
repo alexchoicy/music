@@ -129,8 +129,16 @@ public class PartyInfoEnrichmentWorkerProcessor(
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        externalInfos.TryGetValue(PartyExternalInfoType.AppleMusic, out string? appleMusicId);
-        externalInfos.TryGetValue(PartyExternalInfoType.Twitter, out string? twitterName);
+        string? appleMusicId = party
+            .PartyExternalInfos.FirstOrDefault(info =>
+                info.Type == PartyExternalInfoType.AppleMusic && info.AddedByUserId is not null
+            )
+            ?.ExternalId;
+        string? twitterName = party
+            .PartyExternalInfos.FirstOrDefault(info =>
+                info.Type == PartyExternalInfoType.Twitter && info.AddedByUserId is not null
+            )
+            ?.ExternalId;
 
         FxTwitterProfile? twitterProfile;
 
