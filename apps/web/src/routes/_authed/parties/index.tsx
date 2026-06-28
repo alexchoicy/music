@@ -10,6 +10,7 @@ import { useDeferredValue, useRef } from "react";
 import { z } from "zod";
 
 import { Card, CardPanel } from "#/components/coss/card";
+import { Checkbox } from "#/components/coss/checkbox";
 import {
 	Collapsible,
 	CollapsiblePanel,
@@ -20,6 +21,7 @@ import {
 	InputGroupAddon,
 	InputGroupInput,
 } from "#/components/coss/input-group";
+import { Label } from "#/components/coss/label";
 import { Skeleton } from "#/components/coss/skeleton";
 import { EnumFieldSelect } from "#/components/enumFieldSelect";
 import { LibraryEmptyState } from "#/components/LibraryEmptyState";
@@ -90,6 +92,7 @@ const partySearchSchema = z.object({
 	gender: filterSchema<Exclude<PartyGenderFilter, "All">>(PARTY_GENDER_VALUES),
 	kind: filterSchema<Exclude<PartyKindFilter, "All">>(PARTY_KIND_VALUES),
 	search: z.string().catch("").default(""),
+	excludeNoAlbums: z.boolean().catch(true).default(true),
 	sort: z
 		.custom<ListSortOption>(isListSortOption)
 		.catch(DEFAULT_LIST_SORT)
@@ -127,7 +130,7 @@ function RouteComponent() {
 		Search: deferredFilters.search || undefined,
 		Sort: deferredFilters.sort,
 		Type: deferredFilters.type === "All" ? undefined : deferredFilters.type,
-		ExcludeNoAlbums: true,
+		ExcludeNoAlbums: deferredFilters.excludeNoAlbums,
 	};
 
 	const {
@@ -200,7 +203,7 @@ function RouteComponent() {
 		partyGridRef.current?.querySelector<HTMLAnchorElement>("a")?.focus();
 	});
 
-	const filterControls = (className: string) => (
+	const filterControls = (className: string, excludeNoAlbumsId: string) => (
 		<div className={className}>
 			<InputGroup className="sm:w-64">
 				<InputGroupAddon>
@@ -241,6 +244,18 @@ function RouteComponent() {
 					value={filters.gender}
 				/>
 			</div>
+			<div className="flex min-h-9 items-center gap-2">
+				<Checkbox
+					checked={filters.excludeNoAlbums}
+					id={excludeNoAlbumsId}
+					onCheckedChange={(checked) => {
+						updateSearch({ excludeNoAlbums: checked === true });
+					}}
+				/>
+				<Label className="text-sm" htmlFor={excludeNoAlbumsId}>
+					Exclude parties without albums
+				</Label>
+			</div>
 			<div className="sm:ml-auto sm:w-56">
 				<EnumFieldSelect
 					label="Sort"
@@ -268,11 +283,15 @@ function RouteComponent() {
 						<ChevronDownIcon aria-hidden="true" className="size-4" />
 					</CollapsibleTrigger>
 					<CollapsiblePanel className="sm:hidden">
-						{filterControls("flex flex-col gap-3 pt-3")}
+						{filterControls(
+							"flex flex-col gap-3 pt-3",
+							"exclude-no-albums-mobile",
+						)}
 					</CollapsiblePanel>
 				</Collapsible>
 				{filterControls(
 					"hidden flex-col gap-3 sm:flex sm:flex-row sm:flex-wrap sm:items-end",
+					"exclude-no-albums-desktop",
 				)}
 			</header>
 
