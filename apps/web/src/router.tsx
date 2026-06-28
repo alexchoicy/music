@@ -11,6 +11,9 @@ export function getRouter() {
 		routeTree,
 		context,
 		scrollRestoration: true,
+		scrollToTopSelectors: [
+			'#app-scroll-area [data-slot="scroll-area-viewport"]',
+		],
 		defaultPreload: "intent",
 		defaultPreloadStaleTime: 0,
 	});

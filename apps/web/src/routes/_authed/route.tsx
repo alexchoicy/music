@@ -104,7 +104,7 @@ function RouteComponent() {
 				<SidebarInset className="h-svh overflow-hidden">
 					<MobileHeader onOpenCommand={() => setOpenCommand(true)} />
 					<div className="relative flex min-h-0 flex-1 flex-col">
-						<ScrollArea className="min-h-0 flex-1">
+						<ScrollArea className="min-h-0 flex-1" id="app-scroll-area">
 							<Outlet />
 						</ScrollArea>
 						<AudioPlayer />
