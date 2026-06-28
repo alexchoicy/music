@@ -665,6 +665,22 @@ export function AudioPlayer() {
 	);
 
 	useHotkey(
+		"Control+ArrowLeft",
+		() => {
+			playPrev();
+		},
+		hotkeyConfig,
+	);
+
+	useHotkey(
+		"Control+ArrowRight",
+		() => {
+			playNext();
+		},
+		hotkeyConfig,
+	);
+
+	useHotkey(
 		"ArrowDown",
 		() => {
 			setVolume(volume - 0.05);
