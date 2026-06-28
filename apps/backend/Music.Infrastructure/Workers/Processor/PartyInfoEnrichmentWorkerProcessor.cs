@@ -52,37 +52,40 @@ public class PartyInfoEnrichmentWorkerProcessor(
         await ResetSystemProvidedPartyData(party, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        MusicBrainzSearchArtist? searchArtist =
-            await musicBrainzService.SearchMusicBrainzByPartyName(
-                party.Name,
-                party.NormalizedName,
-                cancellationToken
-            );
-
-        if (searchArtist is null)
+        if (party.MusicBrainzId is null)
         {
-            logger.LogWarning(
-                "No MusicBrainz artist found for party {PartyId} ({Name})",
-                partyId,
-                party.Name
-            );
-            return;
+            MusicBrainzSearchArtist? searchArtist =
+                await musicBrainzService.SearchMusicBrainzByPartyName(
+                    party.Name,
+                    party.NormalizedName,
+                    cancellationToken
+                );
+
+            if (searchArtist is null)
+            {
+                logger.LogWarning(
+                    "No MusicBrainz artist found for party {PartyId} ({Name})",
+                    partyId,
+                    party.Name
+                );
+                return;
+            }
+
+            party.MusicBrainzId = searchArtist.Id;
         }
 
         MusicBrainzLookupResponse? lookupResponse =
-            await musicBrainzService.GetMusicBrainzPartyDetails(searchArtist.Id, cancellationToken);
+            await musicBrainzService.GetMusicBrainzPartyDetails(party.MusicBrainzId, cancellationToken);
 
         if (lookupResponse is null)
         {
             logger.LogWarning(
                 "No MusicBrainz details found for party {PartyId} ({MusicBrainzId})",
                 partyId,
-                searchArtist.Id
+                party.MusicBrainzId
             );
             return;
         }
-
-        party.MusicBrainzId = searchArtist.Id;
 
         List<Core.Entities.PartyAlias> aliasesToRemove = party
             .Aliases.Where(a => a.SourceType == AliasSourceType.MusicBrainz)
