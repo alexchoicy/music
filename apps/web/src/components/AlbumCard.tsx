@@ -66,7 +66,7 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 		>
 			<Button
 				aria-label={`Play ${album.title}`}
-				className="absolute top-[calc(100cqw-2.75rem)] right-3 z-10 opacity-0 shadow-sm transition-opacity in-[[data-slot=album-card]:focus-within]:opacity-100 in-[[data-slot=album-card]:hover]:opacity-100"
+				className="absolute top-3 right-3 z-10 opacity-0 shadow-md transition-[opacity,transform] in-[[data-slot=album-card]:focus-within]:translate-y-0 in-[[data-slot=album-card]:focus-within]:opacity-100 in-[[data-slot=album-card]:hover]:translate-y-0 in-[[data-slot=album-card]:hover]:opacity-100 sm:translate-y-1"
 				onClick={() => {
 					void playCardAlbum();
 				}}
@@ -76,11 +76,11 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 				<PlayIcon aria-hidden="true" />
 			</Button>
 			<Link
-				className="block h-full rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+				className="block h-full rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				params={{ id: String(album.albumId) }}
 				to="/albums/$id"
 			>
-				<Card className="h-full overflow-hidden transition-shadow in-[[data-slot=album-card]:hover]:shadow-md">
+				<Card className="h-full overflow-hidden rounded-3xl transition-[border-color,box-shadow,transform] in-[[data-slot=album-card]:hover]:-translate-y-0.5 in-[[data-slot=album-card]:hover]:border-ring/24 in-[[data-slot=album-card]:hover]:shadow-lg">
 					<div className="relative aspect-square overflow-hidden bg-muted [perspective:1200px]">
 						{primaryCoverUrl ? (
 							hoverCoverUrl ? (
@@ -109,7 +109,9 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 							</div>
 						)}
 
-						<Badge className="absolute end-3 top-3 bg-card/85 text-card-foreground shadow-sm backdrop-blur-sm">
+						<div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-foreground/56 to-transparent" />
+
+						<Badge className="absolute end-3 bottom-3 bg-card/90 text-card-foreground shadow-sm backdrop-blur-sm">
 							{album.type}
 						</Badge>
 					</div>
@@ -119,7 +121,10 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 							<Tooltip>
 								<TooltipTrigger
 									render={
-										<CardTitle className="truncate text-base" render={<h2 />} />
+										<CardTitle
+											className="truncate text-base leading-tight"
+											render={<h2 />}
+										/>
 									}
 								>
 									{album.title}
@@ -136,7 +141,7 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 							</Tooltip>
 						</div>
 
-						<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+						<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
 							<span>
 								{album.trackCount} track{album.trackCount === 1 ? "" : "s"}
 							</span>

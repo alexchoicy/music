@@ -49,16 +49,16 @@ function RouteComponent() {
 
 	return (
 		<main className="flex min-h-full w-full flex-col gap-8 p-4 sm:p-6">
-			<header className="flex flex-col gap-2">
+			<header className="flex flex-col gap-1">
 				<p className="text-sm font-medium text-muted-foreground">Library</p>
-				<h1 className="font-heading text-3xl font-semibold tracking-tight">
+				<h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
 					Overview
 				</h1>
 			</header>
 
 			<section
 				aria-label="Library counts"
-				className="grid gap-4 md:grid-cols-3"
+				className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4"
 			>
 				<CounterCard
 					count={albums.length}
@@ -80,31 +80,19 @@ function RouteComponent() {
 				/>
 			</section>
 
-			<RecentSection
-				containerClassName="h-[280px] sm:h-[410px]"
-				title="Recent albums"
-				to="/albums"
-			>
+			<RecentSection title="Recent albums" to="/albums">
 				{albums.map((album) => {
 					return (
-						<AlbumCard
-							album={album}
-							className="h-[256px] w-[calc(50%-0.5rem)] min-w-[140px] sm:h-[385px] sm:w-[250px]"
-							key={album.albumId}
-						/>
+						<AlbumCard album={album} className="min-w-0" key={album.albumId} />
 					);
 				})}
 			</RecentSection>
 
-			<RecentSection
-				containerClassName="h-[260px] sm:h-[285px]"
-				title="Recent concerts"
-				to="/concerts"
-			>
+			<RecentSection title="Recent concerts" to="/concerts">
 				{concerts.map((concert) => {
 					return (
 						<ConcertCard
-							className="h-[235px] w-[calc(50%-0.5rem)] min-w-[140px] sm:h-[260px] sm:w-[250px]"
+							className="min-w-0"
 							concert={concert}
 							key={concert.concertId}
 						/>
@@ -112,18 +100,10 @@ function RouteComponent() {
 				})}
 			</RecentSection>
 
-			<RecentSection
-				containerClassName="h-[260px] sm:h-[205px]"
-				title="Recent parties"
-				to="/parties"
-			>
+			<RecentSection title="Recent parties" to="/parties">
 				{parties.map((party) => {
 					return (
-						<PartyCard
-							className="h-[235px] w-[calc(50%-0.5rem)] min-w-[140px] sm:h-[180px] sm:w-[250px]"
-							key={party.partyId}
-							party={party}
-						/>
+						<PartyCard className="min-w-0" key={party.partyId} party={party} />
 					);
 				})}
 			</RecentSection>
@@ -163,17 +143,11 @@ function CounterCard({ count, icon, label, to }: CounterCardProps) {
 
 type RecentSectionProps = {
 	children: ReactNode;
-	containerClassName: string;
 	title: string;
 	to: "/albums" | "/concerts" | "/parties";
 };
 
-function RecentSection({
-	children,
-	containerClassName,
-	title,
-	to,
-}: RecentSectionProps) {
+function RecentSection({ children, title, to }: RecentSectionProps) {
 	return (
 		<section className="flex flex-col gap-4">
 			<div className="flex items-end justify-between gap-4">
@@ -188,9 +162,7 @@ function RecentSection({
 				</Link>
 			</div>
 
-			<div
-				className={`${containerClassName} flex flex-row flex-wrap justify-center gap-4 overflow-hidden p-3`}
-			>
+			<div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 [&>*:nth-child(n+3)]:hidden md:[&>*:nth-child(n+3)]:block md:[&>*:nth-child(n+4)]:hidden lg:[&>*:nth-child(n+4)]:block lg:[&>*:nth-child(n+5)]:hidden xl:[&>*:nth-child(n+5)]:block xl:[&>*:nth-child(n+6)]:hidden 2xl:[&>*:nth-child(n+6)]:block 2xl:[&>*:nth-child(n+7)]:hidden">
 				{children}
 			</div>
 		</section>

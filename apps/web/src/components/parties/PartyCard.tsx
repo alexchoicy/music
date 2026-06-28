@@ -36,55 +36,54 @@ export function PartyCard({ className, party }: PartyCardProps) {
 				params={{ id: String(party.partyId) }}
 				to="/parties/$id"
 			>
-				<Card className="h-full transition-shadow in-[[data-slot=party-card]:hover]:shadow-md">
+				<Card className="h-full overflow-hidden transition-all in-[[data-slot=party-card]:hover]:-translate-y-0.5 in-[[data-slot=party-card]:hover]:shadow-md">
 					<CardPanel className="flex flex-col gap-4 p-4">
 						<div className="flex items-start gap-4">
-							<Avatar className="size-16 rounded-2xl border bg-muted">
+							<Avatar className="size-20 rounded-2xl border bg-muted shadow-sm">
 								{party.coverUrl && (
 									<AvatarImage
-										alt={`${party.name} avatar`}
+										alt={`${party.name} cover`}
 										src={party.coverUrl}
 									/>
 								)}
-								<AvatarFallback className="rounded-2xl text-base">
+								<AvatarFallback className="rounded-2xl text-lg">
 									{getInitials(party.name)}
 								</AvatarFallback>
 							</Avatar>
 
-							<div className="flex min-w-0 flex-1 flex-col gap-2">
-								<div className="flex min-w-0 flex-col gap-1">
-									<Tooltip>
-										<TooltipTrigger
-											render={
-												<CardTitle
-													className="truncate text-base"
-													render={<h2 />}
-												/>
-											}
-										>
-											{party.name}
-										</TooltipTrigger>
-										<TooltipPopup className="max-w-72">
-											{party.name}
-										</TooltipPopup>
-									</Tooltip>
-									<CardDescription>
-										{COUNTRY_CODE[party.country]}
-									</CardDescription>
-								</div>
-
-								<div className="flex flex-wrap gap-1.5">
-									{party.type && (
-										<Badge variant="secondary">{PARTY_TYPE[party.type]}</Badge>
-									)}
-									<Badge variant="outline">{PARTY_KIND[party.kind]}</Badge>
-									{gender && <Badge variant="outline">{gender}</Badge>}
-								</div>
+							<div className="flex min-w-0 flex-1 flex-col gap-1.5 pt-1">
+								<Tooltip>
+									<TooltipTrigger
+										render={
+											<CardTitle
+												className="truncate text-xl leading-tight"
+												render={<h2 />}
+											/>
+										}
+									>
+										{party.name}
+									</TooltipTrigger>
+									<TooltipPopup className="max-w-72">{party.name}</TooltipPopup>
+								</Tooltip>
+								<CardDescription className="truncate">
+									{COUNTRY_CODE[party.country]}
+								</CardDescription>
 							</div>
 						</div>
 
-						<div className="mt-auto text-sm font-medium text-muted-foreground">
-							{albumCount} album{albumCount === 1 ? "" : "s"} in library
+						<div className="mt-auto flex flex-col gap-4">
+							<div className="flex flex-wrap gap-1.5">
+								{party.type && <Badge>{PARTY_TYPE[party.type]}</Badge>}
+								<Badge variant="secondary">{PARTY_KIND[party.kind]}</Badge>
+								{gender && <Badge variant="outline">{gender}</Badge>}
+							</div>
+
+							<div className="mt-auto flex items-center justify-between border-t pt-3 text-sm">
+								<span className="text-muted-foreground">Albums</span>
+								<span className="font-semibold tabular-nums">
+									{albumCount} {albumCount === 1 ? "release" : "releases"}
+								</span>
+							</div>
 						</div>
 					</CardPanel>
 				</Card>

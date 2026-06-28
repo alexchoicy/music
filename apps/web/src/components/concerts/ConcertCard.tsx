@@ -36,11 +36,11 @@ export function ConcertCard({ className, concert }: ConcertCardProps) {
 	return (
 		<div className={cn(className)} data-slot="concert-card">
 			<Link
-				className="block h-full rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+				className="block h-full rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				params={{ id: String(concert.concertId) }}
 				to="/concerts/$id"
 			>
-				<Card className="h-full overflow-hidden transition-shadow in-[[data-slot=concert-card]:hover]:shadow-md">
+				<Card className="h-full overflow-hidden rounded-3xl transition-[border-color,box-shadow,transform] in-[[data-slot=concert-card]:hover]:-translate-y-0.5 in-[[data-slot=concert-card]:hover]:border-ring/24 in-[[data-slot=concert-card]:hover]:shadow-lg">
 					<div className="relative aspect-video overflow-hidden bg-muted">
 						{coverUrl ? (
 							<img
@@ -60,7 +60,10 @@ export function ConcertCard({ className, concert }: ConcertCardProps) {
 							<Tooltip>
 								<TooltipTrigger
 									render={
-										<CardTitle className="truncate text-base" render={<h2 />} />
+										<CardTitle
+											className="truncate text-base leading-tight"
+											render={<h2 />}
+										/>
 									}
 								>
 									{concert.title}
@@ -79,7 +82,7 @@ export function ConcertCard({ className, concert }: ConcertCardProps) {
 							</Tooltip>
 						</div>
 
-						<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+						<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
 							<span>
 								{fileCount} file{fileCount === 1 ? "" : "s"}
 							</span>
