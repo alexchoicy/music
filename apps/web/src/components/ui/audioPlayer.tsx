@@ -13,7 +13,13 @@ import {
 	SkipForwardIcon,
 	ListMusicIcon,
 } from "lucide-react";
-import { useCallback, useEffect, useEffectEvent, useRef } from "react";
+import {
+	useCallback,
+	useEffect,
+	useEffectEvent,
+	useRef,
+	useState,
+} from "react";
 import WaveSurfer from "wavesurfer.js";
 
 import { Button } from "#/components/coss/button";
@@ -195,6 +201,8 @@ function TrackInfo({ track }: TrackInfoProps) {
 }
 
 type QueueSheetProps = {
+	isOpen: boolean;
+	onOpenChange: (isOpen: boolean) => void;
 	index: number;
 	queue: AudioPlayerTrack[];
 	queueLength: number;
@@ -202,13 +210,15 @@ type QueueSheetProps = {
 };
 
 function QueueSheet({
+	isOpen,
+	onOpenChange,
 	index,
 	queue,
 	queueLength,
 	playQueueTrack,
 }: QueueSheetProps) {
 	return (
-		<Sheet>
+		<Sheet open={isOpen} onOpenChange={onOpenChange}>
 			<SheetTrigger
 				render={<Button aria-label="Queue" size="icon-sm" variant="ghost" />}
 			>
@@ -382,6 +392,8 @@ export function AudioPlayer() {
 	const showRemainingRef = useRef(false);
 	const rightMinusRef = useRef<HTMLSpanElement | null>(null);
 	const rightLabelRef = useRef<HTMLSpanElement | null>(null);
+
+	const [isOpenQueue, setIsOpenQueue] = useState(false);
 
 	const bindWaveSurfer = useAudioPlayerStore((state) => state.bindWaveSurfer);
 	const reloadAudio = useAudioPlayerStore((state) => state.reloadAudio);
@@ -668,6 +680,14 @@ export function AudioPlayer() {
 		hotkeyConfig,
 	);
 
+	useHotkey(
+		"Q",
+		() => {
+			setIsOpenQueue(!isOpenQueue);
+		},
+		hotkeyConfig,
+	);
+
 	return (
 		<div
 			className={cn(
@@ -802,6 +822,8 @@ export function AudioPlayer() {
 						volume={volume}
 					/>
 					<QueueSheet
+						isOpen={isOpenQueue}
+						onOpenChange={setIsOpenQueue}
 						index={index}
 						playQueueTrack={playQueueTrack}
 						queue={queue}

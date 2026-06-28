@@ -81,7 +81,7 @@ function RouteComponent() {
 			</section>
 
 			<RecentSection
-				containerClassName="h-[410px]"
+				containerClassName="h-[280px] sm:h-[410px]"
 				title="Recent albums"
 				to="/albums"
 			>
@@ -89,7 +89,7 @@ function RouteComponent() {
 					return (
 						<AlbumCard
 							album={album}
-							className="h-[385px] w-[250px]"
+							className="h-[256px] w-[calc(50%-0.5rem)] min-w-[140px] sm:h-[385px] sm:w-[250px]"
 							key={album.albumId}
 						/>
 					);
@@ -97,14 +97,14 @@ function RouteComponent() {
 			</RecentSection>
 
 			<RecentSection
-				containerClassName="h-[285px]"
+				containerClassName="h-[260px] sm:h-[285px]"
 				title="Recent concerts"
 				to="/concerts"
 			>
 				{concerts.map((concert) => {
 					return (
 						<ConcertCard
-							className="h-[260px] w-[250px]"
+							className="h-[235px] w-[calc(50%-0.5rem)] min-w-[140px] sm:h-[260px] sm:w-[250px]"
 							concert={concert}
 							key={concert.concertId}
 						/>
@@ -113,14 +113,14 @@ function RouteComponent() {
 			</RecentSection>
 
 			<RecentSection
-				containerClassName="h-[205px]"
+				containerClassName="h-[260px] sm:h-[205px]"
 				title="Recent parties"
 				to="/parties"
 			>
 				{parties.map((party) => {
 					return (
 						<PartyCard
-							className="h-[180px] w-[250px]"
+							className="h-[235px] w-[calc(50%-0.5rem)] min-w-[140px] sm:h-[180px] sm:w-[250px]"
 							key={party.partyId}
 							party={party}
 						/>
