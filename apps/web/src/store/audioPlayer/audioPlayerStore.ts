@@ -26,6 +26,7 @@ type AudioPlayerPersistedState = Pick<
 	| "shuffle"
 	| "playbackQuality"
 	| "playTalkTrack"
+	| "playInstrumental"
 >;
 
 let waveSurfer: WaveSurfer | null = null;
@@ -47,6 +48,7 @@ const initialState: AudioPlayerState = {
 	shuffle: false,
 	playbackQuality: "Auto",
 	playTalkTrack: false,
+	playInstrumental: false,
 };
 
 function getNextIndex(
@@ -88,18 +90,33 @@ function getPrevIndex(
 	return null;
 }
 
+function shouldAutoSkipTrack(
+	track: AudioPlayerTrack | undefined,
+	playTalkTrack: boolean,
+	playInstrumental: boolean,
+): boolean {
+	if (!track) return true;
+	return (
+		(track.contentType === "MC" && !playTalkTrack) ||
+		(track.versionType === "Instrumental" && !playInstrumental)
+	);
+}
+
 function getNextAutoIndex(
 	index: number,
 	queue: AudioPlayerTrack[],
 	repeatMode: AudioPlayerState["repeatMode"],
 	shuffle: boolean,
 	playTalkTrack: boolean,
+	playInstrumental: boolean,
 ): number | null {
-	if (playTalkTrack)
+	if (playTalkTrack && playInstrumental)
 		return getNextIndex(index, queue.length, repeatMode, shuffle);
 
 	if (repeatMode === "one") {
-		return queue[index]?.contentType === "MC" ? null : index;
+		return shouldAutoSkipTrack(queue[index], playTalkTrack, playInstrumental)
+			? null
+			: index;
 	}
 
 	if (shuffle) {
@@ -107,7 +124,8 @@ function getNextAutoIndex(
 			.map((track, trackIndex) => ({ track, trackIndex }))
 			.filter(
 				({ track, trackIndex }) =>
-					track.contentType !== "MC" && trackIndex !== index,
+					!shouldAutoSkipTrack(track, playTalkTrack, playInstrumental) &&
+					trackIndex !== index,
 			);
 		if (candidates.length === 0) return null;
 
@@ -117,13 +135,15 @@ function getNextAutoIndex(
 	for (let offset = 1; offset < queue.length; offset++) {
 		const nextIndex = index + offset;
 		if (nextIndex >= queue.length) break;
-		if (queue[nextIndex]?.contentType !== "MC") return nextIndex;
+		if (!shouldAutoSkipTrack(queue[nextIndex], playTalkTrack, playInstrumental))
+			return nextIndex;
 	}
 
 	if (repeatMode !== "all") return null;
 
 	for (let nextIndex = 0; nextIndex < index; nextIndex++) {
-		if (queue[nextIndex]?.contentType !== "MC") return nextIndex;
+		if (!shouldAutoSkipTrack(queue[nextIndex], playTalkTrack, playInstrumental))
+			return nextIndex;
 	}
 
 	return null;
@@ -528,6 +548,9 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 				setPlayTalkTrack: (playTalkTrack) => {
 					set({ playTalkTrack });
 				},
+				setPlayInstrumental: (playInstrumental) => {
+					set({ playInstrumental });
+				},
 				markReady: () => {
 					set((state) => {
 						if (state.status === "loading") state.status = "ready";
@@ -551,6 +574,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						index,
 						playbackQuality,
 						playTalkTrack,
+						playInstrumental,
 						queue,
 						repeatMode,
 						shuffle,
@@ -569,6 +593,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						repeatMode,
 						shuffle,
 						playTalkTrack,
+						playInstrumental,
 					);
 					if (nextIndex === null) {
 						console.log("[audio-player] markFinished:end of queue");
@@ -605,6 +630,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					shuffle: state.shuffle,
 					playbackQuality: state.playbackQuality,
 					playTalkTrack: state.playTalkTrack,
+					playInstrumental: state.playInstrumental,
 				}),
 			},
 		),

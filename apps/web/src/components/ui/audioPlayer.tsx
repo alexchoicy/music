@@ -278,6 +278,8 @@ type PlaybackQualitySettingsProps = {
 	playbackQuality: PlaybackQuality;
 	setPlayTalkTrack: (playTalkTrack: boolean) => void;
 	setPlaybackQuality: (quality: PlaybackQuality) => void;
+	playInstrumental: boolean;
+	setPlayInstrumental: (playInstrumental: boolean) => void;
 };
 
 function PlaybackQualitySettings({
@@ -285,6 +287,8 @@ function PlaybackQualitySettings({
 	playbackQuality,
 	setPlayTalkTrack,
 	setPlaybackQuality,
+	playInstrumental,
+	setPlayInstrumental,
 }: PlaybackQualitySettingsProps) {
 	return (
 		<Popover>
@@ -354,6 +358,18 @@ function PlaybackQualitySettings({
 							onCheckedChange={setPlayTalkTrack}
 						/>
 					</Label>
+					<Label className="flex items-center justify-between gap-3 border-t pt-3">
+						<span className="flex flex-col gap-1">
+							<span>Play Instrumental track</span>
+							<span className="text-xs font-normal text-muted-foreground">
+								Include Instrumental tracks during playback.
+							</span>
+						</span>
+						<Switch
+							checked={playInstrumental}
+							onCheckedChange={setPlayInstrumental}
+						/>
+					</Label>
 				</div>
 			</PopoverPopup>
 		</Popover>
@@ -375,6 +391,9 @@ export function AudioPlayer() {
 	const index = useAudioPlayerStore((state) => state.index);
 	const playbackQuality = useAudioPlayerStore((state) => state.playbackQuality);
 	const playTalkTrack = useAudioPlayerStore((state) => state.playTalkTrack);
+	const playInstrumental = useAudioPlayerStore(
+		(state) => state.playInstrumental,
+	);
 	const queueLength = useAudioPlayerStore((state) => state.queue.length);
 	const repeatMode = useAudioPlayerStore((state) => state.repeatMode);
 	const queue = useAudioPlayerStore((state) => state.queue);
@@ -393,6 +412,10 @@ export function AudioPlayer() {
 	const setPlayTalkTrack = useAudioPlayerStore(
 		(state) => state.setPlayTalkTrack,
 	);
+	const setPlayInstrumental = useAudioPlayerStore(
+		(state) => state.setPlayInstrumental,
+	);
+
 	const setVolume = useAudioPlayerStore((state) => state.setVolume);
 	const togglePlay = useAudioPlayerStore((state) => state.togglePlay);
 	const toggleMute = useAudioPlayerStore((state) => state.toggleMute);
@@ -787,8 +810,10 @@ export function AudioPlayer() {
 					<PlaybackQualitySettings
 						playTalkTrack={playTalkTrack}
 						playbackQuality={playbackQuality}
+						playInstrumental={playInstrumental}
 						setPlayTalkTrack={setPlayTalkTrack}
 						setPlaybackQuality={setPlaybackQuality}
+						setPlayInstrumental={setPlayInstrumental}
 					/>
 				</div>
 			</div>
