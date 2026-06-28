@@ -286,6 +286,11 @@ public class ConcertService(
             );
         }
 
+        if (request.Limit > 0)
+        {
+            query = query.Take(request.Limit);
+        }
+
         query = request.Sort switch
         {
             ListSortOption.TitleDesc => query.OrderByDescending(concert => concert.Title),

@@ -20,15 +20,16 @@ export const Route = createFileRoute("/_authed/")({
 	loader: ({ context }) => {
 		return Promise.all([
 			context.queryClient.ensureQueryData(
-				albumQueries.getAlbums({ Sort: "CreatedAtDesc" }),
+				albumQueries.getAlbums({ Sort: "CreatedAtDesc", Limit: 10 }),
 			),
 			context.queryClient.ensureQueryData(
-				concertQueries.getConcerts({ Sort: "CreatedAtDesc" }),
+				concertQueries.getConcerts({ Sort: "CreatedAtDesc", Limit: 10 }),
 			),
 			context.queryClient.ensureQueryData(
 				partyQueries.getParties({
 					ExcludeNoAlbums: true,
 					Sort: "CreatedAtDesc",
+					Limit: 10,
 				}),
 			),
 		]);
@@ -38,13 +39,17 @@ export const Route = createFileRoute("/_authed/")({
 
 function RouteComponent() {
 	const { data: albums } = useSuspenseQuery(
-		albumQueries.getAlbums({ Sort: "CreatedAtDesc" }),
+		albumQueries.getAlbums({ Sort: "CreatedAtDesc", Limit: 10 }),
 	);
 	const { data: concerts } = useSuspenseQuery(
-		concertQueries.getConcerts({ Sort: "CreatedAtDesc" }),
+		concertQueries.getConcerts({ Sort: "CreatedAtDesc", Limit: 10 }),
 	);
 	const { data: parties } = useSuspenseQuery(
-		partyQueries.getParties({ ExcludeNoAlbums: true, Sort: "CreatedAtDesc" }),
+		partyQueries.getParties({
+			ExcludeNoAlbums: true,
+			Sort: "CreatedAtDesc",
+			Limit: 10,
+		}),
 	);
 
 	return (

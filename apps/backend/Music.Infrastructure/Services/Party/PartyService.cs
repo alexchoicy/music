@@ -150,6 +150,11 @@ public class PartyService(
                 .FirstOrDefault(),
         });
 
+        if (request.Limit > 0)
+        {
+            query = query.Take(request.Limit);
+        }
+
         partyQuery = request.Sort switch
         {
             ListSortOption.TitleDesc => partyQuery.OrderByDescending(p => p.Name),

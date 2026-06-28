@@ -19,6 +19,7 @@ export const concertQueries = {
 				if (query?.IsIncludeInGuestCredit)
 					params.append("IsIncludeInGuestCredit", "true");
 				if (query?.Sort) params.set("Sort", query.Sort);
+				if (query?.Limit) params.set("Limit", String(query.Limit));
 
 				const url = params.size
 					? `/concerts?${params.toString()}`

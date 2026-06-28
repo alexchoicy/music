@@ -22,6 +22,7 @@ public sealed class ConcertListRequest
     public IReadOnlyList<int>? PartyIds { get; init; }
     public bool IsIncludeInGuestCredit { get; init; }
     public ListSortOption Sort { get; init; } = ListSortOption.TitleAsc;
+    public int Limit { get; init; } = 0;
 }
 
 public sealed class ConcertPartySummary

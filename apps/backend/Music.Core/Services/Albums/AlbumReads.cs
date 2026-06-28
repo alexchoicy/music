@@ -21,6 +21,7 @@ public sealed class AlbumListRequest
     public IReadOnlyList<int>? PartyIds { get; init; }
     public bool IsIncludeInTrackCredit { get; init; }
     public ListSortOption Sort { get; init; } = ListSortOption.TitleAsc;
+    public int Limit { get; set; } = 0;
 }
 
 public sealed class AlbumSummary

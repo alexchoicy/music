@@ -118,6 +118,11 @@ public class AlbumService(
             );
         }
 
+        if (request.Limit > 0)
+        {
+            query = query.Take(request.Limit);
+        }
+
         query = request.Sort switch
         {
             ListSortOption.TitleDesc => query.OrderByDescending(album => album.Title),
@@ -179,11 +184,7 @@ public class AlbumService(
                         )
                     )
                 )
-                .Select(albumTrack => new
-                {
-                    albumTrack.AlbumDisc!.AlbumId,
-                    albumTrack.TrackId,
-                })
+                .Select(albumTrack => new { albumTrack.AlbumDisc!.AlbumId, albumTrack.TrackId })
                 .ToListAsync(cancellationToken);
 
             matchedTrackIdsByAlbumId = matchedTracks
@@ -383,7 +384,10 @@ public class AlbumService(
                 .Distinct()
                 .OrderBy(name => name)
                 .ToList(),
-            CoverUrl = coverVariants.ImageCover1024x1024?.Url ?? coverVariants.Original?.Url ?? string.Empty,
+            CoverUrl =
+                coverVariants.ImageCover1024x1024?.Url
+                ?? coverVariants.Original?.Url
+                ?? string.Empty,
         };
     }
 

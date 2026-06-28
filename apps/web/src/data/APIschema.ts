@@ -66,6 +66,7 @@ export interface paths {
                     PartyIds?: (number | string)[];
                     IsIncludeInTrackCredit?: boolean;
                     Sort?: components["schemas"]["ListSortOption"];
+                    Limit?: number | string;
                 };
                 header?: never;
                 path?: never;
@@ -766,6 +767,7 @@ export interface paths {
                     PartyIds?: (number | string)[];
                     IsIncludeInGuestCredit?: boolean;
                     Sort?: components["schemas"]["ListSortOption"];
+                    Limit?: number | string;
                 };
                 header?: never;
                 path?: never;
@@ -1098,6 +1100,7 @@ export interface paths {
                     Gender?: components["schemas"]["PartyGender"];
                     ExcludeNoAlbums?: boolean;
                     Sort?: components["schemas"]["ListSortOption"];
+                    Limit?: number | string;
                 };
                 header?: never;
                 path?: never;

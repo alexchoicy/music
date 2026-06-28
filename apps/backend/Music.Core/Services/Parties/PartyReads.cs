@@ -21,6 +21,7 @@ public sealed class PartyListRequest
     public PartyGender? Gender { get; init; }
     public bool ExcludeNoAlbums { get; init; } = false;
     public ListSortOption Sort { get; init; } = ListSortOption.TitleAsc;
+    public int Limit { get; init; } = 0;
 }
 
 public sealed class PartyAlias

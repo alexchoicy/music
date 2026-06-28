@@ -25,6 +25,7 @@ export const albumQueries = {
 				if (query?.IsIncludeInTrackCredit)
 					params.append("IsIncludeInTrackCredit", "true");
 				if (query?.Sort) params.set("Sort", query.Sort);
+				if (query?.Limit) params.set("Limit", String(query.Limit));
 
 				const url = params.size ? `/albums?${params.toString()}` : "/albums";
 
