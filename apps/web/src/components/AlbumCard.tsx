@@ -89,11 +89,13 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 										alt={`${album.title} album cover`}
 										className="absolute inset-0 h-full w-full object-cover [backface-visibility:hidden]"
 										src={primaryCoverUrl}
+										loading="lazy"
 									/>
 									<img
 										alt={`${album.title} alternate album cover`}
 										className="absolute inset-0 h-full w-full [transform:rotateY(180deg)] object-cover [backface-visibility:hidden]"
 										src={hoverCoverUrl}
+										loading="lazy"
 									/>
 								</div>
 							) : (
@@ -101,6 +103,7 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 									alt={`${album.title} album cover`}
 									className="h-full w-full object-cover transition-transform duration-300 in-[[data-slot=album-card]:hover]:scale-105"
 									src={primaryCoverUrl}
+									loading="lazy"
 								/>
 							)
 						) : (

@@ -44,6 +44,7 @@ export function PartyCard({ className, party }: PartyCardProps) {
 									<AvatarImage
 										alt={`${party.name} cover`}
 										src={party.coverUrl}
+										loading="lazy"
 									/>
 								)}
 								<AvatarFallback className="rounded-2xl text-lg">

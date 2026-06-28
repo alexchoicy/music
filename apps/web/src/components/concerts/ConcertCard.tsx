@@ -47,6 +47,7 @@ export function ConcertCard({ className, concert }: ConcertCardProps) {
 								alt={`${concert.title} concert cover`}
 								className="h-full w-full object-cover transition-transform duration-300 in-[[data-slot=concert-card]:hover]:scale-105"
 								src={coverUrl}
+								loading="lazy"
 							/>
 						) : (
 							<div className="flex h-full w-full items-center justify-center text-muted-foreground">
