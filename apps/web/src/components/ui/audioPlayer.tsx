@@ -130,25 +130,29 @@ type TrackInfoProps = {
 function TrackInfo({ track }: TrackInfoProps) {
 	if (!track) {
 		return (
-			<div className="flex min-w-0 items-center gap-3 rounded-md p-2">
-				<div className="relative size-14 shrink-0 rounded-md bg-muted text-muted-foreground">
+			<div className="flex min-w-0 items-center gap-2 rounded-md p-1 sm:gap-3 sm:p-2">
+				<div className="relative size-11 shrink-0 rounded-md bg-muted text-muted-foreground sm:size-14">
 					<div className="flex h-full w-full items-center justify-center">
 						<Music2Icon aria-hidden="true" className="size-6" />
 					</div>
 				</div>
-				<div className="min-w-0 flex-1">
-					<p className="truncate text-base font-medium">No track selected</p>
+				<div className="min-w-0 flex-1 text-left" dir="ltr">
+					<p className="truncate text-sm font-medium sm:text-base">
+						No track selected
+					</p>
 					<p className="truncate text-sm text-muted-foreground">-</p>
-					<p className="truncate text-sm text-muted-foreground">-</p>
+					<p className="hidden truncate text-sm text-muted-foreground sm:block">
+						-
+					</p>
 				</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="flex min-w-0 items-center gap-3 p-2 text-foreground">
+		<div className="flex min-w-0 items-center gap-2 p-1 text-foreground sm:gap-3 sm:p-2">
 			<Link
-				className="relative size-14 shrink-0 overflow-hidden rounded-md bg-muted text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+				className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background sm:size-14"
 				params={{ id: track.albumId }}
 				to="/albums/$id"
 			>
@@ -164,9 +168,9 @@ function TrackInfo({ track }: TrackInfoProps) {
 					</div>
 				)}
 			</Link>
-			<div className="min-w-0 flex-1">
+			<div className="min-w-0 flex-1 text-left" dir="ltr">
 				<Link
-					className="truncate rounded-sm text-base font-medium outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+					className="block truncate rounded-sm text-sm font-medium outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background sm:text-base"
 					params={{ id: track.albumId }}
 					to="/albums/$id"
 					hash={`track-${track.trackId}`}
@@ -189,9 +193,9 @@ function TrackInfo({ track }: TrackInfoProps) {
 							))
 						: "-"}
 				</div>
-				<p className="truncate text-sm text-muted-foreground">
+				<p className="hidden truncate text-sm text-muted-foreground sm:block">
 					<Link
-						className="rounded-sm outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+						className="block truncate rounded-sm outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
 						params={{ id: track.albumId }}
 						to="/albums/$id"
 					>
@@ -584,7 +588,7 @@ export function AudioPlayer() {
 			container,
 			media: audio,
 
-			height: 40,
+			height: 32,
 			cursorWidth: 0,
 			duration: AUDIO_PLAYER_IDLE_DURATION,
 			interact: false,
@@ -715,16 +719,16 @@ export function AudioPlayer() {
 			)}
 		>
 			<audio className="hidden" ref={audioRef} preload="metadata" />
-			<div className="pointer-events-auto grid min-h-16 grid-cols-1 items-center gap-3 rounded-lg border bg-background/95 px-2 py-2 shadow-lg/5 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-3 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,2fr)_minmax(8rem,1fr)]">
+			<div className="pointer-events-auto grid min-h-16 grid-cols-1 items-center gap-x-2 gap-y-1 rounded-lg border bg-background/95 px-2 py-1.5 shadow-lg/5 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-3 sm:px-3 sm:py-2 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,2fr)_minmax(8rem,1fr)]">
 				<TrackInfo track={currentTrack} />
 
-				<div className="flex min-w-0 flex-col gap-2">
-					<div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+				<div className="flex min-w-0 flex-col gap-1 sm:col-span-2 sm:gap-2 lg:col-span-1">
+					<div className="hidden grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:grid">
 						<div />
 						<div className="flex items-center justify-center gap-1">
 							<Toggle
 								aria-label="Shuffle"
-								className="size-8 text-muted-foreground data-pressed:bg-primary/10 data-pressed:text-primary data-pressed:hover:bg-primary/15 sm:size-7"
+								className="hidden size-8 text-muted-foreground data-pressed:bg-primary/10 data-pressed:text-primary data-pressed:hover:bg-primary/15 sm:inline-flex sm:size-7"
 								disabled={queueLength === 0}
 								onPressedChange={() => toggleShuffle()}
 								pressed={shuffle}
@@ -769,6 +773,7 @@ export function AudioPlayer() {
 							<Button
 								aria-label={`Repeat: ${repeatMode}`}
 								className={cn(
+									"hidden sm:inline-flex",
 									repeatMode === "off"
 										? "text-muted-foreground"
 										: "bg-primary/10 text-primary hover:bg-primary/15",
@@ -789,7 +794,7 @@ export function AudioPlayer() {
 							{qualityLabel && <span className="truncate">{qualityLabel}</span>}
 						</div>
 					</div>
-					<div className="relative flex min-h-10 w-full items-center gap-2">
+					<div className="relative flex min-h-8 w-full items-center gap-2 sm:min-h-10">
 						{currentTrack && (
 							<button
 								type="button"
@@ -810,7 +815,7 @@ export function AudioPlayer() {
 								</span>
 							</button>
 						)}
-						<div className="relative min-h-10 flex-1">
+						<div className="relative min-h-8 flex-1 sm:min-h-10">
 							{status === "idle" && (
 								<div
 									aria-hidden="true"
@@ -830,11 +835,77 @@ export function AudioPlayer() {
 					</div>
 				</div>
 
-				<div className="flex items-center justify-end gap-1 text-muted-foreground">
-					<div className="mr-auto min-w-0 pl-2 text-[11px] text-muted-foreground lg:hidden">
+				<div className="flex items-center justify-center gap-1 text-muted-foreground sm:col-start-2 sm:row-start-1 sm:justify-end lg:col-start-auto lg:row-start-auto">
+					<div className="mr-auto hidden min-w-0 pl-2 text-[11px] text-muted-foreground sm:block lg:hidden">
 						{qualityLabel && <span className="truncate">{qualityLabel}</span>}
 					</div>
+					<Toggle
+						aria-label="Shuffle"
+						className="size-8 text-muted-foreground data-pressed:bg-primary/10 data-pressed:text-primary data-pressed:hover:bg-primary/15 sm:hidden"
+						disabled={queueLength === 0}
+						onPressedChange={() => toggleShuffle()}
+						pressed={shuffle}
+					>
+						<ShuffleIcon aria-hidden="true" />
+					</Toggle>
+					<Button
+						aria-label="Previous track"
+						disabled={!hasPrev || isLoading}
+						onClick={playPrev}
+						size="icon-sm"
+						variant="ghost"
+						className="sm:hidden"
+					>
+						<SkipBackIcon aria-hidden="true" />
+					</Button>
+					<Button
+						aria-label={isPlaying ? "Pause" : "Play"}
+						className="text-foreground sm:hidden"
+						disabled={!currentTrack || isLoading}
+						loading={isLoading}
+						onClick={() => {
+							void togglePlay();
+						}}
+						size="icon"
+						variant="ghost"
+					>
+						{isPlaying ? (
+							<PauseIcon aria-hidden="true" />
+						) : (
+							<PlayIcon aria-hidden="true" />
+						)}
+					</Button>
+					<Button
+						aria-label="Next track"
+						disabled={!hasNext || isLoading}
+						onClick={playNext}
+						size="icon-sm"
+						variant="ghost"
+						className="sm:hidden"
+					>
+						<SkipForwardIcon aria-hidden="true" />
+					</Button>
+					<Button
+						aria-label={`Repeat: ${repeatMode}`}
+						className={cn(
+							"sm:hidden",
+							repeatMode === "off"
+								? "text-muted-foreground"
+								: "bg-primary/10 text-primary hover:bg-primary/15",
+						)}
+						disabled={queueLength === 0}
+						onClick={toggleRepeatMode}
+						size="icon-sm"
+						variant="ghost"
+					>
+						{repeatMode === "one" ? (
+							<Repeat1Icon aria-hidden="true" />
+						) : (
+							<RepeatIcon aria-hidden="true" />
+						)}
+					</Button>
 					<VolumeControl
+						buttonClassName="hidden sm:inline-flex"
 						muted={muted}
 						setVolume={setVolume}
 						toggleMute={toggleMute}

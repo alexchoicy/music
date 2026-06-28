@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import {
 	Disc3Icon,
 	EllipsisVertical,
@@ -23,7 +24,7 @@ import {
 	MenuTrigger,
 } from "../coss/menu";
 import { toastManager } from "../coss/toast";
-import { getAlbumHoverCoverUrl, getCreditNames } from "./albumDetailUtils";
+import { getAlbumHoverCoverUrl } from "./albumDetailUtils";
 import type { AlbumDetails } from "./albumDetailUtils";
 
 type AlbumDownloadFile = {
@@ -92,7 +93,6 @@ export function AlbumDetailHero({
 }: AlbumDetailHeroProps) {
 	const coverUrl = getAlbumCoverUrl(album.cover.album);
 	const hoverCoverUrl = getAlbumHoverCoverUrl(album);
-	const artistNames = getCreditNames(album.credits) || "Unknown artist";
 	const duration =
 		formatDurationInHoursMinutesSeconds(album.totalDurationInMs) ?? "0s";
 	const releaseDate = formatDate(album.releaseDate);
@@ -251,7 +251,22 @@ export function AlbumDetailHero({
 					<h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
 						{album.title}
 					</h1>
-					<p className="text-base text-muted-foreground">{artistNames}</p>
+					<p className="text-base text-muted-foreground">
+						{album.credits.length > 0
+							? album.credits.map((credit, partyIndex) => (
+									<span key={credit.partyId}>
+										{partyIndex > 0 && ", "}
+										<Link
+											className="rounded-sm outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+											params={{ id: String(credit.partyId) }}
+											to="/parties/$id"
+										>
+											{credit.name}
+										</Link>
+									</span>
+								))
+							: "Unknown artist"}
+					</p>
 					<div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
 						{releaseDate && (
 							<>
