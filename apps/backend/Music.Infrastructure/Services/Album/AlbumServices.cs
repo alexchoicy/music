@@ -118,11 +118,6 @@ public class AlbumService(
             );
         }
 
-        if (request.Limit > 0)
-        {
-            query = query.Take(request.Limit);
-        }
-
         query = request.Sort switch
         {
             ListSortOption.TitleDesc => query.OrderByDescending(album => album.Title),
@@ -130,6 +125,11 @@ public class AlbumService(
             ListSortOption.CreatedAtAsc => query.OrderBy(album => album.CreatedAt),
             _ => query.OrderBy(album => album.Title),
         };
+
+        if (request.Limit > 0)
+        {
+            query = query.Take(request.Limit);
+        }
 
         List<Core.Entities.Album> albums = await query
             .AsSplitQuery()

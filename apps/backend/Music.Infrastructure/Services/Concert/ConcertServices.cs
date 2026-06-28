@@ -286,11 +286,6 @@ public class ConcertService(
             );
         }
 
-        if (request.Limit > 0)
-        {
-            query = query.Take(request.Limit);
-        }
-
         query = request.Sort switch
         {
             ListSortOption.TitleDesc => query.OrderByDescending(concert => concert.Title),
@@ -298,6 +293,11 @@ public class ConcertService(
             ListSortOption.CreatedAtAsc => query.OrderBy(concert => concert.CreatedAt),
             _ => query.OrderBy(concert => concert.Title),
         };
+
+        if (request.Limit > 0)
+        {
+            query = query.Take(request.Limit);
+        }
 
         List<Core.Entities.Concert> concerts = await query
             .AsSplitQuery()

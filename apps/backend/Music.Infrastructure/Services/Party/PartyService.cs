@@ -150,11 +150,6 @@ public class PartyService(
                 .FirstOrDefault(),
         });
 
-        if (request.Limit > 0)
-        {
-            query = query.Take(request.Limit);
-        }
-
         partyQuery = request.Sort switch
         {
             ListSortOption.TitleDesc => partyQuery.OrderByDescending(p => p.Name),
@@ -162,6 +157,11 @@ public class PartyService(
             ListSortOption.CreatedAtAsc => partyQuery.OrderBy(p => p.CreatedAt),
             _ => partyQuery.OrderBy(p => p.Name),
         };
+
+        if (request.Limit > 0)
+        {
+            query = query.Take(request.Limit);
+        }
 
         var parties = await partyQuery.ToListAsync(cancellationToken);
 
