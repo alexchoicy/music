@@ -173,7 +173,7 @@ function RouteComponent() {
 
 	const filterControls = (className: string, checkboxId: string) => (
 		<div className={className}>
-			<InputGroup className="sm:w-64">
+			<InputGroup className="min-w-0 sm:w-64">
 				<InputGroupAddon>
 					<SearchIcon aria-hidden="true" />
 				</InputGroupAddon>
@@ -188,7 +188,7 @@ function RouteComponent() {
 					}}
 				/>
 			</InputGroup>
-			<Field className="sm:w-80">
+			<Field className="min-w-0 sm:w-80">
 				<div className="flex w-full items-center justify-between gap-3">
 					<FieldLabel nativeLabel={false} render={<div />}>
 						Party
@@ -216,7 +216,7 @@ function RouteComponent() {
 					setSelectedIds={setSelectedPartyIds}
 				/>
 			</Field>
-			<div className="sm:ml-auto sm:w-56">
+			<div className="min-w-0 sm:ml-auto sm:w-56">
 				<EnumFieldSelect
 					label="Sort"
 					onValueChange={(sort) => updateSearch({ sort })}
@@ -228,8 +228,8 @@ function RouteComponent() {
 	);
 
 	return (
-		<main className="flex min-h-full w-full flex-col gap-6 p-4 sm:p-6">
-			<header className="flex flex-col gap-4">
+		<main className="flex min-h-full w-full min-w-0 flex-col gap-6 p-4 sm:p-6">
+			<header className="flex min-w-0 flex-col gap-4">
 				<div className="flex flex-col gap-2">
 					<p className="text-sm font-medium text-muted-foreground">Library</p>
 					<h1 className="font-heading text-3xl font-semibold tracking-tight">
@@ -244,13 +244,13 @@ function RouteComponent() {
 					</CollapsibleTrigger>
 					<CollapsiblePanel className="sm:hidden">
 						{filterControls(
-							"flex flex-col gap-3 pt-3",
+							"flex min-w-0 flex-col gap-3 pt-3",
 							"include-guest-credit-mobile",
 						)}
 					</CollapsiblePanel>
 				</Collapsible>
 				{filterControls(
-					"hidden flex-col gap-3 sm:flex sm:flex-row sm:flex-wrap sm:items-end",
+					"hidden min-w-0 flex-col gap-3 sm:flex sm:flex-row sm:flex-wrap sm:items-end",
 					"include-guest-credit-desktop",
 				)}
 			</header>
@@ -265,11 +265,17 @@ function RouteComponent() {
 				/>
 			) : concerts.length ? (
 				<div
-					className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+					className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
 					ref={concertGridRef}
 				>
 					{concerts.map((concert) => {
-						return <ConcertCard concert={concert} key={concert.concertId} />;
+						return (
+							<ConcertCard
+								className="min-w-0"
+								concert={concert}
+								key={concert.concertId}
+							/>
+						);
 					})}
 				</div>
 			) : (
@@ -284,7 +290,7 @@ function RouteComponent() {
 }
 function ConcertGridSkeleton() {
 	return (
-		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+		<div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
 			{Array.from({ length: 10 }, (_, index) => (
 				<Card className="overflow-hidden" key={index}>
 					<Skeleton className="aspect-video rounded-none" />
