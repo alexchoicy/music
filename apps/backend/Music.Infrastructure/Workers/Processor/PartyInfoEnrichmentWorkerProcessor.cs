@@ -163,10 +163,7 @@ public class PartyInfoEnrichmentWorkerProcessor(
         if (!string.IsNullOrWhiteSpace(appleMusicId))
         {
             (string? tempPath, string? mimeType) =
-                await partyAvatarService.GetAppleMusicAvatarUrlAsync(
-                    appleMusicId,
-                    cancellationToken
-                );
+                await partyAvatarService.GetAppleMusicAvatarAsync(appleMusicId, cancellationToken);
 
             if (
                 !string.IsNullOrWhiteSpace(tempPath)
