@@ -9,7 +9,10 @@ function splitArtists(artistString?: string): string[] {
 
 	return artistString
 		.trim()
-		.toLowerCase()
+		.replace(
+			/\s*[（(]\s*[CcＣｃ][VvＶｖ][.．]?\s*[:：]?[^（）()]*[）)]\s*$/u,
+			"",
+		)
 		.split(/\s*(?:;|\bfeat\.?(?=\s|$)|\bft\.?(?=\s|$)|\bfeaturing\b)\s*/i)
 		.map((artist) => artist.trim())
 		.filter(Boolean);
