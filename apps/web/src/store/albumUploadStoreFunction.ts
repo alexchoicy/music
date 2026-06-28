@@ -9,6 +9,7 @@ import type { components } from "#/data/APIschema";
 import {
 	getExtensionFromFileName,
 	getExtensionFromMimeType,
+	getMimeTypeFromFileName,
 } from "#/lib/utils/file";
 import {
 	checkIfInstrumental,
@@ -186,14 +187,16 @@ function createTrackAudioRequest(
 	fileData: ProcessedFileData,
 	durationInMs: number,
 ): components["schemas"]["TrackAudioRequest"] {
+	const mimeType =
+		fileData.file.type || getMimeTypeFromFileName(fileData.file.name);
 	const extension =
-		getExtensionFromMimeType(fileData.file.type) ||
+		getExtensionFromMimeType(mimeType) ||
 		getExtensionFromFileName(fileData.file.name);
 
 	return {
 		file: {
 			blake3Hash: fileData.blake3Hash,
-			mimeType: fileData.file.type,
+			mimeType,
 			sizeInBytes: fileData.file.size,
 			container:
 				fileData.metadata.format.container?.trim().toLowerCase() || extension,

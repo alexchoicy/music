@@ -16,7 +16,7 @@ import { AlbumDraftMergeDialog } from "./album/albumDraftMergeDialog";
 import { TrackDraftEditDialog } from "./album/trackDraftEditDialog";
 
 const albumAudioAccept: Accept = {
-	"audio/*": [".flac", ".mp3", ".wav"],
+	"audio/*": [".flac", ".mp3", ".wav", ".dsf"],
 };
 
 export function AlbumTabContent() {
@@ -102,8 +102,8 @@ export function AlbumTabContent() {
 				isProcessing={isProcessing}
 				accept={albumAudioAccept}
 				activeHint="Drop the album audio files here."
-				errorHint="Only FLAC, MP3, or WAV audio files are supported."
-				hint="Drag and drop FLAC, MP3, or WAV files here, or browse from your device."
+				errorHint="Only FLAC, MP3, WAV, or DSF audio files are supported."
+				hint="Drag and drop FLAC, MP3, WAV, or DSF files here, or browse from your device."
 				onDrop={handleDrop}
 				title="Choose album files"
 			/>

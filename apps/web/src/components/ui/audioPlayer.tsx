@@ -102,12 +102,15 @@ function formatPlaybackQuality(
 ): string | null {
 	const selectedQuality =
 		playbackQuality === "Auto" ? autoSelectPlaybackQuality() : playbackQuality;
+	const originalExtension = track.audio.file.original.extension.toLowerCase();
+	const needsPlayableFallback = originalExtension === "dsf";
 	const file =
-		selectedQuality === "Opus96"
+		selectedQuality === "Opus96" || needsPlayableFallback
 			? (track.audio.file.opus96 ?? track.audio.file.original)
 			: track.audio.file.original;
 	const label =
-		selectedQuality === "Opus96" && track.audio.file.opus96
+		(selectedQuality === "Opus96" || needsPlayableFallback) &&
+		track.audio.file.opus96
 			? "Opus 96"
 			: (formatCodec(file.codec) ?? "Original");
 	const parts = [

@@ -111,6 +111,8 @@ async function processFile(file: File): Promise<ProcessedFileData | null> {
 		const { parseBlob } = await getMusicMetadataModule();
 		const { blake3Hash } = await hashFileStream(file);
 		const metadata = await parseBlob(file);
+		console.log(metadata);
+		console.log(file);
 		let cover: CoverAsset | null = null;
 
 		try {

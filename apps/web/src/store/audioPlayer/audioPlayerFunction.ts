@@ -68,7 +68,13 @@ export function resolvePlaybackSource(
 ): { key: string; quality: ResolvedPlaybackQuality; url: string } {
 	const selectedQuality =
 		playbackQuality === "Auto" ? autoSelectPlaybackQuality() : playbackQuality;
-	if (selectedQuality === "Opus96" && track.audio.file.opus96) {
+	const originalExtension = track.audio.file.original.extension.toLowerCase();
+	const needsPlayableFallback = originalExtension === "dsf";
+
+	if (
+		(selectedQuality === "Opus96" || needsPlayableFallback) &&
+		track.audio.file.opus96
+	) {
 		const url = track.audio.file.opus96.url;
 		return { key: `Opus96:${url}`, quality: "Opus96", url };
 	}

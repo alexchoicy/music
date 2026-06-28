@@ -12,4 +12,5 @@ public enum CountryCode
     US,
     CN,
     TW,
+    ID,
 }

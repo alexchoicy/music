@@ -131,13 +131,11 @@ public class PartyInfoEnrichmentWorkerProcessor(
 
         string? appleMusicId = party
             .PartyExternalInfos.FirstOrDefault(info =>
-                info.Type == PartyExternalInfoType.AppleMusic && info.AddedByUserId is not null
+                info.Type == PartyExternalInfoType.AppleMusic
             )
             ?.ExternalId;
         string? twitterName = party
-            .PartyExternalInfos.FirstOrDefault(info =>
-                info.Type == PartyExternalInfoType.Twitter && info.AddedByUserId is not null
-            )
+            .PartyExternalInfos.FirstOrDefault(info => info.Type == PartyExternalInfoType.Twitter)
             ?.ExternalId;
 
         FxTwitterProfile? twitterProfile;

@@ -15,6 +15,7 @@ export const COUNTRY_CODE: Record<CountryCode, string> = {
 	US: "United States",
 	CN: "China",
 	TW: "Taiwan",
+	ID: "Indonesia",
 } as const;
 
 export const COUNTRY_CODE_OPTIONS = enumOptions(COUNTRY_CODE);
