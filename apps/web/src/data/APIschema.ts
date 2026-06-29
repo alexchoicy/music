@@ -1823,6 +1823,22 @@ export interface components {
             title: string;
             credits: string[];
             coverUrl: string;
+            discs: components["schemas"]["AlbumSummaryDisc"][];
+        };
+        AlbumSummaryDisc: {
+            /** Format: int32 */
+            discNumber: number | string;
+            tracks: components["schemas"]["AlbumSummaryTrack"][];
+            coverUrl: string;
+        };
+        AlbumSummaryTrack: {
+            /** Format: int32 */
+            trackId: number | string;
+            /** Format: int32 */
+            trackNumber: number | string;
+            title: string;
+            /** Format: int32 */
+            durationInMs: number | string;
         };
         AlbumTrackDetails: {
             /** Format: int32 */

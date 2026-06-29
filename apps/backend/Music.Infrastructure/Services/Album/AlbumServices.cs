@@ -368,12 +368,16 @@ public class AlbumService(
             .Include(a => a.Images)
                 .ThenInclude(i => i.File)
                     .ThenInclude(f => f!.FileObjects)
+            .Include(a => a.Discs)
+                .ThenInclude(d => d.Tracks)
+                    .ThenInclude(t => t.Track)
             .FirstOrDefaultAsync(a => a.Id == albumId, cancellationToken);
 
         if (album is null)
             throw new EntityNotFoundException($"Album {albumId} not found");
 
-        ImageFileVariants coverVariants = album.ToAlbumCoverVariants(_assetsService);
+        AlbumCoverDetails coverDetails = album.ToAlbumCoverDetails(_assetsService);
+        ImageFileVariants coverVariants = coverDetails.Album;
 
         return new AlbumSummary
         {
@@ -388,6 +392,35 @@ public class AlbumService(
                 coverVariants.ImageCover1024x1024?.Url
                 ?? coverVariants.Original?.Url
                 ?? string.Empty,
+            Discs = album
+                .Discs.OrderBy(d => d.DiscNumber)
+                .Select(d =>
+                {
+                    ImageFileVariants? discCoverVariants = coverDetails
+                        .Discs.FirstOrDefault(cover => cover.AlbumDiscId == d.Id)
+                        ?.Variants;
+
+                    return new AlbumSummaryDisc
+                    {
+                        DiscNumber = d.DiscNumber,
+                        CoverUrl =
+                            discCoverVariants?.ImageCover1024x1024?.Url
+                            ?? discCoverVariants?.Original?.Url
+                            ?? string.Empty,
+                        Tracks = d
+                            .Tracks.Where(t => t.Track is not null)
+                            .OrderBy(t => t.TrackNumber)
+                            .Select(t => new AlbumSummaryTrack
+                            {
+                                TrackId = t.TrackId,
+                                TrackNumber = t.TrackNumber,
+                                Title = t.Track!.Title,
+                                DurationInMs = t.Track.DurationInMs,
+                            })
+                            .ToList(),
+                    };
+                })
+                .ToList(),
         };
     }
 

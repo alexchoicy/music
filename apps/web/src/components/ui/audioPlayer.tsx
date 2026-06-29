@@ -172,8 +172,8 @@ function TrackInfo({ track }: TrackInfoProps) {
 				<Link
 					className="block truncate rounded-sm text-sm font-medium outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background sm:text-base"
 					params={{ id: track.albumId }}
+					search={{ track: track.trackId }}
 					to="/albums/$id"
-					hash={`track-${track.trackId}`}
 				>
 					{track.title}
 				</Link>

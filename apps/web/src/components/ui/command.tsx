@@ -178,8 +178,8 @@ export function Command({ initialQuery, onOpenChange, open }: CommandProps) {
 
 		if (item.kind === "track") {
 			void navigate({
-				hash: `track-${item.value.trackId}`,
 				params: { id: String(item.albumId) },
+				search: { track: Number(item.value.trackId) },
 				to: "/albums/$id",
 			});
 			return;

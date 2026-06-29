@@ -16,6 +16,7 @@ import { Command } from "#/components/ui/command";
 import { MobileHeader } from "#/components/ui/mobileHeader";
 import { UserInfoProvider } from "#/context/UserInfoContext";
 import { authQueries } from "#/lib/queries/auth.queries";
+import { checkBotHeader } from "#/lib/ServerFunction/checkBotHeader";
 import { getApiEndpoint } from "#/lib/ServerFunction/getApiEndpoint";
 import { useUploadStore } from "#/store/uploadStore";
 
@@ -25,6 +26,22 @@ const authedSearchSchema = z.object({
 
 export const Route = createFileRoute("/_authed")({
 	beforeLoad: async ({ context, location }) => {
+		const albumMatch = location.pathname.match(/^\/albums\/([^/]+)\/?$/);
+		const track = Number((location.search as Record<string, unknown>).track);
+
+		if (albumMatch && import.meta.env.SSR) {
+			const isBot = await checkBotHeader();
+
+			if (isBot) {
+				throw redirect({
+					params: { id: albumMatch[1] },
+					replace: true,
+					search: Number.isFinite(track) ? { track } : undefined,
+					to: "/bot/albums/$id",
+				});
+			}
+		}
+
 		const isAuthenticated = await context.queryClient.fetchQuery(
 			authQueries.checkAuth(),
 		);

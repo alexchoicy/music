@@ -29,6 +29,22 @@ public sealed class AlbumSummary
     public required string Title { get; init; } = string.Empty;
     public required IReadOnlyList<string> Credits { get; init; } = [];
     public required string CoverUrl { get; init; } = string.Empty;
+    public required IReadOnlyList<AlbumSummaryDisc> Discs { get; init; } = [];
+}
+
+public sealed class AlbumSummaryDisc
+{
+    public required int DiscNumber { get; init; }
+    public required string CoverUrl { get; init; } = string.Empty;
+    public required IReadOnlyList<AlbumSummaryTrack> Tracks { get; init; } = [];
+}
+
+public sealed class AlbumSummaryTrack
+{
+    public required int TrackId { get; init; }
+    public required int TrackNumber { get; init; }
+    public required string Title { get; init; } = string.Empty;
+    public required int DurationInMs { get; init; }
 }
 
 public sealed class AlbumListArtist

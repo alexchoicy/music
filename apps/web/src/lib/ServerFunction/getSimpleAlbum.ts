@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import type { components } from "@/data/APIschema";
 
 export const getSimpleAlbum = createServerFn({ method: "GET" })
-	.inputValidator((data: { id: string }) => data)
+	.validator((data: { id: string }) => data)
 	.handler(async ({ data }) => {
 		const token = process.env.API_BOT_TOKEN;
 
@@ -12,7 +12,7 @@ export const getSimpleAlbum = createServerFn({ method: "GET" })
 		}
 
 		const res = await fetch(
-			`${process.env.API_BASE_URL}/albums/${data.id}/simple`,
+			`${process.env.API_BASE_URL}/albums/${data.id}/summary`,
 			{
 				headers: {
 					Authorization: `Bearer ${token}`,

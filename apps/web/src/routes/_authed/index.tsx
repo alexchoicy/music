@@ -161,6 +161,7 @@ function RecentSection({ children, title, to }: RecentSectionProps) {
 				</h2>
 				<Link
 					className="text-sm font-medium text-muted-foreground hover:text-foreground"
+					search={{ sort: "CreatedAtDesc" }}
 					to={to}
 				>
 					View all

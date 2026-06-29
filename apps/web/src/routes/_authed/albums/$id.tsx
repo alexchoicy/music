@@ -1,6 +1,7 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, useRouterState } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
 import { AlbumCreditsCard } from "#/components/albums/AlbumCreditsCard";
 import { AlbumDetailHero } from "#/components/albums/AlbumDetailHero";
@@ -12,6 +13,9 @@ import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayer
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
 export const Route = createFileRoute("/_authed/albums/$id")({
+	validateSearch: z.object({
+		track: z.coerce.number().optional(),
+	}),
 	loader: ({ context, params }) => {
 		return context.queryClient.ensureQueryData(
 			albumQueries.getAlbum(params.id),
@@ -21,10 +25,8 @@ export const Route = createFileRoute("/_authed/albums/$id")({
 });
 function RouteComponent() {
 	const { id } = Route.useParams();
+	const { track } = Route.useSearch();
 	const { data: album } = useSuspenseQuery(albumQueries.getAlbum(id));
-	const hash = useRouterState({
-		select: (state) => state.location.hash,
-	});
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
 	const coverUrl = getAlbumCoverUrl(album.cover.album);
@@ -54,7 +56,10 @@ function RouteComponent() {
 				/>
 
 				<div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-					<AlbumTrackListCard album={album} highlightedTrackKey={hash} />
+					<AlbumTrackListCard
+						album={album}
+						highlightedTrackKey={track ? `track-${track}` : undefined}
+					/>
 
 					<aside className="flex flex-col gap-6">
 						<AlbumCreditsCard album={album} />
