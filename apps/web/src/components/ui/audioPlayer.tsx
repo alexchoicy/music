@@ -8,6 +8,7 @@ import {
 	Repeat1Icon,
 	RepeatIcon,
 	SettingsIcon,
+	Share2Icon,
 	ShuffleIcon,
 	SkipBackIcon,
 	SkipForwardIcon,
@@ -40,8 +41,10 @@ import {
 	SheetTrigger,
 } from "#/components/coss/sheet";
 import { Switch } from "#/components/coss/switch";
+import { toastManager } from "#/components/coss/toast";
 import { Toggle } from "#/components/coss/toggle";
 import { VolumeControl } from "#/components/VolumeControl";
+import { shareUrl } from "#/lib/utils/browser";
 import { formatMsToTimer } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 import {
@@ -638,6 +641,29 @@ export function AudioPlayer() {
 		conflictBehavior: "allow",
 	};
 
+	async function shareCurrentTrack() {
+		if (!currentTrack) return;
+
+		const url = new URL(
+			`/albums/${currentTrack.albumId}`,
+			window.location.origin,
+		);
+		url.searchParams.set("track", currentTrack.trackId);
+
+		const result = await shareUrl({
+			title: currentTrack.title,
+			text: `${currentTrack.title} from ${currentTrack.albumTitle}`,
+			url: url.toString(),
+		});
+
+		if (result === "copied") {
+			toastManager.add({
+				title: "Link copied",
+				description: `${currentTrack.title} share link copied.`,
+			});
+		}
+	}
+
 	useHotkey(
 		"Space",
 		() => {
@@ -919,6 +945,17 @@ export function AudioPlayer() {
 						queue={queue}
 						queueLength={queueLength}
 					/>
+					<Button
+						aria-label="Share current track"
+						disabled={!currentTrack}
+						onClick={() => {
+							void shareCurrentTrack();
+						}}
+						size="icon-sm"
+						variant="ghost"
+					>
+						<Share2Icon aria-hidden="true" />
+					</Button>
 					<PlaybackQualitySettings
 						playTalkTrack={playTalkTrack}
 						playbackQuality={playbackQuality}

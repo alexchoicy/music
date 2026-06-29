@@ -4,12 +4,14 @@ import {
 	EllipsisVertical,
 	ListPlusIcon,
 	PlayIcon,
+	Share2Icon,
 } from "lucide-react";
 import pmap from "p-map";
 
 import { Badge } from "#/components/coss/badge";
 import { Button } from "#/components/coss/button";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
+import { shareUrl } from "#/lib/utils/browser";
 import { formatDate } from "#/lib/utils/date";
 import { formatDurationInHoursMinutesSeconds } from "#/lib/utils/music";
 import { getPresignedDownloadUrl } from "#/store/audioPlayer/audioPlayerFunction";
@@ -168,6 +170,22 @@ export function AlbumDetailHero({
 		}
 	}
 
+	async function shareAlbum() {
+		const url = new URL(`/albums/${album.albumId}`, window.location.origin);
+		const result = await shareUrl({
+			title: album.title,
+			text: album.credits.map((credit) => credit.name).join(", "),
+			url: url.toString(),
+		});
+
+		if (result === "copied") {
+			toastManager.add({
+				title: "Link copied",
+				description: `${album.title} share link copied.`,
+			});
+		}
+	}
+
 	async function download(
 		presignUrls: AlbumDownloadTrack[],
 		onProgress: (done: number, total: number, fileName: string) => void,
@@ -302,6 +320,10 @@ export function AlbumDetailHero({
 								<MenuItem onClick={onAddToQueue}>
 									<ListPlusIcon aria-hidden="true" />
 									Add to queue
+								</MenuItem>
+								<MenuItem onClick={() => void shareAlbum()}>
+									<Share2Icon aria-hidden="true" />
+									Share album
 								</MenuItem>
 							</MenuGroup>
 							<MenuSeparator />

@@ -4,6 +4,7 @@ import {
 	ListPlusIcon,
 	MoreHorizontalIcon,
 	PlayIcon,
+	Share2Icon,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
 
@@ -22,6 +23,7 @@ import {
 	MenuSubTrigger,
 	MenuTrigger,
 } from "#/components/coss/menu";
+import { shareUrl } from "#/lib/utils/browser";
 import { formatDuration } from "#/lib/utils/file";
 import { cn } from "#/lib/utils/styles";
 import {
@@ -88,6 +90,24 @@ export function AlbumTrackListCard({
 			title: "Downloaded",
 			description: `${album.title} - ${trackName} - ${source}`,
 		});
+	}
+
+	async function shareTrack(trackId: number | string, trackTitle: string) {
+		const url = new URL(`/albums/${album.albumId}`, window.location.origin);
+		url.searchParams.set("track", String(trackId));
+
+		const result = await shareUrl({
+			title: trackTitle,
+			text: `${trackTitle} from ${album.title}`,
+			url: url.toString(),
+		});
+
+		if (result === "copied") {
+			toastManager.add({
+				title: "Link copied",
+				description: `${trackTitle} share link copied.`,
+			});
+		}
 	}
 
 	function focusTrack(offset: number) {
@@ -270,6 +290,14 @@ export function AlbumTrackListCard({
 														>
 															<ListPlusIcon aria-hidden="true" />
 															Add to queue
+														</MenuItem>
+														<MenuItem
+															onClick={() =>
+																shareTrack(track.trackId, track.title)
+															}
+														>
+															<Share2Icon aria-hidden="true" />
+															Share track
 														</MenuItem>
 													</MenuGroup>
 													<MenuSeparator />

@@ -7,3 +7,25 @@ export function isProbablyPhone(): boolean {
 
 	return hasTouch && smallScreen && coarsePointer;
 }
+
+type ShareUrlOptions = {
+	title: string;
+	text?: string;
+	url: string;
+};
+
+export async function shareUrl({ title, text, url }: ShareUrlOptions) {
+	if (navigator.share) {
+		try {
+			await navigator.share({ title, text, url });
+			return "shared";
+		} catch (error) {
+			if (error instanceof DOMException && error.name === "AbortError") {
+				return "cancelled";
+			}
+		}
+	}
+
+	await navigator.clipboard.writeText(url);
+	return "copied";
+}
