@@ -15,7 +15,7 @@ type ShareUrlOptions = {
 };
 
 export async function shareUrl({ title, text, url }: ShareUrlOptions) {
-	if (navigator.share) {
+	if ("share" in navigator) {
 		try {
 			await navigator.share({ title, text, url });
 			return "shared";

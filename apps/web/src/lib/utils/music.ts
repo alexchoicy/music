@@ -90,7 +90,7 @@ export function formatDurationInHoursMinutesSeconds(
 	return `${seconds}s`;
 }
 
-export function formatMsToTimer(ms: number): string {
+export function formatMsToMMSSOrHMMSS(ms: number): string {
 	if (!Number.isFinite(ms) || ms < 0) return "0:00";
 
 	const totalSeconds = Math.round(ms / 1000);

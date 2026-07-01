@@ -10,7 +10,7 @@ import { useState } from "react";
 
 import { Button, buttonVariants } from "#/components/coss/button";
 import type { components } from "#/data/APIschema";
-import { formatMsToTimer } from "#/lib/utils/music";
+import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 import {
 	getPresignedDownloadUrl,
@@ -33,7 +33,9 @@ export function ConcertFileCard({
 	const thumbnail =
 		file.file.attachedPicture?.url || file.file.thumbnail640x360?.url;
 	const original = file.file.original;
-	const durationLabel = formatMsToTimer(Number(original.durationInMs ?? 0));
+	const durationLabel = formatMsToMMSSOrHMMSS(
+		Number(original.durationInMs ?? 0),
+	);
 	const hasDash = file.file.dashAV1 != null;
 	const hasResolution = original.width != null && original.height != null;
 	const originalUrl = original.url;

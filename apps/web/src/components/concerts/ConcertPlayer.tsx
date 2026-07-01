@@ -30,7 +30,7 @@ import {
 import { Slider } from "#/components/coss/slider";
 import { VolumeControl } from "#/components/VolumeControl";
 import type { components } from "#/data/APIschema";
-import { formatMsToTimer } from "#/lib/utils/music";
+import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 import { getPresignedUrl } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
@@ -523,8 +523,8 @@ export function ConcertPlayer({
 						/>
 
 						<span className="ml-1 text-xs tabular-nums">
-							{formatMsToTimer(currentTime * 1000)} /{" "}
-							{formatMsToTimer(duration * 1000)}
+							{formatMsToMMSSOrHMMSS(currentTime * 1000)} /{" "}
+							{formatMsToMMSSOrHMMSS(duration * 1000)}
 						</span>
 
 						<div className="ml-auto flex items-center gap-1">

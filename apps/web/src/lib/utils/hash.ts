@@ -6,11 +6,11 @@ export async function hashFileStream(
 	const blake3 = await createBLAKE3();
 
 	const reader = file.stream().getReader();
+	let chunk = await reader.read();
 
-	while (true) {
-		const { done, value } = await reader.read();
-		if (done) break;
-		blake3.update(value);
+	while (!chunk.done) {
+		blake3.update(chunk.value);
+		chunk = await reader.read();
 	}
 
 	const blake3Hash = blake3.digest("hex");

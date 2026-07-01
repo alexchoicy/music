@@ -2,7 +2,7 @@ import { PencilIcon } from "lucide-react";
 
 import { Badge } from "#/components/coss/badge";
 import { Button } from "#/components/coss/button";
-import { formatDuration } from "#/lib/utils/file";
+import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { useAlbumUploadStore } from "#/store/albumUploadStore";
 import type { TrackDraft, TrackLocalId } from "#/store/albumUploadStoreType";
 
@@ -54,7 +54,7 @@ export function TrackDraftContent({
 				</div>
 			</div>
 			<span className="text-sm text-muted-foreground tabular-nums">
-				{formatDuration(Number(track.durationInMs)) ?? "0:00"}
+				{formatMsToMMSSOrHMMSS(Number(track.durationInMs))}
 			</span>
 			<Button
 				aria-label="Edit track draft"

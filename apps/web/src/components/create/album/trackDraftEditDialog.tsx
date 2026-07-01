@@ -36,8 +36,9 @@ import {
 	TRACK_VERSION_TYPE_OPTIONS,
 } from "#/enums/trackEnums";
 import { languageQueries } from "#/lib/queries/language.queries";
-import { formatDuration, formatFileSize } from "#/lib/utils/file";
+import { formatFileSize } from "#/lib/utils/file";
 import { makeLanguageOptions } from "#/lib/utils/language";
+import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { useAlbumUploadStore } from "#/store/albumUploadStore";
 import type {
 	DiscDraft,
@@ -80,7 +81,7 @@ function formatAudioSummary(audio: TrackAudioRequest) {
 	const summary = [
 		audio.file.extension.toUpperCase(),
 		formatFileSize(audio.file.sizeInBytes),
-		formatDuration(Number(audio.file.durationInMs ?? 0)),
+		formatMsToMMSSOrHMMSS(Number(audio.file.durationInMs ?? 0)),
 		audio.file.audioSampleRate ? `${audio.file.audioSampleRate} Hz` : null,
 		audio.file.bitrate ? `${audio.file.bitrate} bps` : null,
 	].filter(Boolean);

@@ -24,7 +24,7 @@ import {
 	MenuTrigger,
 } from "#/components/coss/menu";
 import { shareUrl } from "#/lib/utils/browser";
-import { formatDuration } from "#/lib/utils/file";
+import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 import {
 	albumDetailsToAudioPlayerTracks,
@@ -254,7 +254,7 @@ export function AlbumTrackListCard({
 											</p>
 										</div>
 										<span className="text-sm text-muted-foreground tabular-nums">
-											{formatDuration(Number(track.durationInMs)) ?? "0:00"}
+											{formatMsToMMSSOrHMMSS(Number(track.durationInMs))}
 										</span>
 										<div onClick={(e) => e.stopPropagation()}>
 											<Menu>

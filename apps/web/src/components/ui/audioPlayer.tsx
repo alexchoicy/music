@@ -45,7 +45,7 @@ import { toastManager } from "#/components/coss/toast";
 import { Toggle } from "#/components/coss/toggle";
 import { VolumeControl } from "#/components/VolumeControl";
 import { shareUrl } from "#/lib/utils/browser";
-import { formatMsToTimer } from "#/lib/utils/music";
+import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 import {
 	AUDIO_PLAYER_IDLE_DURATION,
@@ -282,7 +282,7 @@ function QueueSheet({
 									</p>
 								</div>
 								<span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-									{formatMsToTimer(track.durationInMs)}
+									{formatMsToMMSSOrHMMSS(track.durationInMs)}
 								</span>
 							</button>
 						))
@@ -493,8 +493,8 @@ export function AudioPlayer() {
 
 		if (rightLabelRef.current) {
 			rightLabelRef.current.textContent = showRemainingRef.current
-				? formatMsToTimer(remainingTimeInMs)
-				: formatMsToTimer(currentTimeInMs);
+				? formatMsToMMSSOrHMMSS(remainingTimeInMs)
+				: formatMsToMMSSOrHMMSS(currentTimeInMs);
 		}
 	}, [currentTrack?.durationInMs]);
 
@@ -837,7 +837,7 @@ export function AudioPlayer() {
 									>
 										-
 									</span>
-									<span ref={rightLabelRef}>{formatMsToTimer(0)}</span>
+									<span ref={rightLabelRef}>{formatMsToMMSSOrHMMSS(0)}</span>
 								</span>
 							</button>
 						)}
@@ -855,8 +855,8 @@ export function AudioPlayer() {
 						</div>
 						<span className="shrink-0 text-xs text-muted-foreground tabular-nums">
 							{currentTrack
-								? formatMsToTimer(currentTrack.durationInMs)
-								: formatMsToTimer(0)}
+								? formatMsToMMSSOrHMMSS(currentTrack.durationInMs)
+								: formatMsToMMSSOrHMMSS(0)}
 						</span>
 					</div>
 				</div>
