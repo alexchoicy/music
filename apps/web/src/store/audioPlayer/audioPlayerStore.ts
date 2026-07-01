@@ -27,6 +27,8 @@ type AudioPlayerPersistedState = Pick<
 	| "playbackQuality"
 	| "playTalkTrack"
 	| "playInstrumental"
+	| "queue"
+	| "index"
 >;
 
 let waveSurfer: WaveSurfer | null = null;
@@ -631,6 +633,8 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					playbackQuality: state.playbackQuality,
 					playTalkTrack: state.playTalkTrack,
 					playInstrumental: state.playInstrumental,
+					queue: state.queue,
+					index: state.index,
 				}),
 			},
 		),
