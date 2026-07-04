@@ -47,6 +47,7 @@ const initialState: AudioPlayerState = {
 	playbackQuality: "Auto",
 	playTalkTrack: false,
 	playInstrumental: false,
+	stopAfterMusicCount: null,
 };
 
 function getNextIndex(
@@ -570,6 +571,9 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 				setPlayInstrumental: (playInstrumental) => {
 					set({ playInstrumental });
 				},
+				setStopAfterMusicCount: (stopAfterMusicCount) => {
+					set({ stopAfterMusicCount });
+				},
 				markReady: () => {
 					if (isLoadPending()) return;
 
@@ -601,6 +605,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						queue,
 						repeatMode,
 						shuffle,
+						stopAfterMusicCount,
 					} = get();
 
 					if (queue.length === 0) {
@@ -608,6 +613,25 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						resetWaveSurferToIdle();
 						set({ currentPlayingKey: null, status: "idle" });
 						return;
+					}
+
+					const finishedTrack = queue.at(index);
+					if (
+						finishedTrack?.contentType === "Music" &&
+						stopAfterMusicCount !== null
+					) {
+						if (stopAfterMusicCount <= 1) {
+							console.log("[audio-player] markFinished:stop after music");
+							resetWaveSurferToIdle();
+							set({
+								currentPlayingKey: null,
+								status: "idle",
+								stopAfterMusicCount: null,
+							});
+							return;
+						}
+
+						set({ stopAfterMusicCount: stopAfterMusicCount - 1 });
 					}
 
 					const nextIndex = getNextAutoIndex(

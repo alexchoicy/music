@@ -32,6 +32,13 @@ import {
 } from "#/components/coss/popover";
 import { Radio, RadioGroup } from "#/components/coss/radio-group";
 import {
+	Select,
+	SelectItem,
+	SelectPopup,
+	SelectTrigger,
+	SelectValue,
+} from "#/components/coss/select";
+import {
 	Sheet,
 	SheetDescription,
 	SheetHeader,
@@ -60,6 +67,44 @@ import type {
 
 const AUDIO_TIME_EVENTS = ["timeupdate", "loadedmetadata", "seeking", "seeked"];
 type PlaybackQuality = AudioPlayerState["playbackQuality"];
+type StopAfterMusicCount = AudioPlayerState["stopAfterMusicCount"];
+
+type StopAfterMusicOption = { label: string; value: string };
+
+function stopAfterMusicCountToValue(count: StopAfterMusicCount): string {
+	return count === null ? "off" : String(count);
+}
+
+function stopAfterMusicValueToCount(value: string): StopAfterMusicCount {
+	return value === "off" ? null : Number(value);
+}
+
+function getStopAfterMusicOptions(
+	queue: AudioPlayerTrack[],
+	index: number,
+): StopAfterMusicOption[] {
+	let cumulativeDurationInMs = 0;
+	const musicTracks = queue
+		.slice(index)
+		.filter((track) => track.contentType === "Music");
+
+	return [
+		{ label: "Off", value: "off" },
+		...musicTracks.map((track, musicIndex) => {
+			cumulativeDurationInMs += track.durationInMs;
+			const count = musicIndex + 1;
+			const label =
+				count === 1 && queue[index]?.contentType === "Music"
+					? "Stop after this music"
+					: `Stop after ${count} music`;
+
+			return {
+				label: `${label} (${formatMsToMMSSOrHMMSS(cumulativeDurationInMs)})`,
+				value: String(count),
+			};
+		}),
+	];
+}
 
 function formatSampleRate(
 	value: null | number | string | undefined,
@@ -300,6 +345,10 @@ type PlaybackQualitySettingsProps = {
 	setPlaybackQuality: (quality: PlaybackQuality) => void;
 	playInstrumental: boolean;
 	setPlayInstrumental: (playInstrumental: boolean) => void;
+	index: number;
+	queue: AudioPlayerTrack[];
+	stopAfterMusicCount: StopAfterMusicCount;
+	setStopAfterMusicCount: (stopAfterMusicCount: StopAfterMusicCount) => void;
 };
 
 function PlaybackQualitySettings({
@@ -309,7 +358,21 @@ function PlaybackQualitySettings({
 	setPlaybackQuality,
 	playInstrumental,
 	setPlayInstrumental,
+	index,
+	queue,
+	stopAfterMusicCount,
+	setStopAfterMusicCount,
 }: PlaybackQualitySettingsProps) {
+	const stopAfterMusicOptions = getStopAfterMusicOptions(queue, index);
+	const stopAfterMusicValue = stopAfterMusicCountToValue(stopAfterMusicCount);
+	const stopAfterMusicOption = stopAfterMusicOptions.find(
+		(option) => option.value === stopAfterMusicValue,
+	);
+	const stopAfterMusicDescription =
+		stopAfterMusicCount === null
+			? "Only remaining Music tracks in the queue count."
+			: `${stopAfterMusicCount} music left. Non-music tracks do not count.`;
+
 	return (
 		<Popover>
 			<PopoverTrigger
@@ -390,6 +453,36 @@ function PlaybackQualitySettings({
 							onCheckedChange={setPlayInstrumental}
 						/>
 					</Label>
+					<div className="flex flex-col gap-2 border-t pt-3">
+						<Label htmlFor="audio-player-stop-after-music">
+							Stop after music
+						</Label>
+						<Select
+							items={stopAfterMusicOptions}
+							itemToStringLabel={(option) => option.label}
+							itemToStringValue={(option) => option.value}
+							onValueChange={(option) => {
+								setStopAfterMusicCount(
+									stopAfterMusicValueToCount(option?.value ?? "off"),
+								);
+							}}
+							value={stopAfterMusicOption}
+						>
+							<SelectTrigger id="audio-player-stop-after-music" size="sm">
+								<SelectValue placeholder="Off" />
+							</SelectTrigger>
+							<SelectPopup align="end" side="top">
+								{stopAfterMusicOptions.map((option) => (
+									<SelectItem key={option.value} value={option}>
+										{option.label}
+									</SelectItem>
+								))}
+							</SelectPopup>
+						</Select>
+						<p className="text-xs text-muted-foreground">
+							{stopAfterMusicDescription}
+						</p>
+					</div>
 				</div>
 			</PopoverPopup>
 		</Popover>
@@ -416,6 +509,9 @@ export function AudioPlayer() {
 	const playInstrumental = useAudioPlayerStore(
 		(state) => state.playInstrumental,
 	);
+	const stopAfterMusicCount = useAudioPlayerStore(
+		(state) => state.stopAfterMusicCount,
+	);
 	const queueLength = useAudioPlayerStore((state) => state.queue.length);
 	const repeatMode = useAudioPlayerStore((state) => state.repeatMode);
 	const queue = useAudioPlayerStore((state) => state.queue);
@@ -436,6 +532,9 @@ export function AudioPlayer() {
 	);
 	const setPlayInstrumental = useAudioPlayerStore(
 		(state) => state.setPlayInstrumental,
+	);
+	const setStopAfterMusicCount = useAudioPlayerStore(
+		(state) => state.setStopAfterMusicCount,
 	);
 
 	const setVolume = useAudioPlayerStore((state) => state.setVolume);
@@ -976,9 +1075,13 @@ export function AudioPlayer() {
 						playTalkTrack={playTalkTrack}
 						playbackQuality={playbackQuality}
 						playInstrumental={playInstrumental}
+						index={index}
+						queue={queue}
 						setPlayTalkTrack={setPlayTalkTrack}
 						setPlaybackQuality={setPlaybackQuality}
 						setPlayInstrumental={setPlayInstrumental}
+						stopAfterMusicCount={stopAfterMusicCount}
+						setStopAfterMusicCount={setStopAfterMusicCount}
 					/>
 				</div>
 			</div>

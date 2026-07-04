@@ -37,6 +37,7 @@ export type AudioPlayerState = {
 	playbackQuality: "Auto" | "Original" | "Opus96";
 	playTalkTrack: boolean;
 	playInstrumental: boolean;
+	stopAfterMusicCount: number | null;
 };
 
 export type ResolvedPlaybackQuality = Exclude<
@@ -65,6 +66,7 @@ export type AudioPlayerAction = {
 	) => void;
 	setPlayTalkTrack: (playTalkTrack: boolean) => void;
 	setPlayInstrumental: (playInstrumental: boolean) => void;
+	setStopAfterMusicCount: (stopAfterMusicCount: number | null) => void;
 
 	markReady: () => void;
 	markPlaying: (playing: boolean) => void;
