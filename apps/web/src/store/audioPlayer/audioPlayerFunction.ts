@@ -75,11 +75,11 @@ export function resolvePlaybackSource(
 		(selectedQuality === "Opus96" || needsPlayableFallback) &&
 		track.audio.file.opus96
 	) {
-		const url = track.audio.file.opus96.url;
+		const url = `${track.audio.file.opus96.url}/play`;
 		return { key: `Opus96:${url}`, quality: "Opus96", url };
 	}
 
-	const url = track.audio.file.original.url;
+	const url = `${track.audio.file.original.url}/play`;
 	return { key: `Original:${url}`, quality: "Original", url };
 }
 

@@ -4,11 +4,7 @@ import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
-import {
-	getPresignedUrl,
-	getWaveformData,
-	resolvePlaybackSource,
-} from "./audioPlayerFunction";
+import { getWaveformData, resolvePlaybackSource } from "./audioPlayerFunction";
 import type {
 	AudioPlayerAction,
 	AudioPlayerState,
@@ -233,29 +229,14 @@ async function loadAndPlay(
 
 	prepareWaveSurferForLoad();
 
-	const [playUrl, waveformData] = await Promise.all([
-		getPresignedUrl(playbackSource.url),
-		track.audio.file.waveformB8Pixel20
-			? getWaveformData(track.audio.file.waveformB8Pixel20.url)
-			: Promise.resolve(null),
-	]);
+	const waveformData = track.audio.file.waveformB8Pixel20
+		? await getWaveformData(track.audio.file.waveformB8Pixel20.url)
+		: null;
 
 	if (requestId !== loadRequestId) {
 		console.log("[audio-player] loadAndPlay:stale before load", {
 			requestId,
 		});
-		return;
-	}
-
-	if (!playUrl) {
-		console.log("[audio-player] loadAndPlay:load failed", {
-			playbackUrl: playbackSource.url,
-			requestId,
-			trackId: track.trackId,
-		});
-		clearPendingLoad(requestId);
-		resetWaveSurferToIdle();
-		useAudioPlayerStore.setState({ currentPlayingKey: null, status: "idle" });
 		return;
 	}
 
@@ -268,9 +249,13 @@ async function loadAndPlay(
 
 	try {
 		if (waveformData) {
-			await waveSurfer.load(playUrl, [waveformData], track.durationInMs / 1000);
+			await waveSurfer.load(
+				playbackSource.url,
+				[waveformData],
+				track.durationInMs / 1000,
+			);
 		} else {
-			await waveSurfer.load(playUrl);
+			await waveSurfer.load(playbackSource.url);
 		}
 	} catch (error) {
 		if (requestId !== loadRequestId) return;
@@ -356,12 +341,15 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					const { currentPlayingKey, index, playbackQuality, queue, status } =
 						get();
 					const track = queue.at(index);
-					if (!waveSurfer || !track || status === "idle") return;
+					if (
+						!waveSurfer ||
+						!track ||
+						status === "idle" ||
+						status === "loading"
+					)
+						return;
 
 					const playbackSource = resolvePlaybackSource(playbackQuality, track);
-					const playUrl = await getPresignedUrl(playbackSource.url);
-					if (!playUrl) return;
-
 					const state = get();
 					if (
 						state.queue.at(state.index)?.trackId !== track.trackId ||
@@ -380,7 +368,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					media.addEventListener("loadedmetadata", seekToCurrentTime, {
 						once: true,
 					});
-					media.src = playUrl;
+					media.src = playbackSource.url;
 					media.load();
 
 					if (autoplay) {

@@ -477,12 +477,12 @@ export function AudioPlayer() {
 
 	const onStalled = useEffectEvent((event: Event) => {
 		console.log("audio stalled", event);
-		void reloadAudio();
+		void reloadAudio({ autoplay: status === "playing" });
 	});
 
 	const onMediaError = useEffectEvent((event: Event) => {
 		console.log("audio error", event);
-		void reloadAudio();
+		void reloadAudio({ autoplay: status === "playing" });
 	});
 
 	const refreshTimeLabel = useCallback(() => {
@@ -611,6 +611,8 @@ export function AudioPlayer() {
 			dragToSeek: true,
 			barWidth: 2,
 			barGap: 2,
+
+			fetchParams: { credentials: "include" },
 		});
 
 		bindWaveSurfer(player);
