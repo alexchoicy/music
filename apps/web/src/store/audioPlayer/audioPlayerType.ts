@@ -46,7 +46,7 @@ export type ResolvedPlaybackQuality = Exclude<
 
 export type AudioPlayerAction = {
 	bindWaveSurfer: (waveSurfer: WaveSurfer | null) => void;
-	reloadAudio: () => Promise<void>;
+	reloadAudio: (options?: { autoplay?: boolean }) => Promise<void>;
 	playAlbum: (album: AudioPlayerTrack[], trackId?: string) => void;
 	addToQueue: (track: AudioPlayerTrack[]) => void;
 	addNextToQueue: (track: AudioPlayerTrack[]) => void;

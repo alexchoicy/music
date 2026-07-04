@@ -480,6 +480,11 @@ export function AudioPlayer() {
 		void reloadAudio();
 	});
 
+	const onMediaError = useEffectEvent((event: Event) => {
+		console.log("audio error", event);
+		void reloadAudio();
+	});
+
 	const refreshTimeLabel = useCallback(() => {
 		const currentTimeInMs = (audioRef.current?.currentTime ?? 0) * 1000;
 		const duration = currentTrack?.durationInMs ?? 0;
@@ -575,11 +580,17 @@ export function AudioPlayer() {
 					navigator.mediaSession.setActionHandler(action, null);
 				} catch {}
 			}
+		};
+	}, [hasNext, hasPrev]);
+
+	useEffect(() => {
+		return () => {
+			if (!("mediaSession" in navigator)) return;
 
 			navigator.mediaSession.metadata = null;
 			navigator.mediaSession.playbackState = "none";
 		};
-	}, [hasNext, hasPrev]);
+	}, []);
 
 	useEffect(() => {
 		const audio = audioRef.current;
@@ -621,7 +632,9 @@ export function AudioPlayer() {
 		});
 
 		const handleStalled = (event: Event) => onStalled(event);
+		const handleMediaError = (event: Event) => onMediaError(event);
 
+		audio.addEventListener("error", handleMediaError);
 		audio.addEventListener("stalled", handleStalled);
 
 		return () => {
@@ -629,6 +642,7 @@ export function AudioPlayer() {
 			unsubscribePlay();
 			unsubscribePause();
 			unsubscribeFinish();
+			audio.removeEventListener("error", handleMediaError);
 			audio.removeEventListener("stalled", handleStalled);
 			bindWaveSurfer(null);
 

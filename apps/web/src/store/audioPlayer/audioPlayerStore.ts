@@ -129,7 +129,12 @@ function getNextAutoIndex(
 					!shouldAutoSkipTrack(track, playTalkTrack, playInstrumental) &&
 					trackIndex !== index,
 			);
-		if (candidates.length === 0) return null;
+		if (candidates.length === 0) {
+			return repeatMode === "all" &&
+				!shouldAutoSkipTrack(queue[index], playTalkTrack, playInstrumental)
+				? index
+				: null;
+		}
 
 		return candidates[Math.floor(Math.random() * candidates.length)].trackIndex;
 	}
@@ -143,12 +148,24 @@ function getNextAutoIndex(
 
 	if (repeatMode !== "all") return null;
 
-	for (let nextIndex = 0; nextIndex < index; nextIndex++) {
+	for (
+		let nextIndex = 0;
+		nextIndex <= index && nextIndex < queue.length;
+		nextIndex++
+	) {
 		if (!shouldAutoSkipTrack(queue[nextIndex], playTalkTrack, playInstrumental))
 			return nextIndex;
 	}
 
 	return null;
+}
+
+function clearPendingLoad(requestId: number): void {
+	if (finishedRequestId === requestId) finishedRequestId = 0;
+}
+
+function isLoadPending(): boolean {
+	return finishedRequestId !== 0 && finishedRequestId === loadRequestId;
 }
 
 function resetWaveSurferToIdle(): void {
@@ -191,6 +208,7 @@ async function loadAndPlay(
 
 	if (!waveSurfer) {
 		console.log("[audio-player] loadAndPlay:no WaveSurfer instance");
+		clearPendingLoad(requestId);
 		useAudioPlayerStore.setState({ currentPlayingKey: null, status: "idle" });
 		return;
 	}
@@ -206,6 +224,7 @@ async function loadAndPlay(
 			console.log("[audio-player] loadAndPlay:play failed", error);
 		}
 
+		clearPendingLoad(requestId);
 		useAudioPlayerStore.setState({
 			status: autoplay && waveSurfer.isPlaying() ? "playing" : "paused",
 		});
@@ -234,6 +253,7 @@ async function loadAndPlay(
 			requestId,
 			trackId: track.trackId,
 		});
+		clearPendingLoad(requestId);
 		resetWaveSurferToIdle();
 		useAudioPlayerStore.setState({ currentPlayingKey: null, status: "idle" });
 		return;
@@ -256,6 +276,7 @@ async function loadAndPlay(
 		if (requestId !== loadRequestId) return;
 
 		console.log("[audio-player] loadAndPlay:load failed", error);
+		clearPendingLoad(requestId);
 		resetWaveSurferToIdle();
 		useAudioPlayerStore.setState({ currentPlayingKey: null, status: "idle" });
 		return;
@@ -273,7 +294,7 @@ async function loadAndPlay(
 	}
 
 	if (!autoplay) {
-		finishedRequestId = 0;
+		clearPendingLoad(requestId);
 		waveSurfer.toggleInteraction(true);
 		useAudioPlayerStore.setState({
 			currentPlayingKey: playbackSource.key,
@@ -293,8 +314,12 @@ async function loadAndPlay(
 		if (requestId !== loadRequestId) return;
 
 		console.log("[audio-player] loadAndPlay:play failed", error);
-		resetWaveSurferToIdle();
-		useAudioPlayerStore.setState({ currentPlayingKey: null, status: "idle" });
+		clearPendingLoad(requestId);
+		waveSurfer.toggleInteraction(true);
+		useAudioPlayerStore.setState({
+			currentPlayingKey: playbackSource.key,
+			status: "paused",
+		});
 		return;
 	}
 
@@ -302,7 +327,7 @@ async function loadAndPlay(
 		requestId,
 		trackId: track.trackId,
 	});
-	finishedRequestId = 0;
+	clearPendingLoad(requestId);
 	useAudioPlayerStore.setState({
 		currentPlayingKey: playbackSource.key,
 		status: "playing",
@@ -327,7 +352,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 
 					if (get().status === "idle") resetWaveSurferToIdle();
 				},
-				reloadAudio: async () => {
+				reloadAudio: async (options) => {
 					const { currentPlayingKey, index, playbackQuality, queue, status } =
 						get();
 					const track = queue.at(index);
@@ -347,7 +372,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 
 					const media = waveSurfer.getMediaElement();
 					const currentTime = waveSurfer.getCurrentTime();
-					const wasPlaying = waveSurfer.isPlaying();
+					const autoplay = options?.autoplay ?? waveSurfer.isPlaying();
 					const seekToCurrentTime = () => {
 						media.currentTime = currentTime;
 					};
@@ -358,11 +383,13 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					media.src = playUrl;
 					media.load();
 
-					if (wasPlaying) {
+					if (autoplay) {
 						try {
 							await media.play();
+							set({ status: "playing" });
 						} catch (error) {
 							console.log("[audio-player] reloadAudio:play failed", error);
+							set({ status: "paused" });
 						}
 					}
 				},
@@ -431,10 +458,11 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 				},
 				playNext: () => {
 					const { index, playbackQuality, queue, repeatMode, shuffle } = get();
+					const nextRepeatMode = repeatMode === "one" ? "off" : repeatMode;
 					const nextIndex = getNextIndex(
 						index,
 						queue.length,
-						repeatMode,
+						nextRepeatMode,
 						shuffle,
 					);
 					if (nextIndex === null) return;
@@ -472,6 +500,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 							set({ status: "playing" });
 						} catch (error) {
 							console.log("[audio-player] togglePlay:play failed", error);
+							await get().reloadAudio({ autoplay: true });
 						}
 
 						return;
@@ -554,11 +583,15 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					set({ playInstrumental });
 				},
 				markReady: () => {
+					if (isLoadPending()) return;
+
 					set((state) => {
 						if (state.status === "loading") state.status = "ready";
 					});
 				},
 				markPlaying: (playing) => {
+					if (isLoadPending()) return;
+
 					set((state) => {
 						if (playing) {
 							if (state.status !== "idle") state.status = "playing";
