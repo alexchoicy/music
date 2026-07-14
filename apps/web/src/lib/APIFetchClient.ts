@@ -16,6 +16,8 @@ const isBrowser = !import.meta.env.SSR;
 let apiEndpointPromise: Promise<string> | null = null;
 
 export function getResolvedApiEndpoint() {
+	if (!isBrowser) return getApiEndpoint();
+
 	if (!apiEndpointPromise) {
 		apiEndpointPromise = getApiEndpoint().catch((error) => {
 			apiEndpointPromise = null;
