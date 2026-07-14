@@ -164,7 +164,11 @@ function Toasts({
 								</div>
 								{toast.actionProps && (
 									<Toast.Action
-										className={buttonVariants({ size: "xs" })}
+										{...toast.actionProps}
+										className={cn(
+											buttonVariants({ size: "xs" }),
+											toast.actionProps.className,
+										)}
 										data-slot="toast-action"
 									>
 										{toast.actionProps.children}
@@ -253,7 +257,11 @@ function AnchoredToasts({
 										</div>
 										{toast.actionProps && (
 											<Toast.Action
-												className={buttonVariants({ size: "xs" })}
+												{...toast.actionProps}
+												className={cn(
+													buttonVariants({ size: "xs" }),
+													toast.actionProps.className,
+												)}
 												data-slot="toast-action"
 											>
 												{toast.actionProps.children}

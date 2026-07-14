@@ -236,6 +236,8 @@ app.UseExceptionHandler();
 
 app.UseCors();
 
+app.UseWebSockets();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -18,6 +18,8 @@ import { UserInfoProvider } from "#/context/UserInfoContext";
 import { getResolvedApiEndpoint } from "#/lib/APIFetchClient";
 import { authQueries } from "#/lib/queries/auth.queries";
 import { checkBotHeader } from "#/lib/ServerFunction/checkBotHeader";
+import { getWebSocketEndpoint } from "#/lib/ServerFunction/getApiEndpoint";
+import { connectMusicWebSocket } from "#/lib/webSocket";
 import { useUploadStore } from "#/store/uploadStore";
 
 const authedSearchSchema = z.object({
@@ -113,6 +115,22 @@ function RouteComponent() {
 		window.addEventListener("beforeunload", blockUnload);
 		return () => window.removeEventListener("beforeunload", blockUnload);
 	}, [isUploading]);
+
+	useEffect(() => {
+		let disconnect: (() => void) | undefined;
+		let disposed = false;
+
+		void getWebSocketEndpoint().then((endpoint) => {
+			if (disposed) return;
+
+			disconnect = connectMusicWebSocket(`${endpoint}/ws`);
+		});
+
+		return () => {
+			disposed = true;
+			disconnect?.();
+		};
+	}, []);
 
 	return (
 		<UserInfoProvider>

@@ -19,12 +19,14 @@ using Music.Core.Services.Files;
 using Music.Core.Services.Languages;
 using Music.Core.Services.Parties;
 using Music.Core.Services.Search;
+using Music.Core.Services.Tracks;
 using Music.Core.Services.Uploads;
 using Music.Core.Services.Uploads.Requests;
 using Music.Core.Services.Uploads.Results;
 using Music.Core.Storage;
 using Music.Core.Workers;
 using Music.Infrastructure.Data;
+using Music.Infrastructure.Discord;
 using Music.Infrastructure.Entities;
 using Music.Infrastructure.Services.Album;
 using Music.Infrastructure.Services.Auth;
@@ -36,7 +38,9 @@ using Music.Infrastructure.Services.Me;
 using Music.Infrastructure.Services.Media;
 using Music.Infrastructure.Services.Party;
 using Music.Infrastructure.Services.Search;
+using Music.Infrastructure.Services.Tracks;
 using Music.Infrastructure.Services.Upload;
+using Music.Infrastructure.Services.WebSockets;
 using Music.Infrastructure.Storages.S3;
 using Music.Infrastructure.Workers;
 using Music.Infrastructure.Workers.Processor;
@@ -85,7 +89,9 @@ public static class DependencyInjection
         services.AddScoped<IPartyService, PartyService>();
         services.AddScoped<IConcertService, ConcertService>();
         services.AddScoped<ISearchService, SearchService>();
+        services.AddScoped<ITrackService, TrackService>();
         services.AddScoped<IFileUrlService, FileUrlService>();
+        services.AddScoped<WebSocketService>();
         // services.AddScoped<IMigrationService, MigrationService>();
 
         services.AddScoped<ImageUploadWorkerProcessor>();
@@ -102,6 +108,8 @@ public static class DependencyInjection
         services.AddScoped<IWaveformService, WaveformService>();
         services.AddScoped<IHashService, HashService>();
         services.AddHttpClient();
+        services.AddSingleton<DiscordExternalAssetService>();
+        services.AddSingleton<DiscordPresenceManager>();
 
         services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         services.AddHostedService<BackgroundWorker>();

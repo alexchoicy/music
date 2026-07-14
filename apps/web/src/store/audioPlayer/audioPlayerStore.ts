@@ -4,6 +4,9 @@ import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
+import type { MusicWebSocketMessage } from "#/data/webSocket";
+import { sendMusicWebSocketMessage } from "#/lib/webSocket";
+
 import { getWaveformData, resolvePlaybackSource } from "./audioPlayerFunction";
 import type {
 	AudioPlayerAction,
@@ -14,6 +17,10 @@ import type {
 export { autoSelectPlaybackQuality } from "./audioPlayerFunction";
 
 type AudioPlayerStore = AudioPlayerState & AudioPlayerAction;
+type PlaybackMessageAction = Extract<
+	MusicWebSocketMessage["data"]["action"],
+	"play" | "pause" | "change" | "end"
+>;
 type AudioPlayerPersistedState = Pick<
 	AudioPlayerState,
 	| "volume"
@@ -186,10 +193,28 @@ function prepareWaveSurferForLoad(): void {
 	waveSurfer.empty();
 }
 
+function sendPlaybackMessage(
+	action: PlaybackMessageAction,
+	track: AudioPlayerTrack | undefined,
+): void {
+	sendMusicWebSocketMessage({
+		action,
+		positionMs: Math.max(
+			0,
+			Math.round((waveSurfer?.getCurrentTime() ?? 0) * 1000),
+		),
+		...(track && { trackID: track.trackId }),
+	});
+}
+
 async function loadAndPlay(
 	playbackQuality: AudioPlayerState["playbackQuality"],
 	track: AudioPlayerTrack,
-	options: { autoplay?: boolean; currentTime?: number } = {},
+	options: {
+		autoplay?: boolean;
+		currentTime?: number;
+		messageAction?: "play" | "change";
+	} = {},
 ): Promise<void> {
 	const autoplay = options.autoplay ?? true;
 	const requestId = ++loadRequestId;
@@ -225,6 +250,9 @@ async function loadAndPlay(
 		useAudioPlayerStore.setState({
 			status: autoplay && waveSurfer.isPlaying() ? "playing" : "paused",
 		});
+		if (options.messageAction && waveSurfer.isPlaying()) {
+			sendPlaybackMessage(options.messageAction, track);
+		}
 		return;
 	}
 
@@ -318,6 +346,7 @@ async function loadAndPlay(
 		currentPlayingKey: playbackSource.key,
 		status: "playing",
 	});
+	if (options.messageAction) sendPlaybackMessage(options.messageAction, track);
 }
 
 export const useAudioPlayerStore = create<AudioPlayerStore>()(
@@ -411,7 +440,9 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						title: track.title,
 					});
 					set({ queue: album, index, status: "loading" });
-					loadAndPlay(get().playbackQuality, track);
+					loadAndPlay(get().playbackQuality, track, {
+						messageAction: "play",
+					});
 				},
 				addToQueue: (track: AudioPlayerTrack[]) => {
 					console.log("[audio-player] addToQueue", {
@@ -443,7 +474,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					if (!track) return;
 
 					set({ index, status: "loading" });
-					loadAndPlay(playbackQuality, track);
+					loadAndPlay(playbackQuality, track, { messageAction: "play" });
 				},
 				playNext: () => {
 					const { index, playbackQuality, queue, repeatMode, shuffle } = get();
@@ -460,7 +491,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					if (!track) return;
 
 					set({ index: nextIndex, status: "loading" });
-					loadAndPlay(playbackQuality, track);
+					loadAndPlay(playbackQuality, track, { messageAction: "play" });
 				},
 				playPrev: () => {
 					const { index, playbackQuality, queue, repeatMode } = get();
@@ -471,7 +502,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					if (!track) return;
 
 					set({ index: prevIndex, status: "loading" });
-					loadAndPlay(playbackQuality, track);
+					loadAndPlay(playbackQuality, track, { messageAction: "play" });
 				},
 				togglePlay: async () => {
 					const { index, playbackQuality, queue, status } = get();
@@ -480,6 +511,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 
 					if (status === "playing") {
 						waveSurfer?.pause();
+						sendPlaybackMessage("pause", track);
 						return;
 					}
 
@@ -491,18 +523,22 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 							console.log("[audio-player] togglePlay:play failed", error);
 							await get().reloadAudio({ autoplay: true });
 						}
+						if (waveSurfer?.isPlaying()) sendPlaybackMessage("play", track);
 
 						return;
 					}
 
 					set({ status: "loading" });
-					loadAndPlay(playbackQuality, track);
+					loadAndPlay(playbackQuality, track, { messageAction: "play" });
 				},
 				pause: () => {
+					const track = get().queue.at(get().index);
+					const wasPlaying = waveSurfer?.isPlaying() ?? false;
 					waveSurfer?.pause();
 					set((state) => {
 						if (state.status === "playing") state.status = "paused";
 					});
+					if (wasPlaying) sendPlaybackMessage("pause", track);
 				},
 				toggleRepeatMode: () => {
 					set((state) => {
@@ -610,6 +646,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 
 					if (queue.length === 0) {
 						console.log("[audio-player] markFinished:empty queue");
+						sendPlaybackMessage("end", undefined);
 						resetWaveSurferToIdle();
 						set({ currentPlayingKey: null, status: "idle" });
 						return;
@@ -622,6 +659,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					) {
 						if (stopAfterMusicCount <= 1) {
 							console.log("[audio-player] markFinished:stop after music");
+							sendPlaybackMessage("end", finishedTrack);
 							resetWaveSurferToIdle();
 							set({
 								currentPlayingKey: null,
@@ -644,6 +682,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					);
 					if (nextIndex === null) {
 						console.log("[audio-player] markFinished:end of queue");
+						sendPlaybackMessage("end", finishedTrack);
 						resetWaveSurferToIdle();
 						set({ currentPlayingKey: null, status: "idle" });
 						return;
@@ -652,6 +691,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					const track = queue.at(nextIndex);
 					if (!track) {
 						console.log("[audio-player] markFinished:end of queue");
+						sendPlaybackMessage("end", finishedTrack);
 						resetWaveSurferToIdle();
 						set({ currentPlayingKey: null, status: "idle" });
 						return;
@@ -664,7 +704,9 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					});
 
 					set({ index: nextIndex, status: "loading" });
-					loadAndPlay(playbackQuality, track);
+					loadAndPlay(playbackQuality, track, {
+						messageAction: "change",
+					});
 				},
 			})),
 			{
