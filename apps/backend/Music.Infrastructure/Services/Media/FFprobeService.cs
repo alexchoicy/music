@@ -20,12 +20,27 @@ public class FFprobeService(ILogger<FFprobeService> logger) : IMediaProbeService
         ProcessStartInfo psi = new()
         {
             FileName = "ffprobe",
-            Arguments = $"-v error -print_format json -show_format -show_streams \"{filePath}\"",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true,
         };
+
+        foreach (
+            string argument in new[]
+            {
+                "-v",
+                "error",
+                "-print_format",
+                "json",
+                "-show_format",
+                "-show_streams",
+                filePath,
+            }
+        )
+        {
+            psi.ArgumentList.Add(argument);
+        }
 
         using Process process = new() { StartInfo = psi };
 
@@ -39,22 +54,37 @@ public class FFprobeService(ILogger<FFprobeService> logger) : IMediaProbeService
             return null;
         }
 
-        var stdoutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-        var stderrTask = process.StandardError.ReadToEndAsync(cancellationToken);
+        using CancellationTokenRegistration cancellationRegistration = cancellationToken.Register(
+            () =>
+            {
+                try
+                {
+                    if (!process.HasExited)
+                    {
+                        process.Kill(entireProcessTree: true);
+                    }
+                }
+                catch { }
+            }
+        );
+
+        Task<string> stdoutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        Task<string> stderrTask = process.StandardError.ReadToEndAsync(cancellationToken);
 
         await process.WaitForExitAsync(cancellationToken);
 
-        var stdout = await stdoutTask;
-        var stderr = await stderrTask;
+        string stdout = await stdoutTask;
+        string stderr = await stderrTask;
 
         logger.LogDebug("ffprobe exited with code {ExitCode}", process.ExitCode);
 
         if (process.ExitCode != 0)
         {
             logger.LogError(
-                "ffprobe failed for {FilePath} with exit code {ExitCode}",
+                "ffprobe failed for {FilePath} with exit code {ExitCode}: {Error}",
                 filePath,
-                process.ExitCode
+                process.ExitCode,
+                stderr
             );
 
             return null;
