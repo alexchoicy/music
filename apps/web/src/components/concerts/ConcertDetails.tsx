@@ -20,9 +20,10 @@ const PARTY_ROLE: Record<ConcertParty["role"], string> = {
 
 type ConcertDetailsProps = {
 	concert: Concert;
+	routePrefix?: "/new";
 };
 
-export function ConcertDetails({ concert }: ConcertDetailsProps) {
+export function ConcertDetails({ concert, routePrefix }: ConcertDetailsProps) {
 	const dateLabel = formatDate(concert.date);
 	const durationLabel = formatDurationInHoursAndMinutes(
 		concert.totalDurationInMs,
@@ -93,7 +94,11 @@ export function ConcertDetails({ concert }: ConcertDetailsProps) {
 					</h2>
 					<div className="flex flex-col gap-1">
 						{concert.linkedParties.map((party) => (
-							<PartyItem key={party.partyId} party={party} />
+							<PartyItem
+								key={party.partyId}
+								party={party}
+								routePrefix={routePrefix}
+							/>
 						))}
 					</div>
 				</section>
@@ -106,7 +111,11 @@ export function ConcertDetails({ concert }: ConcertDetailsProps) {
 					</h2>
 					<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 						{concert.linkedAlbums.map((album) => (
-							<AlbumCard album={album} key={album.albumId} />
+							<AlbumCard
+								album={album}
+								key={album.albumId}
+								routePrefix={routePrefix}
+							/>
 						))}
 					</div>
 				</section>
@@ -115,14 +124,20 @@ export function ConcertDetails({ concert }: ConcertDetailsProps) {
 	);
 }
 
-function PartyItem({ party }: { party: ConcertParty }) {
+function PartyItem({
+	party,
+	routePrefix,
+}: {
+	party: ConcertParty;
+	routePrefix?: "/new";
+}) {
 	const avatarUrl = getPartyAvatarUrl(party.avatar);
 
 	return (
 		<Link
 			className="-mx-2 block rounded-lg p-2 transition-colors outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
 			params={{ id: String(party.partyId) }}
-			to="/parties/$id"
+			to={routePrefix ? "/new/parties/$id" : "/parties/$id"}
 		>
 			<div className="flex min-w-0 items-center gap-3">
 				<Avatar>

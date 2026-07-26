@@ -8,6 +8,7 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "#/components/coss/tabs";
+import { NewPage, NewPageHeader } from "#/components/new/NewPage";
 import { albumQueries } from "#/lib/queries/album.queries";
 import { languageQueries } from "#/lib/queries/language.queries";
 import { partyQueries } from "#/lib/queries/party.queries";
@@ -31,7 +32,7 @@ const PartyTabContent = lazy(() =>
 );
 
 export const Route = createFileRoute("/_authed/create/")({
-	component: RouteComponent,
+	component: CreatePage,
 	loader: ({ context }) => {
 		context.queryClient.prefetchQuery(albumQueries.getAlbums());
 		context.queryClient.prefetchQuery(languageQueries.getLanguages());
@@ -39,50 +40,67 @@ export const Route = createFileRoute("/_authed/create/")({
 	},
 });
 
-function RouteComponent() {
+export function CreatePage({ newStyle = false }: { newStyle?: boolean }) {
+	const content = (
+		<Tabs className="min-h-0 flex-1 gap-4" defaultValue="album">
+			<TabsList className="mx-auto">
+				<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="album">
+					<AlbumIcon />
+					Album
+				</TabsTrigger>
+				<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="concert">
+					<MicVocalIcon />
+					Concert
+				</TabsTrigger>
+				<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="party">
+					<UsersIcon />
+					Party
+				</TabsTrigger>
+			</TabsList>
+
+			<TabsContent
+				className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
+				value="album"
+			>
+				<Suspense fallback={<CreateTabFallback label="album" />}>
+					<AlbumTabContent />
+				</Suspense>
+			</TabsContent>
+			<TabsContent
+				className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
+				value="concert"
+			>
+				<Suspense fallback={<CreateTabFallback label="concert" />}>
+					<ConcertTabContent />
+				</Suspense>
+			</TabsContent>
+			<TabsContent
+				className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
+				value="party"
+			>
+				<Suspense fallback={<CreateTabFallback label="party" />}>
+					<PartyTabContent />
+				</Suspense>
+			</TabsContent>
+		</Tabs>
+	);
+
+	if (newStyle) {
+		return (
+			<NewPage>
+				<NewPageHeader
+					description="Build complete releases, live recordings, and artist profiles with the existing catalog tools."
+					eyebrow="Library tools"
+					title="Create something new"
+				/>
+				{content}
+			</NewPage>
+		);
+	}
+
 	return (
 		<main className="flex min-h-full w-full flex-col p-4 sm:p-6">
-			<Tabs className="min-h-0 flex-1 gap-4" defaultValue="album">
-				<TabsList className="mx-auto">
-					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="album">
-						<AlbumIcon />
-						Album
-					</TabsTrigger>
-					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="concert">
-						<MicVocalIcon />
-						Concert
-					</TabsTrigger>
-					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="party">
-						<UsersIcon />
-						Party
-					</TabsTrigger>
-				</TabsList>
-
-				<TabsContent
-					className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
-					value="album"
-				>
-					<Suspense fallback={<CreateTabFallback label="album" />}>
-						<AlbumTabContent />
-					</Suspense>
-				</TabsContent>
-				<TabsContent
-					className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
-					value="concert"
-				>
-					<Suspense fallback={<CreateTabFallback label="concert" />}>
-						<ConcertTabContent />
-					</Suspense>
-				</TabsContent>
-				<TabsContent
-					className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
-					value="party"
-				>
-					<Suspense fallback={<CreateTabFallback label="party" />}>
-						<PartyTabContent />
-					</Suspense>
-				</TabsContent>
-			</Tabs>
+			{content}
 		</main>
 	);
 }

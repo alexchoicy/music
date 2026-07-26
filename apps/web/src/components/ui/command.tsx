@@ -50,6 +50,7 @@ type CommandProps = {
 	initialQuery?: string;
 	onOpenChange: (open: boolean) => void;
 	open: boolean;
+	routePrefix?: "/new";
 };
 
 const emptySearchResult: SearchResult = {
@@ -106,7 +107,12 @@ function itemCoverUrl(item: SearchItem) {
 	return item.value.coverUrl || null;
 }
 
-export function Command({ initialQuery, onOpenChange, open }: CommandProps) {
+export function Command({
+	initialQuery,
+	onOpenChange,
+	open,
+	routePrefix,
+}: CommandProps) {
 	const navigate = useNavigate();
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [query, setQuery] = useState("");
@@ -171,7 +177,7 @@ export function Command({ initialQuery, onOpenChange, open }: CommandProps) {
 		if (item.kind === "album") {
 			void navigate({
 				params: { id: String(item.value.albumId) },
-				to: "/albums/$id",
+				to: routePrefix ? "/new/albums/$id" : "/albums/$id",
 			});
 			return;
 		}
@@ -180,7 +186,7 @@ export function Command({ initialQuery, onOpenChange, open }: CommandProps) {
 			void navigate({
 				params: { id: String(item.albumId) },
 				search: { track: Number(item.value.trackId) },
-				to: "/albums/$id",
+				to: routePrefix ? "/new/albums/$id" : "/albums/$id",
 			});
 			return;
 		}
@@ -188,14 +194,14 @@ export function Command({ initialQuery, onOpenChange, open }: CommandProps) {
 		if (item.kind === "concert") {
 			void navigate({
 				params: { id: String(item.value.concertId) },
-				to: "/concerts/$id",
+				to: routePrefix ? "/new/concerts/$id" : "/concerts/$id",
 			});
 			return;
 		}
 
 		void navigate({
 			params: { id: String(item.value.partyId) },
-			to: "/parties/$id",
+			to: routePrefix ? "/new/parties/$id" : "/parties/$id",
 		});
 	}
 

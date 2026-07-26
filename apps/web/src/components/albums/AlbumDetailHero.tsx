@@ -85,6 +85,7 @@ type AlbumDetailHeroProps = {
 	onPlayAlbum: () => void;
 	onAddToQueue: () => void;
 	playAlbumDisabled?: boolean;
+	routePrefix?: "/new";
 };
 
 export function AlbumDetailHero({
@@ -92,6 +93,7 @@ export function AlbumDetailHero({
 	onPlayAlbum,
 	onAddToQueue,
 	playAlbumDisabled,
+	routePrefix,
 }: AlbumDetailHeroProps) {
 	const coverUrl = getAlbumCoverUrl(album.cover.album);
 	const hoverCoverUrl = getAlbumHoverCoverUrl(album);
@@ -171,7 +173,10 @@ export function AlbumDetailHero({
 	}
 
 	async function shareAlbum() {
-		const url = new URL(`/albums/${album.albumId}`, window.location.origin);
+		const url = new URL(
+			`${routePrefix ?? ""}/albums/${album.albumId}`,
+			window.location.origin,
+		);
 		const result = await shareUrl({
 			title: album.title,
 			text: album.credits.map((credit) => credit.name).join(", "),
@@ -277,7 +282,7 @@ export function AlbumDetailHero({
 										<Link
 											className="rounded-sm outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
 											params={{ id: String(credit.partyId) }}
-											to="/parties/$id"
+											to={routePrefix ? "/new/parties/$id" : "/parties/$id"}
 										>
 											{credit.name}
 										</Link>

@@ -40,11 +40,13 @@ import type { AlbumDetails } from "./albumDetailUtils";
 type AlbumTrackListCardProps = {
 	album: AlbumDetails;
 	highlightedTrackKey?: string;
+	routePrefix?: "/new";
 };
 
 export function AlbumTrackListCard({
 	album,
 	highlightedTrackKey,
+	routePrefix,
 }: AlbumTrackListCardProps) {
 	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
 	const addNextToQueue = useAudioPlayerStore((state) => state.addNextToQueue);
@@ -93,7 +95,10 @@ export function AlbumTrackListCard({
 	}
 
 	async function shareTrack(trackId: number | string, trackTitle: string) {
-		const url = new URL(`/albums/${album.albumId}`, window.location.origin);
+		const url = new URL(
+			`${routePrefix ?? ""}/albums/${album.albumId}`,
+			window.location.origin,
+		);
 		url.searchParams.set("track", String(trackId));
 
 		const result = await shareUrl({

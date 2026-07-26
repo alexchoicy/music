@@ -329,3 +329,49 @@
 		@apply font-sans;
 	}
 }
+
+/* The redesigned /new experience keeps its palette scoped so the original UI
+   remains visually and behaviorally unchanged. */
+.new-ui {
+	--radius: 0.8rem;
+	--background: oklch(0.985 0.008 80);
+	--foreground: oklch(0.22 0.025 55);
+	--card: oklch(0.995 0.005 80);
+	--card-foreground: oklch(0.22 0.025 55);
+	--popover: oklch(0.995 0.005 80);
+	--popover-foreground: oklch(0.22 0.025 55);
+	--primary: oklch(0.55 0.17 32);
+	--primary-foreground: oklch(0.985 0.008 80);
+	--secondary: oklch(0.94 0.018 75);
+	--secondary-foreground: oklch(0.29 0.035 52);
+	--muted: oklch(0.95 0.012 78);
+	--muted-foreground: oklch(0.51 0.03 55);
+	--accent: oklch(0.93 0.025 70);
+	--accent-foreground: oklch(0.26 0.035 52);
+	--border: oklch(0.82 0.025 70 / 45%);
+	--input: oklch(0.77 0.03 70 / 55%);
+	--ring: oklch(0.58 0.15 32);
+	background-image: radial-gradient(circle at 80% -20%, oklch(0.76 0.1 45 / 14%), transparent 32rem);
+}
+
+.new-ui.dark,
+.dark .new-ui,
+.new-ui:is(.dark *) {
+	--background: oklch(0.17 0.018 55);
+	--foreground: oklch(0.94 0.012 75);
+	--card: oklch(0.205 0.02 55);
+	--card-foreground: oklch(0.94 0.012 75);
+	--popover: oklch(0.205 0.02 55);
+	--popover-foreground: oklch(0.94 0.012 75);
+	--primary: oklch(0.7 0.16 38);
+	--primary-foreground: oklch(0.16 0.02 52);
+	--secondary: oklch(0.27 0.025 55);
+	--secondary-foreground: oklch(0.92 0.012 75);
+	--muted: oklch(0.255 0.02 55);
+	--muted-foreground: oklch(0.68 0.025 65);
+	--accent: oklch(0.29 0.035 50);
+	--accent-foreground: oklch(0.94 0.012 75);
+	--border: oklch(0.52 0.025 60 / 32%);
+	--input: oklch(0.58 0.03 60 / 38%);
+	--ring: oklch(0.71 0.14 38);
+}

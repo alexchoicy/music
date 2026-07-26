@@ -28,6 +28,7 @@ import {
 	TooltipTrigger,
 } from "#/components/coss/tooltip";
 import { DropBox } from "#/components/dropBox";
+import { NewPage, NewPageHeader } from "#/components/new/NewPage";
 import type { components } from "#/data/APIschema";
 import { startUpload } from "#/lib/api/uploads";
 import { uploadQueries } from "#/lib/queries/upload.queries";
@@ -36,12 +37,12 @@ import { cn } from "#/lib/utils/styles";
 import { useUploadStore } from "#/store/uploadStore";
 
 export const Route = createFileRoute("/_authed/uploads/")({
-	component: RouteComponent,
+	component: UploadsPage,
 });
 
 type HashMode = "album" | "concert";
 
-function RouteComponent() {
+export function UploadsPage({ newStyle = false }: { newStyle?: boolean }) {
 	const [mode, setMode] = useState<HashMode>("album");
 
 	const [loading, setLoading] = useState(false);
@@ -117,18 +118,20 @@ function RouteComponent() {
 		setLoading(false);
 	};
 
-	return (
-		<main className="flex min-h-full w-full flex-col gap-6 p-4 sm:p-6">
-			<header className="flex flex-col gap-4">
-				<div className="flex flex-col gap-2">
-					<p className="text-sm font-medium text-muted-foreground">
-						Resume Upload
-					</p>
-					<h1 className="font-heading text-3xl font-semibold tracking-tight">
-						Drop file that upload was failed, it will auto upload file.
-					</h1>
-				</div>
-			</header>
+	const content = (
+		<>
+			{!newStyle ? (
+				<header className="flex flex-col gap-4">
+					<div className="flex flex-col gap-2">
+						<p className="text-sm font-medium text-muted-foreground">
+							Resume Upload
+						</p>
+						<h1 className="font-heading text-3xl font-semibold tracking-tight">
+							Drop file that upload was failed, it will auto upload file.
+						</h1>
+					</div>
+				</header>
+			) : null}
 			<div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex flex-col gap-0.5">
 					<span className="text-sm font-medium">Hashing profile</span>
@@ -245,6 +248,23 @@ function RouteComponent() {
 					</Table>
 				</div>
 			</section>
+		</>
+	);
+
+	if (newStyle)
+		return (
+			<NewPage>
+				<NewPageHeader
+					description="Resume interrupted album and concert uploads by matching the original source files."
+					eyebrow="Transfer queue"
+					title="Uploads"
+				/>
+				{content}
+			</NewPage>
+		);
+	return (
+		<main className="flex min-h-full w-full flex-col gap-6 p-4 sm:p-6">
+			{content}
 		</main>
 	);
 }

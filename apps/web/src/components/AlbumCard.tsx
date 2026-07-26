@@ -28,9 +28,10 @@ type Album = components["schemas"]["AlbumListItem"];
 type AlbumCardProps = {
 	album: Album;
 	className?: string;
+	routePrefix?: "/new";
 };
 
-export function AlbumCard({ album, className }: AlbumCardProps) {
+export function AlbumCard({ album, className, routePrefix }: AlbumCardProps) {
 	const queryClient = useQueryClient();
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const artistNames =
@@ -78,7 +79,7 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 			<Link
 				className="block h-full rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				params={{ id: String(album.albumId) }}
-				to="/albums/$id"
+				to={routePrefix ? "/new/albums/$id" : "/albums/$id"}
 			>
 				<Card className="h-full overflow-hidden rounded-3xl transition-[border-color,box-shadow,transform] in-[[data-slot=album-card]:hover]:-translate-y-0.5 in-[[data-slot=album-card]:hover]:border-ring/24 in-[[data-slot=album-card]:hover]:shadow-lg">
 					<div className="relative aspect-square overflow-hidden bg-muted [perspective:1200px]">

@@ -11,9 +11,13 @@ import type { AlbumDetails, PartyCredit } from "./albumDetailUtils";
 
 type AlbumCreditsCardProps = {
 	album: AlbumDetails;
+	routePrefix?: "/new";
 };
 
-export function AlbumCreditsCard({ album }: AlbumCreditsCardProps) {
+export function AlbumCreditsCard({
+	album,
+	routePrefix,
+}: AlbumCreditsCardProps) {
 	const trackCredits = getTrackCredits(album);
 
 	return (
@@ -29,6 +33,7 @@ export function AlbumCreditsCard({ album }: AlbumCreditsCardProps) {
 								<CreditItem
 									credit={credit}
 									key={`${credit.partyId}-${credit.creditType}`}
+									routePrefix={routePrefix}
 								/>
 							);
 						})}
@@ -49,6 +54,7 @@ export function AlbumCreditsCard({ album }: AlbumCreditsCardProps) {
 									<CreditItem
 										credit={credit}
 										key={`${credit.partyId}-${credit.creditType}`}
+										routePrefix={routePrefix}
 									/>
 								);
 							})}
@@ -60,13 +66,19 @@ export function AlbumCreditsCard({ album }: AlbumCreditsCardProps) {
 	);
 }
 
-function CreditItem({ credit }: { credit: PartyCredit }) {
+function CreditItem({
+	credit,
+	routePrefix,
+}: {
+	credit: PartyCredit;
+	routePrefix?: "/new";
+}) {
 	const avatarUrl = getPartyAvatarUrl(credit.avatar);
 
 	return (
 		<Link
 			className="-mx-2 block rounded-lg p-2 transition-colors outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
-			to="/parties/$id"
+			to={routePrefix ? "/new/parties/$id" : "/parties/$id"}
 			params={{ id: String(credit.partyId) }}
 		>
 			<div className="flex min-w-0 items-center gap-3">

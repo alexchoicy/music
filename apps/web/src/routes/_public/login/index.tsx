@@ -81,9 +81,19 @@ async function autoRegisterPasskey() {
 }
 
 function RouteComponent() {
+	const { redirect: redirectTo } = Route.useSearch();
+	return <LoginPage redirectTo={redirectTo} />;
+}
+
+export function LoginPage({
+	newStyle = false,
+	redirectTo,
+}: {
+	newStyle?: boolean;
+	redirectTo: string;
+}) {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
-	const { redirect: redirectTo } = Route.useSearch();
 	const [passkeyError, setPasskeyError] = useState<string | null>(null);
 
 	const { isPending, mutateAsync: loginSubmit } = useMutation({
@@ -177,125 +187,180 @@ function RouteComponent() {
 	}, []);
 
 	return (
-		<main className="flex min-h-svh items-center justify-center p-6">
-			<Card className="w-full max-w-sm">
-				<CardHeader>
-					<CardTitle>Sign in</CardTitle>
-					<CardDescription>
-						Enter your credentials to continue to your music library.
-					</CardDescription>
-				</CardHeader>
-				<CardPanel>
-					<form
-						className="grid gap-4"
-						onSubmit={(event) => {
-							event.preventDefault();
-							void form.handleSubmit();
-						}}
-					>
-						<form.Field name="username">
-							{(field) => {
-								const error = field.state.meta.errors[0]?.message;
-
-								return (
-									<Field
-										dirty={field.state.meta.isDirty}
-										invalid={!field.state.meta.isValid}
-										name={field.name}
-										touched={field.state.meta.isTouched}
-									>
-										<FieldLabel htmlFor={usernameInputId}>Username</FieldLabel>
-										<Input
-											autoComplete="username webauthn"
-											id={usernameInputId}
-											name={field.name}
-											onBlur={field.handleBlur}
-											onChange={(event) =>
-												field.handleChange(event.target.value)
-											}
-											aria-invalid={Boolean(error) || undefined}
-											type="text"
-											value={field.state.value}
-										/>
-										<FieldError match={Boolean(error)}>{error}</FieldError>
-									</Field>
-								);
-							}}
-						</form.Field>
-
-						<form.Field name="password">
-							{(field) => {
-								const error = field.state.meta.errors[0]?.message;
-
-								return (
-									<Field
-										dirty={field.state.meta.isDirty}
-										invalid={!field.state.meta.isValid}
-										name={field.name}
-										touched={field.state.meta.isTouched}
-									>
-										<FieldLabel htmlFor={passwordInputId}>Password</FieldLabel>
-										<Input
-											autoComplete="current-password"
-											id={passwordInputId}
-											name={field.name}
-											onBlur={field.handleBlur}
-											onChange={(event) =>
-												field.handleChange(event.target.value)
-											}
-											aria-invalid={Boolean(error) || undefined}
-											type="password"
-											value={field.state.value}
-										/>
-										<FieldDescription>
-											Use the password for your account.
-										</FieldDescription>
-										<FieldError match={Boolean(error)}>{error}</FieldError>
-									</Field>
-								);
-							}}
-						</form.Field>
-
-						<form.Subscribe
-							selector={(state) => [state.canSubmit, state.isSubmitting]}
-						>
-							{([canSubmit, isSubmitting]) => (
-								<Button
-									className="w-full"
-									disabled={!canSubmit || isPasskeyPending}
-									loading={isSubmitting || isPending}
-									type="submit"
-								>
-									Sign in
-								</Button>
-							)}
-						</form.Subscribe>
-
-						<div className="flex items-center gap-3 text-xs text-muted-foreground">
-							<div className="h-px flex-1 bg-border" />
-							<span>or</span>
-							<div className="h-px flex-1 bg-border" />
+		<main
+			className={
+				newStyle
+					? "new-ui relative flex min-h-svh items-center justify-center overflow-hidden bg-background p-5"
+					: "flex min-h-svh items-center justify-center p-6"
+			}
+		>
+			{newStyle ? (
+				<>
+					<div className="pointer-events-none absolute -top-40 -left-28 size-[32rem] rounded-full bg-primary/12 blur-3xl" />
+					<div className="pointer-events-none absolute -right-40 -bottom-56 size-[36rem] rounded-full bg-primary/8 blur-3xl" />
+				</>
+			) : null}
+			<div
+				className={
+					newStyle
+						? "relative grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-border/60 bg-card/55 shadow-2xl backdrop-blur-xl md:grid-cols-[1.1fr_.9fr]"
+						: "contents"
+				}
+			>
+				{newStyle ? (
+					<section className="hidden flex-col justify-between border-r border-border/60 bg-primary/[.06] p-10 md:flex">
+						<div className="flex items-center gap-3">
+							<span className="flex size-10 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground">
+								M
+							</span>
+							<span className="font-semibold">Music Archive</span>
 						</div>
-
-						<Button
-							className="w-full"
-							disabled={isPending || isPasskeyPending}
-							loading={isPasskeyPending}
-							onClick={() => void handlePasskeyLogin()}
-							type="button"
-							variant="outline"
-						>
-							<KeyRoundIcon />
-							Sign in with passkey
-						</Button>
-						{passkeyError && (
-							<p className="text-sm text-destructive-foreground" role="alert">
-								{passkeyError}
+						<div>
+							<p className="text-xs font-semibold tracking-[.18em] text-primary uppercase">
+								Private listening library
 							</p>
-						)}
-					</form>
-				</CardPanel>
-			</Card>
+							<h1 className="mt-4 max-w-md font-heading text-5xl font-semibold tracking-[-.045em] text-balance">
+								Every recording, right where you left it.
+							</h1>
+							<p className="mt-4 max-w-sm text-sm leading-6 text-muted-foreground">
+								Sign in to browse releases, play live recordings, and keep your
+								catalog organized.
+							</p>
+						</div>
+						<p className="text-xs text-muted-foreground">
+							Built for focused listening.
+						</p>
+					</section>
+				) : null}
+				<Card
+					className={
+						newStyle
+							? "w-full rounded-none border-0 bg-transparent p-2 shadow-none sm:p-7"
+							: "w-full max-w-sm"
+					}
+				>
+					<CardHeader>
+						<CardTitle>Sign in</CardTitle>
+						<CardDescription>
+							Enter your credentials to continue to your music library.
+						</CardDescription>
+					</CardHeader>
+					<CardPanel>
+						<form
+							className="grid gap-4"
+							onSubmit={(event) => {
+								event.preventDefault();
+								void form.handleSubmit();
+							}}
+						>
+							<form.Field name="username">
+								{(field) => {
+									const error = field.state.meta.errors[0]?.message;
+
+									return (
+										<Field
+											dirty={field.state.meta.isDirty}
+											invalid={!field.state.meta.isValid}
+											name={field.name}
+											touched={field.state.meta.isTouched}
+										>
+											<FieldLabel htmlFor={usernameInputId}>
+												Username
+											</FieldLabel>
+											<Input
+												autoComplete="username webauthn"
+												id={usernameInputId}
+												name={field.name}
+												onBlur={field.handleBlur}
+												onChange={(event) =>
+													field.handleChange(event.target.value)
+												}
+												aria-invalid={Boolean(error) || undefined}
+												type="text"
+												value={field.state.value}
+											/>
+											<FieldError match={Boolean(error)}>{error}</FieldError>
+										</Field>
+									);
+								}}
+							</form.Field>
+
+							<form.Field name="password">
+								{(field) => {
+									const error = field.state.meta.errors[0]?.message;
+
+									return (
+										<Field
+											dirty={field.state.meta.isDirty}
+											invalid={!field.state.meta.isValid}
+											name={field.name}
+											touched={field.state.meta.isTouched}
+										>
+											<FieldLabel htmlFor={passwordInputId}>
+												Password
+											</FieldLabel>
+											<Input
+												autoComplete="current-password"
+												id={passwordInputId}
+												name={field.name}
+												onBlur={field.handleBlur}
+												onChange={(event) =>
+													field.handleChange(event.target.value)
+												}
+												aria-invalid={Boolean(error) || undefined}
+												type="password"
+												value={field.state.value}
+											/>
+											<FieldDescription>
+												Use the password for your account.
+											</FieldDescription>
+											<FieldError match={Boolean(error)}>{error}</FieldError>
+										</Field>
+									);
+								}}
+							</form.Field>
+
+							<form.Subscribe
+								selector={(state) => [state.canSubmit, state.isSubmitting]}
+							>
+								{([canSubmit, isSubmitting]) => (
+									<Button
+										className="w-full"
+										disabled={!canSubmit || isPasskeyPending}
+										loading={isSubmitting || isPending}
+										type="submit"
+									>
+										Sign in
+									</Button>
+								)}
+							</form.Subscribe>
+
+							<div className="flex items-center gap-3 text-xs text-muted-foreground">
+								<div className="h-px flex-1 bg-border" />
+								<span>or</span>
+								<div className="h-px flex-1 bg-border" />
+							</div>
+
+							<Button
+								className="w-full"
+								disabled={isPending || isPasskeyPending}
+								loading={isPasskeyPending}
+								onClick={() => void handlePasskeyLogin()}
+								type="button"
+								variant="outline"
+							>
+								<KeyRoundIcon />
+								Sign in with passkey
+							</Button>
+							{passkeyError && (
+								<p className="text-sm text-destructive-foreground" role="alert">
+									{passkeyError}
+								</p>
+							)}
+						</form>
+					</CardPanel>
+				</Card>
+			</div>
 		</main>
 	);
 }

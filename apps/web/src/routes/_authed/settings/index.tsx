@@ -8,28 +8,31 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "#/components/coss/tabs";
+import { NewPage, NewPageHeader } from "#/components/new/NewPage";
 import { AuthTabContent } from "#/components/settings/authTabContent";
 import { UsersTabContent } from "#/components/settings/usersTabContent";
 import { useUserInfo } from "#/context/UserInfoContext";
 
 export const Route = createFileRoute("/_authed/settings/")({
-	component: RouteComponent,
+	component: SettingsPage,
 });
 
-function RouteComponent() {
+export function SettingsPage({ newStyle = false }: { newStyle?: boolean }) {
 	const userInfo = useUserInfo();
 	const isAdmin =
 		userInfo.roles.includes("Admin") || userInfo.roles.includes("Owner");
 	const [value, setValue] = useState("auth");
 
-	return (
-		<main className="flex min-h-full w-full flex-col gap-4 p-4 sm:p-6">
-			<header className="flex flex-col gap-2">
-				<p className="text-sm font-medium text-muted-foreground">Account</p>
-				<h1 className="font-heading text-3xl font-semibold tracking-tight">
-					Settings
-				</h1>
-			</header>
+	const content = (
+		<>
+			{!newStyle ? (
+				<header className="flex flex-col gap-2">
+					<p className="text-sm font-medium text-muted-foreground">Account</p>
+					<h1 className="font-heading text-3xl font-semibold tracking-tight">
+						Settings
+					</h1>
+				</header>
+			) : null}
 
 			<Tabs value={value} onValueChange={setValue}>
 				<TabsList>
@@ -55,6 +58,23 @@ function RouteComponent() {
 					</TabsContent>
 				) : null}
 			</Tabs>
+		</>
+	);
+
+	if (newStyle)
+		return (
+			<NewPage>
+				<NewPageHeader
+					description="Manage sign-in methods, account security, and library access."
+					eyebrow="Account"
+					title="Settings"
+				/>
+				{content}
+			</NewPage>
+		);
+	return (
+		<main className="flex min-h-full w-full flex-col gap-4 p-4 sm:p-6">
+			{content}
 		</main>
 	);
 }

@@ -25,11 +25,12 @@ type PartyDetails = components["schemas"]["PartyDetails"];
 
 type PartyDetailTabsProps = {
 	party: PartyDetails;
+	routePrefix?: "/new";
 };
 
 const PREVIEW_ALBUM_LIMIT = 5;
 
-export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
+export function PartyDetailTabs({ party, routePrefix }: PartyDetailTabsProps) {
 	const queryClient = useQueryClient();
 	const [tab, setTab] = useState("overall");
 	const tabsRef = useRef<HTMLDivElement>(null);
@@ -132,7 +133,11 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 								<EmptyDescription>Create it.</EmptyDescription>
 							</EmptyHeader>
 							<EmptyContent>
-								<Button render={<Link to="/create" />}>Create it</Button>
+								<Button
+									render={<Link to={routePrefix ? "/new/create" : "/create"} />}
+								>
+									Create it
+								</Button>
 							</EmptyContent>
 						</Empty>
 					)}
@@ -157,7 +162,11 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 								</Button>
 							</div>
 
-							<PartyAlbumGrid albums={previewAlbums} variant="preview" />
+							<PartyAlbumGrid
+								albums={previewAlbums}
+								routePrefix={routePrefix}
+								variant="preview"
+							/>
 						</section>
 					)}
 
@@ -181,7 +190,11 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 								</Button>
 							</div>
 
-							<PartyAlbumGrid albums={previewFeaturedIn} variant="preview" />
+							<PartyAlbumGrid
+								albums={previewFeaturedIn}
+								routePrefix={routePrefix}
+								variant="preview"
+							/>
 						</section>
 					)}
 				</div>
@@ -200,7 +213,7 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 							</p>
 						</div>
 
-						<PartyAlbumGrid albums={party.albums} />
+						<PartyAlbumGrid albums={party.albums} routePrefix={routePrefix} />
 					</section>
 				</TabsPanel>
 			)}
@@ -219,7 +232,10 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 							</p>
 						</div>
 
-						<PartyAlbumGrid albums={party.appearsOnAlbums} />
+						<PartyAlbumGrid
+							albums={party.appearsOnAlbums}
+							routePrefix={routePrefix}
+						/>
 					</section>
 				</TabsPanel>
 			)}

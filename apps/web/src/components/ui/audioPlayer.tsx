@@ -1,6 +1,6 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import type { UseHotkeyOptions } from "@tanstack/react-hotkeys";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import {
 	Music2Icon,
 	PauseIcon,
@@ -177,6 +177,7 @@ type TrackInfoProps = {
 };
 
 function TrackInfo({ track }: TrackInfoProps) {
+	const isNewFrontend = useLocation().pathname.startsWith("/new");
 	if (!track) {
 		return (
 			<div className="flex min-w-0 items-center gap-2 rounded-md p-1 sm:gap-3 sm:p-2">
@@ -203,7 +204,7 @@ function TrackInfo({ track }: TrackInfoProps) {
 			<Link
 				className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background sm:size-14"
 				params={{ id: track.albumId }}
-				to="/albums/$id"
+				to={isNewFrontend ? "/new/albums/$id" : "/albums/$id"}
 			>
 				{track.albumCoverUrl ? (
 					<img
@@ -222,7 +223,7 @@ function TrackInfo({ track }: TrackInfoProps) {
 					className="block truncate rounded-sm text-sm font-medium outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background sm:text-base"
 					params={{ id: track.albumId }}
 					search={{ track: track.trackId }}
-					to="/albums/$id"
+					to={isNewFrontend ? "/new/albums/$id" : "/albums/$id"}
 				>
 					{track.title}
 				</Link>
@@ -234,7 +235,7 @@ function TrackInfo({ track }: TrackInfoProps) {
 									<Link
 										className="rounded-sm outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
 										params={{ id: party.partyId }}
-										to="/parties/$id"
+										to={isNewFrontend ? "/new/parties/$id" : "/parties/$id"}
 									>
 										{party.name}
 									</Link>
@@ -246,7 +247,7 @@ function TrackInfo({ track }: TrackInfoProps) {
 					<Link
 						className="block truncate rounded-sm outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
 						params={{ id: track.albumId }}
-						to="/albums/$id"
+						to={isNewFrontend ? "/new/albums/$id" : "/albums/$id"}
 					>
 						{track.albumTitle}
 					</Link>
@@ -491,6 +492,7 @@ function PlaybackQualitySettings({
 }
 
 export function AudioPlayer() {
+	const isNewFrontend = useLocation().pathname.startsWith("/new");
 	const audioRef = useRef<HTMLAudioElement | null>(null);
 	const waveContainerRef = useRef<HTMLDivElement | null>(null);
 	const showRemainingRef = useRef(false);
@@ -772,7 +774,7 @@ export function AudioPlayer() {
 		if (!currentTrack) return;
 
 		const url = new URL(
-			`/albums/${currentTrack.albumId}`,
+			`${isNewFrontend ? "/new" : ""}/albums/${currentTrack.albumId}`,
 			window.location.origin,
 		);
 		url.searchParams.set("track", currentTrack.trackId);

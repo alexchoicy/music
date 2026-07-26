@@ -5,11 +5,13 @@ type PartyAlbum = components["schemas"]["AlbumListItem"];
 
 type PartyAlbumGridProps = {
 	albums: PartyAlbum[];
+	routePrefix?: "/new";
 	variant?: "grid" | "preview";
 };
 
 export function PartyAlbumGrid({
 	albums,
+	routePrefix,
 	variant = "grid",
 }: PartyAlbumGridProps) {
 	if (albums.length === 0) return null;
@@ -23,6 +25,7 @@ export function PartyAlbumGrid({
 							album={album}
 							className="h-[385px] w-[250px]"
 							key={album.albumId}
+							routePrefix={routePrefix}
 						/>
 					);
 				})}
@@ -33,7 +36,13 @@ export function PartyAlbumGrid({
 	return (
 		<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
 			{albums.map((album) => {
-				return <AlbumCard album={album} key={album.albumId} />;
+				return (
+					<AlbumCard
+						album={album}
+						key={album.albumId}
+						routePrefix={routePrefix}
+					/>
+				);
 			})}
 		</div>
 	);
