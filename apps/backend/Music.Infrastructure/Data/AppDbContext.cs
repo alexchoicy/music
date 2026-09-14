@@ -4,11 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Music.Core.Common.Utils;
 using Music.Core.Entities;
+using Music.Core.Workers;
 using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<User>(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<User>(options), IWorkerJobStore
 {
     public DbSet<AuthToken> AuthTokens { get; set; }
 
@@ -36,6 +37,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<ConcertFile> ConcertFiles { get; set; }
 
     public DbSet<WorkerJob> WorkerJobs { get; set; }
+
+    public void AddWorkerJob(WorkerJob job) => WorkerJobs.Add(job);
 
     [DbFunction("immutable_unaccent", "public")]
     public static string ImmutableUnaccent(string value) =>

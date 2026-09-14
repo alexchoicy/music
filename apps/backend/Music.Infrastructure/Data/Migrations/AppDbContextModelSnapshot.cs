@@ -930,6 +930,9 @@ namespace Music.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("SourceType")
+                        .HasColumnType("integer");
+
                     b.Property<string>("AddedByUserId")
                         .HasColumnType("text");
 
@@ -960,8 +963,7 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasIndex("Type");
 
-                    b.HasIndex("PartyId", "Type")
-                        .IsUnique();
+                    b.HasIndex("PartyId", "Type");
 
                     b.ToTable("PartyExternalInfo", (string)null);
                 });
@@ -973,6 +975,9 @@ namespace Music.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("SourceType")
+                        .HasColumnType("integer");
 
                     b.Property<string>("AddedByUserId")
                         .HasColumnType("text");

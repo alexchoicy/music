@@ -46,6 +46,8 @@ public sealed class BackgroundTaskQueue : IBackgroundTaskQueue
         _queue = Channel.CreateBounded<Guid>(options);
     }
 
+    public void NotifyWorker(Guid jobId) => _queue.Writer.TryWrite(jobId);
+
     public async ValueTask QueueWorkerAsync(
         WorkerModel workerModel,
         CancellationToken cancellationToken = default
@@ -54,31 +56,47 @@ public sealed class BackgroundTaskQueue : IBackgroundTaskQueue
         using IServiceScope scope = _scopeFactory.CreateScope();
         AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+        Guid jobId = StageWorker(workerModel, dbContext);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        NotifyWorker(jobId);
+    }
+
+    public Guid StageWorker(WorkerModel workerModel, IWorkerJobStore store)
+    {
         WorkerJob job = new()
         {
             Type = GetWorkerType(workerModel),
             Payload = JsonSerializer.Serialize(workerModel, typeof(WorkerModel)),
         };
-
-        dbContext.WorkerJobs.Add(job);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        await _queue.Writer.WriteAsync(job.Id, cancellationToken);
+        store.AddWorkerJob(job);
+        return job.Id;
     }
 
     public async ValueTask<QueuedWorker> DequeueWorkerAsync(CancellationToken cancellationToken)
     {
         while (true)
         {
-            Guid jobId = await _queue.Reader.ReadAsync(cancellationToken);
-
             using IServiceScope scope = _scopeFactory.CreateScope();
             AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            if (!_queue.Reader.TryRead(out Guid jobId))
+            {
+                var pendingId = await dbContext.WorkerJobs
+                    .Where(job => job.Status == WorkerJobStatus.Pending)
+                    .OrderBy(job => job.CreatedAt).Select(job => (Guid?)job.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
+                if (pendingId is null)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                    continue;
+                }
+                jobId = pendingId.Value;
+            }
             WorkerJob? job = await dbContext.WorkerJobs.FirstOrDefaultAsync(
                 workerJob => workerJob.Id == jobId,
                 cancellationToken
             );
 
-            if (job is null || job.Status == WorkerJobStatus.Completed)
+            if (job is null || job.Status != WorkerJobStatus.Pending)
                 continue;
 
             WorkerModel? workerModel = JsonSerializer.Deserialize<WorkerModel>(job.Payload);
@@ -90,11 +108,14 @@ public sealed class BackgroundTaskQueue : IBackgroundTaskQueue
                 continue;
             }
 
-            job.Status = WorkerJobStatus.Processing;
-            job.AttemptCount += 1;
-            job.StartedAt = DateTimeOffset.UtcNow;
-            job.ErrorMessage = null;
-            await dbContext.SaveChangesAsync(cancellationToken);
+            int claimed = await dbContext.WorkerJobs
+                .Where(candidate => candidate.Id == jobId && candidate.Status == WorkerJobStatus.Pending)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(candidate => candidate.Status, WorkerJobStatus.Processing)
+                    .SetProperty(candidate => candidate.AttemptCount, candidate => candidate.AttemptCount + 1)
+                    .SetProperty(candidate => candidate.StartedAt, DateTimeOffset.UtcNow)
+                    .SetProperty(candidate => candidate.ErrorMessage, (string?)null), cancellationToken);
+            if (claimed == 0) continue;
 
             return new QueuedWorker(job.Id, workerModel);
         }
@@ -104,21 +125,10 @@ public sealed class BackgroundTaskQueue : IBackgroundTaskQueue
     {
         using IServiceScope scope = _scopeFactory.CreateScope();
         AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        List<WorkerJob> jobs = await dbContext
-            .WorkerJobs.Where(job =>
-                job.Status == WorkerJobStatus.Pending || job.Status == WorkerJobStatus.Processing
-            )
-            .OrderBy(job => job.CreatedAt)
-            .ToListAsync(cancellationToken);
-
-        foreach (WorkerJob job in jobs)
-        {
-            job.Status = WorkerJobStatus.Pending;
-            await _queue.Writer.WriteAsync(job.Id, cancellationToken);
-        }
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation("Requeued {WorkerJobCount} unfinished worker jobs.", jobs.Count);
+        int count = await dbContext.WorkerJobs
+            .Where(job => job.Status == WorkerJobStatus.Processing)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(job => job.Status, WorkerJobStatus.Pending), cancellationToken);
+        _logger.LogInformation("Recovered {WorkerJobCount} interrupted worker jobs.", count);
     }
 
     public async Task RetryWorkerAsync(Guid jobId, CancellationToken cancellationToken = default)
@@ -140,7 +150,7 @@ public sealed class BackgroundTaskQueue : IBackgroundTaskQueue
         job.ErrorMessage = null;
         job.CompletedAt = null;
         await dbContext.SaveChangesAsync(cancellationToken);
-        await _queue.Writer.WriteAsync(job.Id, cancellationToken);
+        NotifyWorker(job.Id);
     }
 
     public Task CompleteWorkerAsync(Guid jobId, CancellationToken cancellationToken = default)

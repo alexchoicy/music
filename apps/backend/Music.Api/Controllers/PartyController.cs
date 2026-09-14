@@ -37,6 +37,82 @@ public class PartyController(IPartyService partyService) : ControllerBase
         return StatusCode(StatusCodes.Status201Created, new CreatePartyResult { PartyId = partyId });
     }
 
+    [HttpPatch("{id:int}")]
+    [ProducesResponseType(typeof(UpdatePartyResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdatePartyAsync(
+        [FromRoute] int id,
+        [FromBody] UpdatePartyRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+        try
+        {
+            var result = await _partyService.UpdatePartyAsync(id, request, userId, cancellationToken);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (ValidationException exception)
+        {
+            return BadRequest(new ProblemDetails { Detail = exception.Message });
+        }
+    }
+
+    [HttpPatch("{id:int}/aliases")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateAliasesAsync(int id, [FromBody] PartyAliasBatchRequest request, CancellationToken cancellationToken)
+    {
+        string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+        try
+        {
+            var result = await _partyService.UpdateAliasesAsync(id, request, userId, cancellationToken);
+            return result ? Ok() : NotFound();
+        }
+        catch (ValidationException exception)
+        {
+            return BadRequest(new ProblemDetails { Detail = exception.Message });
+        }
+    }
+
+    [HttpPatch("{id:int}/external-infos")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateExternalInfosAsync(int id, [FromBody] PartyExternalInfoBatchRequest request, CancellationToken cancellationToken)
+    {
+        string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+        try
+        {
+            var result = await _partyService.UpdateExternalInfosAsync(id, request, userId, cancellationToken);
+            return result ? Ok() : NotFound();
+        }
+        catch (ValidationException exception)
+        {
+            return BadRequest(new ProblemDetails { Detail = exception.Message });
+        }
+    }
+
+    [HttpPatch("{id:int}/images")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateImagesAsync(int id, [FromBody] PartyImageBatchRequest request, CancellationToken cancellationToken)
+    {
+        string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+        try
+        {
+            var result = await _partyService.UpdateImagesAsync(id, request, userId, cancellationToken);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (ValidationException exception)
+        {
+            return BadRequest(new ProblemDetails { Detail = exception.Message });
+        }
+    }
+
     [HttpGet]
     [Authorize]
     [Produces("application/json")]

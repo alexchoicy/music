@@ -87,12 +87,6 @@ public class PartyInfoEnrichmentWorkerProcessor(
             return;
         }
 
-        List<Core.Entities.PartyAlias> aliasesToRemove = party
-            .Aliases.Where(a => a.SourceType == AliasSourceType.MusicBrainz)
-            .ToList();
-
-        dbContext.RemoveRange(aliasesToRemove);
-
         if (lookupResponse.Aliases is { Count: > 0 })
         {
             IList<PartyAliasRecords> aliasRecords =
@@ -217,12 +211,16 @@ public class PartyInfoEnrichmentWorkerProcessor(
         CancellationToken cancellationToken
     )
     {
+        var aliasesToRemove = party.Aliases.Where(alias => alias.SourceType == AliasSourceType.MusicBrainz).ToList();
+        dbContext.PartyAliases.RemoveRange(aliasesToRemove);
+        foreach (var alias in aliasesToRemove) party.Aliases.Remove(alias);
+
         List<PartyExternalInfo> externalInfosToRemove = party
-            .PartyExternalInfos.Where(info => info.AddedByUserId is null)
+            .PartyExternalInfos.Where(info => info.SourceType == PartyDataSource.MusicBrainz)
             .ToList();
 
         List<Core.Entities.PartyImage> imagesToRemove = party
-            .Images.Where(image => image.AddedByUserId is null)
+            .Images.Where(image => image.SourceType == PartyDataSource.MusicBrainz)
             .ToList();
 
         List<StoredFile> filesToRemove = imagesToRemove
@@ -323,6 +321,7 @@ public class PartyInfoEnrichmentWorkerProcessor(
                 IsPrimary = true,
                 ImageRole = imageRole,
                 AddedByUserId = null,
+                SourceType = PartyDataSource.MusicBrainz,
             };
 
             dbContext.StoredFiles.Add(storedFile);
@@ -380,12 +379,12 @@ public class PartyInfoEnrichmentWorkerProcessor(
         }
 
         PartyExternalInfo? existingExternalInfo = party.PartyExternalInfos.FirstOrDefault(info =>
-            info.Type == type
+            info.Type == type && info.ExternalId == externalId
         );
 
         if (existingExternalInfo is not null)
         {
-            if (existingExternalInfo.AddedByUserId is not null)
+            if (existingExternalInfo.SourceType != PartyDataSource.MusicBrainz)
             {
                 return;
             }
@@ -401,6 +400,7 @@ public class PartyInfoEnrichmentWorkerProcessor(
                 Party = party,
                 Type = type,
                 ExternalId = externalId,
+                SourceType = PartyDataSource.MusicBrainz,
             }
         );
     }

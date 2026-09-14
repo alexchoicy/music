@@ -14,6 +14,8 @@ public class PartyExternalInfo
     public required PartyExternalInfoType Type { get; set; }
     public required string ExternalId { get; set; }
 
+    public PartyDataSource SourceType { get; set; } = PartyDataSource.UserCreated;
+
     public string? AddedByUserId { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

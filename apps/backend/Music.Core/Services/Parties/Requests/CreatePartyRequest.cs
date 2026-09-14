@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Music.Core.Services.Files;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Files.Requests;
@@ -11,6 +12,7 @@ public sealed class CreatePartyRequest
 {
     public required string Name { get; init; }
     public required PartyType Type { get; init; }
+    [EnumDataType(typeof(PartyKind))]
     public required PartyKind Kind { get; init; }
     public PartyGender Gender { get; init; } = PartyGender.Unknown;
     public required CountryCode Country { get; init; }

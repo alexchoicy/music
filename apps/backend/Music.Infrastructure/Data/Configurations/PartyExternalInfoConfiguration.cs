@@ -32,6 +32,6 @@ public class PartyExternalInfoConfiguration : IEntityTypeConfiguration<PartyExte
         builder.HasIndex(x => x.PartyId);
         builder.HasIndex(x => x.Type);
         builder.HasIndex(x => x.ExternalId);
-        builder.HasIndex(x => new { x.PartyId, x.Type }).IsUnique();
+        builder.HasIndex(x => new { x.PartyId, x.Type });
     }
 }

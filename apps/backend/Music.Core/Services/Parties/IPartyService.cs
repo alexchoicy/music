@@ -1,10 +1,21 @@
-using Music.Core.Services.Parties.Enums;
+using Music.Core.Services.Parties.Results;
 using Music.Core.Services.Parties.Requests;
 
 namespace Music.Core.Services.Parties;
 
 public interface IPartyService
 {
+    Task<bool> UpdateAliasesAsync(int partyId, PartyAliasBatchRequest request, string userId, CancellationToken cancellationToken = default);
+    Task<bool> UpdateExternalInfosAsync(int partyId, PartyExternalInfoBatchRequest request, string userId, CancellationToken cancellationToken = default);
+    Task<UpdatePartyResult?> UpdateImagesAsync(int partyId, PartyImageBatchRequest request, string userId, CancellationToken cancellationToken = default);
+
+    Task<UpdatePartyResult?> UpdatePartyAsync(
+        int partyId,
+        UpdatePartyRequest request,
+        string userId,
+        CancellationToken cancellationToken = default
+    );
+
     Task<int> CreatePartyAsync(
         CreatePartyRequest request,
         string userId,

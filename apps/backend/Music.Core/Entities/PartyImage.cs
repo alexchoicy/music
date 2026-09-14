@@ -1,3 +1,4 @@
+using Music.Core.Services.Parties.Enums;
 using Music.Core.Services.Images;
 using Music.Core.Services.Images.Enums;
 
@@ -24,6 +25,8 @@ public class PartyImage
     public bool IsPrimary { get; set; } = false;
 
     public required ImageRole ImageRole { get; set; }
+
+    public PartyDataSource SourceType { get; set; } = PartyDataSource.UserCreated;
 
     public string? AddedByUserId { get; set; }
 

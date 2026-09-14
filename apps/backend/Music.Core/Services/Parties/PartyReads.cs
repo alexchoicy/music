@@ -26,6 +26,7 @@ public sealed class PartyListRequest
 
 public sealed class PartyAlias
 {
+    public int Id { get; init; }
     public required string Name { get; init; } = string.Empty;
     public required string NormalizedName { get; init; } = string.Empty;
 }
@@ -57,6 +58,10 @@ public sealed class PartySummary
 
 public sealed class PartyDetails
 {
+    public string? MusicBrainzId { get; init; }
+    public DateTimeOffset? DebutDate { get; init; }
+    public IReadOnlyList<PartyImageDetails> Images { get; init; } = [];
+    public IReadOnlyList<UpdatePartyExternalInfoRequest> ExternalInfos { get; init; } = [];
     public required int PartyId { get; init; }
     public required string Name { get; init; } = string.Empty;
     public ImageFileVariants? AvatarImages { get; init; }
@@ -75,4 +80,13 @@ public sealed class PartyExternalInfoLink
 {
     public required PartyExternalInfoType Type { get; init; }
     public required string Url { get; init; } = string.Empty;
+}
+
+public sealed class PartyImageDetails
+{
+    public required int Id { get; init; }
+    public required Music.Core.Services.Images.Enums.ImageRole ImageRole { get; init; }
+    public bool IsPrimary { get; init; }
+    public FileCroppedAreaRequest? CroppedArea { get; init; }
+    public string? Url { get; init; }
 }

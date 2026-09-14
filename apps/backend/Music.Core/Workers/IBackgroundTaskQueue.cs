@@ -4,6 +4,10 @@ public sealed record QueuedWorker(Guid JobId, WorkerModel WorkerModel);
 
 public interface IBackgroundTaskQueue
 {
+    Guid StageWorker(WorkerModel workerModel, IWorkerJobStore store);
+
+    void NotifyWorker(Guid jobId);
+
     ValueTask QueueWorkerAsync(
         WorkerModel workerModel,
         CancellationToken cancellationToken = default
