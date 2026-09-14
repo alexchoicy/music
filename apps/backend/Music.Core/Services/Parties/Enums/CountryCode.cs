@@ -13,4 +13,5 @@ public enum CountryCode
     CN,
     TW,
     ID,
+    UK,
 }
