@@ -460,7 +460,7 @@ public class PartyInfoEnrichmentWorkerProcessor(
                 AddExternalInfo(
                     externalInfos,
                     PartyExternalInfoType.YouTubeMusic,
-                    TryExtractLastPathSegment(uri)
+                    TryExtractYouTubeIdentity(uri)
                 );
                 continue;
             }
@@ -473,7 +473,7 @@ public class PartyInfoEnrichmentWorkerProcessor(
                 AddExternalInfo(
                     externalInfos,
                     PartyExternalInfoType.YouTube,
-                    TryExtractLastPathSegment(uri)
+                    TryExtractYouTubeIdentity(uri)
                 );
                 continue;
             }
@@ -503,7 +503,7 @@ public class PartyInfoEnrichmentWorkerProcessor(
                 AddExternalInfo(
                     externalInfos,
                     PartyExternalInfoType.Mora,
-                    TryExtractLastPathSegment(uri)
+                    TryExtractMoraArtistId(uri)
                 );
                 continue;
             }
@@ -539,6 +539,32 @@ public class PartyInfoEnrichmentWorkerProcessor(
         }
 
         externalInfos[type] = externalId;
+    }
+
+    private static string? TryExtractMoraArtistId(Uri uri)
+    {
+        string[] parts = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        for (int index = 0; index + 1 < parts.Length; index++)
+        {
+            if (string.Equals(parts[index], "artist", StringComparison.OrdinalIgnoreCase))
+                return parts[index + 1];
+        }
+
+        return null;
+    }
+
+    private static string? TryExtractYouTubeIdentity(Uri uri)
+    {
+        string[] parts = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return null;
+
+        if (parts[0].StartsWith('@') && parts[0].Length > 1)
+            return parts[0];
+
+        if (parts.Length >= 2 && string.Equals(parts[0], "channel", StringComparison.OrdinalIgnoreCase))
+            return parts[1];
+
+        return uri.AbsoluteUri;
     }
 
     private static string? TryExtractTwitterName(Uri uri)
