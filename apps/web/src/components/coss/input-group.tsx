@@ -1,15 +1,15 @@
-import { cva } from "class-variance-authority"
-import type { VariantProps } from "class-variance-authority"
-import type * as React from "react"
+import { cva } from 'class-variance-authority';
+import type { VariantProps } from 'class-variance-authority';
+import type * as React from "react";
 
-import { Input } from "@/components/coss/input"
-import type { InputProps } from "@/components/coss/input"
-import { Textarea } from "@/components/coss/textarea"
-import type { TextareaProps } from "@/components/coss/textarea"
-import { cn } from "@/lib/utils/styles"
+import { Input } from '@/components/coss/input';
+import type { InputProps } from '@/components/coss/input';
+import { Textarea } from '@/components/coss/textarea';
+import type { TextareaProps } from '@/components/coss/textarea';
+import { cn } from "@/lib/utils/styles";
 
 const inputGroupAddonVariants = cva(
-	"flex h-auto cursor-text select-none items-center justify-center gap-2 leading-none [&>kbd]:rounded-[calc(var(--radius)-5px)] in-[[data-slot=input-group]:has([data-slot=input-control],[data-slot=textarea-control])]:[&_svg:not([class*='size-'])]:size-4.5 sm:in-[[data-slot=input-group]:has([data-slot=input-control],[data-slot=textarea-control])]:[&_svg:not([class*='size-'])]:size-4 [&_svg]:-mx-0.5 not-has-[button]:**:[svg:not([class*='opacity-'])]:opacity-80",
+	"flex h-auto cursor-text select-none items-center justify-center gap-2 [&>kbd]:rounded-[calc(var(--radius)-5px)] in-[[data-slot=input-group]:has([data-slot=input-control],[data-slot=textarea-control])]:[&_svg:not([class*='size-'])]:size-4.5 sm:in-[[data-slot=input-group]:has([data-slot=input-control],[data-slot=textarea-control])]:[&_svg:not([class*='size-'])]:size-4 [&_svg]:-mx-0.5 not-has-[button]:**:[svg:not([class*='opacity-'])]:opacity-80",
 	{
 		defaultVariants: {
 			align: "inline-start",
@@ -27,7 +27,7 @@ const inputGroupAddonVariants = cva(
 			},
 		},
 	},
-)
+);
 
 export function InputGroup({
 	className,
@@ -43,7 +43,7 @@ export function InputGroup({
 			role="group"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function InputGroupAddon({
@@ -58,23 +58,25 @@ export function InputGroupAddon({
 			data-align={align}
 			data-slot="input-group-addon"
 			onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
-				const target = e.target as HTMLElement
+				const target = e.target as Element;
+				if (!e.currentTarget.contains(target)) return;
+
 				const isInteractive = target.closest(
 					"button, a, input, select, textarea, [role='button'], [role='combobox'], [role='listbox'], [data-slot='select-trigger']",
-				)
-				if (isInteractive) return
-				e.preventDefault()
-				const parent = e.currentTarget.parentElement
+				);
+				if (isInteractive) return;
+				e.preventDefault();
+				const parent = e.currentTarget.parentElement;
 				const input = parent?.querySelector<
 					HTMLInputElement | HTMLTextAreaElement
-				>("input, textarea")
+				>("input, textarea");
 				if (input && !parent?.querySelector("input:focus, textarea:focus")) {
-					input.focus()
+					input.focus();
 				}
 			}}
 			{...props}
 		/>
-	)
+	);
 }
 
 export function InputGroupText({
@@ -84,24 +86,24 @@ export function InputGroupText({
 	return (
 		<span
 			className={cn(
-				"line-clamp-1 flex items-center gap-2 leading-none whitespace-nowrap text-muted-foreground [&_svg]:pointer-events-none [&_svg]:-mx-0.5 in-[[data-slot=input-group]:has([data-slot=input-control],[data-slot=textarea-control])]:[&_svg:not([class*='size-'])]:size-4.5 sm:in-[[data-slot=input-group]:has([data-slot=input-control],[data-slot=textarea-control])]:[&_svg:not([class*='size-'])]:size-4",
+				"flex items-center gap-2 truncate text-muted-foreground [&_svg]:pointer-events-none [&_svg]:-mx-0.5 in-[[data-slot=input-group]:has([data-slot=input-control],[data-slot=textarea-control])]:[&_svg:not([class*='size-'])]:size-4.5 sm:in-[[data-slot=input-group]:has([data-slot=input-control],[data-slot=textarea-control])]:[&_svg:not([class*='size-'])]:size-4",
 				className,
 			)}
 			{...props}
 		/>
-	)
+	);
 }
 
 export function InputGroupInput({
 	className,
 	...props
 }: InputProps): React.ReactElement {
-	return <Input className={className} unstyled {...props} />
+	return <Input className={className} unstyled {...props} />;
 }
 
 export function InputGroupTextarea({
 	className,
 	...props
 }: TextareaProps): React.ReactElement {
-	return <Textarea className={className} unstyled {...props} />
+	return <Textarea className={className} unstyled {...props} />;
 }

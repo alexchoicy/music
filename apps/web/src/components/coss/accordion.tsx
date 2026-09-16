@@ -1,13 +1,13 @@
-import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion"
-import { ChevronDownIcon } from "lucide-react"
-import type React from "react"
+import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
+import { ChevronDownIcon } from "lucide-react";
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export function Accordion(
 	props: AccordionPrimitive.Root.Props,
 ): React.ReactElement {
-	return <AccordionPrimitive.Root data-slot="accordion" {...props} />
+	return <AccordionPrimitive.Root data-slot="accordion" {...props} />;
 }
 
 export function AccordionItem({
@@ -20,7 +20,7 @@ export function AccordionItem({
 			data-slot="accordion-item"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function AccordionTrigger({
@@ -45,7 +45,7 @@ export function AccordionTrigger({
 				/>
 			</AccordionPrimitive.Trigger>
 		</AccordionPrimitive.Header>
-	)
+	);
 }
 
 export function AccordionPanel({
@@ -61,7 +61,7 @@ export function AccordionPanel({
 		>
 			<div className={cn("pt-0 pb-4", className)}>{children}</div>
 		</AccordionPrimitive.Panel>
-	)
+	);
 }
 
-export { AccordionPrimitive, AccordionPanel as AccordionContent }
+export { AccordionPrimitive, AccordionPanel as AccordionContent };

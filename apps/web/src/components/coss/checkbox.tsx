@@ -1,7 +1,7 @@
-import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox"
-import type React from "react"
+import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export function Checkbox({
 	className,
@@ -61,7 +61,7 @@ export function Checkbox({
 				)}
 			/>
 		</CheckboxPrimitive.Root>
-	)
+	);
 }
 
-export { CheckboxPrimitive }
+export { CheckboxPrimitive };

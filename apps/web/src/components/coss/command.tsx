@@ -1,6 +1,6 @@
-import { Dialog as CommandDialogPrimitive } from "@base-ui/react/dialog"
-import { SearchIcon } from "lucide-react"
-import type * as React from "react"
+import { Dialog as CommandDialogPrimitive } from "@base-ui/react/dialog";
+import { SearchIcon } from "lucide-react";
+import type * as React from "react";
 
 import {
 	Autocomplete,
@@ -12,17 +12,17 @@ import {
 	AutocompleteItem,
 	AutocompleteList,
 	AutocompleteSeparator,
-} from "@/components/coss/autocomplete"
-import { cn } from "@/lib/utils/styles"
+} from "@/components/coss/autocomplete";
+import { cn } from "@/lib/utils/styles";
 
 export const CommandDialog: typeof CommandDialogPrimitive.Root =
-	CommandDialogPrimitive.Root
+	CommandDialogPrimitive.Root;
 
 export const CommandDialogPortal: typeof CommandDialogPrimitive.Portal =
-	CommandDialogPrimitive.Portal
+	CommandDialogPrimitive.Portal;
 
 export const CommandCreateHandle: typeof CommandDialogPrimitive.createHandle =
-	CommandDialogPrimitive.createHandle
+	CommandDialogPrimitive.createHandle;
 
 export function CommandDialogTrigger(
 	props: CommandDialogPrimitive.Trigger.Props,
@@ -32,7 +32,7 @@ export function CommandDialogTrigger(
 			data-slot="command-dialog-trigger"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function CommandDialogBackdrop({
@@ -48,7 +48,7 @@ export function CommandDialogBackdrop({
 			data-slot="command-dialog-backdrop"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function CommandDialogViewport({
@@ -64,7 +64,7 @@ export function CommandDialogViewport({
 			data-slot="command-dialog-viewport"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function CommandDialogPopup({
@@ -73,7 +73,7 @@ export function CommandDialogPopup({
 	portalProps,
 	...props
 }: CommandDialogPrimitive.Popup.Props & {
-	portalProps?: CommandDialogPrimitive.Portal.Props
+	portalProps?: CommandDialogPrimitive.Portal.Props;
 }): React.ReactElement {
 	return (
 		<CommandDialogPortal {...portalProps}>
@@ -91,7 +91,7 @@ export function CommandDialogPopup({
 				</CommandDialogPrimitive.Popup>
 			</CommandDialogViewport>
 		</CommandDialogPortal>
-	)
+	);
 }
 
 export function Command({
@@ -107,7 +107,7 @@ export function Command({
 			open
 			{...props}
 		/>
-	)
+	);
 }
 
 export function CommandInput({
@@ -129,7 +129,7 @@ export function CommandInput({
 				{...props}
 			/>
 		</div>
-	)
+	);
 }
 
 export function CommandList({
@@ -139,11 +139,10 @@ export function CommandList({
 	return (
 		<AutocompleteList
 			className={cn("not-empty:scroll-py-2 not-empty:p-2", className)}
-			contentStyle={{ minWidth: 0 }}
 			data-slot="command-list"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function CommandEmpty({
@@ -156,7 +155,7 @@ export function CommandEmpty({
 			data-slot="command-empty"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function CommandPanel({
@@ -171,7 +170,7 @@ export function CommandPanel({
 			)}
 			{...props}
 		/>
-	)
+	);
 }
 
 export function CommandGroup({
@@ -184,7 +183,7 @@ export function CommandGroup({
 			data-slot="command-group"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function CommandGroupLabel({
@@ -197,14 +196,10 @@ export function CommandGroupLabel({
 			data-slot="command-group-label"
 			{...props}
 		/>
-	)
+	);
 }
 
-export function CommandCollection({
-	...props
-}: React.ComponentProps<typeof AutocompleteCollection>): React.ReactElement {
-	return <AutocompleteCollection data-slot="command-collection" {...props} />
-}
+export const CommandCollection = AutocompleteCollection;
 
 export function CommandItem({
 	className,
@@ -216,7 +211,7 @@ export function CommandItem({
 			data-slot="command-item"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function CommandSeparator({
@@ -229,7 +224,7 @@ export function CommandSeparator({
 			data-slot="command-separator"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function CommandShortcut({
@@ -245,7 +240,7 @@ export function CommandShortcut({
 			data-slot="command-shortcut"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function CommandFooter({
@@ -261,7 +256,7 @@ export function CommandFooter({
 			data-slot="command-footer"
 			{...props}
 		/>
-	)
+	);
 }
 
-export { CommandDialogPrimitive }
+export { CommandDialogPrimitive };

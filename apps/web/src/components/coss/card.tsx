@@ -1,8 +1,8 @@
-import { mergeProps } from "@base-ui/react/merge-props"
-import { useRender } from "@base-ui/react/use-render"
-import type React from "react"
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export function Card({
 	className,
@@ -15,13 +15,13 @@ export function Card({
 			className,
 		),
 		"data-slot": "card",
-	}
+	};
 
 	return useRender({
 		defaultTagName: "div",
 		props: mergeProps<"div">(defaultProps, props),
 		render,
-	})
+	});
 }
 
 export function CardFrame({
@@ -35,13 +35,13 @@ export function CardFrame({
 			className,
 		),
 		"data-slot": "card-frame",
-	}
+	};
 
 	return useRender({
 		defaultTagName: "div",
 		props: mergeProps<"div">(defaultProps, props),
 		render,
-	})
+	});
 }
 
 export function CardFrameHeader({
@@ -55,13 +55,13 @@ export function CardFrameHeader({
 			className,
 		),
 		"data-slot": "card-frame-header",
-	}
+	};
 
 	return useRender({
 		defaultTagName: "div",
 		props: mergeProps<"div">(defaultProps, props),
 		render,
-	})
+	});
 }
 
 export function CardFrameTitle({
@@ -72,13 +72,13 @@ export function CardFrameTitle({
 	const defaultProps = {
 		className: cn("self-center text-sm font-semibold", className),
 		"data-slot": "card-frame-title",
-	}
+	};
 
 	return useRender({
 		defaultTagName: "div",
 		props: mergeProps<"div">(defaultProps, props),
 		render,
-	})
+	});
 }
 
 export function CardFrameDescription({
@@ -89,13 +89,13 @@ export function CardFrameDescription({
 	const defaultProps = {
 		className: cn("self-center text-sm text-muted-foreground", className),
 		"data-slot": "card-frame-description",
-	}
+	};
 
 	return useRender({
 		defaultTagName: "div",
 		props: mergeProps<"div">(defaultProps, props),
 		render,
-	})
+	});
 }
 
 export function CardFrameAction({
@@ -109,13 +109,13 @@ export function CardFrameAction({
 			className,
 		),
 		"data-slot": "card-frame-action",
-	}
+	};
 
 	return useRender({
 		defaultTagName: "div",
 		props: mergeProps<"div">(defaultProps, props),
 		render,
-	})
+	});
 }
 
 export function CardFrameFooter({
@@ -126,13 +126,13 @@ export function CardFrameFooter({
 	const defaultProps = {
 		className: cn("px-6 py-4", className),
 		"data-slot": "card-frame-footer",
-	}
+	};
 
 	return useRender({
 		defaultTagName: "div",
 		props: mergeProps<"div">(defaultProps, props),
 		render,
-	})
+	});
 }
 
 export function CardHeader({
@@ -146,13 +146,13 @@ export function CardHeader({
 			className,
 		),
 		"data-slot": "card-header",
-	}
+	};
 
 	return useRender({
 		defaultTagName: "div",
 		props: mergeProps<"div">(defaultProps, props),
 		render,
-	})
+	});
 }
 
 export function CardTitle({
@@ -161,15 +161,15 @@ export function CardTitle({
 	...props
 }: useRender.ComponentProps<"div">): React.ReactElement {
 	const defaultProps = {
-		className: cn("text-lg leading-none font-semibold", className),
+		className: cn("font-heading text-lg leading-none font-semibold", className),
 		"data-slot": "card-title",
-	}
+	};
 
 	return useRender({
 		defaultTagName: "div",
 		props: mergeProps<"div">(defaultProps, props),
 		render,
-	})
+	});
 }
 
 export function CardDescription({
@@ -180,13 +180,13 @@ export function CardDescription({
 	const defaultProps = {
 		className: cn("text-sm text-muted-foreground", className),
 		"data-slot": "card-description",
-	}
+	};
 
 	return useRender({
 		defaultTagName: "div",
 		props: mergeProps<"div">(defaultProps, props),
 		render,
-	})
+	});
 }
 
 export function CardAction({
@@ -200,13 +200,13 @@ export function CardAction({
 			className,
 		),
 		"data-slot": "card-action",
-	}
+	};
 
 	return useRender({
 		defaultTagName: "div",
 		props: mergeProps<"div">(defaultProps, props),
 		render,
-	})
+	});
 }
 
 export function CardPanel({
@@ -220,13 +220,13 @@ export function CardPanel({
 			className,
 		),
 		"data-slot": "card-panel",
-	}
+	};
 
 	return useRender({
 		defaultTagName: "div",
 		props: mergeProps<"div">(defaultProps, props),
 		render,
-	})
+	});
 }
 
 export function CardFooter({
@@ -240,13 +240,13 @@ export function CardFooter({
 			className,
 		),
 		"data-slot": "card-footer",
-	}
+	};
 
 	return useRender({
 		defaultTagName: "div",
 		props: mergeProps<"div">(defaultProps, props),
 		render,
-	})
+	});
 }
 
-export { CardPanel as CardContent }
+export { CardPanel as CardContent };

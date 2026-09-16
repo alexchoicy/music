@@ -1,7 +1,7 @@
-import { Switch as SwitchPrimitive } from "@base-ui/react/switch"
-import type React from "react"
+import { Switch as SwitchPrimitive } from "@base-ui/react/switch";
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export function Switch({
 	className,
@@ -23,7 +23,7 @@ export function Switch({
 				data-slot="switch-thumb"
 			/>
 		</SwitchPrimitive.Root>
-	)
+	);
 }
 
-export { SwitchPrimitive }
+export { SwitchPrimitive };

@@ -1,9 +1,15 @@
-import { Tabs as TabsPrimitive } from "@base-ui/react/tabs"
-import type React from "react"
+import { Tabs as TabsPrimitive } from "@base-ui/react/tabs";
+import * as React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { segmentedControlItemLayoutClassName, segmentedControlItemSizeClassNames } from '@/lib/segmented-control';
+import type { SegmentedControlSize } from '@/lib/segmented-control';
+import { cn } from "@/lib/utils/styles";
 
-export type TabsVariant = "default" | "underline"
+type TabsVariant = "default" | "underline";
+type TabsSize = SegmentedControlSize;
+
+const TabsListContext: React.Context<TabsSize> =
+	React.createContext<TabsSize>("default");
 
 export function Tabs({
 	className,
@@ -18,16 +24,18 @@ export function Tabs({
 			data-slot="tabs"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function TabsList({
 	variant = "default",
+	size = "default",
 	className,
 	children,
 	...props
 }: TabsPrimitive.List.Props & {
-	variant?: TabsVariant
+	size?: TabsSize;
+	variant?: TabsVariant;
 }): React.ReactElement {
 	return (
 		<TabsPrimitive.List
@@ -39,10 +47,13 @@ export function TabsList({
 					: "data-[orientation=horizontal]:py-1 data-[orientation=vertical]:px-1 *:data-[slot=tabs-tab]:hover:bg-accent",
 				className,
 			)}
+			data-size={size}
 			data-slot="tabs-list"
 			{...props}
 		>
-			{children}
+			<TabsListContext.Provider value={size}>
+				{children}
+			</TabsListContext.Provider>
 			<TabsPrimitive.Indicator
 				className={cn(
 					"absolute bottom-0 left-0 h-(--active-tab-height) w-(--active-tab-width) translate-x-(--active-tab-left) -translate-y-(--active-tab-bottom) transition-[width,translate] duration-200 ease-in-out",
@@ -53,23 +64,32 @@ export function TabsList({
 				data-slot="tab-indicator"
 			/>
 		</TabsPrimitive.List>
-	)
+	);
 }
 
 export function TabsTab({
 	className,
+	size,
 	...props
-}: TabsPrimitive.Tab.Props): React.ReactElement {
+}: TabsPrimitive.Tab.Props & {
+	size?: TabsSize;
+}): React.ReactElement {
+	const contextSize: TabsSize = React.useContext(TabsListContext);
+	const resolvedSize: TabsSize = size ?? contextSize;
+
 	return (
 		<TabsPrimitive.Tab
 			className={cn(
-				"relative flex h-9 shrink-0 grow cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-[calc(--spacing(2.5)-1px)] text-base font-medium whitespace-nowrap transition-[color,background-color,box-shadow] outline-none hover:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring data-active:text-foreground data-disabled:pointer-events-none data-disabled:opacity-64 data-[orientation=vertical]:w-full data-[orientation=vertical]:justify-start sm:h-8 sm:text-sm [&_svg]:pointer-events-none [&_svg]:-mx-0.5 [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4",
+				"relative flex shrink-0 grow cursor-pointer items-center justify-center rounded-md border border-transparent text-base font-medium whitespace-nowrap transition-[color,background-color,box-shadow] outline-none hover:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring data-active:text-foreground data-disabled:pointer-events-none data-disabled:opacity-64 data-[orientation=vertical]:w-full data-[orientation=vertical]:justify-start sm:text-sm",
+				segmentedControlItemLayoutClassName,
+				segmentedControlItemSizeClassNames[resolvedSize],
 				className,
 			)}
+			data-size={resolvedSize}
 			data-slot="tabs-tab"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function TabsPanel({
@@ -82,7 +102,13 @@ export function TabsPanel({
 			data-slot="tabs-content"
 			{...props}
 		/>
-	)
+	);
 }
 
-export { TabsPrimitive, TabsTab as TabsTrigger, TabsPanel as TabsContent }
+export {
+	TabsPrimitive,
+	TabsTab as TabsTrigger,
+	TabsPanel as TabsContent,
+	type TabsSize,
+	type TabsVariant,
+};

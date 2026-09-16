@@ -1,6 +1,6 @@
-import type * as React from "react"
+import type * as React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export function Frame({
 	className,
@@ -16,7 +16,7 @@ export function Frame({
 			data-slot="frame"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function FramePanel({
@@ -32,7 +32,7 @@ export function FramePanel({
 			data-slot="frame-panel"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function FrameHeader({
@@ -45,7 +45,7 @@ export function FrameHeader({
 			data-slot="frame-panel-header"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function FrameTitle({
@@ -58,7 +58,7 @@ export function FrameTitle({
 			data-slot="frame-panel-title"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function FrameDescription({
@@ -71,7 +71,7 @@ export function FrameDescription({
 			data-slot="frame-panel-description"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function FrameFooter({
@@ -84,5 +84,5 @@ export function FrameFooter({
 			data-slot="frame-panel-footer"
 			{...props}
 		/>
-	)
+	);
 }

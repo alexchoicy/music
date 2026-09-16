@@ -27,7 +27,6 @@
 		"**/.vscode/**/*",
 		"**/data/APIschema.ts"
 	],
-	"rules": {},
 	"overrides": [
 		{
 			"files": ["**/*.{js,ts,tsx}"],
@@ -118,5 +117,15 @@
 				"browser": true
 			}
 		}
-	]
+	],
+
+	"jsPlugins": ["@shadcn/lint"],
+	"rules": {
+		"shadcn/no-restyle": [
+			"error",
+			{
+				"allow": ["layout"]
+			}
+		]
+	}
 }

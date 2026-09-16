@@ -1,7 +1,7 @@
-import { Fieldset as FieldsetPrimitive } from "@base-ui/react/fieldset"
-import type React from "react"
+import { Fieldset as FieldsetPrimitive } from "@base-ui/react/fieldset";
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export function Fieldset({
 	className,
@@ -13,7 +13,7 @@ export function Fieldset({
 			data-slot="fieldset"
 			{...props}
 		/>
-	)
+	);
 }
 export function FieldsetLegend({
 	className,
@@ -25,7 +25,7 @@ export function FieldsetLegend({
 			data-slot="fieldset-legend"
 			{...props}
 		/>
-	)
+	);
 }
 
-export { FieldsetPrimitive }
+export { FieldsetPrimitive };

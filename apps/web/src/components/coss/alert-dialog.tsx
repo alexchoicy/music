@@ -1,23 +1,23 @@
-import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog"
-import type React from "react"
+import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog";
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export const AlertDialogCreateHandle: typeof AlertDialogPrimitive.createHandle =
-	AlertDialogPrimitive.createHandle
+	AlertDialogPrimitive.createHandle;
 
 export const AlertDialog: typeof AlertDialogPrimitive.Root =
-	AlertDialogPrimitive.Root
+	AlertDialogPrimitive.Root;
 
 export const AlertDialogPortal: typeof AlertDialogPrimitive.Portal =
-	AlertDialogPrimitive.Portal
+	AlertDialogPrimitive.Portal;
 
 export function AlertDialogTrigger(
 	props: AlertDialogPrimitive.Trigger.Props,
 ): React.ReactElement {
 	return (
 		<AlertDialogPrimitive.Trigger data-slot="alert-dialog-trigger" {...props} />
-	)
+	);
 }
 
 export function AlertDialogBackdrop({
@@ -33,7 +33,7 @@ export function AlertDialogBackdrop({
 			data-slot="alert-dialog-backdrop"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function AlertDialogViewport({
@@ -49,7 +49,7 @@ export function AlertDialogViewport({
 			data-slot="alert-dialog-viewport"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function AlertDialogPopup({
@@ -58,8 +58,8 @@ export function AlertDialogPopup({
 	portalProps,
 	...props
 }: AlertDialogPrimitive.Popup.Props & {
-	bottomStickOnMobile?: boolean
-	portalProps?: AlertDialogPrimitive.Portal.Props
+	bottomStickOnMobile?: boolean;
+	portalProps?: AlertDialogPrimitive.Portal.Props;
 }): React.ReactElement {
 	return (
 		<AlertDialogPortal {...portalProps}>
@@ -82,7 +82,7 @@ export function AlertDialogPopup({
 				/>
 			</AlertDialogViewport>
 		</AlertDialogPortal>
-	)
+	);
 }
 
 export function AlertDialogHeader({
@@ -98,7 +98,7 @@ export function AlertDialogHeader({
 			data-slot="alert-dialog-header"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function AlertDialogFooter({
@@ -106,7 +106,7 @@ export function AlertDialogFooter({
 	variant = "default",
 	...props
 }: React.ComponentProps<"div"> & {
-	variant?: "default" | "bare"
+	variant?: "default" | "bare";
 }): React.ReactElement {
 	return (
 		<div
@@ -119,7 +119,7 @@ export function AlertDialogFooter({
 			data-slot="alert-dialog-footer"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function AlertDialogTitle({
@@ -135,7 +135,7 @@ export function AlertDialogTitle({
 			data-slot="alert-dialog-title"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function AlertDialogDescription({
@@ -148,7 +148,7 @@ export function AlertDialogDescription({
 			data-slot="alert-dialog-description"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function AlertDialogClose(
@@ -156,11 +156,11 @@ export function AlertDialogClose(
 ): React.ReactElement {
 	return (
 		<AlertDialogPrimitive.Close data-slot="alert-dialog-close" {...props} />
-	)
+	);
 }
 
 export {
 	AlertDialogPrimitive,
 	AlertDialogBackdrop as AlertDialogOverlay,
 	AlertDialogPopup as AlertDialogContent,
-}
+};

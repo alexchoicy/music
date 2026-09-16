@@ -1,6 +1,6 @@
-import type * as React from "react"
+import type * as React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export function Kbd({
 	className,
@@ -15,7 +15,7 @@ export function Kbd({
 			data-slot="kbd"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function KbdGroup({
@@ -28,5 +28,5 @@ export function KbdGroup({
 			data-slot="kbd-group"
 			{...props}
 		/>
-	)
+	);
 }

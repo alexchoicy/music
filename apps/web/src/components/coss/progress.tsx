@@ -1,7 +1,7 @@
-import { Progress as ProgressPrimitive } from "@base-ui/react/progress"
-import type React from "react"
+import { Progress as ProgressPrimitive } from "@base-ui/react/progress";
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export function Progress({
 	className,
@@ -22,7 +22,7 @@ export function Progress({
 				</ProgressTrack>
 			)}
 		</ProgressPrimitive.Root>
-	)
+	);
 }
 
 export function ProgressLabel({
@@ -35,7 +35,7 @@ export function ProgressLabel({
 			data-slot="progress-label"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function ProgressTrack({
@@ -51,7 +51,7 @@ export function ProgressTrack({
 			data-slot="progress-track"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function ProgressIndicator({
@@ -64,7 +64,7 @@ export function ProgressIndicator({
 			data-slot="progress-indicator"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function ProgressValue({
@@ -77,7 +77,7 @@ export function ProgressValue({
 			data-slot="progress-value"
 			{...props}
 		/>
-	)
+	);
 }
 
-export { ProgressPrimitive }
+export { ProgressPrimitive };

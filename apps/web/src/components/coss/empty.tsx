@@ -1,8 +1,8 @@
-import { cva } from "class-variance-authority"
-import type { VariantProps } from "class-variance-authority"
-import type React from "react"
+import { cva } from 'class-variance-authority';
+import type { VariantProps } from 'class-variance-authority';
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 const emptyMediaVariants = cva(
 	"flex shrink-0 items-center justify-center [&_svg]:pointer-events-none [&_svg]:shrink-0",
@@ -17,7 +17,7 @@ const emptyMediaVariants = cva(
 			},
 		},
 	},
-)
+);
 
 export function Empty({
 	className,
@@ -32,7 +32,7 @@ export function Empty({
 			data-slot="empty"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function EmptyHeader({
@@ -48,7 +48,7 @@ export function EmptyHeader({
 			data-slot="empty-header"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function EmptyMedia({
@@ -87,7 +87,7 @@ export function EmptyMedia({
 				{...props}
 			/>
 		</div>
-	)
+	);
 }
 
 export function EmptyTitle({
@@ -100,7 +100,7 @@ export function EmptyTitle({
 			data-slot="empty-title"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function EmptyDescription({
@@ -116,7 +116,7 @@ export function EmptyDescription({
 			data-slot="empty-description"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function EmptyContent({
@@ -132,5 +132,5 @@ export function EmptyContent({
 			data-slot="empty-content"
 			{...props}
 		/>
-	)
+	);
 }

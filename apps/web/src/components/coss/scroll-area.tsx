@@ -1,21 +1,23 @@
-import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area"
-import type React from "react"
+import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area";
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export function ScrollArea({
 	className,
 	children,
-	contentStyle,
 	scrollFade = false,
 	scrollbarGutter = false,
 	fill = false,
+	clampContentMinWidth = true,
+	overscrollContain = false,
 	...props
 }: ScrollAreaPrimitive.Root.Props & {
-	scrollFade?: boolean
-	scrollbarGutter?: boolean
-	fill?: boolean
-	contentStyle?: React.CSSProperties
+	scrollFade?: boolean;
+	scrollbarGutter?: boolean;
+	fill?: boolean;
+	clampContentMinWidth?: boolean;
+	overscrollContain?: boolean;
 }): React.ReactElement {
 	return (
 		<ScrollAreaPrimitive.Root
@@ -24,7 +26,9 @@ export function ScrollArea({
 		>
 			<ScrollAreaPrimitive.Viewport
 				className={cn(
-					"transition-shadows h-full rounded-[inherit] outline-none data-has-overflow-x:overscroll-x-contain data-has-overflow-y:overscroll-y-contain",
+					"h-full rounded-[inherit] transition-shadow outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+					overscrollContain &&
+						"data-has-overflow-x:overscroll-x-contain data-has-overflow-y:overscroll-y-contain",
 					scrollFade &&
 						"mask-t-from-[calc(100%-min(var(--fade-size),var(--scroll-area-overflow-y-start)))] mask-r-from-[calc(100%-min(var(--fade-size),var(--scroll-area-overflow-x-end)))] mask-b-from-[calc(100%-min(var(--fade-size),var(--scroll-area-overflow-y-end)))] mask-l-from-[calc(100%-min(var(--fade-size),var(--scroll-area-overflow-x-start)))] [--fade-size:1.5rem]",
 					scrollbarGutter &&
@@ -35,7 +39,7 @@ export function ScrollArea({
 				<ScrollAreaPrimitive.Content
 					className={cn(fill && "size-full")}
 					data-slot="scroll-area-content"
-					style={contentStyle}
+					style={clampContentMinWidth ? { minWidth: 0 } : undefined}
 				>
 					{children}
 				</ScrollAreaPrimitive.Content>
@@ -44,7 +48,7 @@ export function ScrollArea({
 			<ScrollBar orientation="horizontal" />
 			<ScrollAreaPrimitive.Corner data-slot="scroll-area-corner" />
 		</ScrollAreaPrimitive.Root>
-	)
+	);
 }
 
 export function ScrollBar({
@@ -67,7 +71,7 @@ export function ScrollBar({
 				data-slot="scroll-area-thumb"
 			/>
 		</ScrollAreaPrimitive.Scrollbar>
-	)
+	);
 }
 
-export { ScrollAreaPrimitive }
+export { ScrollAreaPrimitive };

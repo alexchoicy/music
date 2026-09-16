@@ -1,8 +1,8 @@
-import { cva } from "class-variance-authority"
-import type { VariantProps } from "class-variance-authority"
-import type * as React from "react"
+import { cva } from 'class-variance-authority';
+import type { VariantProps } from 'class-variance-authority';
+import type * as React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 const alertVariants = cva(
 	"relative grid w-full items-start gap-x-2 gap-y-0.5 rounded-xl border px-3.5 py-3 text-card-foreground text-sm has-[>svg]:has-data-[slot=alert-action]:grid-cols-[calc(var(--spacing)*4)_1fr_auto] has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] has-data-[slot=alert-action]:grid-cols-[1fr_auto] has-[>svg]:gap-x-2 [&>svg]:h-lh [&>svg]:w-4",
@@ -22,7 +22,7 @@ const alertVariants = cva(
 			},
 		},
 	},
-)
+);
 
 export function Alert({
 	className,
@@ -37,7 +37,7 @@ export function Alert({
 			role="alert"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function AlertTitle({
@@ -50,7 +50,7 @@ export function AlertTitle({
 			data-slot="alert-title"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function AlertDescription({
@@ -66,7 +66,7 @@ export function AlertDescription({
 			data-slot="alert-description"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function AlertAction({
@@ -82,5 +82,5 @@ export function AlertAction({
 			data-slot="alert-action"
 			{...props}
 		/>
-	)
+	);
 }

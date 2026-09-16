@@ -1,7 +1,7 @@
-import { Field as FieldPrimitive } from "@base-ui/react/field"
-import type React from "react"
+import { Field as FieldPrimitive } from "@base-ui/react/field";
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export function Field({
 	className,
@@ -13,7 +13,7 @@ export function Field({
 			data-slot="field"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function FieldLabel({
@@ -29,7 +29,7 @@ export function FieldLabel({
 			data-slot="field-label"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function FieldItem({
@@ -42,7 +42,7 @@ export function FieldItem({
 			data-slot="field-item"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function FieldDescription({
@@ -55,7 +55,7 @@ export function FieldDescription({
 			data-slot="field-description"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function FieldError({
@@ -68,12 +68,12 @@ export function FieldError({
 			data-slot="field-error"
 			{...props}
 		/>
-	)
+	);
 }
 
 export const FieldControl: typeof FieldPrimitive.Control =
-	FieldPrimitive.Control
+	FieldPrimitive.Control;
 export const FieldValidity: typeof FieldPrimitive.Validity =
-	FieldPrimitive.Validity
+	FieldPrimitive.Validity;
 
-export { FieldPrimitive }
+export { FieldPrimitive };

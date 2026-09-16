@@ -1,15 +1,15 @@
-import { mergeProps } from "@base-ui/react/merge-props"
-import { useRender } from "@base-ui/react/use-render"
-import type React from "react"
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
-export type TableVariant = "default" | "card"
+export type TableVariant = "default" | "card";
 
 export type TableProps = React.ComponentProps<"table"> & {
-	variant?: TableVariant
-	render?: useRender.ComponentProps<"div">["render"]
-}
+	variant?: TableVariant;
+	render?: useRender.ComponentProps<"div">["render"];
+};
 
 export function Table({
 	className,
@@ -31,13 +31,13 @@ export function Table({
 		className: "relative w-full overflow-x-auto",
 		"data-slot": "table-container",
 		"data-variant": variant,
-	}
+	};
 
 	return useRender({
 		defaultTagName: "div",
 		props: mergeProps<"div">(defaultProps, {}),
 		render,
-	})
+	});
 }
 
 export function TableHeader({
@@ -50,7 +50,7 @@ export function TableHeader({
 			data-slot="table-header"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function TableBody({
@@ -66,7 +66,7 @@ export function TableBody({
 			data-slot="table-body"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function TableFooter({
@@ -82,7 +82,7 @@ export function TableFooter({
 			data-slot="table-footer"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function TableRow({
@@ -98,7 +98,7 @@ export function TableRow({
 			data-slot="table-row"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function TableHead({
@@ -114,7 +114,7 @@ export function TableHead({
 			data-slot="table-head"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function TableCell({
@@ -130,7 +130,7 @@ export function TableCell({
 			data-slot="table-cell"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function TableCaption({
@@ -146,5 +146,5 @@ export function TableCaption({
 			data-slot="table-caption"
 			{...props}
 		/>
-	)
+	);
 }

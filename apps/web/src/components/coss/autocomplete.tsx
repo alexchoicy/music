@@ -1,13 +1,13 @@
-import { Autocomplete as AutocompletePrimitive } from "@base-ui/react/autocomplete"
-import { ChevronsUpDownIcon, XIcon } from "lucide-react"
-import type React from "react"
+import { Autocomplete as AutocompletePrimitive } from "@base-ui/react/autocomplete";
+import { ChevronsUpDownIcon, XIcon } from "lucide-react";
+import type React from "react";
 
-import { Input } from "@/components/coss/input"
-import { ScrollArea } from "@/components/coss/scroll-area"
-import { cn } from "@/lib/utils/styles"
+import { Input } from "@/components/coss/input";
+import { ScrollArea } from "@/components/coss/scroll-area";
+import { cn } from "@/lib/utils/styles";
 
 export const Autocomplete: typeof AutocompletePrimitive.Root =
-	AutocompletePrimitive.Root
+	AutocompletePrimitive.Root;
 
 export function AutocompleteInput({
 	className,
@@ -19,15 +19,15 @@ export function AutocompleteInput({
 	clearProps,
 	...props
 }: Omit<AutocompletePrimitive.Input.Props, "size"> & {
-	showTrigger?: boolean
-	showClear?: boolean
-	startAddon?: React.ReactNode
-	size?: "sm" | "default" | "lg" | number
-	ref?: React.Ref<HTMLInputElement>
-	triggerProps?: AutocompletePrimitive.Trigger.Props
-	clearProps?: AutocompletePrimitive.Clear.Props
+	showTrigger?: boolean;
+	showClear?: boolean;
+	startAddon?: React.ReactNode;
+	size?: "sm" | "default" | "lg" | number;
+	ref?: React.Ref<HTMLInputElement>;
+	triggerProps?: AutocompletePrimitive.Trigger.Props;
+	clearProps?: AutocompletePrimitive.Clear.Props;
 }): React.ReactElement {
-	const sizeValue = size ?? "default"
+	const sizeValue = (size ?? "default");
 
 	return (
 		<AutocompletePrimitive.InputGroup
@@ -81,7 +81,7 @@ export function AutocompleteInput({
 				</AutocompleteClear>
 			)}
 		</AutocompletePrimitive.InputGroup>
-	)
+	);
 }
 
 export function AutocompletePopup({
@@ -95,12 +95,12 @@ export function AutocompletePopup({
 	portalProps,
 	...props
 }: AutocompletePrimitive.Popup.Props & {
-	align?: AutocompletePrimitive.Positioner.Props["align"]
-	sideOffset?: AutocompletePrimitive.Positioner.Props["sideOffset"]
-	alignOffset?: AutocompletePrimitive.Positioner.Props["alignOffset"]
-	side?: AutocompletePrimitive.Positioner.Props["side"]
-	anchor?: AutocompletePrimitive.Positioner.Props["anchor"]
-	portalProps?: AutocompletePrimitive.Portal.Props
+	align?: AutocompletePrimitive.Positioner.Props["align"];
+	sideOffset?: AutocompletePrimitive.Positioner.Props["sideOffset"];
+	alignOffset?: AutocompletePrimitive.Positioner.Props["alignOffset"];
+	side?: AutocompletePrimitive.Positioner.Props["side"];
+	anchor?: AutocompletePrimitive.Positioner.Props["anchor"];
+	portalProps?: AutocompletePrimitive.Portal.Props;
 }): React.ReactElement {
 	return (
 		<AutocompletePrimitive.Portal {...portalProps}>
@@ -129,7 +129,7 @@ export function AutocompletePopup({
 				</span>
 			</AutocompletePrimitive.Positioner>
 		</AutocompletePrimitive.Portal>
-	)
+	);
 }
 
 export function AutocompleteItem({
@@ -148,7 +148,7 @@ export function AutocompleteItem({
 		>
 			{children}
 		</AutocompletePrimitive.Item>
-	)
+	);
 }
 
 export function AutocompleteSeparator({
@@ -161,7 +161,7 @@ export function AutocompleteSeparator({
 			data-slot="autocomplete-separator"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function AutocompleteGroup({
@@ -174,7 +174,7 @@ export function AutocompleteGroup({
 			data-slot="autocomplete-group"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function AutocompleteGroupLabel({
@@ -190,7 +190,7 @@ export function AutocompleteGroupLabel({
 			data-slot="autocomplete-group-label"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function AutocompleteEmpty({
@@ -206,7 +206,7 @@ export function AutocompleteEmpty({
 			data-slot="autocomplete-empty"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function AutocompleteRow({
@@ -219,26 +219,18 @@ export function AutocompleteRow({
 			data-slot="autocomplete-row"
 			{...props}
 		/>
-	)
+	);
 }
 
-export function AutocompleteValue({
-	...props
-}: AutocompletePrimitive.Value.Props): React.ReactElement {
-	return (
-		<AutocompletePrimitive.Value data-slot="autocomplete-value" {...props} />
-	)
-}
+export const AutocompleteValue: typeof AutocompletePrimitive.Value =
+	AutocompletePrimitive.Value;
 
 export function AutocompleteList({
 	className,
-	contentStyle,
 	...props
-}: AutocompletePrimitive.List.Props & {
-	contentStyle?: React.CSSProperties
-}): React.ReactElement {
+}: AutocompletePrimitive.List.Props): React.ReactElement {
 	return (
-		<ScrollArea contentStyle={contentStyle} scrollbarGutter scrollFade>
+		<ScrollArea overscrollContain scrollbarGutter scrollFade>
 			<AutocompletePrimitive.List
 				className={cn(
 					"not-empty:scroll-py-1 not-empty:p-1 in-data-has-overflow-y:pe-3",
@@ -248,7 +240,7 @@ export function AutocompleteList({
 				{...props}
 			/>
 		</ScrollArea>
-	)
+	);
 }
 
 export function AutocompleteClear({
@@ -266,7 +258,7 @@ export function AutocompleteClear({
 		>
 			<XIcon />
 		</AutocompletePrimitive.Clear>
-	)
+	);
 }
 
 export function AutocompleteStatus({
@@ -282,19 +274,11 @@ export function AutocompleteStatus({
 			data-slot="autocomplete-status"
 			{...props}
 		/>
-	)
+	);
 }
 
-export function AutocompleteCollection({
-	...props
-}: AutocompletePrimitive.Collection.Props): React.ReactElement {
-	return (
-		<AutocompletePrimitive.Collection
-			data-slot="autocomplete-collection"
-			{...props}
-		/>
-	)
-}
+export const AutocompleteCollection: typeof AutocompletePrimitive.Collection =
+	AutocompletePrimitive.Collection;
 
 export function AutocompleteTrigger({
 	className,
@@ -309,10 +293,10 @@ export function AutocompleteTrigger({
 		>
 			{children}
 		</AutocompletePrimitive.Trigger>
-	)
+	);
 }
 
 export const useAutocompleteFilter: typeof AutocompletePrimitive.useFilter =
-	AutocompletePrimitive.useFilter
+	AutocompletePrimitive.useFilter;
 
-export { AutocompletePrimitive }
+export { AutocompletePrimitive };

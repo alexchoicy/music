@@ -1,6 +1,6 @@
-import type React from "react"
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export function Skeleton({
 	className,
@@ -15,5 +15,5 @@ export function Skeleton({
 			data-slot="skeleton"
 			{...props}
 		/>
-	)
+	);
 }

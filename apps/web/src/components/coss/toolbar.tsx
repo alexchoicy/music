@@ -1,7 +1,7 @@
-import { Toolbar as ToolbarPrimitive } from "@base-ui/react/toolbar"
-import type React from "react"
+import { Toolbar as ToolbarPrimitive } from "@base-ui/react/toolbar";
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export function Toolbar({
 	className,
@@ -16,7 +16,7 @@ export function Toolbar({
 			data-slot="toolbar"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function ToolbarButton({
@@ -29,7 +29,7 @@ export function ToolbarButton({
 			data-slot="toolbar-button"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function ToolbarLink({
@@ -42,7 +42,7 @@ export function ToolbarLink({
 			data-slot="toolbar-link"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function ToolbarInput({
@@ -55,7 +55,7 @@ export function ToolbarInput({
 			data-slot="toolbar-input"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function ToolbarGroup({
@@ -68,7 +68,7 @@ export function ToolbarGroup({
 			data-slot="toolbar-group"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function ToolbarSeparator({
@@ -84,7 +84,7 @@ export function ToolbarSeparator({
 			data-slot="toolbar-separator"
 			{...props}
 		/>
-	)
+	);
 }
 
-export { ToolbarPrimitive }
+export { ToolbarPrimitive };

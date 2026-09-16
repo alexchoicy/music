@@ -1,8 +1,8 @@
-import { Radio as RadioPrimitive } from "@base-ui/react/radio"
-import { RadioGroup as RadioGroupPrimitive } from "@base-ui/react/radio-group"
-import type React from "react"
+import { Radio as RadioPrimitive } from "@base-ui/react/radio";
+import { RadioGroup as RadioGroupPrimitive } from "@base-ui/react/radio-group";
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export function RadioGroup({
 	className,
@@ -14,7 +14,7 @@ export function RadioGroup({
 			data-slot="radio-group"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function Radio({
@@ -35,7 +35,7 @@ export function Radio({
 				data-slot="radio-indicator"
 			/>
 		</RadioPrimitive.Root>
-	)
+	);
 }
 
-export { RadioGroupPrimitive, RadioPrimitive, Radio as RadioGroupItem }
+export { RadioGroupPrimitive, RadioPrimitive, Radio as RadioGroupItem };

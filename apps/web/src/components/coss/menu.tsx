@@ -1,15 +1,15 @@
-import { Menu as MenuPrimitive } from "@base-ui/react/menu"
-import { ChevronRightIcon } from "lucide-react"
-import type * as React from "react"
+import { Menu as MenuPrimitive } from "@base-ui/react/menu";
+import { ChevronRightIcon } from "lucide-react";
+import type * as React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export const MenuCreateHandle: typeof MenuPrimitive.createHandle =
-	MenuPrimitive.createHandle
+	MenuPrimitive.createHandle;
 
-export const Menu: typeof MenuPrimitive.Root = MenuPrimitive.Root
+export const Menu: typeof MenuPrimitive.Root = MenuPrimitive.Root;
 
-export const MenuPortal: typeof MenuPrimitive.Portal = MenuPrimitive.Portal
+export const MenuPortal: typeof MenuPrimitive.Portal = MenuPrimitive.Portal;
 
 export function MenuTrigger({
 	className,
@@ -24,32 +24,7 @@ export function MenuTrigger({
 		>
 			{children}
 		</MenuPrimitive.Trigger>
-	)
-}
-
-export function MenuLinkItem({
-  className,
-  inset,
-  variant = "default",
-  closeOnClick = true,
-  ...props
-}: MenuPrimitive.LinkItem.Props & {
-  inset?: boolean;
-  variant?: "default" | "destructive";
-}): React.ReactElement {
-  return (
-    <MenuPrimitive.LinkItem
-      className={cn(
-        "flex min-h-8 cursor-default select-none items-center gap-2 rounded-sm px-2 py-1 text-base text-foreground outline-none data-disabled:pointer-events-none data-highlighted:bg-accent data-inset:ps-8 data-[variant=destructive]:text-destructive-foreground data-highlighted:text-accent-foreground data-disabled:opacity-64 sm:min-h-7 sm:text-sm [&>svg:not([class*='opacity-'])]:opacity-80 [&>svg:not([class*='size-'])]:size-4.5 sm:[&>svg:not([class*='size-'])]:size-4 [&>svg]:pointer-events-none [&>svg]:-mx-0.5 [&>svg]:shrink-0",
-        className,
-      )}
-      closeOnClick={closeOnClick}
-      data-inset={inset}
-      data-slot="menu-link-item"
-      data-variant={variant}
-      {...props}
-    />
-  );
+	);
 }
 
 export function MenuPopup({
@@ -63,12 +38,12 @@ export function MenuPopup({
 	portalProps,
 	...props
 }: MenuPrimitive.Popup.Props & {
-	align?: MenuPrimitive.Positioner.Props["align"]
-	sideOffset?: MenuPrimitive.Positioner.Props["sideOffset"]
-	alignOffset?: MenuPrimitive.Positioner.Props["alignOffset"]
-	side?: MenuPrimitive.Positioner.Props["side"]
-	anchor?: MenuPrimitive.Positioner.Props["anchor"]
-	portalProps?: MenuPrimitive.Portal.Props
+	align?: MenuPrimitive.Positioner.Props["align"];
+	sideOffset?: MenuPrimitive.Positioner.Props["sideOffset"];
+	alignOffset?: MenuPrimitive.Positioner.Props["alignOffset"];
+	side?: MenuPrimitive.Positioner.Props["side"];
+	anchor?: MenuPrimitive.Positioner.Props["anchor"];
+	portalProps?: MenuPrimitive.Portal.Props;
 }): React.ReactElement {
 	return (
 		<MenuPortal {...portalProps}>
@@ -95,13 +70,13 @@ export function MenuPopup({
 				</MenuPrimitive.Popup>
 			</MenuPrimitive.Positioner>
 		</MenuPortal>
-	)
+	);
 }
 
 export function MenuGroup(
 	props: MenuPrimitive.Group.Props,
 ): React.ReactElement {
-	return <MenuPrimitive.Group data-slot="menu-group" {...props} />
+	return <MenuPrimitive.Group data-slot="menu-group" {...props} />;
 }
 
 export function MenuItem({
@@ -110,8 +85,8 @@ export function MenuItem({
 	variant = "default",
 	...props
 }: MenuPrimitive.Item.Props & {
-	inset?: boolean
-	variant?: "default" | "destructive"
+	inset?: boolean;
+	variant?: "default" | "destructive";
 }): React.ReactElement {
 	return (
 		<MenuPrimitive.Item
@@ -124,7 +99,32 @@ export function MenuItem({
 			data-variant={variant}
 			{...props}
 		/>
-	)
+	);
+}
+
+export function MenuLinkItem({
+	className,
+	inset,
+	variant = "default",
+	closeOnClick = true,
+	...props
+}: MenuPrimitive.LinkItem.Props & {
+	inset?: boolean;
+	variant?: "default" | "destructive";
+}): React.ReactElement {
+	return (
+		<MenuPrimitive.LinkItem
+			className={cn(
+				"flex min-h-8 cursor-default items-center gap-2 rounded-sm px-2 py-1 text-base text-foreground outline-none select-none data-disabled:pointer-events-none data-disabled:opacity-64 data-highlighted:bg-accent data-highlighted:text-accent-foreground data-inset:ps-8 data-[variant=destructive]:text-destructive-foreground sm:min-h-7 sm:text-sm [&>svg]:pointer-events-none [&>svg]:-mx-0.5 [&>svg]:shrink-0 [&>svg:not([class*='opacity-'])]:opacity-80 [&>svg:not([class*='size-'])]:size-4.5 sm:[&>svg:not([class*='size-'])]:size-4",
+				className,
+			)}
+			closeOnClick={closeOnClick}
+			data-inset={inset}
+			data-slot="menu-link-item"
+			data-variant={variant}
+			{...props}
+		/>
+	);
 }
 
 export function MenuCheckboxItem({
@@ -134,7 +134,7 @@ export function MenuCheckboxItem({
 	variant = "default",
 	...props
 }: MenuPrimitive.CheckboxItem.Props & {
-	variant?: "default" | "switch"
+	variant?: "default" | "switch";
 }): React.ReactElement {
 	return (
 		<MenuPrimitive.CheckboxItem
@@ -181,13 +181,13 @@ export function MenuCheckboxItem({
 				</>
 			)}
 		</MenuPrimitive.CheckboxItem>
-	)
+	);
 }
 
 export function MenuRadioGroup(
 	props: MenuPrimitive.RadioGroup.Props,
 ): React.ReactElement {
-	return <MenuPrimitive.RadioGroup data-slot="menu-radio-group" {...props} />
+	return <MenuPrimitive.RadioGroup data-slot="menu-radio-group" {...props} />;
 }
 
 export function MenuRadioItem({
@@ -222,7 +222,7 @@ export function MenuRadioItem({
 			</MenuPrimitive.RadioItemIndicator>
 			<span className="col-start-2">{children}</span>
 		</MenuPrimitive.RadioItem>
-	)
+	);
 }
 
 export function MenuGroupLabel({
@@ -230,7 +230,7 @@ export function MenuGroupLabel({
 	inset,
 	...props
 }: MenuPrimitive.GroupLabel.Props & {
-	inset?: boolean
+	inset?: boolean;
 }): React.ReactElement {
 	return (
 		<MenuPrimitive.GroupLabel
@@ -242,7 +242,7 @@ export function MenuGroupLabel({
 			data-slot="menu-label"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function MenuSeparator({
@@ -255,7 +255,7 @@ export function MenuSeparator({
 			data-slot="menu-separator"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function MenuShortcut({
@@ -271,13 +271,13 @@ export function MenuShortcut({
 			data-slot="menu-shortcut"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function MenuSub(
 	props: MenuPrimitive.SubmenuRoot.Props,
 ): React.ReactElement {
-	return <MenuPrimitive.SubmenuRoot data-slot="menu-sub" {...props} />
+	return <MenuPrimitive.SubmenuRoot data-slot="menu-sub" {...props} />;
 }
 
 export function MenuSubTrigger({
@@ -286,7 +286,7 @@ export function MenuSubTrigger({
 	children,
 	...props
 }: MenuPrimitive.SubmenuTrigger.Props & {
-	inset?: boolean
+	inset?: boolean;
 }): React.ReactElement {
 	return (
 		<MenuPrimitive.SubmenuTrigger
@@ -301,7 +301,7 @@ export function MenuSubTrigger({
 			{children}
 			<ChevronRightIcon className="ms-auto -me-0.5 opacity-80" />
 		</MenuPrimitive.SubmenuTrigger>
-	)
+	);
 }
 
 export function MenuSubPopup({
@@ -311,11 +311,11 @@ export function MenuSubPopup({
 	align = "start",
 	...props
 }: MenuPrimitive.Popup.Props & {
-	align?: MenuPrimitive.Positioner.Props["align"]
-	sideOffset?: MenuPrimitive.Positioner.Props["sideOffset"]
-	alignOffset?: MenuPrimitive.Positioner.Props["alignOffset"]
+	align?: MenuPrimitive.Positioner.Props["align"];
+	sideOffset?: MenuPrimitive.Positioner.Props["sideOffset"];
+	alignOffset?: MenuPrimitive.Positioner.Props["alignOffset"];
 }): React.ReactElement {
-	const defaultAlignOffset = align !== "center" ? -5 : undefined
+	const defaultAlignOffset = align !== "center" ? -5 : undefined;
 
 	return (
 		<MenuPopup
@@ -327,7 +327,7 @@ export function MenuSubPopup({
 			sideOffset={sideOffset}
 			{...props}
 		/>
-	)
+	);
 }
 
 export {
@@ -348,4 +348,4 @@ export {
 	MenuSub as DropdownMenuSub,
 	MenuSubTrigger as DropdownMenuSubTrigger,
 	MenuSubPopup as DropdownMenuSubContent,
-}
+};

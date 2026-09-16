@@ -1,7 +1,7 @@
-import { Meter as MeterPrimitive } from "@base-ui/react/meter"
-import type React from "react"
+import { Meter as MeterPrimitive } from "@base-ui/react/meter";
+import type React from "react";
 
-import { cn } from "@/lib/utils/styles"
+import { cn } from "@/lib/utils/styles";
 
 export function Meter({
 	className,
@@ -21,7 +21,7 @@ export function Meter({
 				</MeterTrack>
 			)}
 		</MeterPrimitive.Root>
-	)
+	);
 }
 
 export function MeterLabel({
@@ -34,7 +34,7 @@ export function MeterLabel({
 			data-slot="meter-label"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function MeterTrack({
@@ -47,7 +47,7 @@ export function MeterTrack({
 			data-slot="meter-track"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function MeterIndicator({
@@ -60,7 +60,7 @@ export function MeterIndicator({
 			data-slot="meter-indicator"
 			{...props}
 		/>
-	)
+	);
 }
 
 export function MeterValue({
@@ -73,7 +73,7 @@ export function MeterValue({
 			data-slot="meter-value"
 			{...props}
 		/>
-	)
+	);
 }
 
-export { MeterPrimitive }
+export { MeterPrimitive };
