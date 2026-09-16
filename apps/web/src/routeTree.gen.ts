@@ -11,17 +11,17 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
-import { Route as PublicLoginIndexRouteImport } from './routes/_public/login/index'
-import { Route as AuthedUploadsIndexRouteImport } from './routes/_authed/uploads/index'
-import { Route as AuthedSettingsIndexRouteImport } from './routes/_authed/settings/index'
-import { Route as AuthedPartiesIndexRouteImport } from './routes/_authed/parties/index'
-import { Route as AuthedCreateIndexRouteImport } from './routes/_authed/create/index'
-import { Route as AuthedConcertsIndexRouteImport } from './routes/_authed/concerts/index'
 import { Route as AuthedAlbumsIndexRouteImport } from './routes/_authed/albums/index'
-import { Route as BotAlbumsIdRouteImport } from './routes/bot/albums.$id'
-import { Route as AuthedPartiesIdRouteImport } from './routes/_authed/parties/$id'
-import { Route as AuthedConcertsIdRouteImport } from './routes/_authed/concerts/$id'
 import { Route as AuthedAlbumsIdRouteImport } from './routes/_authed/albums/$id'
+import { Route as AuthedConcertsIndexRouteImport } from './routes/_authed/concerts/index'
+import { Route as AuthedConcertsIdRouteImport } from './routes/_authed/concerts/$id'
+import { Route as AuthedCreateIndexRouteImport } from './routes/_authed/create/index'
+import { Route as AuthedPartiesIndexRouteImport } from './routes/_authed/parties/index'
+import { Route as AuthedPartiesIdRouteImport } from './routes/_authed/parties/$id'
+import { Route as AuthedSettingsIndexRouteImport } from './routes/_authed/settings/index'
+import { Route as AuthedUploadsIndexRouteImport } from './routes/_authed/uploads/index'
+import { Route as PublicLoginIndexRouteImport } from './routes/_public/login/index'
+import { Route as BotAlbumsIdRouteImport } from './routes/bot/albums.$id'
 
 const AuthedRouteRoute = AuthedRouteRouteImport.update({
   id: '/_authed',
@@ -32,29 +32,14 @@ const AuthedIndexRoute = AuthedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
-const PublicLoginIndexRoute = PublicLoginIndexRouteImport.update({
-  id: '/_public/login/',
-  path: '/login/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthedUploadsIndexRoute = AuthedUploadsIndexRouteImport.update({
-  id: '/uploads/',
-  path: '/uploads/',
+const AuthedAlbumsIndexRoute = AuthedAlbumsIndexRouteImport.update({
+  id: '/albums/',
+  path: '/albums/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthedSettingsIndexRoute = AuthedSettingsIndexRouteImport.update({
-  id: '/settings/',
-  path: '/settings/',
-  getParentRoute: () => AuthedRouteRoute,
-} as any)
-const AuthedPartiesIndexRoute = AuthedPartiesIndexRouteImport.update({
-  id: '/parties/',
-  path: '/parties/',
-  getParentRoute: () => AuthedRouteRoute,
-} as any)
-const AuthedCreateIndexRoute = AuthedCreateIndexRouteImport.update({
-  id: '/create/',
-  path: '/create/',
+const AuthedAlbumsIdRoute = AuthedAlbumsIdRouteImport.update({
+  id: '/albums/$id',
+  path: '/albums/$id',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
 const AuthedConcertsIndexRoute = AuthedConcertsIndexRouteImport.update({
@@ -62,30 +47,45 @@ const AuthedConcertsIndexRoute = AuthedConcertsIndexRouteImport.update({
   path: '/concerts/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthedAlbumsIndexRoute = AuthedAlbumsIndexRouteImport.update({
-  id: '/albums/',
-  path: '/albums/',
+const AuthedConcertsIdRoute = AuthedConcertsIdRouteImport.update({
+  id: '/concerts/$id',
+  path: '/concerts/$id',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
-const BotAlbumsIdRoute = BotAlbumsIdRouteImport.update({
-  id: '/bot/albums/$id',
-  path: '/bot/albums/$id',
-  getParentRoute: () => rootRouteImport,
+const AuthedCreateIndexRoute = AuthedCreateIndexRouteImport.update({
+  id: '/create/',
+  path: '/create/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedPartiesIndexRoute = AuthedPartiesIndexRouteImport.update({
+  id: '/parties/',
+  path: '/parties/',
+  getParentRoute: () => AuthedRouteRoute,
 } as any)
 const AuthedPartiesIdRoute = AuthedPartiesIdRouteImport.update({
   id: '/parties/$id',
   path: '/parties/$id',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthedConcertsIdRoute = AuthedConcertsIdRouteImport.update({
-  id: '/concerts/$id',
-  path: '/concerts/$id',
+const AuthedSettingsIndexRoute = AuthedSettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthedAlbumsIdRoute = AuthedAlbumsIdRouteImport.update({
-  id: '/albums/$id',
-  path: '/albums/$id',
+const AuthedUploadsIndexRoute = AuthedUploadsIndexRouteImport.update({
+  id: '/uploads/',
+  path: '/uploads/',
   getParentRoute: () => AuthedRouteRoute,
+} as any)
+const PublicLoginIndexRoute = PublicLoginIndexRouteImport.update({
+  id: '/_public/login/',
+  path: '/login/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BotAlbumsIdRoute = BotAlbumsIdRouteImport.update({
+  id: '/bot/albums/$id',
+  path: '/bot/albums/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -200,39 +200,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
-    '/_public/login/': {
-      id: '/_public/login/'
-      path: '/login'
-      fullPath: '/login/'
-      preLoaderRoute: typeof PublicLoginIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authed/uploads/': {
-      id: '/_authed/uploads/'
-      path: '/uploads'
-      fullPath: '/uploads/'
-      preLoaderRoute: typeof AuthedUploadsIndexRouteImport
+    '/_authed/albums/': {
+      id: '/_authed/albums/'
+      path: '/albums'
+      fullPath: '/albums/'
+      preLoaderRoute: typeof AuthedAlbumsIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
-    '/_authed/settings/': {
-      id: '/_authed/settings/'
-      path: '/settings'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof AuthedSettingsIndexRouteImport
-      parentRoute: typeof AuthedRouteRoute
-    }
-    '/_authed/parties/': {
-      id: '/_authed/parties/'
-      path: '/parties'
-      fullPath: '/parties/'
-      preLoaderRoute: typeof AuthedPartiesIndexRouteImport
-      parentRoute: typeof AuthedRouteRoute
-    }
-    '/_authed/create/': {
-      id: '/_authed/create/'
-      path: '/create'
-      fullPath: '/create/'
-      preLoaderRoute: typeof AuthedCreateIndexRouteImport
+    '/_authed/albums/$id': {
+      id: '/_authed/albums/$id'
+      path: '/albums/$id'
+      fullPath: '/albums/$id'
+      preLoaderRoute: typeof AuthedAlbumsIdRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
     '/_authed/concerts/': {
@@ -242,19 +221,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedConcertsIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
-    '/_authed/albums/': {
-      id: '/_authed/albums/'
-      path: '/albums'
-      fullPath: '/albums/'
-      preLoaderRoute: typeof AuthedAlbumsIndexRouteImport
+    '/_authed/concerts/$id': {
+      id: '/_authed/concerts/$id'
+      path: '/concerts/$id'
+      fullPath: '/concerts/$id'
+      preLoaderRoute: typeof AuthedConcertsIdRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
-    '/bot/albums/$id': {
-      id: '/bot/albums/$id'
-      path: '/bot/albums/$id'
-      fullPath: '/bot/albums/$id'
-      preLoaderRoute: typeof BotAlbumsIdRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authed/create/': {
+      id: '/_authed/create/'
+      path: '/create'
+      fullPath: '/create/'
+      preLoaderRoute: typeof AuthedCreateIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/parties/': {
+      id: '/_authed/parties/'
+      path: '/parties'
+      fullPath: '/parties/'
+      preLoaderRoute: typeof AuthedPartiesIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
     '/_authed/parties/$id': {
       id: '/_authed/parties/$id'
@@ -263,19 +249,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedPartiesIdRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
-    '/_authed/concerts/$id': {
-      id: '/_authed/concerts/$id'
-      path: '/concerts/$id'
-      fullPath: '/concerts/$id'
-      preLoaderRoute: typeof AuthedConcertsIdRouteImport
+    '/_authed/settings/': {
+      id: '/_authed/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthedSettingsIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
-    '/_authed/albums/$id': {
-      id: '/_authed/albums/$id'
-      path: '/albums/$id'
-      fullPath: '/albums/$id'
-      preLoaderRoute: typeof AuthedAlbumsIdRouteImport
+    '/_authed/uploads/': {
+      id: '/_authed/uploads/'
+      path: '/uploads'
+      fullPath: '/uploads/'
+      preLoaderRoute: typeof AuthedUploadsIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
+    }
+    '/_public/login/': {
+      id: '/_public/login/'
+      path: '/login'
+      fullPath: '/login/'
+      preLoaderRoute: typeof PublicLoginIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bot/albums/$id': {
+      id: '/bot/albums/$id'
+      path: '/bot/albums/$id'
+      fullPath: '/bot/albums/$id'
+      preLoaderRoute: typeof BotAlbumsIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
