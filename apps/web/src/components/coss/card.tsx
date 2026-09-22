@@ -138,11 +138,15 @@ export function CardFrameFooter({
 export function CardHeader({
 	className,
 	render,
+	size = "default",
 	...props
-}: useRender.ComponentProps<"div">): React.ReactElement {
+}: useRender.ComponentProps<"div"> & {
+	size?: "default" | "sm";
+}): React.ReactElement {
 	const defaultProps = {
 		className: cn(
-			"grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 p-6 in-[[data-slot=card]:has(>[data-slot=card-panel])]:pb-4 has-data-[slot=card-action]:grid-cols-[1fr_auto]",
+			"grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 in-[[data-slot=card]:has(>[data-slot=card-panel])]:pb-4 has-data-[slot=card-action]:grid-cols-[1fr_auto]",
+			size === "sm" ? "gap-2 p-3 sm:gap-4 sm:p-4" : "p-6",
 			className,
 		),
 		"data-slot": "card-header",
@@ -158,10 +162,21 @@ export function CardHeader({
 export function CardTitle({
 	className,
 	render,
+	size = "default",
 	...props
-}: useRender.ComponentProps<"div">): React.ReactElement {
+}: useRender.ComponentProps<"div"> & {
+	size?: "default" | "sm" | "metric";
+}): React.ReactElement {
 	const defaultProps = {
-		className: cn("font-heading text-lg leading-none font-semibold", className),
+		className: cn(
+			"font-heading font-semibold",
+			size === "sm"
+				? "text-sm leading-snug sm:text-base"
+				: size === "metric"
+					? "text-2xl leading-none tabular-nums sm:text-4xl"
+					: "text-lg leading-none",
+			className,
+		),
 		"data-slot": "card-title",
 	};
 
@@ -212,11 +227,15 @@ export function CardAction({
 export function CardPanel({
 	className,
 	render,
+	size = "default",
 	...props
-}: useRender.ComponentProps<"div">): React.ReactElement {
+}: useRender.ComponentProps<"div"> & {
+	size?: "default" | "sm";
+}): React.ReactElement {
 	const defaultProps = {
 		className: cn(
-			"flex-1 p-6 in-[[data-slot=card]:has(>[data-slot=card-footer]:not(.border-t))]:pb-0 in-[[data-slot=card]:has(>[data-slot=card-header]:not(.border-b))]:pt-0",
+			"flex-1 in-[[data-slot=card]:has(>[data-slot=card-footer]:not(.border-t))]:pb-0 in-[[data-slot=card]:has(>[data-slot=card-header]:not(.border-b))]:pt-0",
+			size === "sm" ? "gap-2 p-3 sm:gap-3 sm:p-4" : "p-6",
 			className,
 		),
 		"data-slot": "card-panel",

@@ -268,11 +268,11 @@ function RouteComponent() {
 	);
 
 	return (
-		<main className="flex min-h-full w-full flex-col gap-6 p-4 sm:p-6">
+		<main className="flex min-h-full w-full min-w-0 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
 			<header className="flex flex-col gap-4">
 				<div className="flex flex-col gap-2">
 					<p className="text-sm font-medium text-muted-foreground">Library</p>
-					<h1 className="font-heading text-3xl font-semibold tracking-tight">
+					<h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
 						Parties
 					</h1>
 				</div>
@@ -305,7 +305,7 @@ function RouteComponent() {
 				/>
 			) : parties.length ? (
 				<div
-					className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+					className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
 					ref={partyGridRef}
 				>
 					{parties.map((party) => {
@@ -325,24 +325,24 @@ function RouteComponent() {
 
 function PartyGridSkeleton() {
 	return (
-		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+		<div className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
 			{Array.from({ length: 10 }, (_, index) => (
-				<Card key={index}>
-					<CardPanel className="flex flex-col gap-4 p-4">
-						<div className="flex items-start gap-4">
-							<Skeleton className="size-16 rounded-2xl" />
-							<div className="flex min-w-0 flex-1 flex-col gap-2">
+				<Card className="@container min-w-0" key={index}>
+					<CardPanel className="flex flex-col" size="sm">
+						<div className="flex flex-col items-start gap-2 @min-[16rem]:flex-row @min-[16rem]:gap-4">
+							<Skeleton className="size-12 shrink-0 rounded-2xl @min-[16rem]:size-20" />
+							<div className="flex w-full min-w-0 flex-1 flex-col gap-2">
 								<div className="grid gap-2">
 									<Skeleton className="h-5 w-3/4" />
 									<Skeleton className="h-4 w-1/2" />
 								</div>
-								<div className="flex gap-1.5">
+								<div className="flex flex-wrap gap-1.5">
 									<Skeleton className="h-5 w-16 rounded-full" />
 									<Skeleton className="h-5 w-14 rounded-full" />
 								</div>
 							</div>
 						</div>
-						<Skeleton className="mt-auto h-4 w-32" />
+						<Skeleton className="mt-auto h-4 w-3/4" />
 					</CardPanel>
 				</Card>
 			))}

@@ -53,17 +53,17 @@ function RouteComponent() {
 	);
 
 	return (
-		<main className="flex min-h-full w-full flex-col gap-8 p-4 sm:p-6">
+		<main className="flex min-h-full w-full min-w-0 flex-col gap-5 p-4 sm:gap-8 sm:p-6">
 			<header className="flex flex-col gap-1">
 				<p className="text-sm font-medium text-muted-foreground">Library</p>
-				<h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
+				<h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-4xl">
 					Overview
 				</h1>
 			</header>
 
 			<section
 				aria-label="Library counts"
-				className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4"
+				className="grid grid-cols-3 gap-2 sm:gap-4"
 			>
 				<CounterCard
 					count={albums.length}
@@ -130,14 +130,12 @@ function CounterCard({ count, icon, label, to }: CounterCardProps) {
 			to={to}
 		>
 			<Card className="h-full transition-shadow hover:shadow-md">
-				<CardHeader className="grid-cols-[1fr_auto] gap-4">
+				<CardHeader className="grid-cols-[1fr_auto]" size="sm">
 					<div className="flex flex-col gap-2">
 						<CardDescription>{label}</CardDescription>
-						<CardTitle className="text-4xl font-semibold tabular-nums">
-							{count}
-						</CardTitle>
+						<CardTitle size="metric">{count}</CardTitle>
 					</div>
-					<div className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground [&_svg]:size-6">
+					<div className="hidden size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground sm:flex [&_svg]:size-6">
 						{icon}
 					</div>
 				</CardHeader>

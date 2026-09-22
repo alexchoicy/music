@@ -34,7 +34,7 @@ export function ConcertCard({ className, concert }: ConcertCardProps) {
 	const albumCount = Number(concert.albumCount);
 
 	return (
-		<div className={cn(className)} data-slot="concert-card">
+		<div className={cn("min-w-0", className)} data-slot="concert-card">
 			<Link
 				className="block h-full rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				params={{ id: String(concert.concertId) }}
@@ -56,15 +56,12 @@ export function ConcertCard({ className, concert }: ConcertCardProps) {
 						)}
 					</div>
 
-					<CardPanel className="flex flex-col gap-3 p-4">
+					<CardPanel className="flex flex-col" size="sm">
 						<div className="flex min-w-0 flex-col gap-1">
 							<Tooltip>
 								<TooltipTrigger
 									render={
-										<CardTitle
-											className="truncate text-base leading-tight"
-											render={<h2 />}
-										/>
+										<CardTitle className="truncate" render={<h2 />} size="sm" />
 									}
 								>
 									{concert.title}

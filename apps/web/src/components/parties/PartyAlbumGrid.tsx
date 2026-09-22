@@ -1,5 +1,6 @@
 import { AlbumCard } from "#/components/AlbumCard";
 import type { components } from "#/data/APIschema";
+import { cn } from "#/lib/utils/styles";
 
 type PartyAlbum = components["schemas"]["AlbumListItem"];
 
@@ -14,24 +15,14 @@ export function PartyAlbumGrid({
 }: PartyAlbumGridProps) {
 	if (albums.length === 0) return null;
 
-	if (variant === "preview") {
-		return (
-			<div className="flex h-[410px] flex-row flex-wrap justify-center gap-4 overflow-hidden p-3">
-				{albums.map((album) => {
-					return (
-						<AlbumCard
-							album={album}
-							className="h-[385px] w-[250px]"
-							key={album.albumId}
-						/>
-					);
-				})}
-			</div>
-		);
-	}
-
 	return (
-		<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+		<div
+			className={cn(
+				"grid min-w-0 grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6",
+				variant === "preview" &&
+					"[&>*:nth-child(n+3)]:hidden md:[&>*:nth-child(n+3)]:block md:[&>*:nth-child(n+4)]:hidden lg:[&>*:nth-child(n+4)]:block lg:[&>*:nth-child(n+5)]:hidden xl:[&>*:nth-child(n+5)]:block",
+			)}
+		>
 			{albums.map((album) => {
 				return <AlbumCard album={album} key={album.albumId} />;
 			})}

@@ -44,7 +44,7 @@ function RouteComponent() {
 
 			<div
 				className={cn(
-					"relative gap-6 p-4 sm:p-6",
+					"relative gap-4 p-4 sm:gap-6 sm:p-6",
 					isTheaterMode
 						? "grid xl:grid-cols-[minmax(0,1fr)_22rem]"
 						: "flex flex-col",

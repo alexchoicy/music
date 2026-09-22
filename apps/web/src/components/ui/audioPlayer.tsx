@@ -2,6 +2,8 @@ import { useHotkey } from "@tanstack/react-hotkeys";
 import type { UseHotkeyOptions } from "@tanstack/react-hotkeys";
 import { Link } from "@tanstack/react-router";
 import {
+	ChevronDownIcon,
+	ChevronUpIcon,
 	Music2Icon,
 	PauseIcon,
 	PlayIcon,
@@ -498,6 +500,7 @@ export function AudioPlayer() {
 	const rightLabelRef = useRef<HTMLSpanElement | null>(null);
 
 	const [isOpenQueue, setIsOpenQueue] = useState(false);
+	const [isMobilePlayerExpanded, setIsMobilePlayerExpanded] = useState(false);
 
 	const bindWaveSurfer = useAudioPlayerStore((state) => state.bindWaveSurfer);
 	const reloadAudio = useAudioPlayerStore((state) => state.reloadAudio);
@@ -873,229 +876,281 @@ export function AudioPlayer() {
 			)}
 		>
 			<audio className="hidden" ref={audioRef} preload="metadata" />
-			<div className="pointer-events-auto grid min-h-16 grid-cols-1 items-center gap-x-2 gap-y-1 rounded-lg border bg-background/95 px-2 py-1.5 shadow-lg/5 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-3 sm:px-3 sm:py-2 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,2fr)_minmax(8rem,1fr)]">
-				<TrackInfo track={currentTrack} />
-
-				<div className="flex min-w-0 flex-col gap-1 sm:col-span-2 sm:gap-2 lg:col-span-1">
-					<div className="hidden grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:grid">
-						<div />
-						<div className="flex items-center justify-center gap-1">
-							<Toggle
-								aria-label="Shuffle"
-								className="hidden size-8 text-muted-foreground data-pressed:bg-primary/10 data-pressed:text-primary data-pressed:hover:bg-primary/15 sm:inline-flex sm:size-7"
-								disabled={queueLength === 0}
-								onPressedChange={() => toggleShuffle()}
-								pressed={shuffle}
-							>
-								<ShuffleIcon aria-hidden="true" />
-							</Toggle>
-							<Button
-								aria-label="Previous track"
-								disabled={!hasPrev || isLoading}
-								onClick={playPrev}
-								size="icon-sm"
-								variant="ghost"
-							>
-								<SkipBackIcon aria-hidden="true" />
-							</Button>
-							<Button
-								aria-label={isPlaying ? "Pause" : "Play"}
-								className="text-foreground"
-								disabled={!currentTrack || isLoading}
-								loading={isLoading}
-								onClick={() => {
-									void togglePlay();
-								}}
-								size="icon"
-								variant="ghost"
-							>
-								{isPlaying ? (
-									<PauseIcon aria-hidden="true" />
-								) : (
-									<PlayIcon aria-hidden="true" />
-								)}
-							</Button>
-							<Button
-								aria-label="Next track"
-								disabled={!hasNext || isLoading}
-								onClick={playNext}
-								size="icon-sm"
-								variant="ghost"
-							>
-								<SkipForwardIcon aria-hidden="true" />
-							</Button>
-							<Button
-								aria-label={`Repeat: ${repeatMode}`}
-								className={cn(
-									"hidden sm:inline-flex",
-									repeatMode === "off"
-										? "text-muted-foreground"
-										: "bg-primary/10 text-primary hover:bg-primary/15",
-								)}
-								disabled={queueLength === 0}
-								onClick={toggleRepeatMode}
-								size="icon-sm"
-								variant="ghost"
-							>
-								{repeatMode === "one" ? (
-									<Repeat1Icon aria-hidden="true" />
-								) : (
-									<RepeatIcon aria-hidden="true" />
-								)}
-							</Button>
-						</div>
-						<div className="hidden min-w-0 text-right text-[11px] text-muted-foreground lg:block">
-							{qualityLabel && <span className="truncate">{qualityLabel}</span>}
-						</div>
+			<div
+				className="pointer-events-auto rounded-lg border bg-background/95 shadow-lg/5 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+				data-slot="audio-player"
+			>
+				<div className="flex items-center gap-1 px-2 py-1.5 sm:hidden">
+					<div className="min-w-0 flex-1">
+						<TrackInfo track={currentTrack} />
 					</div>
-					<div className="relative flex min-h-8 w-full items-center gap-2 sm:min-h-10">
-						{currentTrack && (
-							<button
-								type="button"
-								className="shrink-0 cursor-pointer text-right text-xs text-muted-foreground tabular-nums transition-colors select-none"
-								onClick={() => {
-									showRemainingRef.current = !showRemainingRef.current;
-									refreshTimeLabel();
-								}}
-							>
-								<span className="inline-flex items-center justify-end">
-									<span
-										className="inline-block w-[1ch] text-center"
-										ref={rightMinusRef}
-									>
-										-
-									</span>
-									<span ref={rightLabelRef}>{formatMsToMMSSOrHMMSS(0)}</span>
-								</span>
-							</button>
-						)}
-						<div className="relative min-h-8 flex-1 sm:min-h-10">
-							{status === "idle" && (
-								<div
-									aria-hidden="true"
-									className="pointer-events-none absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border"
-								/>
+					{!isMobilePlayerExpanded && (
+						<Button
+							aria-label={isPlaying ? "Pause" : "Play"}
+							disabled={!currentTrack || isLoading}
+							loading={isLoading}
+							onClick={() => void togglePlay()}
+							size="icon"
+							variant="ghost"
+						>
+							{isPlaying ? (
+								<PauseIcon aria-hidden="true" />
+							) : (
+								<PlayIcon aria-hidden="true" />
 							)}
-							<div
-								className={cn("w-full", status === "idle" && "opacity-0")}
-								ref={waveContainerRef}
-							/>
-						</div>
-						<span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-							{currentTrack
-								? formatMsToMMSSOrHMMSS(currentTrack.durationInMs)
-								: formatMsToMMSSOrHMMSS(0)}
-						</span>
-					</div>
-				</div>
-
-				<div className="flex items-center justify-center gap-1 text-muted-foreground sm:col-start-2 sm:row-start-1 sm:justify-end lg:col-start-auto lg:row-start-auto">
-					<div className="mr-auto hidden min-w-0 pl-2 text-[11px] text-muted-foreground sm:block lg:hidden">
-						{qualityLabel && <span className="truncate">{qualityLabel}</span>}
-					</div>
-					<Toggle
-						aria-label="Shuffle"
-						className="size-8 text-muted-foreground data-pressed:bg-primary/10 data-pressed:text-primary data-pressed:hover:bg-primary/15 sm:hidden"
-						disabled={queueLength === 0}
-						onPressedChange={() => toggleShuffle()}
-						pressed={shuffle}
-					>
-						<ShuffleIcon aria-hidden="true" />
-					</Toggle>
+						</Button>
+					)}
 					<Button
-						aria-label="Previous track"
-						disabled={!hasPrev || isLoading}
-						onClick={playPrev}
-						size="icon-sm"
-						variant="ghost"
-						className="sm:hidden"
-					>
-						<SkipBackIcon aria-hidden="true" />
-					</Button>
-					<Button
-						aria-label={isPlaying ? "Pause" : "Play"}
-						className="text-foreground sm:hidden"
-						disabled={!currentTrack || isLoading}
-						loading={isLoading}
-						onClick={() => {
-							void togglePlay();
-						}}
+						aria-controls="audio-player-controls"
+						aria-expanded={isMobilePlayerExpanded}
+						aria-label={
+							isMobilePlayerExpanded ? "Collapse player" : "Expand player"
+						}
+						onClick={() => setIsMobilePlayerExpanded((expanded) => !expanded)}
 						size="icon"
 						variant="ghost"
 					>
-						{isPlaying ? (
-							<PauseIcon aria-hidden="true" />
+						{isMobilePlayerExpanded ? (
+							<ChevronDownIcon aria-hidden="true" />
 						) : (
-							<PlayIcon aria-hidden="true" />
+							<ChevronUpIcon aria-hidden="true" />
 						)}
 					</Button>
-					<Button
-						aria-label="Next track"
-						disabled={!hasNext || isLoading}
-						onClick={playNext}
-						size="icon-sm"
-						variant="ghost"
-						className="sm:hidden"
-					>
-						<SkipForwardIcon aria-hidden="true" />
-					</Button>
-					<Button
-						aria-label={`Repeat: ${repeatMode}`}
-						className={cn(
-							"sm:hidden",
-							repeatMode === "off"
-								? "text-muted-foreground"
-								: "bg-primary/10 text-primary hover:bg-primary/15",
-						)}
-						disabled={queueLength === 0}
-						onClick={toggleRepeatMode}
-						size="icon-sm"
-						variant="ghost"
-					>
-						{repeatMode === "one" ? (
-							<Repeat1Icon aria-hidden="true" />
-						) : (
-							<RepeatIcon aria-hidden="true" />
-						)}
-					</Button>
-					<VolumeControl
-						buttonClassName="hidden sm:inline-flex"
-						muted={muted}
-						setVolume={setVolume}
-						toggleMute={toggleMute}
-						volume={volume}
-					/>
-					<QueueSheet
-						isOpen={isOpenQueue}
-						onOpenChange={setIsOpenQueue}
-						index={index}
-						playQueueTrack={playQueueTrack}
-						queue={queue}
-						queueLength={queueLength}
-					/>
-					<Button
-						aria-label="Share current track"
-						disabled={!currentTrack}
-						onClick={() => {
-							void shareCurrentTrack();
-						}}
-						size="icon-sm"
-						variant="ghost"
-					>
-						<Share2Icon aria-hidden="true" />
-					</Button>
-					<PlaybackQualitySettings
-						playTalkTrack={playTalkTrack}
-						playbackQuality={playbackQuality}
-						playInstrumental={playInstrumental}
-						index={index}
-						queue={queue}
-						setPlayTalkTrack={setPlayTalkTrack}
-						setPlaybackQuality={setPlaybackQuality}
-						setPlayInstrumental={setPlayInstrumental}
-						stopAfterMusicCount={stopAfterMusicCount}
-						setStopAfterMusicCount={setStopAfterMusicCount}
-					/>
+				</div>
+				<div
+					className={cn(
+						"grid min-h-16 grid-cols-1 items-center gap-x-2 gap-y-1 px-2 py-1.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-3 sm:px-3 sm:py-2 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,2fr)_minmax(8rem,1fr)]",
+						!isMobilePlayerExpanded && "max-sm:hidden",
+					)}
+					id="audio-player-controls"
+				>
+					<div className="hidden min-w-0 sm:block">
+						<TrackInfo track={currentTrack} />
+					</div>
+
+					<div className="flex min-w-0 flex-col gap-1 sm:col-span-2 sm:gap-2 lg:col-span-1">
+						<div className="hidden grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:grid">
+							<div />
+							<div className="flex items-center justify-center gap-1">
+								<Toggle
+									aria-label="Shuffle"
+									className="hidden size-8 text-muted-foreground data-pressed:bg-primary/10 data-pressed:text-primary data-pressed:hover:bg-primary/15 sm:inline-flex sm:size-7"
+									disabled={queueLength === 0}
+									onPressedChange={() => toggleShuffle()}
+									pressed={shuffle}
+								>
+									<ShuffleIcon aria-hidden="true" />
+								</Toggle>
+								<Button
+									aria-label="Previous track"
+									disabled={!hasPrev || isLoading}
+									onClick={playPrev}
+									size="icon-sm"
+									variant="ghost"
+								>
+									<SkipBackIcon aria-hidden="true" />
+								</Button>
+								<Button
+									aria-label={isPlaying ? "Pause" : "Play"}
+									className="text-foreground"
+									disabled={!currentTrack || isLoading}
+									loading={isLoading}
+									onClick={() => {
+										void togglePlay();
+									}}
+									size="icon"
+									variant="ghost"
+								>
+									{isPlaying ? (
+										<PauseIcon aria-hidden="true" />
+									) : (
+										<PlayIcon aria-hidden="true" />
+									)}
+								</Button>
+								<Button
+									aria-label="Next track"
+									disabled={!hasNext || isLoading}
+									onClick={playNext}
+									size="icon-sm"
+									variant="ghost"
+								>
+									<SkipForwardIcon aria-hidden="true" />
+								</Button>
+								<Button
+									aria-label={`Repeat: ${repeatMode}`}
+									className={cn(
+										"hidden sm:inline-flex",
+										repeatMode === "off"
+											? "text-muted-foreground"
+											: "bg-primary/10 text-primary hover:bg-primary/15",
+									)}
+									disabled={queueLength === 0}
+									onClick={toggleRepeatMode}
+									size="icon-sm"
+									variant="ghost"
+								>
+									{repeatMode === "one" ? (
+										<Repeat1Icon aria-hidden="true" />
+									) : (
+										<RepeatIcon aria-hidden="true" />
+									)}
+								</Button>
+							</div>
+							<div className="hidden min-w-0 text-right text-[11px] text-muted-foreground lg:block">
+								{qualityLabel && (
+									<span className="truncate">{qualityLabel}</span>
+								)}
+							</div>
+						</div>
+						<div className="relative flex min-h-8 w-full items-center gap-2 sm:min-h-10">
+							{currentTrack && (
+								<button
+									type="button"
+									className="shrink-0 cursor-pointer text-right text-xs text-muted-foreground tabular-nums transition-colors select-none"
+									onClick={() => {
+										showRemainingRef.current = !showRemainingRef.current;
+										refreshTimeLabel();
+									}}
+								>
+									<span className="inline-flex items-center justify-end">
+										<span
+											className="inline-block w-[1ch] text-center"
+											ref={rightMinusRef}
+										>
+											-
+										</span>
+										<span ref={rightLabelRef}>{formatMsToMMSSOrHMMSS(0)}</span>
+									</span>
+								</button>
+							)}
+							<div className="relative min-h-8 flex-1 sm:min-h-10">
+								{status === "idle" && (
+									<div
+										aria-hidden="true"
+										className="pointer-events-none absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border"
+									/>
+								)}
+								<div
+									className={cn("w-full", status === "idle" && "opacity-0")}
+									ref={waveContainerRef}
+								/>
+							</div>
+							<span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+								{currentTrack
+									? formatMsToMMSSOrHMMSS(currentTrack.durationInMs)
+									: formatMsToMMSSOrHMMSS(0)}
+							</span>
+						</div>
+					</div>
+
+					<div className="flex items-center justify-center gap-1 text-muted-foreground sm:col-start-2 sm:row-start-1 sm:justify-end lg:col-start-auto lg:row-start-auto">
+						<div className="mr-auto hidden min-w-0 pl-2 text-[11px] text-muted-foreground sm:block lg:hidden">
+							{qualityLabel && <span className="truncate">{qualityLabel}</span>}
+						</div>
+						<Toggle
+							aria-label="Shuffle"
+							className="size-8 text-muted-foreground data-pressed:bg-primary/10 data-pressed:text-primary data-pressed:hover:bg-primary/15 sm:hidden"
+							disabled={queueLength === 0}
+							onPressedChange={() => toggleShuffle()}
+							pressed={shuffle}
+						>
+							<ShuffleIcon aria-hidden="true" />
+						</Toggle>
+						<Button
+							aria-label="Previous track"
+							disabled={!hasPrev || isLoading}
+							onClick={playPrev}
+							size="icon-sm"
+							variant="ghost"
+							className="sm:hidden"
+						>
+							<SkipBackIcon aria-hidden="true" />
+						</Button>
+						<Button
+							aria-label={isPlaying ? "Pause" : "Play"}
+							className="text-foreground sm:hidden"
+							disabled={!currentTrack || isLoading}
+							loading={isLoading}
+							onClick={() => {
+								void togglePlay();
+							}}
+							size="icon"
+							variant="ghost"
+						>
+							{isPlaying ? (
+								<PauseIcon aria-hidden="true" />
+							) : (
+								<PlayIcon aria-hidden="true" />
+							)}
+						</Button>
+						<Button
+							aria-label="Next track"
+							disabled={!hasNext || isLoading}
+							onClick={playNext}
+							size="icon-sm"
+							variant="ghost"
+							className="sm:hidden"
+						>
+							<SkipForwardIcon aria-hidden="true" />
+						</Button>
+						<Button
+							aria-label={`Repeat: ${repeatMode}`}
+							className={cn(
+								"sm:hidden",
+								repeatMode === "off"
+									? "text-muted-foreground"
+									: "bg-primary/10 text-primary hover:bg-primary/15",
+							)}
+							disabled={queueLength === 0}
+							onClick={toggleRepeatMode}
+							size="icon-sm"
+							variant="ghost"
+						>
+							{repeatMode === "one" ? (
+								<Repeat1Icon aria-hidden="true" />
+							) : (
+								<RepeatIcon aria-hidden="true" />
+							)}
+						</Button>
+						<VolumeControl
+							buttonClassName="hidden sm:inline-flex"
+							muted={muted}
+							setVolume={setVolume}
+							toggleMute={toggleMute}
+							volume={volume}
+						/>
+						<QueueSheet
+							isOpen={isOpenQueue}
+							onOpenChange={setIsOpenQueue}
+							index={index}
+							playQueueTrack={playQueueTrack}
+							queue={queue}
+							queueLength={queueLength}
+						/>
+						<Button
+							aria-label="Share current track"
+							disabled={!currentTrack}
+							onClick={() => {
+								void shareCurrentTrack();
+							}}
+							size="icon-sm"
+							variant="ghost"
+						>
+							<Share2Icon aria-hidden="true" />
+						</Button>
+						<PlaybackQualitySettings
+							playTalkTrack={playTalkTrack}
+							playbackQuality={playbackQuality}
+							playInstrumental={playInstrumental}
+							index={index}
+							queue={queue}
+							setPlayTalkTrack={setPlayTalkTrack}
+							setPlaybackQuality={setPlaybackQuality}
+							setPlayInstrumental={setPlayInstrumental}
+							stopAfterMusicCount={stopAfterMusicCount}
+							setStopAfterMusicCount={setStopAfterMusicCount}
+						/>
+					</div>
 				</div>
 			</div>
 		</div>

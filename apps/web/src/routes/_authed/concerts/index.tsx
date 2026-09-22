@@ -228,11 +228,11 @@ function RouteComponent() {
 	);
 
 	return (
-		<main className="flex min-h-full w-full min-w-0 flex-col gap-6 p-4 sm:p-6">
+		<main className="flex min-h-full w-full min-w-0 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
 			<header className="flex min-w-0 flex-col gap-4">
 				<div className="flex flex-col gap-2">
 					<p className="text-sm font-medium text-muted-foreground">Library</p>
-					<h1 className="font-heading text-3xl font-semibold tracking-tight">
+					<h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
 						Concerts
 					</h1>
 				</div>
@@ -265,7 +265,7 @@ function RouteComponent() {
 				/>
 			) : concerts.length ? (
 				<div
-					className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+					className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
 					ref={concertGridRef}
 				>
 					{concerts.map((concert) => {
@@ -290,16 +290,16 @@ function RouteComponent() {
 }
 function ConcertGridSkeleton() {
 	return (
-		<div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+		<div className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
 			{Array.from({ length: 10 }, (_, index) => (
 				<Card className="overflow-hidden" key={index}>
 					<Skeleton className="aspect-video rounded-none" />
-					<CardPanel className="flex flex-col gap-3 p-4">
+					<CardPanel className="flex flex-col" size="sm">
 						<div className="grid gap-2">
 							<Skeleton className="h-5 w-3/4" />
 							<Skeleton className="h-4 w-2/3" />
 						</div>
-						<Skeleton className="h-4 w-40" />
+						<Skeleton className="h-4 w-3/4" />
 					</CardPanel>
 				</Card>
 			))}

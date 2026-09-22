@@ -33,17 +33,17 @@ export function ConcertDetails({ concert }: ConcertDetailsProps) {
 	const coverUrl = getConcertCoverUrl(concert.coverVariants);
 
 	return (
-		<section className="flex flex-col gap-6">
-			<header className="flex gap-4">
+		<section className="flex flex-col gap-4 sm:gap-6">
+			<header className="flex gap-3 sm:gap-4">
 				{coverUrl && (
 					<img
 						alt={`${concert.title} concert cover`}
-						className="aspect-video w-32 shrink-0 rounded-xl object-cover sm:w-40"
+						className="aspect-video w-24 shrink-0 self-start rounded-xl object-cover sm:w-40"
 						src={coverUrl}
 					/>
 				)}
 				<div className="flex min-w-0 flex-col gap-2">
-					<h1 className="font-heading text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
+					<h1 className="font-heading text-xl font-semibold tracking-tight text-balance break-words sm:text-3xl">
 						{concert.title}
 					</h1>
 
@@ -104,7 +104,7 @@ export function ConcertDetails({ concert }: ConcertDetailsProps) {
 					<h2 className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
 						Linked Albums
 					</h2>
-					<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
 						{concert.linkedAlbums.map((album) => (
 							<AlbumCard album={album} key={album.albumId} />
 						))}

@@ -22,8 +22,8 @@ export function PartyDetailHero({ party }: PartyDetailHeroProps) {
 		description.length > 0 || party.externalInfoLinks.length > 0;
 
 	return (
-		<section className="grid grid-cols-[7rem_minmax(0,1fr)] gap-x-4 gap-y-5 sm:grid-cols-[9rem_minmax(0,1fr)] lg:gap-x-5">
-			<Avatar className="size-28 rounded-3xl border bg-muted shadow-sm/5 sm:size-36 lg:row-span-2">
+		<section className="grid grid-cols-[5rem_minmax(0,1fr)] gap-x-3 gap-y-4 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-x-4 sm:gap-y-5 lg:gap-x-5">
+			<Avatar className="size-20 rounded-3xl border bg-muted shadow-sm/5 sm:size-36 lg:row-span-2">
 				{avatarUrl && (
 					<AvatarImage alt={`${party.name} avatar`} src={avatarUrl} />
 				)}
@@ -42,7 +42,7 @@ export function PartyDetailHero({ party }: PartyDetailHeroProps) {
 				</div>
 
 				<div className="flex min-w-0 flex-col gap-2">
-					<h1 className="font-heading text-3xl font-semibold tracking-tight break-words sm:text-4xl">
+					<h1 className="font-heading text-2xl font-semibold tracking-tight break-words sm:text-4xl">
 						{party.name}
 					</h1>
 					<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">

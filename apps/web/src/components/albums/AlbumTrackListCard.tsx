@@ -191,7 +191,7 @@ export function AlbumTrackListCard({
 								return (
 									<div
 										className={cn(
-											"group/track grid cursor-pointer grid-cols-[2rem_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-sm px-4 py-4 outline-none hover:bg-muted/35 focus-visible:bg-muted/35 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background sm:grid-cols-[3rem_minmax(0,1fr)_auto_auto] sm:px-6",
+											"group/track grid cursor-pointer grid-cols-[1.5rem_minmax(0,1fr)_auto_auto] items-center gap-2 rounded-sm px-3 py-3 text-sm outline-none hover:bg-muted/35 focus-visible:bg-muted/35 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background sm:grid-cols-[3rem_minmax(0,1fr)_auto_auto] sm:gap-3 sm:px-6 sm:py-4 sm:text-base",
 											isHighlightedTrack && "animate-track-highlight",
 										)}
 										id={trackKey}

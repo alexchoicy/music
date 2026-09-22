@@ -60,7 +60,7 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 
 	return (
 		<div
-			className={cn("[container-type:inline-size] relative", className)}
+			className={cn("[container-type:inline-size] relative min-w-0", className)}
 			data-album-id={album.albumId}
 			data-slot="album-card"
 		>
@@ -119,15 +119,12 @@ export function AlbumCard({ album, className }: AlbumCardProps) {
 						</Badge>
 					</div>
 
-					<CardPanel className="flex flex-col gap-3 p-4">
+					<CardPanel className="flex flex-col" size="sm">
 						<div className="flex min-w-0 flex-col gap-1">
 							<Tooltip>
 								<TooltipTrigger
 									render={
-										<CardTitle
-											className="truncate text-base leading-tight"
-											render={<h2 />}
-										/>
+										<CardTitle className="truncate" render={<h2 />} size="sm" />
 									}
 								>
 									{album.title}
