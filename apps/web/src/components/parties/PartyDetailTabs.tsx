@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { ChevronRightIcon, Disc3Icon } from "lucide-react";
 import { useRef, useState } from "react";
 
+import { AlbumGrid } from "#/components/AlbumGrid";
 import { Button } from "#/components/coss/button";
 import {
 	Empty,
@@ -19,15 +20,11 @@ import { albumQueries } from "#/lib/queries/album.queries";
 import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
-import { PartyAlbumGrid } from "./PartyAlbumGrid";
-
 type PartyDetails = components["schemas"]["PartyDetails"];
 
 type PartyDetailTabsProps = {
 	party: PartyDetails;
 };
-
-const PREVIEW_ALBUM_LIMIT = 5;
 
 export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 	const queryClient = useQueryClient();
@@ -37,8 +34,6 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const hasAlbums = party.albums.length > 0;
 	const hasFeaturedIn = party.appearsOnAlbums.length > 0;
-	const previewAlbums = party.albums.slice(0, PREVIEW_ALBUM_LIMIT);
-	const previewFeaturedIn = party.appearsOnAlbums.slice(0, PREVIEW_ALBUM_LIMIT);
 	const tabs = [
 		"overall",
 		hasAlbums ? "albums" : null,
@@ -51,7 +46,7 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 		);
 		const cards = Array.from(
 			panel?.querySelectorAll<HTMLElement>('[data-slot="album-card"]') ?? [],
-		);
+		).filter((card) => card.getClientRects().length > 0);
 		if (!cards.length) return;
 
 		const firstRowTop = cards[0]?.offsetTop;
@@ -157,7 +152,7 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 								</Button>
 							</div>
 
-							<PartyAlbumGrid albums={previewAlbums} variant="preview" />
+							<AlbumGrid albums={party.albums} variant="preview" />
 						</section>
 					)}
 
@@ -181,7 +176,7 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 								</Button>
 							</div>
 
-							<PartyAlbumGrid albums={previewFeaturedIn} variant="preview" />
+							<AlbumGrid albums={party.appearsOnAlbums} variant="preview" />
 						</section>
 					)}
 				</div>
@@ -200,7 +195,7 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 							</p>
 						</div>
 
-						<PartyAlbumGrid albums={party.albums} />
+						<AlbumGrid albums={party.albums} />
 					</section>
 				</TabsPanel>
 			)}
@@ -219,7 +214,7 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 							</p>
 						</div>
 
-						<PartyAlbumGrid albums={party.appearsOnAlbums} />
+						<AlbumGrid albums={party.appearsOnAlbums} />
 					</section>
 				</TabsPanel>
 			)}

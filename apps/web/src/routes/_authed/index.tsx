@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Disc3Icon, MicVocalIcon, UsersRoundIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { AlbumCard } from "#/components/AlbumCard";
+import { AlbumGrid } from "#/components/AlbumGrid";
 import { ConcertCard } from "#/components/concerts/ConcertCard";
 import {
 	Card,
@@ -86,31 +86,35 @@ function RouteComponent() {
 			</section>
 
 			<RecentSection title="Recent albums" to="/albums">
-				{albums.map((album) => {
-					return (
-						<AlbumCard album={album} className="min-w-0" key={album.albumId} />
-					);
-				})}
+				<AlbumGrid albums={albums} variant="preview" />
 			</RecentSection>
 
 			<RecentSection title="Recent concerts" to="/concerts">
-				{concerts.map((concert) => {
-					return (
-						<ConcertCard
-							className="min-w-0"
-							concert={concert}
-							key={concert.concertId}
-						/>
-					);
-				})}
+				<RecentGrid>
+					{concerts.map((concert) => {
+						return (
+							<ConcertCard
+								className="min-w-0"
+								concert={concert}
+								key={concert.concertId}
+							/>
+						);
+					})}
+				</RecentGrid>
 			</RecentSection>
 
 			<RecentSection title="Recent parties" to="/parties">
-				{parties.map((party) => {
-					return (
-						<PartyCard className="min-w-0" key={party.partyId} party={party} />
-					);
-				})}
+				<RecentGrid>
+					{parties.map((party) => {
+						return (
+							<PartyCard
+								className="min-w-0"
+								key={party.partyId}
+								party={party}
+							/>
+						);
+					})}
+				</RecentGrid>
 			</RecentSection>
 		</main>
 	);
@@ -166,9 +170,15 @@ function RecentSection({ children, title, to }: RecentSectionProps) {
 				</Link>
 			</div>
 
-			<div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 [&>*:nth-child(n+3)]:hidden md:[&>*:nth-child(n+3)]:block md:[&>*:nth-child(n+4)]:hidden lg:[&>*:nth-child(n+4)]:block lg:[&>*:nth-child(n+5)]:hidden xl:[&>*:nth-child(n+5)]:block xl:[&>*:nth-child(n+6)]:hidden 2xl:[&>*:nth-child(n+6)]:block 2xl:[&>*:nth-child(n+7)]:hidden">
-				{children}
-			</div>
+			{children}
 		</section>
+	);
+}
+
+function RecentGrid({ children }: { children: ReactNode }) {
+	return (
+		<div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 [&>*:nth-child(n+3)]:hidden md:[&>*:nth-child(n+3)]:block md:[&>*:nth-child(n+4)]:hidden lg:[&>*:nth-child(n+4)]:block lg:[&>*:nth-child(n+5)]:hidden xl:[&>*:nth-child(n+5)]:block xl:[&>*:nth-child(n+6)]:hidden 2xl:[&>*:nth-child(n+6)]:block 2xl:[&>*:nth-child(n+7)]:hidden">
+			{children}
+		</div>
 	);
 }

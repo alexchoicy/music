@@ -13,7 +13,7 @@ import { ChevronDownIcon, Disc3Icon, SearchIcon } from "lucide-react";
 import { useDeferredValue, useRef } from "react";
 import { z } from "zod";
 
-import { AlbumCard } from "#/components/AlbumCard";
+import { AlbumGrid, albumGridClassName } from "#/components/AlbumGrid";
 import { Card, CardPanel } from "#/components/coss/card";
 import { Checkbox } from "#/components/coss/checkbox";
 import {
@@ -359,20 +359,7 @@ function RouteComponent() {
 					title="Unable to load albums"
 				/>
 			) : albums.length ? (
-				<div
-					className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
-					ref={albumGridRef}
-				>
-					{albums.map((album) => {
-						return (
-							<AlbumCard
-								album={album}
-								className="min-w-0"
-								key={album.albumId}
-							/>
-						);
-					})}
-				</div>
+				<AlbumGrid albums={albums} ref={albumGridRef} />
 			) : (
 				<LibraryEmptyState
 					description="Albums will appear here after they are created."
@@ -385,7 +372,7 @@ function RouteComponent() {
 }
 function AlbumGridSkeleton() {
 	return (
-		<div className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+		<div className={albumGridClassName}>
 			{Array.from({ length: 10 }, (_, index) => (
 				<Card className="overflow-hidden" key={index}>
 					<Skeleton className="aspect-square rounded-none" />
