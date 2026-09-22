@@ -15,4 +15,9 @@ public interface IPartyRelationshipService
         CreatePartyRelationshipRequest request,
         CancellationToken cancellationToken = default
     );
+
+    Task DeleteRelationshipAsync(
+        Guid relationshipId,
+        CancellationToken cancellationToken = default
+    );
 }

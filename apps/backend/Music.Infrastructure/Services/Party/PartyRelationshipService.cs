@@ -14,6 +14,26 @@ namespace Music.Infrastructure.Services.Party;
 public sealed class PartyRelationshipService(AppDbContext dbContext, IAssetsService assetsService)
     : IPartyRelationshipService
 {
+    public async Task DeleteRelationshipAsync(
+        Guid relationshipId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (relationshipId == Guid.Empty)
+        {
+            throw new ValidationException("The relationship ID must not be empty.");
+        }
+
+        var deleted = await dbContext
+            .PartyMemberships.Where(relationship => relationship.Id == relationshipId)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        if (deleted == 0)
+        {
+            throw new EntityNotFoundException("Relationship not found.");
+        }
+    }
+
     public async Task<PartyRelationshipGraph> GetGraphAsync(
         int partyId,
         CancellationToken cancellationToken = default
@@ -41,6 +61,7 @@ public sealed class PartyRelationshipService(AppDbContext dbContext, IAssetsServ
                 .ThenBy(relationship => relationship.Type)
                 .Select(relationship => new PartyRelationshipDetails
                 {
+                    RelationshipId = relationship.Id,
                     SourcePartyId = relationship.MemberId,
                     TargetPartyId = relationship.PartyId,
                     Type = relationship.Type,
@@ -156,6 +177,7 @@ public sealed class PartyRelationshipService(AppDbContext dbContext, IAssetsServ
 
         return new CreatePartyRelationshipResult
         {
+            RelationshipId = relationship.Id,
             SourcePartyId = sourcePartyId,
             TargetPartyId = request.TargetPartyId,
             Type = request.Type,

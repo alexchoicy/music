@@ -1574,6 +1574,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/relationships/{relationshipId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/search": {
         parameters: {
             query?: never;
@@ -2483,6 +2551,8 @@ export interface components {
             type: components["schemas"]["PartyRelationshipType"];
         };
         CreatePartyRelationshipResult: {
+            /** Format: uuid */
+            relationshipId: string;
             /** Format: int32 */
             sourcePartyId: number | string;
             /** Format: int32 */
@@ -2717,6 +2787,8 @@ export interface components {
         /** @enum {unknown} */
         PartyKind: "Human" | "VTuber" | "VocaloidCreator" | "VoiceSynth";
         PartyRelationshipDetails: {
+            /** Format: uuid */
+            relationshipId: string;
             /** Format: int32 */
             sourcePartyId: number | string;
             /** Format: int32 */

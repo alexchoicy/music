@@ -34,6 +34,14 @@ export const partyRelationshipQueries = {
 };
 
 export const partyRelationshipMutation = {
+	delete: () => ({
+		mutationFn: async (relationshipId: Relationship["relationshipId"]) => {
+			const result = await $APIFetch<void>(`/relationships/${relationshipId}`, {
+				method: "DELETE",
+			});
+			if (!result.ok) throw result.error;
+		},
+	}),
 	create: () => ({
 		mutationFn: async ({
 			sourcePartyId,

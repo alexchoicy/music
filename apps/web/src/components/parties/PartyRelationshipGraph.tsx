@@ -137,9 +137,7 @@ export function PartyRelationshipGraph({
 											? line.forwardArrow
 											: line.reverseArrow;
 									return (
-										<g
-											key={`${edge.sourcePartyId}-${edge.targetPartyId}-${edge.type}`}
-										>
+										<g key={edge.relationshipId}>
 											<circle
 												cx={labelLeft + 14}
 												cy={y}

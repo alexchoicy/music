@@ -1039,20 +1039,27 @@ namespace Music.Infrastructure.Migrations
 
             modelBuilder.Entity("Music.Core.Entities.PartyMembership", b =>
                 {
-                    b.Property<int>("PartyId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<int>("MemberId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PartyId")
                         .HasColumnType("integer");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
-                    b.HasKey("PartyId", "MemberId", "Type");
+                    b.HasKey("Id");
 
                     b.HasIndex("MemberId");
 
                     b.HasIndex("PartyId");
+
+                    b.HasIndex("PartyId", "MemberId", "Type")
+                        .IsUnique();
 
                     b.ToTable("PartyMemberships", (string)null);
                 });

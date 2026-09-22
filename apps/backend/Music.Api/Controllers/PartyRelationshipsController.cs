@@ -48,4 +48,19 @@ public sealed class PartyRelationshipsController(IPartyRelationshipService relat
 
         return StatusCode(StatusCodes.Status201Created, result);
     }
+
+    [HttpDelete("/relationships/{relationshipId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteRelationshipAsync(
+        [FromRoute] Guid relationshipId,
+        CancellationToken cancellationToken
+    )
+    {
+        await relationshipService.DeleteRelationshipAsync(relationshipId, cancellationToken);
+
+        return NoContent();
+    }
 }

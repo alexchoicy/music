@@ -4,6 +4,7 @@ namespace Music.Core.Services.Parties.Results;
 
 public sealed record CreatePartyRelationshipResult
 {
+    public required Guid RelationshipId { get; init; }
     public required int SourcePartyId { get; init; }
     public required int TargetPartyId { get; init; }
     public required PartyRelationshipType Type { get; init; }

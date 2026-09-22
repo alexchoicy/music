@@ -11,6 +11,7 @@ public sealed class PartyRelationshipGraph
 
 public sealed record PartyRelationshipDetails
 {
+    public required Guid RelationshipId { get; init; }
     public required int SourcePartyId { get; init; }
     public required int TargetPartyId { get; init; }
     public required PartyRelationshipType Type { get; init; }

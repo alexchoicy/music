@@ -10,12 +10,17 @@ public class PartyMembershipConfiguration : IEntityTypeConfiguration<PartyMember
     {
         builder.ToTable("PartyMemberships");
 
-        builder.HasKey(pm => new
-        {
-            pm.PartyId,
-            pm.MemberId,
-            pm.Type,
-        });
+        builder.HasKey(pm => pm.Id);
+        builder.Property(pm => pm.Id).ValueGeneratedOnAdd();
+
+        builder
+            .HasIndex(pm => new
+            {
+                pm.PartyId,
+                pm.MemberId,
+                pm.Type,
+            })
+            .IsUnique();
 
         builder
             .HasOne(pm => pm.Party)

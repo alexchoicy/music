@@ -13,6 +13,7 @@ import {
 } from "#/lib/queries/party-relationships.queries";
 
 import { AddRelationshipDialog } from "./AddRelationshipDialog";
+import { ManageRelationshipsDialog } from "./ManageRelationshipsDialog";
 import { PartyRelationshipGraph } from "./PartyRelationshipGraph";
 
 export function PartyRelationships({
@@ -54,10 +55,13 @@ export function PartyRelationships({
 						</p>
 					)}
 				</div>
-				<Button onClick={() => setDialogOpen(true)} type="button">
-					<PlusIcon aria-hidden="true" />
-					Add relationship
-				</Button>
+				<div className="flex flex-wrap gap-2">
+					{graph && <ManageRelationshipsDialog graph={graph} />}
+					<Button onClick={() => setDialogOpen(true)} type="button">
+						<PlusIcon aria-hidden="true" />
+						Add relationship
+					</Button>
+				</div>
 			</div>
 			{query.isPending && (
 				<div
@@ -97,9 +101,7 @@ export function PartyRelationships({
 					{graph.relationships.length > 0 && (
 						<ul aria-label="All relationships" className="sr-only">
 							{graph.relationships.map((edge) => (
-								<li
-									key={`${edge.sourcePartyId}-${edge.targetPartyId}-${edge.type}`}
-								>
+								<li key={edge.relationshipId}>
 									{names.get(Number(edge.sourcePartyId))} →{" "}
 									{relationshipLabels[edge.type]} →{" "}
 									{names.get(Number(edge.targetPartyId))}
