@@ -97,6 +97,7 @@ const mainNavigation = [
 
 function SidebarUploadStatus(): React.ReactElement {
 	const navigate = useNavigate();
+	const { isMobile, setOpenMobile } = useSidebar();
 	const fileByBlake3 = useUploadStore((state) => state.fileByBlake3);
 	const activeUploads = Object.entries(fileByBlake3).filter(
 		([, record]) =>
@@ -120,7 +121,10 @@ function SidebarUploadStatus(): React.ReactElement {
 					<Button
 						aria-label="Upload status"
 						className="text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-						onClick={() => void navigate({ to: "/uploads" })}
+						onClick={() => {
+							if (isMobile) setOpenMobile(false);
+							void navigate({ to: "/uploads" });
+						}}
 						size="icon-sm"
 						variant="ghost"
 					/>
@@ -200,7 +204,7 @@ export function AppSidebar({
 		<Sidebar collapsible="offcanvas">
 			<SidebarHeader className="gap-6 p-3">
 				<div className="flex items-center justify-between gap-2.5">
-					<Link to="/">
+					<Link onClick={closeMobileSidebar} to="/">
 						<div className="flex items-center gap-2.5">
 							<img alt="" className="size-8 rounded-lg" src="/logo192.png" />
 							<span className="text-sm font-semibold">Music</span>
@@ -236,6 +240,7 @@ export function AppSidebar({
 								return (
 									<SidebarMenuItem key={item.label}>
 										<SidebarMenuButton
+											onClick={closeMobileSidebar}
 											render={
 												<Link
 													activeOptions={{ exact: item.to === "/" }}

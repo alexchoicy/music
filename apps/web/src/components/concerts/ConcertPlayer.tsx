@@ -438,6 +438,7 @@ export function ConcertPlayer({
 			<video
 				className="h-full w-full"
 				muted={muted}
+				playsInline
 				onLoadedMetadata={(event) => {
 					setDuration(event.currentTarget.duration || 0);
 				}}
@@ -481,7 +482,8 @@ export function ConcertPlayer({
 				<div
 					className={cn(
 						"absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-linear-to-t from-black/80 via-black/40 to-transparent p-3 transition-opacity",
-						isPlaying && "opacity-0 group-hover:opacity-100",
+						isPlaying &&
+							"group-focus-within:opacity-100 group-hover:opacity-100 pointer-fine:opacity-0",
 					)}
 					onClick={(event) => event.stopPropagation()}
 				>
@@ -496,7 +498,7 @@ export function ConcertPlayer({
 						step={1}
 						value={currentTime}
 					/>
-					<div className="flex items-center gap-1 text-white">
+					<div className="flex flex-wrap items-center gap-1 text-white">
 						<Button
 							aria-label={isPlaying ? "Pause" : "Play"}
 							className="text-white hover:bg-white/10 hover:text-white"
@@ -522,7 +524,7 @@ export function ConcertPlayer({
 							volume={volume}
 						/>
 
-						<span className="ml-1 text-xs tabular-nums">
+						<span className="ml-1 text-xs tabular-nums max-sm:order-first max-sm:w-full">
 							{formatMsToMMSSOrHMMSS(currentTime * 1000)} /{" "}
 							{formatMsToMMSSOrHMMSS(duration * 1000)}
 						</span>

@@ -8,10 +8,11 @@ export const searchQueries = {
 	getSearch: (query: string) =>
 		queryOptions({
 			queryKey: ["search", query],
-			queryFn: async () => {
+			queryFn: async ({ signal }) => {
 				const params = new URLSearchParams({ query });
 				const result = await $APIFetch<components["schemas"]["SearchResult"]>(
 					`/search?${params.toString()}`,
+					{ signal },
 				);
 
 				if (!result.ok) throw new Error("Unable to search");

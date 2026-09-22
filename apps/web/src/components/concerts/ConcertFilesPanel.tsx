@@ -16,7 +16,7 @@ export function ConcertFilesPanel({
 	onSelectFile,
 }: ConcertFilesPanelProps) {
 	return (
-		<aside className="flex w-80 shrink-0 flex-col gap-2 pt-0.5">
+		<aside className="flex w-full min-w-0 flex-col gap-2 pt-0.5 xl:w-80">
 			<h2 className="px-0.5 text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
 				Files ({files.length})
 			</h2>

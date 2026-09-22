@@ -9,7 +9,7 @@ import {
 	Music2Icon,
 	UsersRoundIcon,
 } from "lucide-react";
-import { Fragment, useDeferredValue, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import {
@@ -25,6 +25,7 @@ import {
 	CommandFooter,
 } from "#/components/coss/command";
 import type { components } from "#/data/APIschema";
+import { useDebouncedValue } from "#/hooks/use-debounced-value";
 import { searchQueries } from "#/lib/queries/search.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { getConcertCoverUrl } from "#/lib/utils/concert";
@@ -57,6 +58,8 @@ const emptySearchResult: SearchResult = {
 	concerts: [],
 	parties: [],
 };
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 function itemKey(item: SearchItem) {
 	if (item.kind === "album") return `album-${item.value.albumId}`;
@@ -111,12 +114,17 @@ export function Command({ initialQuery, onOpenChange, open }: CommandProps) {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [query, setQuery] = useState("");
 	const [highlightedItem, setHighlightedItem] = useState<SearchItem>();
-	const deferredQuery = useDeferredValue(query.trim());
-	const { data = emptySearchResult, isFetching } = useQuery({
-		...searchQueries.getSearch(deferredQuery),
+	const debouncedQuery = useDebouncedValue(query.trim(), SEARCH_DEBOUNCE_MS);
+	const {
+		data = emptySearchResult,
+		isFetching,
+		isError,
+	} = useQuery({
+		...searchQueries.getSearch(debouncedQuery),
 		enabled: open,
 		placeholderData: keepPreviousData,
 	});
+	const isSearching = query.trim() !== debouncedQuery || isFetching;
 	const albums: SearchItem[] = data.albums.map((value) => ({
 		kind: "album",
 		value,
@@ -201,7 +209,7 @@ export function Command({ initialQuery, onOpenChange, open }: CommandProps) {
 
 	return (
 		<CommandDialog onOpenChange={onOpenChange} open={open}>
-			<CommandDialogPopup>
+			<CommandDialogPopup className="h-105">
 				<CommandRoot
 					itemToStringValue={(item) => itemTitle(item as SearchItem)}
 					items={items}
@@ -213,8 +221,15 @@ export function Command({ initialQuery, onOpenChange, open }: CommandProps) {
 					value={query}
 				>
 					<CommandInput
+						aria-label="Search library"
 						onKeyDown={(event: ReactKeyboardEvent) => {
-							if (event.key !== "Enter" || !highlightedItem) return;
+							if (
+								event.key !== "Enter" ||
+								event.nativeEvent.isComposing ||
+								event.nativeEvent.keyCode === 229 ||
+								!highlightedItem
+							)
+								return;
 							event.preventDefault();
 
 							const item = items.find(
@@ -226,9 +241,13 @@ export function Command({ initialQuery, onOpenChange, open }: CommandProps) {
 						ref={inputRef}
 					/>
 					<CommandEmpty>
-						{isFetching ? "Searching..." : "No results found."}
+						{isSearching
+							? "Searching..."
+							: isError
+								? "Unable to search. Try again."
+								: "No results found."}
 					</CommandEmpty>
-					<CommandList>
+					<CommandList aria-busy={isSearching}>
 						<SearchGroup
 							items={albums}
 							label="Albums"
@@ -248,24 +267,38 @@ export function Command({ initialQuery, onOpenChange, open }: CommandProps) {
 					</CommandList>
 				</CommandRoot>
 				<CommandFooter>
-					<div className="flex items-center gap-4">
-						<div className="flex items-center gap-2">
-							<KbdGroup>
-								<Kbd>
-									<ArrowUpIcon />
-								</Kbd>
-								<Kbd>
-									<ArrowDownIcon />
-								</Kbd>
-							</KbdGroup>
-							<span>Navigate</span>
-						</div>
-						<div className="flex items-center gap-2">
-							<Kbd>
-								<CornerDownLeftIcon />
-							</Kbd>
-							<span>Open</span>
-						</div>
+					<div className="flex min-h-5 items-center gap-4">
+						<span
+							className={!isSearching && !isError ? "sr-only" : undefined}
+							role="status"
+						>
+							{isSearching
+								? "Searching..."
+								: isError
+									? "Unable to search."
+									: ""}
+						</span>
+						{!isSearching && !isError && (
+							<>
+								<div className="flex items-center gap-2">
+									<KbdGroup>
+										<Kbd>
+											<ArrowUpIcon />
+										</Kbd>
+										<Kbd>
+											<ArrowDownIcon />
+										</Kbd>
+									</KbdGroup>
+									<span>Navigate</span>
+								</div>
+								<div className="flex items-center gap-2">
+									<Kbd>
+										<CornerDownLeftIcon />
+									</Kbd>
+									<span>Open</span>
+								</div>
+							</>
+						)}
 					</div>
 					<div className="flex items-center gap-2">
 						<Kbd>Esc</Kbd>
