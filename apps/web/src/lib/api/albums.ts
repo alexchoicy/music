@@ -13,9 +13,8 @@ export async function createAlbums(request: CreateAlbumRequest[]) {
 
 	if (result.ok) return result.data;
 
-	if (Array.isArray(result.error)) return result.error as CreateAlbumResult[];
+	if (Array.isArray(result.error.cause))
+		return result.error.cause as CreateAlbumResult[];
 
-	throw new Error(
-		typeof result.error === "string" ? result.error : "Failed to create albums",
-	);
+	throw result.error;
 }

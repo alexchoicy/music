@@ -20,6 +20,8 @@ import { albumQueries } from "#/lib/queries/album.queries";
 import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
+import { PartyRelationships } from "./PartyRelationships";
+
 type PartyDetails = components["schemas"]["PartyDetails"];
 
 type PartyDetailTabsProps = {
@@ -36,6 +38,7 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 	const hasFeaturedIn = party.appearsOnAlbums.length > 0;
 	const tabs = [
 		"overall",
+		"relationships",
 		hasAlbums ? "albums" : null,
 		hasFeaturedIn ? "featured-in" : null,
 	].filter((value): value is string => Boolean(value));
@@ -110,10 +113,17 @@ export function PartyDetailTabs({ party }: PartyDetailTabsProps) {
 			<div className="border-b">
 				<TabsList variant="underline">
 					<TabsTab value="overall">Overall</TabsTab>
+					<TabsTab value="relationships">Relationships</TabsTab>
 					{hasAlbums && <TabsTab value="albums">Albums</TabsTab>}
 					{hasFeaturedIn && <TabsTab value="featured-in">Featured In</TabsTab>}
 				</TabsList>
 			</div>
+
+			<TabsPanel value="relationships">
+				<div className="pt-6">
+					<PartyRelationships key={party.partyId} party={party} />
+				</div>
+			</TabsPanel>
 
 			<TabsPanel className="pt-6" value="overall">
 				<div className="flex flex-col gap-8">

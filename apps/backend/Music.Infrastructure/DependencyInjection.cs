@@ -87,6 +87,7 @@ public static class DependencyInjection
         services.AddScoped<IUploadService, UploadService>();
         services.AddScoped<IMeService, MeService>();
         services.AddScoped<IPartyService, PartyService>();
+        services.AddScoped<IPartyRelationshipService, PartyRelationshipService>();
         services.AddScoped<IConcertService, ConcertService>();
         services.AddScoped<ISearchService, SearchService>();
         services.AddScoped<ITrackService, TrackService>();

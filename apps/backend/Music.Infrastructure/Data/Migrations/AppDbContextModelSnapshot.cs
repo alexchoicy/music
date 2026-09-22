@@ -1045,7 +1045,10 @@ namespace Music.Infrastructure.Migrations
                     b.Property<int>("MemberId")
                         .HasColumnType("integer");
 
-                    b.HasKey("PartyId", "MemberId");
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("PartyId", "MemberId", "Type");
 
                     b.HasIndex("MemberId");
 

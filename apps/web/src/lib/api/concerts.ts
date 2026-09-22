@@ -17,9 +17,5 @@ export async function createConcert(request: CreateConcertRequest) {
 
 	if (result.ok) return result.data;
 
-	throw new Error(
-		typeof result.error === "string"
-			? result.error
-			: "Failed to create concert",
-	);
+	throw result.error;
 }

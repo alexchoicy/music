@@ -18,8 +18,6 @@ export function PartyDetailHero({ party }: PartyDetailHeroProps) {
 	const avatarUrl = getAlbumCoverUrl(party.avatarImages);
 	const gender = party.gender !== "Unknown" ? party.gender : undefined;
 	const description = party.description.trim();
-	const hasAdditionalInfo =
-		description.length > 0 || party.externalInfoLinks.length > 0;
 
 	return (
 		<section className="grid grid-cols-[5rem_minmax(0,1fr)] gap-x-3 gap-y-4 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-x-4 sm:gap-y-5 lg:gap-x-5">
@@ -32,7 +30,7 @@ export function PartyDetailHero({ party }: PartyDetailHeroProps) {
 				</AvatarFallback>
 			</Avatar>
 
-			<div className="flex min-w-0 flex-col gap-3">
+			<div className="flex min-h-28 min-w-0 flex-col gap-3 sm:min-h-36 lg:min-h-0">
 				<div className="flex flex-wrap gap-1.5">
 					{party.type && (
 						<Badge variant="secondary">{PARTY_TYPE[party.type]}</Badge>
@@ -65,35 +63,29 @@ export function PartyDetailHero({ party }: PartyDetailHeroProps) {
 				</div>
 			</div>
 
-			{hasAdditionalInfo && (
-				<div className="col-span-2 flex min-w-0 flex-col gap-4 lg:col-span-1 lg:col-start-2">
-					{description && (
-						<p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-							{description}
-						</p>
-					)}
+			<div className="col-span-2 flex min-w-0 flex-col gap-4 lg:col-span-1 lg:col-start-2">
+				{description && (
+					<p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+						{description}
+					</p>
+				)}
 
-					{party.externalInfoLinks.length > 0 && (
-						<div className="flex flex-wrap gap-2">
-							{party.externalInfoLinks.map((link) => {
-								return (
-									<Button
-										key={`${link.type}-${link.url}`}
-										render={
-											<a href={link.url} rel="noreferrer" target="_blank" />
-										}
-										size="sm"
-										variant="outline"
-									>
-										{link.type}
-										<ExternalLinkIcon aria-hidden="true" />
-									</Button>
-								);
-							})}
-						</div>
-					)}
+				<div className="-mx-1 flex min-h-10 touch-pan-x [scrollbar-width:none] items-center gap-2 overflow-x-auto overflow-y-hidden overscroll-none px-1 py-1 sm:min-h-9 [&::-webkit-scrollbar]:hidden">
+					{party.externalInfoLinks.map((link) => {
+						return (
+							<Button
+								key={`${link.type}-${link.url}`}
+								render={<a href={link.url} rel="noreferrer" target="_blank" />}
+								size="sm"
+								variant="outline"
+							>
+								{link.type}
+								<ExternalLinkIcon aria-hidden="true" />
+							</Button>
+						);
+					})}
 				</div>
-			)}
+			</div>
 		</section>
 	);
 }

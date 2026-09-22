@@ -1204,6 +1204,373 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdatePartyRequest"];
+                    "text/json": components["schemas"]["UpdatePartyRequest"];
+                    "application/*+json": components["schemas"]["UpdatePartyRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UpdatePartyResult"];
+                        "application/json": components["schemas"]["UpdatePartyResult"];
+                        "text/json": components["schemas"]["UpdatePartyResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/parties/{id}/aliases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PartyAliasBatchRequest"];
+                    "text/json": components["schemas"]["PartyAliasBatchRequest"];
+                    "application/*+json": components["schemas"]["PartyAliasBatchRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/parties/{id}/external-infos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PartyExternalInfoBatchRequest"];
+                    "text/json": components["schemas"]["PartyExternalInfoBatchRequest"];
+                    "application/*+json": components["schemas"]["PartyExternalInfoBatchRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/parties/{id}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PartyImageBatchRequest"];
+                    "text/json": components["schemas"]["PartyImageBatchRequest"];
+                    "application/*+json": components["schemas"]["PartyImageBatchRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/parties/{sourcePartyId}/relationships": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    sourcePartyId: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PartyRelationshipGraph"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    sourcePartyId: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreatePartyRelationshipRequest"];
+                    "text/json": components["schemas"]["CreatePartyRelationshipRequest"];
+                    "application/*+json": components["schemas"]["CreatePartyRelationshipRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CreatePartyRelationshipResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -1722,6 +2089,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ws": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1828,8 +2228,8 @@ export interface components {
         AlbumSummaryDisc: {
             /** Format: int32 */
             discNumber: number | string;
-            tracks: components["schemas"]["AlbumSummaryTrack"][];
             coverUrl: string;
+            tracks: components["schemas"]["AlbumSummaryTrack"][];
         };
         AlbumSummaryTrack: {
             /** Format: int32 */
@@ -1996,7 +2396,7 @@ export interface components {
             role: components["schemas"]["ConcertPartyRole"];
         };
         /** @enum {unknown} */
-        CountryCode: "XX" | "HK" | "JP" | "KR" | "US" | "CN" | "TW" | "ID";
+        CountryCode: "XX" | "HK" | "JP" | "KR" | "US" | "CN" | "TW" | "ID" | "UK";
         CreateAlbumImageUploadItemResult: {
             clientReferenceId: string;
             /** Format: int32 */
@@ -2076,6 +2476,18 @@ export interface components {
             concertImage?: null | components["schemas"]["CreateConcertUploadImageResult"];
             concertTitle: string;
             files?: components["schemas"]["CreateConcertWithoutUploadItemResult"][];
+        };
+        CreatePartyRelationshipRequest: {
+            /** Format: int32 */
+            targetPartyId: number | string;
+            type: components["schemas"]["PartyRelationshipType"];
+        };
+        CreatePartyRelationshipResult: {
+            /** Format: int32 */
+            sourcePartyId: number | string;
+            /** Format: int32 */
+            targetPartyId: number | string;
+            type: components["schemas"]["PartyRelationshipType"];
         };
         CreatePartyRequest: {
             name: string;
@@ -2185,6 +2597,8 @@ export interface components {
             imageBanner1500x500?: null | components["schemas"]["FileObjectDetails"];
             imageWide1280x720?: null | components["schemas"]["FileObjectDetails"];
         };
+        /** @enum {unknown} */
+        ImageRole: "Cover" | "Avatar" | "Banner";
         JsonElement: unknown;
         LanguageListItem: {
             /** Format: int32 */
@@ -2215,10 +2629,26 @@ export interface components {
             parts: components["schemas"]["MultipartUploadPartInfo"][];
         };
         PartyAlias: {
+            /** Format: int32 */
+            id?: number | string;
             name: string;
             normalizedName: string;
         };
+        PartyAliasBatchRequest: {
+            upsert: components["schemas"]["PartyAliasWriteRequest"][];
+            delete: (number | string)[];
+        };
+        PartyAliasWriteRequest: {
+            /** Format: int32 */
+            id?: null | number | string;
+            name: string;
+        };
         PartyDetails: {
+            musicBrainzId?: null | string;
+            /** Format: date-time */
+            debutDate?: null | string;
+            images?: components["schemas"]["PartyImageDetails"][];
+            externalInfos?: components["schemas"]["UpdatePartyExternalInfoRequest"][];
             /** Format: int32 */
             partyId: number | string;
             name: string;
@@ -2233,6 +2663,10 @@ export interface components {
             albums: components["schemas"]["AlbumListItem"][];
             appearsOnAlbums: components["schemas"]["AlbumListItem"][];
         };
+        PartyExternalInfoBatchRequest: {
+            upsert: components["schemas"]["UpdatePartyExternalInfoRequest"][];
+            delete: (number | string)[];
+        };
         PartyExternalInfoLink: {
             type: components["schemas"]["PartyExternalInfoType"];
             url: string;
@@ -2241,9 +2675,28 @@ export interface components {
         PartyExternalInfoType: "Spotify" | "Twitter" | "OfficialWebsite" | "YouTube" | "YouTubeMusic" | "Instagram" | "AppleMusic" | "Mora" | "Ototoy";
         /** @enum {unknown} */
         PartyGender: "Unknown" | "Male" | "Female";
+        PartyImageBatchRequest: {
+            upsert: components["schemas"]["UpdatePartyImageRequest"][];
+            delete: (number | string)[];
+        };
+        PartyImageDetails: {
+            /** Format: int32 */
+            id: number | string;
+            imageRole: components["schemas"]["ImageRole"];
+            isPrimary?: boolean;
+            croppedArea?: null | components["schemas"]["FileCroppedAreaRequest"];
+            url?: null | string;
+        };
         PartyImageRequest: {
             file: components["schemas"]["FileRequest"];
             croppedArea?: null | components["schemas"]["FileCroppedAreaRequest"];
+        };
+        PartyImageUploadResult: {
+            /** Format: int32 */
+            imageId: number | string;
+            /** Format: uuid */
+            fileObjectId: string;
+            uploadUrl: string;
         };
         PartyItems: {
             /** Format: int32 */
@@ -2262,7 +2715,31 @@ export interface components {
             aliases: components["schemas"]["PartyAlias"][];
         };
         /** @enum {unknown} */
-        PartyKind: "Human" | "VTuber" | "Vocaloid";
+        PartyKind: "Human" | "VTuber" | "VocaloidCreator" | "VoiceSynth";
+        PartyRelationshipDetails: {
+            /** Format: int32 */
+            sourcePartyId: number | string;
+            /** Format: int32 */
+            targetPartyId: number | string;
+            type: components["schemas"]["PartyRelationshipType"];
+        };
+        PartyRelationshipGraph: {
+            /** Format: int32 */
+            focusPartyId: number | string;
+            parties: components["schemas"]["PartySummary"][];
+            relationships: components["schemas"]["PartyRelationshipDetails"][];
+        };
+        /** @enum {unknown} */
+        PartyRelationshipType: "MemberOf" | "VoiceActorOf" | "AffiliatedWith";
+        PartySummary: {
+            /** Format: int32 */
+            partyId: number | string;
+            name: string;
+            avatarImages?: null | components["schemas"]["ImageFileVariants"];
+            type?: components["schemas"]["PartyType"];
+            kind: components["schemas"]["PartyKind"];
+            gender?: components["schemas"]["PartyGender"];
+        };
         /** @enum {unknown} */
         PartyType: "Individual" | "Group" | "Project";
         PasskeyDeleteRequest: {
@@ -2353,6 +2830,36 @@ export interface components {
         };
         /** @enum {unknown} */
         TrackVersionType: "Original" | "Instrumental" | "Remix" | "Live" | "Acoustic" | "RadioEdit" | "Demo" | "Other";
+        UpdatePartyExternalInfoRequest: {
+            /** Format: int32 */
+            id?: null | number | string;
+            type: components["schemas"]["PartyExternalInfoType"];
+            externalId: string;
+        };
+        UpdatePartyImageRequest: {
+            /** Format: int32 */
+            id?: null | number | string;
+            file?: null | components["schemas"]["FileRequest"];
+            imageRole: components["schemas"]["ImageRole"];
+            isPrimary?: boolean;
+            croppedArea?: null | components["schemas"]["FileCroppedAreaRequest"];
+        };
+        UpdatePartyRequest: {
+            name?: null | string;
+            description?: null | string;
+            musicBrainzId?: null | string;
+            country?: null | components["schemas"]["CountryCode"];
+            /** Format: date-time */
+            debutDate?: null | string;
+            type?: null | components["schemas"]["PartyType"];
+            kind?: null | components["schemas"]["PartyKind"];
+            gender?: null | components["schemas"]["PartyGender"];
+        };
+        UpdatePartyResult: {
+            /** Format: int32 */
+            partyId: number | string;
+            images?: components["schemas"]["PartyImageUploadResult"][];
+        };
         UpdateUserRequest: {
             username?: null | string;
             password?: null | string;

@@ -12,11 +12,7 @@ export async function startUpload(fileObjectId: string) {
 	);
 
 	if (!result.ok) {
-		throw new Error(
-			typeof result.error === "string"
-				? result.error
-				: "Failed to start upload",
-		);
+		throw result.error;
 	}
 
 	return result.data;
@@ -29,10 +25,6 @@ export async function completeUpload(request: CompleteUploadRequest) {
 	});
 
 	if (!result.ok) {
-		throw new Error(
-			typeof result.error === "string"
-				? result.error
-				: "Failed to complete upload",
-		);
+		throw result.error;
 	}
 }
