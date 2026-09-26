@@ -1,3 +1,6 @@
+import { Graph, layout } from "@dagrejs/dagre";
+import type { EdgeLabel, GraphLabel, NodeLabel } from "@dagrejs/dagre";
+
 import type {
 	Relationship,
 	RelationshipGraph,
@@ -6,13 +9,11 @@ import type {
 
 export const NODE_WIDTH = 224;
 export const NODE_HEIGHT = 96;
-const COLUMN_GAP = 64;
-const ROW_GAP = 128;
-const PADDING = 80;
 export const RELATIONSHIP_LABEL_ROW_HEIGHT = 22;
+export const RELATIONSHIP_LABEL_WIDTH = 160;
 
 export type GraphNode = { party: RelationshipParty; x: number; y: number };
-export type GraphConnection = {
+type GraphConnection = {
 	sourcePartyId: number;
 	targetPartyId: number;
 	relationships: Relationship[];
@@ -22,9 +23,17 @@ export function relationshipLabelHeight(count: number) {
 	return count * RELATIONSHIP_LABEL_ROW_HEIGHT + 2;
 }
 
-export function groupRelationships(relationships: Relationship[]) {
+function groupRelationships(relationships: Relationship[]) {
 	const connections = new Map<string, GraphConnection>();
-	for (const relationship of relationships) {
+	// Stable input ordering keeps the layout independent of API traversal order.
+	const ordered = [...relationships].sort(
+		(a, b) =>
+			Number(a.sourcePartyId) - Number(b.sourcePartyId) ||
+			Number(a.targetPartyId) - Number(b.targetPartyId) ||
+			a.type.localeCompare(b.type) ||
+			a.relationshipId.localeCompare(b.relationshipId),
+	);
+	for (const relationship of ordered) {
 		const source = Number(relationship.sourcePartyId);
 		const target = Number(relationship.targetPartyId);
 		const key = `${Math.min(source, target)}-${Math.max(source, target)}`;
@@ -42,111 +51,90 @@ export function groupRelationships(relationships: Relationship[]) {
 	return [...connections.values()];
 }
 
-export function layoutRelationships(graph: RelationshipGraph, focusId: number) {
-	const connections = groupRelationships(graph.relationships);
-	const maxLabelHeight = Math.max(
-		24,
-		...connections.map((connection) =>
-			relationshipLabelHeight(connection.relationships.length),
-		),
-	);
-	const rowGap = Math.max(ROW_GAP, maxLabelHeight + 64);
-	const padding = Math.max(PADDING, maxLabelHeight + 40);
-	const levels = new Map<number, number>([[focusId, 0]]);
-	const neighbours = new Map<number, { id: number; step: number }[]>();
-	for (const edge of connections) {
-		const source = Number(edge.sourcePartyId);
-		const target = Number(edge.targetPartyId);
-		neighbours.set(source, [
-			...(neighbours.get(source) ?? []),
-			{ id: target, step: -1 },
-		]);
-		neighbours.set(target, [
-			...(neighbours.get(target) ?? []),
-			{ id: source, step: 1 },
-		]);
-	}
-	const queue = [focusId];
-	for (const id of queue) {
-		for (const neighbour of neighbours.get(id) ?? []) {
-			if (levels.has(neighbour.id)) continue;
-			levels.set(neighbour.id, (levels.get(id) ?? 0) + neighbour.step);
-			queue.push(neighbour.id);
-		}
-	}
-	const rows = new Map<number, RelationshipParty[]>();
-	for (const party of graph.parties) {
-		const level = levels.get(Number(party.partyId)) ?? 0;
-		rows.set(level, [...(rows.get(level) ?? []), party]);
-	}
-	const orderedRows = [...rows.entries()].sort(([a], [b]) => a - b);
-	const columns = Math.max(
-		1,
-		...orderedRows.map(([, parties]) => parties.length),
-	);
-	const width = PADDING * 2 + columns * NODE_WIDTH + (columns - 1) * COLUMN_GAP;
-	const height =
-		padding * 2 +
-		orderedRows.length * NODE_HEIGHT +
-		Math.max(0, orderedRows.length - 1) * rowGap;
-	const nodes = new Map<number, GraphNode>();
-	orderedRows.forEach(([, parties], row) => {
-		const sorted = [...parties].sort(
-			(a, b) =>
-				a.name.localeCompare(b.name) || Number(a.partyId) - Number(b.partyId),
-		);
-		const focusIndex = sorted.findIndex(
-			(party) => Number(party.partyId) === focusId,
-		);
-		if (focusIndex >= 0)
-			sorted.splice(
-				Math.floor(sorted.length / 2),
-				0,
-				...sorted.splice(focusIndex, 1),
-			);
-		const rowWidth =
-			sorted.length * NODE_WIDTH + (sorted.length - 1) * COLUMN_GAP;
-		sorted.forEach((party, column) =>
-			nodes.set(Number(party.partyId), {
-				party,
-				x: (width - rowWidth) / 2 + column * (NODE_WIDTH + COLUMN_GAP),
-				y: padding + row * (NODE_HEIGHT + rowGap),
-			}),
-		);
+export function layoutRelationships(graph: RelationshipGraph) {
+	const diagram = new Graph<GraphLabel, NodeLabel, EdgeLabel>();
+	diagram.setGraph({
+		// Source → target: members/affiliates sit below their groups/organizations.
+		rankdir: "BT",
+		nodesep: 48,
+		edgesep: 32,
+		ranksep: 96,
+		marginx: 48,
+		marginy: 48,
 	});
-	return { width, height, nodes, connections };
-}
-
-export function relationshipPath(
-	edge: GraphConnection,
-	nodes: Map<number, GraphNode>,
-) {
-	const source = nodes.get(Number(edge.sourcePartyId));
-	const target = nodes.get(Number(edge.targetPartyId));
-	if (!source || !target) return null;
-	const sx = source.x + NODE_WIDTH / 2;
-	const tx = target.x + NODE_WIDTH / 2;
-	if (source.y === target.y) {
-		const clearance =
-			relationshipLabelHeight(edge.relationships.length) / 2 + 24;
-		const arcY = source.y - clearance / 0.75;
-		return {
-			path: `M ${sx} ${source.y} C ${sx} ${arcY}, ${tx} ${arcY}, ${tx} ${target.y}`,
-			x: (sx + tx) / 2,
-			y: source.y - clearance,
-			forwardArrow: target.x > source.x ? "→" : "←",
-			reverseArrow: target.x > source.x ? "←" : "→",
-		};
+	const parties = [...graph.parties].sort(
+		(a, b) =>
+			a.name.localeCompare(b.name) || Number(a.partyId) - Number(b.partyId),
+	);
+	for (const party of parties) {
+		diagram.setNode(String(party.partyId), {
+			width: NODE_WIDTH,
+			height: NODE_HEIGHT,
+		});
 	}
-	const goingDown = target.y > source.y;
-	const sy = source.y + (goingDown ? NODE_HEIGHT : 0);
-	const ty = target.y + (goingDown ? 0 : NODE_HEIGHT);
-	const middle = (sy + ty) / 2;
+	const connections = groupRelationships(graph.relationships);
+	for (const connection of connections) {
+		diagram.setEdge(
+			String(connection.sourcePartyId),
+			String(connection.targetPartyId),
+			{
+				width: RELATIONSHIP_LABEL_WIDTH,
+				height: relationshipLabelHeight(connection.relationships.length),
+				labelpos: "c",
+			},
+		);
+	}
+	// Rank the whole graph, minimize crossings, and reserve space for labels.
+	// Dagre routes multi-parent links and cycles without discarding their direction.
+	layout(diagram);
+	const nodes = new Map<number, GraphNode>();
+	for (const party of parties) {
+		const position = diagram.node(String(party.partyId));
+		nodes.set(Number(party.partyId), {
+			party,
+			x: position.x! - NODE_WIDTH / 2,
+			y: position.y! - NODE_HEIGHT / 2,
+		});
+	}
 	return {
-		path: `M ${sx} ${sy} C ${sx} ${middle}, ${tx} ${middle}, ${tx} ${ty}`,
-		x: (sx + tx) / 2,
-		y: middle,
-		forwardArrow: goingDown ? "↓" : "↑",
-		reverseArrow: goingDown ? "↑" : "↓",
+		width: diagram.graph().width!,
+		height: diagram.graph().height!,
+		nodes,
+		connections: connections.map((connection) => {
+			const edge = diagram.edge(
+				String(connection.sourcePartyId),
+				String(connection.targetPartyId),
+			);
+			const source = nodes.get(connection.sourcePartyId)!;
+			const target = nodes.get(connection.targetPartyId)!;
+			const forwardArrow =
+				target.y === source.y
+					? target.x > source.x
+						? "→"
+						: "←"
+					: target.y > source.y
+						? "↓"
+						: "↑";
+			const reverseArrow = { "→": "←", "←": "→", "↓": "↑", "↑": "↓" }[
+				forwardArrow
+			];
+			return {
+				...connection,
+				bidirectional: connection.relationships.some(
+					(relationship) =>
+						Number(relationship.sourcePartyId) === connection.targetPartyId,
+				),
+				path: edge
+					.points!.map(
+						(point, index) =>
+							`${index === 0 ? "M" : "L"} ${point.x} ${point.y}`,
+					)
+					.join(" "),
+				x: edge.x!,
+				y: edge.y!,
+				forwardArrow,
+				reverseArrow,
+			};
+		}),
 	};
 }
