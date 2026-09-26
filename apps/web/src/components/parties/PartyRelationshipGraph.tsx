@@ -73,11 +73,6 @@ export function PartyRelationshipGraph({
 							key={`${connection.sourcePartyId}-${connection.targetPartyId}`}
 							d={connection.path}
 							fill="none"
-							markerStart={
-								connection.bidirectional
-									? `url(#${id}-${colorType})`
-									: undefined
-							}
 							markerEnd={`url(#${id}-${colorType})`}
 							stroke={relationshipColors[colorType]}
 							strokeWidth="1.75"
@@ -109,10 +104,6 @@ export function PartyRelationshipGraph({
 									connection.y +
 									(index - (relationships.length - 1) / 2) *
 										RELATIONSHIP_LABEL_ROW_HEIGHT;
-								const arrow =
-									Number(edge.sourcePartyId) === connection.sourcePartyId
-										? connection.forwardArrow
-										: connection.reverseArrow;
 								return (
 									<g key={edge.relationshipId}>
 										<circle
@@ -127,7 +118,7 @@ export function PartyRelationshipGraph({
 											x={labelLeft + 25}
 											y={y}
 										>
-											{connection.bidirectional ? `${arrow} ${label}` : label}
+											{label}
 										</text>
 									</g>
 								);

@@ -36,7 +36,7 @@ function groupRelationships(relationships: Relationship[]) {
 	for (const relationship of ordered) {
 		const source = Number(relationship.sourcePartyId);
 		const target = Number(relationship.targetPartyId);
-		const key = `${Math.min(source, target)}-${Math.max(source, target)}`;
+		const key = `${source}-${target}`;
 		const connection = connections.get(key);
 		if (connection) {
 			connection.relationships.push(relationship);
@@ -54,13 +54,13 @@ function groupRelationships(relationships: Relationship[]) {
 export function layoutRelationships(graph: RelationshipGraph) {
 	const diagram = new Graph<GraphLabel, NodeLabel, EdgeLabel>();
 	diagram.setGraph({
-		// Source → target: members/affiliates sit below their groups/organizations.
-		rankdir: "BT",
-		nodesep: 48,
-		edgesep: 32,
-		ranksep: 96,
-		marginx: 48,
-		marginy: 48,
+		// Source → target: groups sit to the left, with members branching right.
+		rankdir: "RL",
+		nodesep: 24,
+		edgesep: 24,
+		ranksep: 64,
+		marginx: 32,
+		marginy: 32,
 	});
 	const parties = [...graph.parties].sort(
 		(a, b) =>
@@ -105,25 +105,8 @@ export function layoutRelationships(graph: RelationshipGraph) {
 				String(connection.sourcePartyId),
 				String(connection.targetPartyId),
 			);
-			const source = nodes.get(connection.sourcePartyId)!;
-			const target = nodes.get(connection.targetPartyId)!;
-			const forwardArrow =
-				target.y === source.y
-					? target.x > source.x
-						? "→"
-						: "←"
-					: target.y > source.y
-						? "↓"
-						: "↑";
-			const reverseArrow = { "→": "←", "←": "→", "↓": "↑", "↑": "↓" }[
-				forwardArrow
-			];
 			return {
 				...connection,
-				bidirectional: connection.relationships.some(
-					(relationship) =>
-						Number(relationship.sourcePartyId) === connection.targetPartyId,
-				),
 				path: edge
 					.points!.map(
 						(point, index) =>
@@ -132,8 +115,6 @@ export function layoutRelationships(graph: RelationshipGraph) {
 					.join(" "),
 				x: edge.x!,
 				y: edge.y!,
-				forwardArrow,
-				reverseArrow,
 			};
 		}),
 	};

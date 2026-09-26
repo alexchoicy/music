@@ -280,7 +280,10 @@ export function RelationshipGraphCanvas({
 				}}
 				onPointerUp={endDrag}
 				onPointerCancel={endDrag}
-				onLostPointerCapture={endDrag}
+				onLostPointerCapture={(event) => {
+					// Touch capture moves from the card to the canvas when dragging starts.
+					if (event.target === event.currentTarget) endDrag(event);
+				}}
 				onPointerLeave={(event) => {
 					if (!drag.current?.moved) endDrag(event);
 				}}
