@@ -82,25 +82,15 @@ export function RelationshipGraphCanvas({
 					: event.deltaMode === 2
 						? container.clientHeight
 						: 1;
-			if (event.ctrlKey || event.metaKey) {
-				const bounds = container.getBoundingClientRect();
-				setView((current) =>
-					zoomView(
-						current,
-						Math.exp(-event.deltaY * unit * 0.01),
-						event.clientX - bounds.left - bounds.width / 2,
-						event.clientY - bounds.top - bounds.height / 2,
-					),
-				);
-			} else {
-				setView((current) =>
-					panView(
-						current,
-						-(event.shiftKey ? event.deltaY : event.deltaX) * unit,
-						-(event.shiftKey ? 0 : event.deltaY) * unit,
-					),
-				);
-			}
+			const bounds = container.getBoundingClientRect();
+			setView((current) =>
+				zoomView(
+					current,
+					Math.exp(-event.deltaY * unit * 0.002),
+					event.clientX - bounds.left - bounds.width / 2,
+					event.clientY - bounds.top - bounds.height / 2,
+				),
+			);
 		};
 		// React's passive wheel handler cannot prevent page scrolling or browser zoom.
 		container.addEventListener("wheel", wheel, { passive: false });
@@ -153,7 +143,7 @@ export function RelationshipGraphCanvas({
 		<div className="flex min-w-0 flex-col gap-3">
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<p className="px-1 text-xs text-muted-foreground" id={instructionsId}>
-					Drag to move · Ctrl/⌘ + scroll to zoom
+					Drag to move · Scroll to zoom
 					<span className="sr-only">
 						. Use arrow keys to move, + and - to zoom, and Home to fit all.
 					</span>
