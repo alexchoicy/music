@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestUrl } from "@tanstack/react-start/server";
 
 import type { components } from "@/data/APIschema";
 
@@ -26,5 +27,10 @@ export const getSimpleAlbum = createServerFn({ method: "GET" })
 
 		const album = (await res.json()) as components["schemas"]["AlbumSummary"];
 
-		return album;
+		const albumUrl = new URL(
+			`/albums/${encodeURIComponent(data.id)}`,
+			getRequestUrl().origin,
+		).href;
+
+		return { album, albumUrl };
 	});

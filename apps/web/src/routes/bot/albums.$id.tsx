@@ -1,6 +1,7 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 
+import { createAlbumPreview } from "#/lib/discord/albumPreview";
 import { checkBotHeader } from "#/lib/ServerFunction/checkBotHeader";
 import { getSimpleAlbum } from "#/lib/ServerFunction/getSimpleAlbum";
 
@@ -27,59 +28,44 @@ export const Route = createFileRoute("/bot/albums/$id")({
 			throw redirect(albumRedirect);
 		}
 	},
-	component: RouteComponent,
+	component: () => null,
 	loaderDeps: ({ search }) => ({ track: search.track }),
 	loader: async ({ params, deps }) => {
 		const { track } = deps;
 		const { id } = params;
 
-		const album = await getSimpleAlbum({ data: { id } });
+		const result = await getSimpleAlbum({ data: { id } });
 
-		if (!album) {
+		if (!result) {
 			throw notFound();
 		}
 
-		const selectedDisc = album.discs.find((disc) =>
-			disc.tracks.some((albumTrack) => Number(albumTrack.trackId) === track),
-		);
-		const selectedTrack = selectedDisc?.tracks.find(
-			(albumTrack) => Number(albumTrack.trackId) === track,
-		);
-
-		return { album, selectedDisc, selectedTrack };
+		return createAlbumPreview(result.album, result.albumUrl, track);
 	},
 	head: ({ loaderData }) => {
-		const album = loaderData?.album;
-		const selectedDisc = loaderData?.selectedDisc;
-		const selectedTrack = loaderData?.selectedTrack;
-		const title = selectedTrack?.title ?? album?.title;
-		const description = selectedTrack
-			? `${selectedTrack.title} from ${album?.title} by ${album?.credits.join(", ")}`
-			: `${album?.title} by ${album?.credits.join(", ")}`;
-		const og = {
-			title,
-			description,
-			image: selectedDisc?.coverUrl || album?.coverUrl,
-		};
+		if (!loaderData) return {};
 
+		const { title, description, image, url, embed } = loaderData;
 		return {
 			meta: [
-				{ title: og.title },
+				{ title },
+				{ name: "description", content: description },
+				{ property: "og:site_name", content: "Music" },
+				{ property: "og:title", content: title },
+				{ property: "og:description", content: description },
+				{ property: "og:url", content: url },
+				{ property: "og:type", content: "website" },
+				...(image ? [{ property: "og:image", content: image }] : []),
+				{ name: "twitter:card", content: "summary_large_image" },
+				{ name: "theme-color", content: "#d8aa65" },
+			],
+			scripts: [
 				{
-					name: "description",
-					content: og.description,
+					id: "discord:component-embed",
+					type: "application/json",
+					children: JSON.stringify(embed).replace(/</g, "\\u003c"),
 				},
-				{ property: "og:title", content: og.title },
-				{
-					property: "og:description",
-					content: og.description,
-				},
-				{ property: "og:image", content: og.image },
 			],
 		};
 	},
 });
-
-function RouteComponent() {
-	return <div>HOLA BOT!</div>;
-}
