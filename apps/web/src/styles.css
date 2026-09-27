@@ -6,14 +6,21 @@
 @import "@fontsource-variable/noto-sans-tc";
 @import "@fontsource-variable/noto-sans-jp";
 @import "@fontsource-variable/noto-sans-kr";
-@import "@fontsource-variable/inter";
 
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+	--font-sans:
+		"Geist Variable", "Noto Sans SC Variable", "Noto Sans TC Variable",
+		"Noto Sans JP Variable", "Noto Sans KR Variable", system-ui, sans-serif;
+	--font-heading: var(--font-sans);
+	--font-mono:
+		"Geist Mono Variable", ui-monospace, "SFMono-Regular", "Menlo", "Consolas",
+		"Liberation Mono", "Microsoft YaHei Mono", "Microsoft JhengHei UI", "Meiryo",
+		"Yu Gothic UI", "Malgun Gothic", monospace;
+}
+
 @theme inline {
-	--font-sans: 'Inter', sans-serif;
-	--font-heading: 'Inter', sans-serif;
-	--font-mono: 'Geist Mono', monospace;
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
 	--color-sidebar-ring: var(--sidebar-ring);
@@ -251,36 +258,6 @@
 		@apply border-border outline-ring/50;
 	}
 	body {
-       	--font-sans:
-      		"Geist Variable",
-      		"Noto Sans SC Variable",
-      		"Noto Sans TC Variable",
-      		"Noto Sans JP Variable",
-      		"Noto Sans KR Variable",
-      		system-ui,
-      		sans-serif;
-
-        --font-heading:
-      		"Geist Variable",
-      		"Noto Sans SC Variable",
-      		"Noto Sans TC Variable",
-      		"Noto Sans JP Variable",
-      		"Noto Sans KR Variable",
-      		system-ui,
-      		sans-serif;
-        --font-mono:
-           	"Geist Mono Variable",
-           	ui-monospace,
-           	"SFMono-Regular",
-           	"Menlo",
-           	"Consolas",
-           	"Liberation Mono",
-           	"Microsoft YaHei Mono",
-           	"Microsoft JhengHei UI",
-           	"Meiryo",
-           	"Yu Gothic UI",
-           	"Malgun Gothic",
-           	monospace;
 		@apply font-sans bg-background text-foreground;
 		font-feature-settings:
 			"rlig" 1,
@@ -293,9 +270,6 @@
 		font-family: var(--font-mono);
 	}
 	html {
-		@apply font-mono;
-	}
-  code, kbd, samp, pre {
-    font-family: var(--font-mono);
+		@apply font-sans;
 	}
 }
