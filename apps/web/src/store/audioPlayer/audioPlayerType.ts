@@ -24,8 +24,12 @@ export type AudioPlayerTrack = {
 	durationInMs: number;
 };
 
+export type AudioPlayerQueueEntry = AudioPlayerTrack & {
+	queueEntryId: string;
+};
+
 export type AudioPlayerState = {
-	queue: AudioPlayerTrack[];
+	queue: AudioPlayerQueueEntry[];
 	index: number;
 	status: PlayerStatus;
 	currentPlayingKey: string | null;
@@ -34,6 +38,9 @@ export type AudioPlayerState = {
 	hidden: boolean;
 	repeatMode: RepeatMode;
 	shuffle: boolean;
+	shuffleHistory: number[];
+	shuffleHistoryIndex: number;
+	shuffleRemaining: number[];
 	playbackQuality: "Auto" | "Original" | "Opus96";
 	playTalkTrack: boolean;
 	playInstrumental: boolean;
@@ -51,6 +58,9 @@ export type AudioPlayerAction = {
 	playAlbum: (album: AudioPlayerTrack[], trackId?: string) => void;
 	addToQueue: (track: AudioPlayerTrack[]) => void;
 	addNextToQueue: (track: AudioPlayerTrack[]) => void;
+	removeFromQueue: (index: number) => void;
+	moveQueueTrack: (fromIndex: number, toIndex: number) => void;
+	clearQueue: () => void;
 	playQueueTrack: (index: number) => void;
 	playNext: () => void;
 	playPrev: () => void;

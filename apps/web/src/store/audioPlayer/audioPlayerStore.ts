@@ -10,6 +10,7 @@ import { sendMusicWebSocketMessage } from "#/lib/webSocket";
 import { getWaveformData, resolvePlaybackSource } from "./audioPlayerFunction";
 import type {
 	AudioPlayerAction,
+	AudioPlayerQueueEntry,
 	AudioPlayerState,
 	AudioPlayerTrack,
 } from "./audioPlayerType";
@@ -51,31 +52,31 @@ const initialState: AudioPlayerState = {
 	hidden: false,
 	repeatMode: "off",
 	shuffle: false,
+	shuffleHistory: [],
+	shuffleHistoryIndex: -1,
+	shuffleRemaining: [],
 	playbackQuality: "Auto",
 	playTalkTrack: false,
 	playInstrumental: false,
 	stopAfterMusicCount: null,
 };
 
+function createQueueEntries(
+	tracks: AudioPlayerTrack[],
+): AudioPlayerQueueEntry[] {
+	return tracks.map((track) => ({
+		...track,
+		queueEntryId: crypto.randomUUID(),
+	}));
+}
+
 function getNextIndex(
 	index: number,
 	queueLength: number,
 	repeatMode: AudioPlayerState["repeatMode"],
-	shuffle: boolean,
 ): number | null {
 	if (queueLength === 0) return null;
 	if (repeatMode === "one") return index;
-
-	if (shuffle) {
-		if (queueLength === 1) return repeatMode === "all" ? index : null;
-
-		let nextIndex = Math.floor(Math.random() * queueLength);
-		while (nextIndex === index) {
-			nextIndex = Math.floor(Math.random() * queueLength);
-		}
-
-		return nextIndex;
-	}
 
 	const nextIndex = index + 1;
 	if (nextIndex < queueLength) return nextIndex;
@@ -112,35 +113,16 @@ function getNextAutoIndex(
 	index: number,
 	queue: AudioPlayerTrack[],
 	repeatMode: AudioPlayerState["repeatMode"],
-	shuffle: boolean,
 	playTalkTrack: boolean,
 	playInstrumental: boolean,
 ): number | null {
 	if (playTalkTrack && playInstrumental)
-		return getNextIndex(index, queue.length, repeatMode, shuffle);
+		return getNextIndex(index, queue.length, repeatMode);
 
 	if (repeatMode === "one") {
 		return shouldAutoSkipTrack(queue[index], playTalkTrack, playInstrumental)
 			? null
 			: index;
-	}
-
-	if (shuffle) {
-		const candidates = queue
-			.map((track, trackIndex) => ({ track, trackIndex }))
-			.filter(
-				({ track, trackIndex }) =>
-					!shouldAutoSkipTrack(track, playTalkTrack, playInstrumental) &&
-					trackIndex !== index,
-			);
-		if (candidates.length === 0) {
-			return repeatMode === "all" &&
-				!shouldAutoSkipTrack(queue[index], playTalkTrack, playInstrumental)
-				? index
-				: null;
-		}
-
-		return candidates[Math.floor(Math.random() * candidates.length)].trackIndex;
 	}
 
 	for (let offset = 1; offset < queue.length; offset++) {
@@ -162,6 +144,113 @@ function getNextAutoIndex(
 	}
 
 	return null;
+}
+
+function shuffleIndices(indices: number[]): number[] {
+	for (let index = indices.length - 1; index > 0; index--) {
+		const otherIndex = Math.floor(Math.random() * (index + 1));
+		[indices[index], indices[otherIndex]] = [
+			indices[otherIndex],
+			indices[index],
+		];
+	}
+	return indices;
+}
+
+function createShuffleState(
+	queueLength: number,
+	index: number,
+	shuffle: boolean,
+) {
+	return {
+		shuffleHistory: shuffle && queueLength > 0 ? [index] : [],
+		shuffleHistoryIndex: shuffle && queueLength > 0 ? 0 : -1,
+		shuffleRemaining: shuffle
+			? shuffleIndices(
+					Array.from({ length: queueLength }, (_, i) => i).filter(
+						(i) => i !== index,
+					),
+				)
+			: [],
+	};
+}
+
+function recordShuffleTrack(state: AudioPlayerState, index: number): void {
+	if (!state.shuffle) return;
+	if (state.shuffleHistory[state.shuffleHistoryIndex] !== index) {
+		state.shuffleHistory.splice(state.shuffleHistoryIndex + 1);
+		state.shuffleHistory.push(index);
+		state.shuffleHistoryIndex = state.shuffleHistory.length - 1;
+	}
+	state.shuffleRemaining = state.shuffleRemaining.filter((i) => i !== index);
+}
+
+function remapShuffleIndices(
+	state: AudioPlayerState,
+	mapIndex: (index: number) => number | null,
+): void {
+	const history = state.shuffleHistory.map(mapIndex);
+	state.shuffleHistoryIndex =
+		history
+			.slice(0, state.shuffleHistoryIndex + 1)
+			.filter((index) => index !== null).length - 1;
+	state.shuffleHistory = history.filter((index) => index !== null);
+	state.shuffleRemaining = state.shuffleRemaining
+		.map(mapIndex)
+		.filter((index) => index !== null);
+}
+
+function getNextPlayback(state: AudioPlayerState, automatic: boolean) {
+	const { index, queue, repeatMode, playTalkTrack, playInstrumental } = state;
+	const nextRepeatMode =
+		!automatic && repeatMode === "one" ? "off" : repeatMode;
+	const isEligible = (i: number) =>
+		!automatic ||
+		!shouldAutoSkipTrack(queue[i], playTalkTrack, playInstrumental);
+
+	if (!state.shuffle || nextRepeatMode === "one") {
+		const nextIndex = automatic
+			? getNextAutoIndex(
+					index,
+					queue,
+					nextRepeatMode,
+					playTalkTrack,
+					playInstrumental,
+				)
+			: getNextIndex(index, queue.length, nextRepeatMode);
+		return nextIndex === null ? null : { index: nextIndex };
+	}
+
+	for (
+		let cursor = state.shuffleHistoryIndex + 1;
+		cursor < state.shuffleHistory.length;
+		cursor++
+	) {
+		const nextIndex = state.shuffleHistory[cursor];
+		if (isEligible(nextIndex))
+			return { index: nextIndex, shuffleHistoryIndex: cursor };
+	}
+
+	let remaining = state.shuffleRemaining;
+	let candidateIndex = remaining.findIndex(isEligible);
+	if (candidateIndex === -1 && nextRepeatMode === "all") {
+		remaining = shuffleIndices(queue.map((_, i) => i).filter(isEligible));
+		if (remaining.length > 1 && remaining[0] === index) {
+			[remaining[0], remaining[1]] = [remaining[1], remaining[0]];
+		}
+		candidateIndex = remaining.length > 0 ? 0 : -1;
+	}
+	if (candidateIndex === -1) return null;
+
+	const nextIndex = remaining[candidateIndex];
+	const history = state.shuffleHistory.slice(0, state.shuffleHistoryIndex + 1);
+	history.push(nextIndex);
+	return {
+		index: nextIndex,
+		shuffleHistory: history,
+		shuffleHistoryIndex: history.length - 1,
+		shuffleRemaining: remaining.slice(candidateIndex + 1),
+	};
 }
 
 function clearPendingLoad(requestId: number): void {
@@ -243,9 +332,11 @@ async function loadAndPlay(
 		try {
 			if (autoplay) await waveSurfer.play();
 		} catch (error) {
+			if (requestId !== loadRequestId) return;
 			console.log("[audio-player] loadAndPlay:play failed", error);
 		}
 
+		if (requestId !== loadRequestId) return;
 		clearPendingLoad(requestId);
 		useAudioPlayerStore.setState({
 			status: autoplay && waveSurfer.isPlaying() ? "playing" : "paused",
@@ -323,6 +414,7 @@ async function loadAndPlay(
 			trackId: track.trackId,
 		});
 		await waveSurfer.play();
+		if (requestId !== loadRequestId) return;
 		waveSurfer.toggleInteraction(true);
 	} catch (error) {
 		if (requestId !== loadRequestId) return;
@@ -390,8 +482,10 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 
 					const media = waveSurfer.getMediaElement();
 					const currentTime = waveSurfer.getCurrentTime();
+					const requestId = loadRequestId;
 					const autoplay = options?.autoplay ?? waveSurfer.isPlaying();
 					const seekToCurrentTime = () => {
+						if (requestId !== loadRequestId) return;
 						media.currentTime = currentTime;
 					};
 
@@ -404,8 +498,10 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					if (autoplay) {
 						try {
 							await media.play();
+							if (requestId !== loadRequestId) return;
 							set({ status: "playing" });
 						} catch (error) {
+							if (requestId !== loadRequestId) return;
 							console.log("[audio-player] reloadAudio:play failed", error);
 							set({ status: "paused" });
 						}
@@ -439,70 +535,182 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						trackId: track.trackId,
 						title: track.title,
 					});
-					set({ queue: album, index, status: "loading" });
+					set({
+						queue: createQueueEntries(album),
+						index,
+						status: "loading",
+						...createShuffleState(album.length, index, get().shuffle),
+					});
 					loadAndPlay(get().playbackQuality, track, {
 						messageAction: "play",
 					});
 				},
-				addToQueue: (track: AudioPlayerTrack[]) => {
-					console.log("[audio-player] addToQueue", {
-						trackCount: track.length,
-					});
-
+				addToQueue: (tracks: AudioPlayerTrack[]) => {
+					if (tracks.length === 0) return;
 					set((state) => {
-						const wasEmpty = state.queue.length === 0;
-						state.queue.push(...track);
-
-						if (wasEmpty) state.index = 0;
+						const oldLength = state.queue.length;
+						state.queue.push(...createQueueEntries(tracks));
+						if (oldLength === 0) {
+							state.index = 0;
+							Object.assign(
+								state,
+								createShuffleState(state.queue.length, 0, state.shuffle),
+							);
+						} else if (state.shuffle) {
+							state.shuffleRemaining.push(
+								...shuffleIndices(tracks.map((_, i) => oldLength + i)),
+							);
+						}
 					});
 				},
-				addNextToQueue: (track: AudioPlayerTrack[]) => {
-					console.log("[audio-player] addNextToQueue", {
-						trackCount: track.length,
-					});
-
+				addNextToQueue: (tracks: AudioPlayerTrack[]) => {
+					if (tracks.length === 0) return;
+					if (get().queue.length === 0) {
+						get().addToQueue(tracks);
+						return;
+					}
 					set((state) => {
-						const wasEmpty = state.queue.length === 0;
-						state.queue.splice(state.index + 1, 0, ...track);
-
-						if (wasEmpty) state.index = 0;
+						const insertIndex = state.index + 1;
+						remapShuffleIndices(state, (i) =>
+							i >= insertIndex ? i + tracks.length : i,
+						);
+						state.queue.splice(insertIndex, 0, ...createQueueEntries(tracks));
+						if (state.shuffle) {
+							// Explicit play-next entries precede both forward history and shuffled entries.
+							state.shuffleRemaining = [
+								...tracks.map((_, i) => insertIndex + i),
+								...state.shuffleHistory.slice(state.shuffleHistoryIndex + 1),
+								...state.shuffleRemaining,
+							];
+							state.shuffleHistory.splice(state.shuffleHistoryIndex + 1);
+						}
 					});
+				},
+				removeFromQueue: (removeIndex) => {
+					const { index, queue, status } = get();
+					if (
+						!Number.isInteger(removeIndex) ||
+						removeIndex < 0 ||
+						removeIndex >= queue.length
+					)
+						return;
+					if (queue.length === 1) {
+						get().clearQueue();
+						return;
+					}
+					const removedCurrent = removeIndex === index;
+					if (removedCurrent) {
+						loadRequestId++;
+						finishedRequestId = 0;
+						sendPlaybackMessage("end", queue[index]);
+						resetWaveSurferToIdle();
+					}
+					set((state) => {
+						state.queue.splice(removeIndex, 1);
+						remapShuffleIndices(state, (i) =>
+							i === removeIndex ? null : i > removeIndex ? i - 1 : i,
+						);
+						state.index = removedCurrent
+							? Math.min(removeIndex, state.queue.length - 1)
+							: index > removeIndex
+								? index - 1
+								: index;
+						if (removedCurrent) {
+							recordShuffleTrack(state, state.index);
+							state.currentPlayingKey = null;
+							state.status = status === "idle" ? "idle" : "loading";
+						}
+					});
+					if (removedCurrent && status !== "idle") {
+						const state = get();
+						loadAndPlay(state.playbackQuality, state.queue[state.index], {
+							autoplay: status === "playing" || status === "loading",
+							messageAction: "change",
+						});
+					}
+				},
+				moveQueueTrack: (fromIndex, toIndex) => {
+					const { queue } = get();
+					if (
+						!Number.isInteger(fromIndex) ||
+						!Number.isInteger(toIndex) ||
+						fromIndex < 0 ||
+						toIndex < 0 ||
+						fromIndex >= queue.length ||
+						toIndex >= queue.length ||
+						fromIndex === toIndex
+					)
+						return;
+					set((state) => {
+						const mapIndex = (i: number) => {
+							if (i === fromIndex) return toIndex;
+							if (fromIndex < toIndex && i > fromIndex && i <= toIndex)
+								return i - 1;
+							if (toIndex < fromIndex && i >= toIndex && i < fromIndex)
+								return i + 1;
+							return i;
+						};
+						const [track] = state.queue.splice(fromIndex, 1);
+						state.queue.splice(toIndex, 0, track);
+						state.index = mapIndex(state.index);
+						remapShuffleIndices(state, mapIndex);
+					});
+				},
+				clearQueue: () => {
+					const { queue, index } = get();
+					loadRequestId++;
+					finishedRequestId = 0;
+					if (queue.length > 0) sendPlaybackMessage("end", queue[index]);
+					set({
+						queue: [],
+						index: 0,
+						currentPlayingKey: null,
+						status: "idle",
+						stopAfterMusicCount: null,
+						...createShuffleState(0, 0, get().shuffle),
+					});
+					resetWaveSurferToIdle();
 				},
 				playQueueTrack: (index) => {
 					const { playbackQuality, queue } = get();
-					const track = queue.at(index);
-					if (!track) return;
-
-					set({ index, status: "loading" });
-					loadAndPlay(playbackQuality, track, { messageAction: "play" });
+					if (!Number.isInteger(index) || index < 0 || index >= queue.length)
+						return;
+					const track = queue[index];
+					set((state) => {
+						state.index = index;
+						state.status = "loading";
+						recordShuffleTrack(state, index);
+					});
+					loadAndPlay(playbackQuality, track, {
+						currentTime: 0,
+						messageAction: "play",
+					});
 				},
 				playNext: () => {
-					const { index, playbackQuality, queue, repeatMode, shuffle } = get();
-					const nextRepeatMode = repeatMode === "one" ? "off" : repeatMode;
-					const nextIndex = getNextIndex(
-						index,
-						queue.length,
-						nextRepeatMode,
-						shuffle,
-					);
-					if (nextIndex === null) return;
-
-					const track = queue.at(nextIndex);
-					if (!track) return;
-
-					set({ index: nextIndex, status: "loading" });
-					loadAndPlay(playbackQuality, track, { messageAction: "play" });
+					const state = get();
+					const next = getNextPlayback(state, false);
+					if (!next) return;
+					set({ ...next, status: "loading" });
+					loadAndPlay(state.playbackQuality, state.queue[next.index], {
+						currentTime: 0,
+						messageAction: "play",
+					});
 				},
 				playPrev: () => {
-					const { index, playbackQuality, queue, repeatMode } = get();
-					const prevIndex = getPrevIndex(index, queue.length, repeatMode);
+					const state = get();
+					const prevIndex = state.shuffle
+						? (state.shuffleHistory[state.shuffleHistoryIndex - 1] ?? null)
+						: getPrevIndex(state.index, state.queue.length, state.repeatMode);
 					if (prevIndex === null) return;
-
-					const track = queue.at(prevIndex);
-					if (!track) return;
-
-					set({ index: prevIndex, status: "loading" });
-					loadAndPlay(playbackQuality, track, { messageAction: "play" });
+					set((draft) => {
+						draft.index = prevIndex;
+						draft.status = "loading";
+						if (draft.shuffle) draft.shuffleHistoryIndex--;
+					});
+					loadAndPlay(state.playbackQuality, state.queue[prevIndex], {
+						currentTime: 0,
+						messageAction: "play",
+					});
 				},
 				togglePlay: async () => {
 					const { index, playbackQuality, queue, status } = get();
@@ -516,10 +724,13 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					}
 
 					if (status === "paused" || status === "ready") {
+						const requestId = loadRequestId;
 						try {
 							await waveSurfer?.play();
+							if (requestId !== loadRequestId) return;
 							set({ status: "playing" });
 						} catch (error) {
+							if (requestId !== loadRequestId) return;
 							console.log("[audio-player] togglePlay:play failed", error);
 							await get().reloadAudio({ autoplay: true });
 						}
@@ -558,6 +769,14 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 				toggleShuffle: () => {
 					set((state) => {
 						state.shuffle = !state.shuffle;
+						Object.assign(
+							state,
+							createShuffleState(
+								state.queue.length,
+								state.index,
+								state.shuffle,
+							),
+						);
 					});
 				},
 				setVolume: (volume) => {
@@ -633,16 +852,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					if (finishedRequestId === loadRequestId) return;
 
 					finishedRequestId = loadRequestId;
-					const {
-						index,
-						playbackQuality,
-						playTalkTrack,
-						playInstrumental,
-						queue,
-						repeatMode,
-						shuffle,
-						stopAfterMusicCount,
-					} = get();
+					const { index, playbackQuality, queue, stopAfterMusicCount } = get();
 
 					if (queue.length === 0) {
 						console.log("[audio-player] markFinished:empty queue");
@@ -672,14 +882,8 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						set({ stopAfterMusicCount: stopAfterMusicCount - 1 });
 					}
 
-					const nextIndex = getNextAutoIndex(
-						index,
-						queue,
-						repeatMode,
-						shuffle,
-						playTalkTrack,
-						playInstrumental,
-					);
+					const next = getNextPlayback(get(), true);
+					const nextIndex = next?.index ?? null;
 					if (nextIndex === null) {
 						console.log("[audio-player] markFinished:end of queue");
 						sendPlaybackMessage("end", finishedTrack);
@@ -703,8 +907,9 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						title: track.title,
 					});
 
-					set({ index: nextIndex, status: "loading" });
+					set({ ...next, status: "loading" });
 					loadAndPlay(playbackQuality, track, {
+						currentTime: 0,
 						messageAction: "change",
 					});
 				},
@@ -712,6 +917,21 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 			{
 				name: "audio-player-settings",
 				storage: createJSONStorage(() => localStorage),
+				merge: (persistedState, currentState) => {
+					const state = {
+						...currentState,
+						...(persistedState as AudioPlayerPersistedState),
+					};
+					return {
+						...state,
+						queue: createQueueEntries(state.queue),
+						...createShuffleState(
+							state.queue.length,
+							state.index,
+							state.shuffle,
+						),
+					};
+				},
 				partialize: (state): AudioPlayerPersistedState => ({
 					volume: state.volume,
 					muted: state.muted,
