@@ -9,7 +9,9 @@ using Music.Infrastructure.Entities;
 
 namespace Music.Infrastructure.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<User>(options), IWorkerJobStore
+public class AppDbContext(DbContextOptions<AppDbContext> options)
+    : IdentityDbContext<User>(options),
+        IWorkerJobStore
 {
     public DbSet<AuthToken> AuthTokens { get; set; }
 
@@ -35,6 +37,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<ConcertAlbum> ConcertAlbums { get; set; }
     public DbSet<ConcertParty> ConcertParties { get; set; }
     public DbSet<ConcertFile> ConcertFiles { get; set; }
+
+    public DbSet<Playlist> Playlists { get; set; }
+    public DbSet<PlaylistEntry> PlaylistEntries { get; set; }
 
     public DbSet<WorkerJob> WorkerJobs { get; set; }
 

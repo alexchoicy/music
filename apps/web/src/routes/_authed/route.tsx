@@ -17,6 +17,7 @@ import { MobileHeader } from "#/components/ui/mobileHeader";
 import { UserInfoProvider } from "#/context/UserInfoContext";
 import { getResolvedApiEndpoint } from "#/lib/APIFetchClient";
 import { authQueries } from "#/lib/queries/auth.queries";
+import { playlistQueries } from "#/lib/queries/playlist.queries";
 import { checkBotHeader } from "#/lib/ServerFunction/checkBotHeader";
 import { getWebSocketEndpoint } from "#/lib/ServerFunction/getApiEndpoint";
 import { connectMusicWebSocket } from "#/lib/webSocket";
@@ -55,8 +56,15 @@ export const Route = createFileRoute("/_authed")({
 			});
 		}
 
-		await context.queryClient.ensureQueryData(authQueries.userInfo());
+		const userInfo = await context.queryClient.ensureQueryData(
+			authQueries.userInfo(),
+		);
+		return { userInfo };
 	},
+	loader: ({ context }) =>
+		context.queryClient.ensureQueryData(
+			playlistQueries.list(context.userInfo.id),
+		),
 	validateSearch: authedSearchSchema,
 	head: async () => {
 		const apiBaseUrl = await getResolvedApiEndpoint();

@@ -6,7 +6,7 @@ import {
 	PlayIcon,
 	Share2Icon,
 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Badge } from "#/components/coss/badge";
 import { Button } from "#/components/coss/button";
@@ -23,6 +23,8 @@ import {
 	MenuSubTrigger,
 	MenuTrigger,
 } from "#/components/coss/menu";
+import { AddToPlaylistDialog } from "#/components/playlists/AddToPlaylistDialog";
+import type { PlaylistTrackRequest } from "#/lib/queries/playlist.queries";
 import { shareUrl } from "#/lib/utils/browser";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
@@ -47,6 +49,8 @@ export function AlbumTrackListCard({
 	highlightedTrackKey,
 }: AlbumTrackListCardProps) {
 	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
+	const [playlistTrack, setPlaylistTrack] =
+		useState<PlaylistTrackRequest | null>(null);
 	const addNextToQueue = useAudioPlayerStore((state) => state.addNextToQueue);
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const currentTrack = useAudioPlayerStore((state) =>
@@ -299,6 +303,17 @@ export function AlbumTrackListCard({
 															<Share2Icon aria-hidden="true" />
 															Share track
 														</MenuItem>
+														<MenuItem
+															onClick={() =>
+																setPlaylistTrack({
+																	albumDiscId: disc.albumDiscId,
+																	trackId: track.trackId,
+																})
+															}
+														>
+															<ListPlusIcon aria-hidden="true" />
+															Add to playlist
+														</MenuItem>
 													</MenuGroup>
 													<MenuSeparator />
 													<MenuSub>
@@ -366,6 +381,12 @@ export function AlbumTrackListCard({
 					</section>
 				);
 			})}
+			{playlistTrack && (
+				<AddToPlaylistDialog
+					tracks={[playlistTrack]}
+					onClose={() => setPlaylistTrack(null)}
+				/>
+			)}
 		</Card>
 	);
 }

@@ -1,12 +1,14 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { z } from "zod";
 
 import { AlbumCreditsCard } from "#/components/albums/AlbumCreditsCard";
 import { AlbumDetailHero } from "#/components/albums/AlbumDetailHero";
 import { AlbumInfoCard } from "#/components/albums/AlbumInfoCard";
 import { AlbumTrackListCard } from "#/components/albums/AlbumTrackListCard";
+import { AddToPlaylistDialog } from "#/components/playlists/AddToPlaylistDialog";
 import { albumQueries } from "#/lib/queries/album.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
@@ -25,6 +27,7 @@ export const Route = createFileRoute("/_authed/albums/$id")({
 });
 function RouteComponent() {
 	const { id } = Route.useParams();
+	const [addingToPlaylist, setAddingToPlaylist] = useState(false);
 	const { track } = Route.useSearch();
 	const { data: album } = useSuspenseQuery(albumQueries.getAlbum(id));
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
@@ -52,6 +55,7 @@ function RouteComponent() {
 					album={album}
 					onPlayAlbum={() => playAlbum(audioPlayerTracks)}
 					onAddToQueue={() => addToQueue(audioPlayerTracks)}
+					onAddToPlaylist={() => setAddingToPlaylist(true)}
 					playAlbumDisabled={audioPlayerTracks.length === 0}
 				/>
 
@@ -67,6 +71,17 @@ function RouteComponent() {
 					</aside>
 				</div>
 			</div>
+			{addingToPlaylist && (
+				<AddToPlaylistDialog
+					tracks={album.discs.flatMap((disc) =>
+						disc.tracks.map((albumTrack) => ({
+							albumDiscId: disc.albumDiscId,
+							trackId: albumTrack.trackId,
+						})),
+					)}
+					onClose={() => setAddingToPlaylist(false)}
+				/>
+			)}
 		</main>
 	);
 }

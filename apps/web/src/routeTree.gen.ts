@@ -18,6 +18,8 @@ import { Route as AuthedConcertsIdRouteImport } from './routes/_authed/concerts/
 import { Route as AuthedCreateIndexRouteImport } from './routes/_authed/create/index'
 import { Route as AuthedPartiesIndexRouteImport } from './routes/_authed/parties/index'
 import { Route as AuthedPartiesIdRouteImport } from './routes/_authed/parties/$id'
+import { Route as AuthedPlaylistsIndexRouteImport } from './routes/_authed/playlists/index'
+import { Route as AuthedPlaylistsIdRouteImport } from './routes/_authed/playlists/$id'
 import { Route as AuthedSettingsIndexRouteImport } from './routes/_authed/settings/index'
 import { Route as AuthedUploadsIndexRouteImport } from './routes/_authed/uploads/index'
 import { Route as PublicLoginIndexRouteImport } from './routes/_public/login/index'
@@ -67,6 +69,16 @@ const AuthedPartiesIdRoute = AuthedPartiesIdRouteImport.update({
   path: '/parties/$id',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedPlaylistsIndexRoute = AuthedPlaylistsIndexRouteImport.update({
+  id: '/playlists/',
+  path: '/playlists/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedPlaylistsIdRoute = AuthedPlaylistsIdRouteImport.update({
+  id: '/playlists/$id',
+  path: '/playlists/$id',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const AuthedSettingsIndexRoute = AuthedSettingsIndexRouteImport.update({
   id: '/settings/',
   path: '/settings/',
@@ -93,11 +105,13 @@ export interface FileRoutesByFullPath {
   '/albums/$id': typeof AuthedAlbumsIdRoute
   '/concerts/$id': typeof AuthedConcertsIdRoute
   '/parties/$id': typeof AuthedPartiesIdRoute
+  '/playlists/$id': typeof AuthedPlaylistsIdRoute
   '/bot/albums/$id': typeof BotAlbumsIdRoute
   '/albums/': typeof AuthedAlbumsIndexRoute
   '/concerts/': typeof AuthedConcertsIndexRoute
   '/create/': typeof AuthedCreateIndexRoute
   '/parties/': typeof AuthedPartiesIndexRoute
+  '/playlists/': typeof AuthedPlaylistsIndexRoute
   '/settings/': typeof AuthedSettingsIndexRoute
   '/uploads/': typeof AuthedUploadsIndexRoute
   '/login/': typeof PublicLoginIndexRoute
@@ -107,11 +121,13 @@ export interface FileRoutesByTo {
   '/albums/$id': typeof AuthedAlbumsIdRoute
   '/concerts/$id': typeof AuthedConcertsIdRoute
   '/parties/$id': typeof AuthedPartiesIdRoute
+  '/playlists/$id': typeof AuthedPlaylistsIdRoute
   '/bot/albums/$id': typeof BotAlbumsIdRoute
   '/albums': typeof AuthedAlbumsIndexRoute
   '/concerts': typeof AuthedConcertsIndexRoute
   '/create': typeof AuthedCreateIndexRoute
   '/parties': typeof AuthedPartiesIndexRoute
+  '/playlists': typeof AuthedPlaylistsIndexRoute
   '/settings': typeof AuthedSettingsIndexRoute
   '/uploads': typeof AuthedUploadsIndexRoute
   '/login': typeof PublicLoginIndexRoute
@@ -123,11 +139,13 @@ export interface FileRoutesById {
   '/_authed/albums/$id': typeof AuthedAlbumsIdRoute
   '/_authed/concerts/$id': typeof AuthedConcertsIdRoute
   '/_authed/parties/$id': typeof AuthedPartiesIdRoute
+  '/_authed/playlists/$id': typeof AuthedPlaylistsIdRoute
   '/bot/albums/$id': typeof BotAlbumsIdRoute
   '/_authed/albums/': typeof AuthedAlbumsIndexRoute
   '/_authed/concerts/': typeof AuthedConcertsIndexRoute
   '/_authed/create/': typeof AuthedCreateIndexRoute
   '/_authed/parties/': typeof AuthedPartiesIndexRoute
+  '/_authed/playlists/': typeof AuthedPlaylistsIndexRoute
   '/_authed/settings/': typeof AuthedSettingsIndexRoute
   '/_authed/uploads/': typeof AuthedUploadsIndexRoute
   '/_public/login/': typeof PublicLoginIndexRoute
@@ -139,11 +157,13 @@ export interface FileRouteTypes {
     | '/albums/$id'
     | '/concerts/$id'
     | '/parties/$id'
+    | '/playlists/$id'
     | '/bot/albums/$id'
     | '/albums/'
     | '/concerts/'
     | '/create/'
     | '/parties/'
+    | '/playlists/'
     | '/settings/'
     | '/uploads/'
     | '/login/'
@@ -153,11 +173,13 @@ export interface FileRouteTypes {
     | '/albums/$id'
     | '/concerts/$id'
     | '/parties/$id'
+    | '/playlists/$id'
     | '/bot/albums/$id'
     | '/albums'
     | '/concerts'
     | '/create'
     | '/parties'
+    | '/playlists'
     | '/settings'
     | '/uploads'
     | '/login'
@@ -168,11 +190,13 @@ export interface FileRouteTypes {
     | '/_authed/albums/$id'
     | '/_authed/concerts/$id'
     | '/_authed/parties/$id'
+    | '/_authed/playlists/$id'
     | '/bot/albums/$id'
     | '/_authed/albums/'
     | '/_authed/concerts/'
     | '/_authed/create/'
     | '/_authed/parties/'
+    | '/_authed/playlists/'
     | '/_authed/settings/'
     | '/_authed/uploads/'
     | '/_public/login/'
@@ -249,6 +273,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedPartiesIdRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/playlists/': {
+      id: '/_authed/playlists/'
+      path: '/playlists'
+      fullPath: '/playlists/'
+      preLoaderRoute: typeof AuthedPlaylistsIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/playlists/$id': {
+      id: '/_authed/playlists/$id'
+      path: '/playlists/$id'
+      fullPath: '/playlists/$id'
+      preLoaderRoute: typeof AuthedPlaylistsIdRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/_authed/settings/': {
       id: '/_authed/settings/'
       path: '/settings'
@@ -285,10 +323,12 @@ interface AuthedRouteRouteChildren {
   AuthedAlbumsIdRoute: typeof AuthedAlbumsIdRoute
   AuthedConcertsIdRoute: typeof AuthedConcertsIdRoute
   AuthedPartiesIdRoute: typeof AuthedPartiesIdRoute
+  AuthedPlaylistsIdRoute: typeof AuthedPlaylistsIdRoute
   AuthedAlbumsIndexRoute: typeof AuthedAlbumsIndexRoute
   AuthedConcertsIndexRoute: typeof AuthedConcertsIndexRoute
   AuthedCreateIndexRoute: typeof AuthedCreateIndexRoute
   AuthedPartiesIndexRoute: typeof AuthedPartiesIndexRoute
+  AuthedPlaylistsIndexRoute: typeof AuthedPlaylistsIndexRoute
   AuthedSettingsIndexRoute: typeof AuthedSettingsIndexRoute
   AuthedUploadsIndexRoute: typeof AuthedUploadsIndexRoute
 }
@@ -298,10 +338,12 @@ const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedAlbumsIdRoute: AuthedAlbumsIdRoute,
   AuthedConcertsIdRoute: AuthedConcertsIdRoute,
   AuthedPartiesIdRoute: AuthedPartiesIdRoute,
+  AuthedPlaylistsIdRoute: AuthedPlaylistsIdRoute,
   AuthedAlbumsIndexRoute: AuthedAlbumsIndexRoute,
   AuthedConcertsIndexRoute: AuthedConcertsIndexRoute,
   AuthedCreateIndexRoute: AuthedCreateIndexRoute,
   AuthedPartiesIndexRoute: AuthedPartiesIndexRoute,
+  AuthedPlaylistsIndexRoute: AuthedPlaylistsIndexRoute,
   AuthedSettingsIndexRoute: AuthedSettingsIndexRoute,
   AuthedUploadsIndexRoute: AuthedUploadsIndexRoute,
 }

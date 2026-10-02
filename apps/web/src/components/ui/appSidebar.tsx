@@ -1,9 +1,14 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
 	CirclePlus,
 	Disc3,
 	House,
+	ListMusic,
 	LogOut,
 	MicVocal,
 	MoreVertical,
@@ -35,6 +40,7 @@ import {
 	SidebarFooter,
 	SidebarGroup,
 	SidebarGroupContent,
+	SidebarGroupLabel,
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
@@ -44,6 +50,7 @@ import {
 import { useUserInfo } from "#/context/UserInfoContext";
 import { ROLE } from "#/enums/userEnums";
 import { authMutations } from "#/lib/queries/auth.queries";
+import { playlistQueries } from "#/lib/queries/playlist.queries";
 import { getInitials } from "#/lib/utils/string";
 import type { FileRouteTypes } from "#/routeTree.gen";
 import { useUploadStore } from "#/store/uploadStore";
@@ -92,6 +99,11 @@ const mainNavigation = [
 		icon: CirclePlus,
 		to: "/create",
 		uploader: true,
+	},
+	{
+		label: "Playlists",
+		icon: ListMusic,
+		to: "/playlists",
 	},
 ] satisfies Array<NavigationItem>;
 
@@ -182,6 +194,9 @@ export function AppSidebar({
 	const queryClient = useQueryClient();
 	const { isMobile, setOpenMobile } = useSidebar();
 	const userInfo = useUserInfo();
+	const { data: playlists } = useSuspenseQuery(
+		playlistQueries.list(userInfo.id),
+	);
 	const { isPending, mutateAsync: logout } = useMutation(
 		authMutations.logout(),
 	);
@@ -260,6 +275,30 @@ export function AppSidebar({
 									</SidebarMenuItem>
 								);
 							})}
+						</SidebarMenu>
+					</SidebarGroupContent>
+				</SidebarGroup>
+				<SidebarGroup>
+					<SidebarGroupLabel>Playlists</SidebarGroupLabel>
+					<SidebarGroupContent>
+						<SidebarMenu>
+							{playlists.map((playlist) => (
+								<SidebarMenuItem key={playlist.playlistId}>
+									<SidebarMenuButton
+										onClick={closeMobileSidebar}
+										render={
+											<Link
+												to="/playlists/$id"
+												params={{ id: String(playlist.playlistId) }}
+												activeOptions={{ exact: true }}
+												activeProps={{ "data-active": "true" }}
+											/>
+										}
+									>
+										<span>{playlist.name}</span>
+									</SidebarMenuButton>
+								</SidebarMenuItem>
+							))}
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>

@@ -84,6 +84,7 @@ type AlbumDetailHeroProps = {
 	album: AlbumDetails;
 	onPlayAlbum: () => void;
 	onAddToQueue: () => void;
+	onAddToPlaylist: () => void;
 	playAlbumDisabled?: boolean;
 };
 
@@ -91,6 +92,7 @@ export function AlbumDetailHero({
 	album,
 	onPlayAlbum,
 	onAddToQueue,
+	onAddToPlaylist,
 	playAlbumDisabled,
 }: AlbumDetailHeroProps) {
 	const coverUrl = getAlbumCoverUrl(album.cover.album);
@@ -320,6 +322,13 @@ export function AlbumDetailHero({
 								<MenuItem onClick={onAddToQueue}>
 									<ListPlusIcon aria-hidden="true" />
 									Add to queue
+								</MenuItem>
+								<MenuItem
+									disabled={album.totalTrackCount === 0}
+									onClick={onAddToPlaylist}
+								>
+									<ListPlusIcon aria-hidden="true" />
+									Add to playlist
 								</MenuItem>
 								<MenuItem onClick={() => void shareAlbum()}>
 									<Share2Icon aria-hidden="true" />
