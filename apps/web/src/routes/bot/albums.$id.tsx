@@ -1,7 +1,10 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { createAlbumPreview } from "#/lib/discord/albumPreview";
+import {
+	createAlbumPreview,
+	PREVIEW_ACCENT_COLOR,
+} from "#/lib/discord/albumPreview";
 import { checkBotHeader } from "#/lib/ServerFunction/checkBotHeader";
 import { getSimpleAlbum } from "#/lib/ServerFunction/getSimpleAlbum";
 
@@ -45,19 +48,45 @@ export const Route = createFileRoute("/bot/albums/$id")({
 	head: ({ loaderData }) => {
 		if (!loaderData) return {};
 
-		const { title, description, image, url, embed } = loaderData;
+		const {
+			type,
+			title,
+			description,
+			url,
+			image,
+			imageAlt,
+			durationInSeconds,
+			embed,
+		} = loaderData;
+
 		return {
 			meta: [
 				{ title },
 				{ name: "description", content: description },
+				{ name: "theme-color", content: PREVIEW_ACCENT_COLOR },
 				{ property: "og:site_name", content: "Music" },
+				{ property: "og:type", content: type },
 				{ property: "og:title", content: title },
 				{ property: "og:description", content: description },
 				{ property: "og:url", content: url },
-				{ property: "og:type", content: "website" },
-				...(image ? [{ property: "og:image", content: image }] : []),
-				{ name: "twitter:card", content: "summary_large_image" },
-				{ name: "theme-color", content: "#d8aa65" },
+				...(image
+					? [
+							{ property: "og:image", content: image },
+							{ property: "og:image:alt", content: imageAlt },
+						]
+					: []),
+				...(durationInSeconds !== null
+					? [
+							{
+								property: "music:duration",
+								content: String(durationInSeconds),
+							},
+						]
+					: []),
+				{
+					name: "twitter:card",
+					content: image ? "summary_large_image" : "summary",
+				},
 			],
 			scripts: [
 				{
