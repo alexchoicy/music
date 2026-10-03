@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
+import { Route as AuthedHistoryRouteImport } from './routes/_authed/history'
 import { Route as AuthedAlbumsIndexRouteImport } from './routes/_authed/albums/index'
 import { Route as AuthedAlbumsIdRouteImport } from './routes/_authed/albums/$id'
 import { Route as AuthedConcertsIndexRouteImport } from './routes/_authed/concerts/index'
@@ -32,6 +33,11 @@ const AuthedRouteRoute = AuthedRouteRouteImport.update({
 const AuthedIndexRoute = AuthedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedHistoryRoute = AuthedHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
 const AuthedAlbumsIndexRoute = AuthedAlbumsIndexRouteImport.update({
@@ -102,6 +108,7 @@ const BotAlbumsIdRoute = BotAlbumsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
+  '/history': typeof AuthedHistoryRoute
   '/albums/$id': typeof AuthedAlbumsIdRoute
   '/concerts/$id': typeof AuthedConcertsIdRoute
   '/parties/$id': typeof AuthedPartiesIdRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/login/': typeof PublicLoginIndexRoute
 }
 export interface FileRoutesByTo {
+  '/history': typeof AuthedHistoryRoute
   '/': typeof AuthedIndexRoute
   '/albums/$id': typeof AuthedAlbumsIdRoute
   '/concerts/$id': typeof AuthedConcertsIdRoute
@@ -135,6 +143,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authed': typeof AuthedRouteRouteWithChildren
+  '/_authed/history': typeof AuthedHistoryRoute
   '/_authed/': typeof AuthedIndexRoute
   '/_authed/albums/$id': typeof AuthedAlbumsIdRoute
   '/_authed/concerts/$id': typeof AuthedConcertsIdRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/history'
     | '/albums/$id'
     | '/concerts/$id'
     | '/parties/$id'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/login/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/history'
     | '/'
     | '/albums/$id'
     | '/concerts/$id'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authed'
+    | '/_authed/history'
     | '/_authed/'
     | '/_authed/albums/$id'
     | '/_authed/concerts/$id'
@@ -222,6 +234,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthedIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/history': {
+      id: '/_authed/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof AuthedHistoryRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
     '/_authed/albums/': {
@@ -319,6 +338,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthedRouteRouteChildren {
+  AuthedHistoryRoute: typeof AuthedHistoryRoute
   AuthedIndexRoute: typeof AuthedIndexRoute
   AuthedAlbumsIdRoute: typeof AuthedAlbumsIdRoute
   AuthedConcertsIdRoute: typeof AuthedConcertsIdRoute
@@ -334,6 +354,7 @@ interface AuthedRouteRouteChildren {
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
+  AuthedHistoryRoute: AuthedHistoryRoute,
   AuthedIndexRoute: AuthedIndexRoute,
   AuthedAlbumsIdRoute: AuthedAlbumsIdRoute,
   AuthedConcertsIdRoute: AuthedConcertsIdRoute,

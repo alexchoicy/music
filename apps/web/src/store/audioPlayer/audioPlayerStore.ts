@@ -14,6 +14,11 @@ import type {
 	AudioPlayerState,
 	AudioPlayerTrack,
 } from "./audioPlayerType";
+import {
+	startListeningSession,
+	trackListeningProgress,
+} from "./listeningHistory";
+import { fetchRadioTrack } from "./radio";
 
 export { autoSelectPlaybackQuality } from "./audioPlayerFunction";
 
@@ -28,6 +33,7 @@ type AudioPlayerPersistedState = Pick<
 	| "muted"
 	| "repeatMode"
 	| "shuffle"
+	| "radio"
 	| "playbackQuality"
 	| "playTalkTrack"
 	| "playInstrumental"
@@ -52,6 +58,7 @@ const initialState: AudioPlayerState = {
 	hidden: false,
 	repeatMode: "off",
 	shuffle: false,
+	radio: false,
 	shuffleHistory: [],
 	shuffleHistoryIndex: -1,
 	shuffleRemaining: [],
@@ -309,6 +316,7 @@ async function loadAndPlay(
 	const requestId = ++loadRequestId;
 	finishedRequestId = requestId;
 	const playbackSource = resolvePlaybackSource(playbackQuality, track);
+	if (options.messageAction) startListeningSession(track);
 	console.log("[audio-player] loadAndPlay:start", {
 		autoplay,
 		playbackQuality: playbackSource.quality,
@@ -441,6 +449,53 @@ async function loadAndPlay(
 	if (options.messageAction) sendPlaybackMessage(options.messageAction, track);
 }
 
+function endPlayback(track: AudioPlayerTrack | undefined): void {
+	sendPlaybackMessage("end", track);
+	resetWaveSurferToIdle();
+	useAudioPlayerStore.setState({ currentPlayingKey: null, status: "idle" });
+}
+
+// Appends a radio pick to the end of the queue and plays it.
+async function playRadioTrack(
+	messageAction: "play" | "change",
+	onEmpty: () => void,
+): Promise<void> {
+	const requestId = ++loadRequestId;
+	finishedRequestId = requestId;
+	const { playInstrumental, queue } = useAudioPlayerStore.getState();
+	useAudioPlayerStore.setState({ status: "loading" });
+
+	let track: AudioPlayerTrack | null = null;
+	try {
+		track = await fetchRadioTrack(queue, playInstrumental);
+	} catch (error) {
+		if (requestId !== loadRequestId) return;
+		console.log("[audio-player] radio:fetch failed", error);
+	}
+	if (requestId !== loadRequestId) return;
+
+	if (!track) {
+		console.log("[audio-player] radio:no track");
+		clearPendingLoad(requestId);
+		onEmpty();
+		return;
+	}
+
+	console.log("[audio-player] radio:next", {
+		trackId: track.trackId,
+		title: track.title,
+	});
+	useAudioPlayerStore.setState((state) => {
+		state.queue.push(...createQueueEntries([track]));
+		state.index = state.queue.length - 1;
+		recordShuffleTrack(state, state.index);
+	});
+	loadAndPlay(useAudioPlayerStore.getState().playbackQuality, track, {
+		currentTime: 0,
+		messageAction,
+	});
+}
+
 export const useAudioPlayerStore = create<AudioPlayerStore>()(
 	devtools(
 		persist(
@@ -456,6 +511,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 
 					waveSurfer.setVolume(get().volume);
 					waveSurfer.setMuted(get().muted);
+					waveSurfer.on("timeupdate", trackListeningProgress);
 
 					if (get().status === "idle") resetWaveSurferToIdle();
 				},
@@ -689,7 +745,16 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 				playNext: () => {
 					const state = get();
 					const next = getNextPlayback(state, false);
-					if (!next) return;
+					if (!next) {
+						if (state.radio && state.queue.length > 0) {
+							void playRadioTrack("play", () => {
+								useAudioPlayerStore.setState({
+									status: waveSurfer?.isPlaying() ? "playing" : "paused",
+								});
+							});
+						}
+						return;
+					}
 					set({ ...next, status: "loading" });
 					loadAndPlay(state.playbackQuality, state.queue[next.index], {
 						currentTime: 0,
@@ -764,6 +829,11 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						}
 
 						state.repeatMode = "off";
+					});
+				},
+				toggleRadio: () => {
+					set((state) => {
+						state.radio = !state.radio;
 					});
 				},
 				toggleShuffle: () => {
@@ -885,10 +955,13 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					const next = getNextPlayback(get(), true);
 					const nextIndex = next?.index ?? null;
 					if (nextIndex === null) {
+						if (get().radio) {
+							console.log("[audio-player] markFinished:radio");
+							void playRadioTrack("change", () => endPlayback(finishedTrack));
+							return;
+						}
 						console.log("[audio-player] markFinished:end of queue");
-						sendPlaybackMessage("end", finishedTrack);
-						resetWaveSurferToIdle();
-						set({ currentPlayingKey: null, status: "idle" });
+						endPlayback(finishedTrack);
 						return;
 					}
 
@@ -937,6 +1010,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					muted: state.muted,
 					repeatMode: state.repeatMode,
 					shuffle: state.shuffle,
+					radio: state.radio,
 					playbackQuality: state.playbackQuality,
 					playTalkTrack: state.playTalkTrack,
 					playInstrumental: state.playInstrumental,

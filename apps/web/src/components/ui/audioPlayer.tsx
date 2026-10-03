@@ -9,6 +9,7 @@ import {
 	Music2Icon,
 	PauseIcon,
 	PlayIcon,
+	RadioIcon,
 	Repeat1Icon,
 	RepeatIcon,
 	SettingsIcon,
@@ -624,6 +625,7 @@ export function AudioPlayer() {
 	const repeatMode = useAudioPlayerStore((state) => state.repeatMode);
 	const queue = useAudioPlayerStore((state) => state.queue);
 	const shuffle = useAudioPlayerStore((state) => state.shuffle);
+	const radio = useAudioPlayerStore((state) => state.radio);
 	const status = useAudioPlayerStore((state) => state.status);
 	const muted = useAudioPlayerStore((state) => state.muted);
 	const volume = useAudioPlayerStore((state) => state.volume);
@@ -655,6 +657,7 @@ export function AudioPlayer() {
 		(state) => state.toggleRepeatMode,
 	);
 	const toggleShuffle = useAudioPlayerStore((state) => state.toggleShuffle);
+	const toggleRadio = useAudioPlayerStore((state) => state.toggleRadio);
 
 	const markReady = useAudioPlayerStore((state) => state.markReady);
 	const markPlaying = useAudioPlayerStore((state) => state.markPlaying);
@@ -670,7 +673,8 @@ export function AudioPlayer() {
 	const hasNext = useAudioPlayerStore(
 		(state) =>
 			state.queue.length > 0 &&
-			(state.repeatMode === "all" ||
+			(state.radio ||
+				state.repeatMode === "all" ||
 				(state.shuffle
 					? state.shuffleHistoryIndex < state.shuffleHistory.length - 1 ||
 						state.shuffleRemaining.length > 0
@@ -1113,6 +1117,15 @@ export function AudioPlayer() {
 										<RepeatIcon aria-hidden="true" />
 									)}
 								</Button>
+								<Toggle
+									aria-label="Radio"
+									className="hidden size-8 text-muted-foreground data-pressed:bg-primary/10 data-pressed:text-primary data-pressed:hover:bg-primary/15 sm:inline-flex sm:size-7"
+									onPressedChange={() => toggleRadio()}
+									pressed={radio}
+									title="Radio: keep playing random music after the queue ends"
+								>
+									<RadioIcon aria-hidden="true" />
+								</Toggle>
 							</div>
 							<div className="hidden min-w-0 text-right text-[11px] text-muted-foreground lg:block">
 								{qualityLabel && (
@@ -1230,6 +1243,15 @@ export function AudioPlayer() {
 								<RepeatIcon aria-hidden="true" />
 							)}
 						</Button>
+						<Toggle
+							aria-label="Radio"
+							className="size-8 text-muted-foreground data-pressed:bg-primary/10 data-pressed:text-primary data-pressed:hover:bg-primary/15 sm:hidden"
+							onPressedChange={() => toggleRadio()}
+							pressed={radio}
+							title="Radio: keep playing random music after the queue ends"
+						>
+							<RadioIcon aria-hidden="true" />
+						</Toggle>
 						<VolumeControl
 							buttonClassName="hidden sm:inline-flex"
 							muted={muted}

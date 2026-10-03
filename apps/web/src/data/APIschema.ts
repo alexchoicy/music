@@ -1035,6 +1035,143 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Before?: number | string;
+                    Limit?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ListeningHistoryPage"];
+                        "application/json": components["schemas"]["ListeningHistoryPage"];
+                        "text/json": components["schemas"]["ListeningHistoryPage"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RecordListeningHistoryRequest"];
+                    "text/json": components["schemas"]["RecordListeningHistoryRequest"];
+                    "application/*+json": components["schemas"]["RecordListeningHistoryRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/history/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me": {
         parameters: {
             query?: never;
@@ -2104,6 +2241,56 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tracks/radio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RadioTrackRequest"];
+                    "text/json": components["schemas"]["RadioTrackRequest"];
+                    "application/*+json": components["schemas"]["RadioTrackRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["RadioTrack"];
+                        "application/json": components["schemas"]["RadioTrack"];
+                        "text/json": components["schemas"]["RadioTrack"];
+                    };
+                };
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/uploads/Init": {
         parameters: {
             query?: never;
@@ -3073,6 +3260,27 @@ export interface components {
             id: number | string;
             language: string;
         };
+        ListeningHistoryEntryDetails: {
+            /** Format: int64 */
+            entryId: number | string;
+            /** Format: date-time */
+            playedAt: string;
+            /** Format: int32 */
+            albumId: number | string;
+            albumTitle: string;
+            /** Format: int32 */
+            albumDiscId: number | string;
+            /** Format: int32 */
+            trackId: number | string;
+            title: string;
+            /** Format: int32 */
+            durationInMs: number | string;
+        };
+        ListeningHistoryPage: {
+            entries: components["schemas"]["ListeningHistoryEntryDetails"][];
+            /** Format: int64 */
+            nextCursor: null | number | string;
+        };
         /** @enum {unknown} */
         ListSortOption: "TitleAsc" | "TitleDesc" | "CreatedAtDesc" | "CreatedAtAsc";
         LoginRequest: {
@@ -3288,6 +3496,24 @@ export interface components {
             status?: null | number | string;
             detail?: null | string;
             instance?: null | string;
+        };
+        RadioTrack: {
+            /** Format: int32 */
+            albumId: number | string;
+            /** Format: int32 */
+            albumDiscId: number | string;
+            /** Format: int32 */
+            trackId: number | string;
+        };
+        RadioTrackRequest: {
+            queueTrackIds?: (number | string)[];
+            includeInstrumental?: boolean;
+        };
+        RecordListeningHistoryRequest: {
+            /** Format: int32 */
+            albumId: number | string;
+            /** Format: int32 */
+            trackId: number | string;
         };
         RenamePlaylistRequest: {
             name: string;

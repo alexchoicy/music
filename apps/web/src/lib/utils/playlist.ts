@@ -15,7 +15,7 @@ export function playlistCoverEntries(entries: PlaylistDetails["entries"]) {
 }
 
 export function playlistEntryCoverUrl(
-	entry: PlaylistDetails["entries"][number],
+	entry: Pick<PlaylistDetails["entries"][number], "albumDiscId">,
 	album: components["schemas"]["AlbumDetails"] | undefined,
 ) {
 	return (

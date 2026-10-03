@@ -38,6 +38,7 @@ export type AudioPlayerState = {
 	hidden: boolean;
 	repeatMode: RepeatMode;
 	shuffle: boolean;
+	radio: boolean;
 	shuffleHistory: number[];
 	shuffleHistoryIndex: number;
 	shuffleRemaining: number[];
@@ -67,6 +68,7 @@ export type AudioPlayerAction = {
 	togglePlay: () => Promise<void>;
 	toggleRepeatMode: () => void;
 	toggleShuffle: () => void;
+	toggleRadio: () => void;
 	pause: () => void;
 	setVolume: (volume: number) => void;
 	setHidden: (hidden: boolean) => void;

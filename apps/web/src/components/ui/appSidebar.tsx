@@ -7,6 +7,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
 	CirclePlus,
 	Disc3,
+	History,
 	House,
 	ListMusic,
 	LogOut,
@@ -104,6 +105,11 @@ const mainNavigation = [
 		label: "Playlists",
 		icon: ListMusic,
 		to: "/playlists",
+	},
+	{
+		label: "History",
+		icon: History,
+		to: "/history",
 	},
 ] satisfies Array<NavigationItem>;
 
