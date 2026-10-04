@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Music.Core.Common.Enums;
 using Music.Core.Entities;
+using Music.Core.Services.Albums.Enums;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Images.Enums;
 using Music.Core.Services.Tracks;
@@ -97,6 +98,7 @@ public sealed class TrackService(AppDbContext dbContext, IAssetsService assetsSe
             .AlbumTracks.AsNoTracking()
             .Where(item =>
                 item.Track!.ContentType == TrackContentType.Music
+                && item.AlbumDisc!.Album!.Type != AlbumType.Soundtrack
                 && item.Track.Audios.Any()
                 && !queueTrackIds.Contains(item.TrackId)
             );
