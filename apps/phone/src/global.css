@@ -1,0 +1,28 @@
+@import 'tailwindcss';
+@import 'uniwind';
+
+@layer theme {
+  :root {
+    @variant light {
+      --color-background: var(--color-white);
+      --color-foreground: var(--color-neutral-800);
+      --color-muted: rgb(0 0 0 / 0.04);
+      --color-muted-foreground: var(--color-neutral-500);
+      --color-primary: var(--color-neutral-800);
+      --color-primary-foreground: var(--color-neutral-50);
+      --color-destructive: var(--color-red-500);
+      --color-border: rgb(0 0 0 / 0.08);
+    }
+
+    @variant dark {
+      --color-background: var(--color-neutral-950);
+      --color-foreground: var(--color-neutral-100);
+      --color-muted: rgb(255 255 255 / 0.04);
+      --color-muted-foreground: var(--color-neutral-400);
+      --color-primary: var(--color-neutral-100);
+      --color-primary-foreground: var(--color-neutral-800);
+      --color-destructive: var(--color-red-400);
+      --color-border: rgb(255 255 255 / 0.06);
+    }
+  }
+}

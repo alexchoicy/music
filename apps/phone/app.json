@@ -1,0 +1,43 @@
+{
+	"expo": {
+		"name": "Music",
+		"slug": "phone",
+		"version": "1.0.0",
+		"orientation": "portrait",
+		"icon": "./assets/images/icon.png",
+		"scheme": "phone",
+		"userInterfaceStyle": "automatic",
+		"android": {
+			"adaptiveIcon": {
+				"backgroundColor": "#FFFFFF",
+				"foregroundImage": "./assets/images/android-icon-foreground.png",
+				"monochromeImage": "./assets/images/android-icon-monochrome.png"
+			},
+			"predictiveBackGestureEnabled": false
+		},
+		"web": {
+			"output": "static",
+			"favicon": "./assets/images/favicon.png"
+		},
+		"plugins": [
+			"expo-router",
+			[
+				"expo-splash-screen",
+				{
+					"backgroundColor": "#FFFFFF",
+					"image": "./assets/images/splash-icon.png",
+					"imageWidth": 120,
+					"dark": {
+						"backgroundColor": "#0A0A0A",
+						"image": "./assets/images/splash-icon-dark.png"
+					}
+				}
+			],
+			"expo-secure-store"
+		],
+		"experiments": {
+			"typedRoutes": true,
+			"reactCompiler": true
+		}
+	}
+}

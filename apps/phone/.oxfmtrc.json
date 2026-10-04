@@ -1,0 +1,25 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"singleQuote": false,
+	"useTabs": true,
+	"trailingComma": "all",
+	"printWidth": 80,
+	"sortImports": true,
+	"sortTailwindcss": {
+		"stylesheet": "./src/global.css",
+		"functions": ["clsx", "cn"],
+		"preserveWhitespace": true
+	},
+	"sortPackageJson": true,
+	"ignorePatterns": [
+		"**/dist/**",
+		"**/.expo/**",
+		"pnpm-lock.yaml",
+		"**/.vscode/**/*",
+		"**/src/global.css",
+		"**/src/uniwind-types.d.ts",
+		"expo-env.d.ts",
+		"/android/**",
+		"/ios/**"
+	]
+}
