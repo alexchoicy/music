@@ -16,11 +16,16 @@
 		"web": "expo start --web"
 	},
 	"dependencies": {
+		"@react-native-community/slider": "5.2.0",
+		"@tanstack/query-async-storage-persister": "^5.104.1",
 		"@tanstack/react-form": "^1.33.5",
 		"@tanstack/react-query": "^5.104.1",
+		"@tanstack/react-query-persist-client": "^5.104.1",
 		"expo": "~57.0.26",
+		"expo-audio": "~57.0.5",
 		"expo-constants": "~57.0.20",
 		"expo-dev-client": "~57.0.19",
+		"expo-file-system": "~57.0.7",
 		"expo-font": "~57.0.4",
 		"expo-image": "~57.0.5",
 		"expo-linking": "~57.0.11",
@@ -28,6 +33,7 @@
 		"expo-router": "~57.0.24",
 		"expo-secure-store": "~57.0.4",
 		"expo-splash-screen": "~57.0.9",
+		"expo-sqlite": "~57.0.3",
 		"expo-status-bar": "~57.0.1",
 		"expo-symbols": "~57.0.3",
 		"expo-system-ui": "~57.0.4",
@@ -36,6 +42,7 @@
 		"react-native": "0.86.3",
 		"react-native-gesture-handler": "~2.32.0",
 		"react-native-reanimated": "4.5.1",
+		"react-native-reorderable-list": "^0.18.1",
 		"react-native-safe-area-context": "~5.7.0",
 		"react-native-screens": "~4.26.0",
 		"react-native-web": "~0.21.0",
@@ -52,5 +59,12 @@
 		"oxlint": "^1.86.0",
 		"oxlint-tsgolint": "^7.0.2003",
 		"typescript": "~6.0.3"
+	},
+	"expo": {
+		"autolinking": {
+			"buildFromSource": [
+				"expo-audio"
+			]
+		}
 	}
 }

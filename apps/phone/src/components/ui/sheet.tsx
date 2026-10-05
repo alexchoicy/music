@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import {
+	KeyboardAvoidingView,
 	Modal,
 	Pressable,
 	ScrollView,
@@ -23,6 +24,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
+
+import { ToastHost } from "@/components/ui/toast";
 
 type SheetProps = {
 	open: boolean;
@@ -96,48 +99,53 @@ export function Sheet({ open, title, onClose, children, footer }: SheetProps) {
 		>
 			{/* A Modal is a separate native root, so gestures need their own root view. */}
 			<GestureHandlerRootView style={styles.root}>
-				<Animated.View style={[StyleSheet.absoluteFill, backdropStyle]}>
-					<Pressable
-						accessibilityLabel={`Close ${title}`}
-						accessibilityRole="button"
-						className="flex-1 bg-black/40"
-						onPress={onClose}
-					/>
-				</Animated.View>
-				<Animated.View
-					onLayout={(event) => {
-						sheetHeight.value = event.nativeEvent.layout.height;
-					}}
-					style={[{ maxHeight: "80%" }, sheetStyle]}
-				>
-					<View
-						className="shrink rounded-t-2xl border border-border bg-background"
-						style={{ paddingBottom: insets.bottom + 16 }}
+				{/* Lifts the sheet above the keyboard when it contains a text field. */}
+				<KeyboardAvoidingView behavior="padding" style={styles.content}>
+					<Animated.View style={[StyleSheet.absoluteFill, backdropStyle]}>
+						<Pressable
+							accessibilityLabel={`Close ${title}`}
+							accessibilityRole="button"
+							className="flex-1 bg-black/40"
+							onPress={onClose}
+						/>
+					</Animated.View>
+					<Animated.View
+						onLayout={(event) => {
+							sheetHeight.value = event.nativeEvent.layout.height;
+						}}
+						style={[{ maxHeight: "80%" }, sheetStyle]}
 					>
-						<GestureDetector gesture={pan}>
-							<View>
-								<View className="items-center pt-2">
-									<View className="h-1 w-10 rounded-full bg-muted-foreground/30" />
+						<View
+							className="shrink rounded-t-2xl border border-border bg-background"
+							style={{ paddingBottom: insets.bottom + 16 }}
+						>
+							<GestureDetector gesture={pan}>
+								<View>
+									<View className="items-center pt-2">
+										<View className="h-1 w-10 rounded-full bg-muted-foreground/30" />
+									</View>
+									<Text
+										accessibilityRole="header"
+										className="px-5 pt-3 pb-2 text-lg font-semibold text-foreground"
+									>
+										{title}
+									</Text>
 								</View>
-								<Text
-									accessibilityRole="header"
-									className="px-5 pt-3 pb-2 text-lg font-semibold text-foreground"
-								>
-									{title}
-								</Text>
-							</View>
-						</GestureDetector>
-						<ScrollView contentContainerClassName="gap-5 px-5 pb-4">
-							{children}
-						</ScrollView>
-						{footer && <View className="flex-row gap-3 px-5">{footer}</View>}
-					</View>
-				</Animated.View>
+							</GestureDetector>
+							<ScrollView contentContainerClassName="gap-5 px-5 pb-4">
+								{children}
+							</ScrollView>
+							{footer && <View className="flex-row gap-3 px-5">{footer}</View>}
+						</View>
+					</Animated.View>
+				</KeyboardAvoidingView>
+				<ToastHost bottomOffset={insets.bottom + 8} />
 			</GestureHandlerRootView>
 		</Modal>
 	);
 }
 
 const styles = StyleSheet.create({
-	root: { flex: 1, justifyContent: "flex-end" },
+	root: { flex: 1 },
+	content: { flex: 1, justifyContent: "flex-end" },
 });

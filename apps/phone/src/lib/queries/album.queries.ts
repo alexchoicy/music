@@ -2,6 +2,7 @@ import type { components, paths } from "@api/schema";
 import { queryOptions } from "@tanstack/react-query";
 
 import { apiFetch } from "@/lib/api";
+import { getOfflineAlbum, syncSavedAlbum } from "@/lib/offline/downloads";
 
 export type AlbumQuery = paths["/albums"]["get"]["parameters"]["query"];
 
@@ -32,5 +33,29 @@ export const albumQueries = {
 				if (!result.ok) throw new Error("Unable to load albums");
 				return result.data;
 			},
+		}),
+	getAlbum: (id: number | string) =>
+		queryOptions({
+			queryKey: ["albums", "detail", String(id)],
+			queryFn: async () => {
+				let result;
+				try {
+					result = await apiFetch<components["schemas"]["AlbumDetails"]>(
+						`/albums/${id}`,
+					);
+				} catch (error) {
+					// The server is unreachable, so fall back to a downloaded copy.
+					const saved = getOfflineAlbum(String(id));
+					if (saved) return saved;
+					throw error;
+				}
+				if (!result.ok) throw new Error("Unable to load album");
+
+				// Keep a downloaded album in sync with the server.
+				syncSavedAlbum(result.data);
+				return result.data;
+			},
+			// Run while offline so downloaded albums can load from the device.
+			networkMode: "offlineFirst",
 		}),
 };

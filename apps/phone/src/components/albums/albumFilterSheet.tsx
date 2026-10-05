@@ -17,6 +17,9 @@ type AlbumFilterSheetProps = {
 	open: boolean;
 	filters: AlbumFilters;
 	onChange: (filters: AlbumFilters) => void;
+	/** Lists only downloaded albums; on by default while offline. */
+	downloadedOnly: boolean;
+	onDownloadedOnlyChange: (downloadedOnly: boolean) => void;
 	onClose: () => void;
 };
 
@@ -30,11 +33,13 @@ export function AlbumFilterSheet({
 	open,
 	filters,
 	onChange,
+	downloadedOnly,
+	onDownloadedOnlyChange,
 	onClose,
 }: AlbumFilterSheetProps) {
 	const languages = useQuery({
 		...languageQueries.getLanguages(),
-		enabled: open,
+		enabled: open && !downloadedOnly,
 	});
 
 	return (
@@ -43,7 +48,10 @@ export function AlbumFilterSheet({
 				<>
 					<Button
 						className="flex-1"
-						onPress={() => onChange({ types: [], languageIds: [] })}
+						onPress={() => {
+							onChange({ types: [], languageIds: [] });
+							onDownloadedOnlyChange(false);
+						}}
 						variant="outline"
 					>
 						Clear
@@ -57,6 +65,18 @@ export function AlbumFilterSheet({
 			open={open}
 			title="Filter albums"
 		>
+			<View className="gap-2.5">
+				<Text className="text-sm font-medium text-muted-foreground">
+					Library
+				</Text>
+				<View className="flex-row flex-wrap gap-2">
+					<Chip
+						label="Downloaded only"
+						onPress={() => onDownloadedOnlyChange(!downloadedOnly)}
+						selected={downloadedOnly}
+					/>
+				</View>
+			</View>
 			<View className="gap-2.5">
 				<Text className="text-sm font-medium text-muted-foreground">Type</Text>
 				<View className="flex-row flex-wrap gap-2">
@@ -72,37 +92,40 @@ export function AlbumFilterSheet({
 					))}
 				</View>
 			</View>
-			<View className="gap-2.5">
-				<Text className="text-sm font-medium text-muted-foreground">
-					Language
-				</Text>
-				{languages.isPending ? (
-					<Text className="text-sm text-muted-foreground">Loading…</Text>
-				) : languages.isError ? (
-					<Text className="text-sm text-destructive">
-						Unable to load languages
+			{/* Downloaded albums do not store track languages. */}
+			{!downloadedOnly && (
+				<View className="gap-2.5">
+					<Text className="text-sm font-medium text-muted-foreground">
+						Language
 					</Text>
-				) : (
-					<View className="flex-row flex-wrap gap-2">
-						{languages.data.map((language) => {
-							const id = Number(language.id);
-							return (
-								<Chip
-									key={id}
-									label={language.language}
-									onPress={() =>
-										onChange({
-											...filters,
-											languageIds: toggle(filters.languageIds, id),
-										})
-									}
-									selected={filters.languageIds.includes(id)}
-								/>
-							);
-						})}
-					</View>
-				)}
-			</View>
+					{languages.isPending ? (
+						<Text className="text-sm text-muted-foreground">Loading…</Text>
+					) : languages.isError ? (
+						<Text className="text-sm text-destructive">
+							Unable to load languages
+						</Text>
+					) : (
+						<View className="flex-row flex-wrap gap-2">
+							{languages.data.map((language) => {
+								const id = Number(language.id);
+								return (
+									<Chip
+										key={id}
+										label={language.language}
+										onPress={() =>
+											onChange({
+												...filters,
+												languageIds: toggle(filters.languageIds, id),
+											})
+										}
+										selected={filters.languageIds.includes(id)}
+									/>
+								);
+							})}
+						</View>
+					)}
+				</View>
+			)}
 		</Sheet>
 	);
 }

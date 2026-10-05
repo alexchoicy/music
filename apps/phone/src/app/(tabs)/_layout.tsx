@@ -1,4 +1,5 @@
 import { TabList, TabSlot, TabTrigger, Tabs } from "expo-router/ui";
+import { View } from "react-native";
 
 import {
 	BottomNavBar,
@@ -7,12 +8,16 @@ import {
 	rightTabs,
 	TabButton,
 } from "@/components/navigation/bottomNav";
+import { ToastHost } from "@/components/ui/toast";
 
 // Tabs discovers routes from TabTriggers written directly inside TabList, so they stay in this layout.
 export default function TabsLayout() {
 	return (
 		<Tabs className="flex-1 bg-background">
-			<TabSlot />
+			<View className="flex-1">
+				<TabSlot />
+				<ToastHost />
+			</View>
 			<TabList asChild>
 				<BottomNavBar>
 					{leftTabs.map((tab) => (

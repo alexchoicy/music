@@ -6,12 +6,18 @@ type ChipProps = {
 	label: string;
 	selected: boolean;
 	onPress: () => void;
+	role?: "checkbox" | "radio";
 };
 
-export function Chip({ label, selected, onPress }: ChipProps) {
+export function Chip({
+	label,
+	selected,
+	onPress,
+	role = "checkbox",
+}: ChipProps) {
 	return (
 		<Pressable
-			accessibilityRole="checkbox"
+			accessibilityRole={role}
 			accessibilityState={{ checked: selected }}
 			className={cn(
 				"h-9 justify-center rounded-full border px-3.5 active:opacity-70",

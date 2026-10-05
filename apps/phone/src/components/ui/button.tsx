@@ -7,7 +7,7 @@ type ButtonProps = Omit<PressableProps, "children"> & {
 	children: string;
 	className?: string;
 	loading?: boolean;
-	variant?: "default" | "outline" | "ghost";
+	variant?: "default" | "outline" | "ghost" | "destructive";
 };
 
 const variants = {
@@ -25,6 +25,11 @@ const variants = {
 		container: "",
 		text: "text-foreground",
 		indicator: "accent-foreground",
+	},
+	destructive: {
+		container: "border border-destructive bg-background",
+		text: "text-destructive",
+		indicator: "accent-destructive",
 	},
 };
 

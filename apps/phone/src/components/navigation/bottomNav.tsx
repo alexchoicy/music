@@ -118,7 +118,7 @@ export function PlayingButton({
 	style: _style,
 	...props
 }: PlayingButtonProps) {
-	const isPlaying = usePlayerStore((state) => state.isPlaying);
+	const isPlaying = usePlayerStore((state) => state.status === "playing");
 
 	return (
 		<Pressable

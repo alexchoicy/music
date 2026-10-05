@@ -1,6 +1,8 @@
 import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
 
+import { queryClient } from "@/lib/query-client";
+
 const serverUrlKey = "serverUrl";
 const tokenKey = "authToken";
 
@@ -23,6 +25,7 @@ export const useSessionStore = create<SessionState>()((set) => ({
 		// A token is only valid for the server that issued it.
 		await persist(tokenKey, null);
 		await persist(serverUrlKey, serverUrl);
+		queryClient.clear();
 		set({ serverUrl, token: null });
 	},
 	setToken: async (token) => {

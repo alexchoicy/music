@@ -2,26 +2,28 @@ import { Pressable, Text, View } from "react-native";
 
 import { Icon } from "@/components/ui/icon";
 import { Sheet } from "@/components/ui/sheet";
-import type { ListSortOption } from "@/lib/album";
-import { listSortOptions } from "@/lib/album";
+import type { ListSortOption } from "@/lib/listSort";
+import { listSortOptions } from "@/lib/listSort";
 
-type AlbumSortSheetProps = {
+type ListSortSheetProps = {
 	open: boolean;
 	sort: ListSortOption;
+	options?: { label: string; value: ListSortOption }[];
 	onChange: (sort: ListSortOption) => void;
 	onClose: () => void;
 };
 
-export function AlbumSortSheet({
+export function ListSortSheet({
 	open,
 	sort,
+	options = listSortOptions,
 	onChange,
 	onClose,
-}: AlbumSortSheetProps) {
+}: ListSortSheetProps) {
 	return (
 		<Sheet onClose={onClose} open={open} title="Sort by">
 			<View>
-				{listSortOptions.map((option) => (
+				{options.map((option) => (
 					<Pressable
 						accessibilityRole="radio"
 						accessibilityState={{ checked: option.value === sort }}

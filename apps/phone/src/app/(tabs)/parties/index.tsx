@@ -3,38 +3,37 @@ import { useEffect, useState } from "react";
 import {
 	ActivityIndicator,
 	FlatList,
-	Pressable,
-	TextInput,
 	useWindowDimensions,
 	View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AlbumCard } from "@/components/albums/albumCard";
-import type { AlbumFilters } from "@/components/albums/albumFilterSheet";
-import { AlbumFilterSheet } from "@/components/albums/albumFilterSheet";
-import { AlbumSortSheet } from "@/components/albums/albumSortSheet";
+import { PartyCard } from "@/components/parties/partyCard";
+import type { PartyFilters } from "@/components/parties/partyFilterSheet";
+import {
+	defaultPartyFilters,
+	PartyFilterSheet,
+} from "@/components/parties/partyFilterSheet";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/emptyState";
-import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/iconButton";
+import { ListSortSheet } from "@/components/ui/listSortSheet";
 import { Screen } from "@/components/ui/screen";
-import type { ListSortOption } from "@/lib/album";
-import { defaultListSort } from "@/lib/album";
-import { albumQueries } from "@/lib/queries/album.queries";
+import { SearchField } from "@/components/ui/searchField";
+import type { ListSortOption } from "@/lib/listSort";
+import { defaultListSort } from "@/lib/listSort";
+import { partySortOptions } from "@/lib/party";
+import { partyQueries } from "@/lib/queries/party.queries";
 
 const searchDebounceMs = 300;
 const gridPadding = 16;
 const gridGap = 12;
 const columns = 3;
 
-export default function AlbumsScreen() {
+export default function PartiesScreen() {
 	const [search, setSearch] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
-	const [filters, setFilters] = useState<AlbumFilters>({
-		types: [],
-		languageIds: [],
-	});
+	const [filters, setFilters] = useState<PartyFilters>(defaultPartyFilters);
 	const [sort, setSort] = useState<ListSortOption>(defaultListSort);
 	const [openSheet, setOpenSheet] = useState<"filter" | "sort" | null>(null);
 
@@ -46,11 +45,13 @@ export default function AlbumsScreen() {
 		return () => clearTimeout(timeout);
 	}, [search]);
 
-	const albums = useQuery({
-		...albumQueries.getAlbums({
+	const parties = useQuery({
+		...partyQueries.getParties({
 			Search: debouncedSearch || undefined,
-			Types: filters.types.length ? filters.types : undefined,
-			LanguageIds: filters.languageIds.length ? filters.languageIds : undefined,
+			Type: filters.type ?? undefined,
+			Kind: filters.kind ?? undefined,
+			Gender: filters.gender ?? undefined,
+			ExcludeNoAlbums: filters.excludeNoAlbums,
 			Sort: sort,
 		}),
 		placeholderData: keepPreviousData,
@@ -67,53 +68,20 @@ export default function AlbumsScreen() {
 			gridGap * (columns - 1)) /
 		columns;
 
-	const filterCount = filters.types.length + filters.languageIds.length;
+	const filterCount =
+		[filters.type, filters.kind, filters.gender].filter(Boolean).length +
+		(filters.excludeNoAlbums === defaultPartyFilters.excludeNoAlbums ? 0 : 1);
 	const hasQuery = !!debouncedSearch || filterCount > 0;
 
 	return (
 		<Screen>
 			<View className="px-4 pt-3 pb-3">
 				<View className="flex-row gap-2">
-					<View className="h-11 flex-1 flex-row items-center gap-2 rounded-lg border border-border bg-background px-3">
-						<Icon
-							className="accent-muted-foreground"
-							name={{
-								ios: "magnifyingglass",
-								android: "search",
-								web: "search",
-							}}
-							size={18}
-						/>
-						<TextInput
-							accessibilityLabel="Search albums"
-							autoCapitalize="none"
-							autoCorrect={false}
-							className="flex-1 text-base text-foreground"
-							onChangeText={setSearch}
-							placeholder="Search albums"
-							placeholderTextColorClassName="accent-muted-foreground"
-							returnKeyType="search"
-							value={search}
-						/>
-						{!!search && (
-							<Pressable
-								accessibilityLabel="Clear search"
-								accessibilityRole="button"
-								hitSlop={13}
-								onPress={() => setSearch("")}
-							>
-								<Icon
-									className="accent-muted-foreground"
-									name={{
-										ios: "xmark.circle.fill",
-										android: "cancel",
-										web: "cancel",
-									}}
-									size={18}
-								/>
-							</Pressable>
-						)}
-					</View>
+					<SearchField
+						onChangeText={setSearch}
+						placeholder="Search parties"
+						value={search}
+					/>
 					<IconButton
 						badge={filterCount}
 						icon={{
@@ -132,32 +100,34 @@ export default function AlbumsScreen() {
 				</View>
 			</View>
 
-			{albums.isPending ? (
+			{parties.isPending ? (
 				<View className="flex-1 items-center justify-center">
 					<ActivityIndicator colorClassName="accent-muted-foreground" />
 				</View>
-			) : albums.isError ? (
+			) : parties.data === undefined ||
+			  // Results for the previous search would be shown while offline.
+			  (parties.isPlaceholderData && parties.fetchStatus === "paused") ? (
 				<EmptyState
 					action={
 						<Button
-							loading={albums.isFetching}
-							onPress={() => void albums.refetch()}
+							loading={parties.isFetching}
+							onPress={() => void parties.refetch()}
 							variant="outline"
 						>
 							Retry
 						</Button>
 					}
 					description="Try again in a moment."
-					title="Unable to load albums"
+					title="Unable to load parties"
 				/>
-			) : albums.data.length === 0 ? (
+			) : parties.data.length === 0 ? (
 				<EmptyState
 					description={
 						hasQuery
 							? "Try a different search or filter."
-							: "Albums in your library will appear here."
+							: "Artists, groups, and projects will appear here."
 					}
-					title={hasQuery ? "No matching albums" : "No albums yet"}
+					title={hasQuery ? "No matching parties" : "No parties yet"}
 				/>
 			) : (
 				<FlatList
@@ -167,31 +137,32 @@ export default function AlbumsScreen() {
 						padding: gridPadding,
 						paddingTop: 0,
 					}}
-					data={albums.data}
+					data={parties.data}
 					keyboardDismissMode="on-drag"
 					keyboardShouldPersistTaps="handled"
-					keyExtractor={(album) => String(album.albumId)}
+					keyExtractor={(party) => String(party.partyId)}
 					numColumns={columns}
-					onRefresh={() => void albums.refetch()}
-					refreshing={albums.isRefetching && !albums.isPlaceholderData}
+					onRefresh={() => void parties.refetch()}
+					refreshing={parties.isRefetching && !parties.isPlaceholderData}
 					renderItem={({ item }) => (
 						<View style={{ width: itemWidth }}>
-							<AlbumCard album={item} />
+							<PartyCard party={item} />
 						</View>
 					)}
 				/>
 			)}
 
-			<AlbumFilterSheet
+			<PartyFilterSheet
 				filters={filters}
 				onChange={setFilters}
 				onClose={() => setOpenSheet(null)}
 				open={openSheet === "filter"}
 			/>
-			<AlbumSortSheet
+			<ListSortSheet
 				onChange={setSort}
 				onClose={() => setOpenSheet(null)}
 				open={openSheet === "sort"}
+				options={partySortOptions}
 				sort={sort}
 			/>
 		</Screen>
