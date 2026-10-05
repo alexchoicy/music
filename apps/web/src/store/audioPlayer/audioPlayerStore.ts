@@ -7,7 +7,11 @@ import { immer } from "zustand/middleware/immer";
 import type { MusicWebSocketMessage } from "#/data/webSocket";
 import { sendMusicWebSocketMessage } from "#/lib/webSocket";
 
-import { getWaveformData, resolvePlaybackSource } from "./audioPlayerFunction";
+import {
+	getPresignedUrl,
+	getWaveformData,
+	resolvePlaybackSource,
+} from "./audioPlayerFunction";
 import type {
 	AudioPlayerAction,
 	AudioPlayerQueueEntry,
@@ -383,7 +387,14 @@ async function loadAndPlay(
 				track.durationInMs / 1000,
 			);
 		} else {
-			await waveSurfer.load(playbackSource.url);
+			const player = waveSurfer;
+			const signedUrl = await getPresignedUrl(playbackSource.fileUrl);
+			if (requestId !== loadRequestId || player !== waveSurfer) return;
+			if (!signedUrl)
+				throw new Error("Could not resolve the audio playback URL.");
+
+			player.setOptions({ fetchParams: { credentials: "omit" } });
+			await player.load(signedUrl);
 		}
 	} catch (error) {
 		if (requestId !== loadRequestId) return;

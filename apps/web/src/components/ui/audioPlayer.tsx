@@ -844,8 +844,6 @@ export function AudioPlayer() {
 			dragToSeek: true,
 			barWidth: 2,
 			barGap: 2,
-
-			fetchParams: { credentials: "include" },
 		});
 
 		bindWaveSurfer(player);
