@@ -1,4 +1,5 @@
 import type { components } from "#/data/APIschema";
+import type { InboxItemDetails } from "#/lib/queries/inbox.queries";
 
 export type CreateAlbumRequest = components["schemas"]["CreateAlbumRequest"];
 type AlbumDiscRequest = components["schemas"]["AlbumDiscRequest"];
@@ -134,6 +135,10 @@ export type AlbumUploadActions = {
 		files: File[],
 		parties: PartyItem[],
 	) => Promise<AddDroppedFilesResult>;
+	addInboxItems: (
+		items: InboxItemDetails[],
+		parties: PartyItem[],
+	) => AddDroppedFilesResult;
 	submitAlbums: () => Promise<void>;
 	clear: () => void;
 	removeAlbumDraft: (albumId: AlbumLocalId) => void;

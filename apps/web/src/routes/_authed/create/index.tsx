@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AlbumIcon, MicVocalIcon, UsersIcon } from "lucide-react";
+import { AlbumIcon, InboxIcon, MicVocalIcon, UsersIcon } from "lucide-react";
 import { lazy, Suspense } from "react";
 
 import {
@@ -21,6 +21,12 @@ const AlbumTabContent = lazy(() =>
 const ConcertTabContent = lazy(() =>
 	import("#/components/create/concertTabContent").then((module) => ({
 		default: module.ConcertTabContent,
+	})),
+);
+
+const InboxTabContent = lazy(() =>
+	import("#/components/create/inboxTabContent").then((module) => ({
+		default: module.InboxTabContent,
 	})),
 );
 
@@ -46,15 +52,19 @@ function RouteComponent() {
 				<TabsList className="mx-auto">
 					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="album">
 						<AlbumIcon />
-						Album
+						<span className="max-sm:sr-only">Album</span>
 					</TabsTrigger>
 					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="concert">
 						<MicVocalIcon />
-						Concert
+						<span className="max-sm:sr-only">Concert</span>
 					</TabsTrigger>
 					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="party">
 						<UsersIcon />
-						Party
+						<span className="max-sm:sr-only">Party</span>
+					</TabsTrigger>
+					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="drop">
+						<InboxIcon />
+						<span className="max-sm:sr-only">Drop</span>
 					</TabsTrigger>
 				</TabsList>
 
@@ -80,6 +90,14 @@ function RouteComponent() {
 				>
 					<Suspense fallback={<CreateTabFallback label="party" />}>
 						<PartyTabContent />
+					</Suspense>
+				</TabsContent>
+				<TabsContent
+					className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
+					value="drop"
+				>
+					<Suspense fallback={<CreateTabFallback label="drop" />}>
+						<InboxTabContent />
 					</Suspense>
 				</TabsContent>
 			</Tabs>

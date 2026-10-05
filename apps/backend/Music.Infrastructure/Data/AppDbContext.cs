@@ -41,6 +41,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Playlist> Playlists { get; set; }
     public DbSet<PlaylistEntry> PlaylistEntries { get; set; }
 
+    public DbSet<InboxGroup> InboxGroups { get; set; }
+    public DbSet<InboxItem> InboxItems { get; set; }
+
     public DbSet<ListeningHistoryEntry> ListeningHistoryEntries { get; set; }
 
     public DbSet<WorkerJob> WorkerJobs { get; set; }

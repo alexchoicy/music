@@ -212,4 +212,7 @@ public sealed class TrackAudioRequest
     public bool Pinned { get; init; } = false;
     public MediaSource Source { get; set; } = MediaSource.Unknown;
     public string? SourceUrl { get; set; }
+
+    // Links an already uploaded inbox file instead of creating a new upload.
+    public Guid? InboxItemId { get; init; }
 }

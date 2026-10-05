@@ -79,6 +79,17 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
         if (request.Count == 0)
             return BadRequest("At least one album is required.");
 
+        if (
+            request.Any(album =>
+                album.Discs.Any(disc =>
+                    disc.Tracks.Any(track =>
+                        track.Audios.Any(audio => audio.InboxItemId is not null)
+                    )
+                )
+            )
+        )
+            return BadRequest("Inbox files can only be used through the inbox.");
+
         string userId =
             User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
             ?? throw new ValidationException("Missing user identifier claim.");
@@ -86,6 +97,7 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
         IReadOnlyList<CreateAlbumResult> results = await _albumService.CreateAlbumAsync(
             request,
             userId,
+            allowInboxItems: false,
             cancellationToken
         );
 

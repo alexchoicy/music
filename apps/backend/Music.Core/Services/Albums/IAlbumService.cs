@@ -19,6 +19,7 @@ public interface IAlbumService
     Task<IReadOnlyList<CreateAlbumResult>> CreateAlbumAsync(
         IReadOnlyList<CreateAlbumRequest> albums,
         string userId,
+        bool allowInboxItems,
         CancellationToken cancellationToken = default
     );
 

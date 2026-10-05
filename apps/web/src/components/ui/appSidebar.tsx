@@ -9,6 +9,7 @@ import {
 	Disc3,
 	History,
 	House,
+	Inbox,
 	ListMusic,
 	LogOut,
 	MicVocal,
@@ -68,6 +69,7 @@ type NavigationItem = {
 	to: NavigationTo;
 	hotkey?: string;
 	uploader?: boolean;
+	admin?: boolean;
 };
 
 const mainNavigation = [
@@ -100,6 +102,12 @@ const mainNavigation = [
 		icon: CirclePlus,
 		to: "/create",
 		uploader: true,
+	},
+	{
+		label: "Inbox",
+		icon: Inbox,
+		to: "/inbox",
+		admin: true,
 	},
 	{
 		label: "Playlists",
@@ -209,6 +217,8 @@ export function AppSidebar({
 	const displayName = userInfo.userName.trim() || "User";
 	const roleLabel =
 		userInfo.roles.length > 0 ? userInfo.roles.join(", ") : "Member";
+	const isAdmin =
+		userInfo.roles.includes(ROLE.Admin) || userInfo.roles.includes(ROLE.Owner);
 
 	async function handleLogout() {
 		if (isMobile) setOpenMobile(false);
@@ -258,6 +268,7 @@ export function AppSidebar({
 								if (item.uploader && userInfo.roles.includes(ROLE.User)) {
 									return;
 								}
+								if (item.admin && !isAdmin) return;
 								return (
 									<SidebarMenuItem key={item.label}>
 										<SidebarMenuButton

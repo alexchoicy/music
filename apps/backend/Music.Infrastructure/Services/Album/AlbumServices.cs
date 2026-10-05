@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
@@ -13,7 +14,9 @@ using Music.Core.Services.Albums.Results;
 using Music.Core.Services.Files;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Files.Requests;
+using Music.Core.Services.Inbox.Enums;
 using Music.Core.Storage;
+using Music.Core.Workers;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Mappers;
 
@@ -571,11 +574,14 @@ public class AlbumService(
     public async Task<IReadOnlyList<CreateAlbumResult>> CreateAlbumAsync(
         IReadOnlyList<CreateAlbumRequest> albums,
         string userId,
+        bool allowInboxItems,
         CancellationToken cancellationToken = default
     )
     {
         if (albums.Count == 0)
             return [];
+
+        List<FileObject> inboxFileObjects = [];
 
         List<CreateAlbumResult> results = new(albums.Count);
         foreach (CreateAlbumRequest album in albums)
@@ -596,15 +602,19 @@ public class AlbumService(
             await using IDbContextTransaction transaction =
                 await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
+            List<FileObject> albumInboxFileObjects = [];
+
             try
             {
                 CreateAlbumUploadResult uploadResults = await CreateSingleAlbum(
                     album,
                     userId,
+                    allowInboxItems ? albumInboxFileObjects : null,
                     cancellationToken
                 );
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
+                inboxFileObjects.AddRange(albumInboxFileObjects);
 
                 results.Add(
                     CreateAlbumResult.Success(album.ClientTempAlbumId, album.Title, uploadResults)
@@ -631,12 +641,27 @@ public class AlbumService(
             }
         }
 
+        // Inbox files skip processing on upload; enhance them now that they belong to an album.
+        // Files still uploading are queued by the upload completion instead.
+        foreach (
+            FileObject fileObject in inboxFileObjects.Where(fileObject =>
+                fileObject.ProcessingStatus == FileProcessingStatus.Uploaded
+            )
+        )
+        {
+            await _contentService.RunBackgroundProcessUploadFileAsync(
+                new TrackUploadProcessWorker { FileObjectId = fileObject.Id },
+                cancellationToken
+            );
+        }
+
         return results;
     }
 
     private async Task<CreateAlbumUploadResult> CreateSingleAlbum(
         CreateAlbumRequest album,
         string userId,
+        List<FileObject>? inboxFileObjects,
         CancellationToken cancellationToken
     )
     {
@@ -695,7 +720,14 @@ public class AlbumService(
             (
                 CreateAlbumImageUploadItemResult? discImage,
                 List<CreateAlbumTrackUploadItemResult> tracks
-            ) = await CreateDisc(albumDisc, newAlbum, userId, cancellationToken, albumImage);
+            ) = await CreateDisc(
+                albumDisc,
+                newAlbum,
+                userId,
+                inboxFileObjects,
+                cancellationToken,
+                albumImage
+            );
 
             if (discImage is not null)
                 uploadResults.Images.Add(discImage);
@@ -718,6 +750,7 @@ public class AlbumService(
         AlbumDiscRequest albumDisc,
         Core.Entities.Album album,
         string userId,
+        List<FileObject>? inboxFileObjects,
         CancellationToken cancellationToken,
         AlbumImage? albumImage
     )
@@ -756,7 +789,13 @@ public class AlbumService(
         foreach (AlbumTrackRequest albumTrack in albumDisc.Tracks)
         {
             sourceResults.AddRange(
-                await CreateTrack(albumTrack, newAlbumDisc, userId, cancellationToken)
+                await CreateTrack(
+                    albumTrack,
+                    newAlbumDisc,
+                    userId,
+                    inboxFileObjects,
+                    cancellationToken
+                )
             );
         }
 
@@ -767,6 +806,7 @@ public class AlbumService(
         AlbumTrackRequest albumTrack,
         AlbumDisc albumDisc,
         string userId,
+        List<FileObject>? inboxFileObjects,
         CancellationToken cancellationToken
     )
     {
@@ -808,12 +848,81 @@ public class AlbumService(
 
         foreach (TrackAudioRequest trackVariant in albumTrack.Audios)
         {
+            if (trackVariant.InboxItemId is Guid inboxItemId)
+            {
+                if (inboxFileObjects is null)
+                    throw new ValidationException(
+                        "Inbox files can only be used through the inbox."
+                    );
+
+                inboxFileObjects.Add(
+                    await LinkInboxTrackAudio(
+                        trackVariant,
+                        inboxItemId,
+                        track,
+                        userId,
+                        cancellationToken
+                    )
+                );
+                continue;
+            }
+
             sourceResults.Add(
                 await CreateTrackAudio(trackVariant, track, userId, cancellationToken)
             );
         }
 
         return sourceResults;
+    }
+
+    private async Task<FileObject> LinkInboxTrackAudio(
+        TrackAudioRequest trackAudio,
+        Guid inboxItemId,
+        Track track,
+        string userId,
+        CancellationToken cancellationToken
+    )
+    {
+        InboxItem inboxItem =
+            await _dbContext
+                .InboxItems.Include(item => item.File)
+                    .ThenInclude(file => file!.FileObjects)
+                .FirstOrDefaultAsync(item => item.Id == inboxItemId, cancellationToken)
+            ?? throw new EntityNotFoundException("Inbox item not found");
+
+        if (inboxItem.Status != InboxItemStatus.Pending)
+            throw new ConflictException("Only pending inbox items can be added to an album");
+
+        StoredFile storedFile =
+            inboxItem.File ?? throw new EntityNotFoundException("File not found");
+
+        if (storedFile.OriginalBlake3Hash != trackAudio.File.Blake3Hash)
+            throw new ConflictException("Inbox item file does not match the track audio file");
+
+        FileObject original =
+            storedFile.FileObjects.FirstOrDefault(fileObject =>
+                fileObject.FileObjectVariant == FileObjectVariant.Original
+            ) ?? throw new EntityNotFoundException("File object not found");
+
+        storedFile.Source = trackAudio.Source;
+        storedFile.SourceUrl = trackAudio.SourceUrl;
+        storedFile.UpdatedAt = DateTimeOffset.UtcNow;
+
+        inboxItem.Status = InboxItemStatus.Claimed;
+        inboxItem.UpdatedAt = DateTimeOffset.UtcNow;
+
+        _dbContext.TrackAudios.Add(
+            new TrackAudio
+            {
+                Track = track,
+                Rank = trackAudio.Rank,
+                Pinned = trackAudio.Pinned,
+                File = storedFile,
+                UploadedByUserId = storedFile.UploadedByUserId ?? userId,
+            }
+        );
+
+        return original;
     }
 
     private async Task<CreateAlbumTrackUploadItemResult> CreateTrackAudio(

@@ -1,4 +1,4 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { UploadIcon } from "lucide-react";
 import { useState } from "react";
 import type { Accept } from "react-dropzone";
@@ -24,6 +24,7 @@ export function AlbumTabContent() {
 	const submitAlbums = useAlbumUploadStore((state) => state.submitAlbums);
 	// const { data: languages } = useSuspenseQuery(languageQueries.getLanguages());
 	const { data: parties } = useSuspenseQuery(partyQueries.getParties());
+	const queryClient = useQueryClient();
 	const isProcessing = useAlbumUploadStore((state) => state.isProcessing);
 	const submitStatus = useAlbumUploadStore((state) => state.submitStatus);
 	const albumOrder = useAlbumUploadStore((state) => state.albumOrder);
@@ -59,6 +60,7 @@ export function AlbumTabContent() {
 	async function handleSubmit() {
 		try {
 			await submitAlbums();
+			void queryClient.invalidateQueries({ queryKey: ["inbox"] });
 			setAlbumDraftToEdit(null);
 			setAlbumDraftToMerge(null);
 			setTrackDraftToEdit(null);

@@ -13,6 +13,7 @@ import {
 	getDimensions,
 	getExtensionFromFileName,
 	getExtensionFromMimeType,
+	getMimeTypeFromFileName,
 } from "./file";
 import { hashBlake3FileUnit8Array, hashFileStream } from "./hash";
 import { normalizeString } from "./string";
@@ -27,6 +28,20 @@ export type ProcessedFileData = {
 export type ProcessDroppedFilesResult = {
 	processedFiles: ProcessedFileData[];
 	failedFileNames: string[];
+};
+
+// Raw file tags. They are candidate metadata only, never Party identity.
+export type AudioTags = {
+	title: string | null;
+	album: string | null;
+	artists: string[];
+	albumArtists: string[];
+	trackNumber: number | null;
+	trackTotal: number | null;
+	discNumber: number | null;
+	discTotal: number | null;
+	date: string | null;
+	genres: string[];
 };
 
 let musicMetadataModulePromise: Promise<typeof MusicMetadata> | null = null;
@@ -106,17 +121,20 @@ async function extractCoverAsset(
 	return createCoverAsset(file, originalFileName);
 }
 
-async function processFile(file: File): Promise<ProcessedFileData | null> {
+async function processFile(
+	file: File,
+	extractCover: boolean,
+): Promise<ProcessedFileData | null> {
 	try {
 		const { parseBlob } = await getMusicMetadataModule();
 		const { blake3Hash } = await hashFileStream(file);
-		const metadata = await parseBlob(file);
+		const metadata = await parseBlob(file, { skipCovers: !extractCover });
 		console.log(metadata);
 		console.log(file);
 		let cover: CoverAsset | null = null;
 
 		try {
-			cover = await extractCoverAsset(metadata);
+			if (extractCover) cover = await extractCoverAsset(metadata);
 		} catch (error) {
 			console.error(`Error extracting cover from file ${file.name}:`, error);
 		}
@@ -133,13 +151,14 @@ async function processFile(file: File): Promise<ProcessedFileData | null> {
 export async function processDroppedFiles(
 	files: File[],
 	concurrency: number = 4,
+	extractCover: boolean = true,
 ): Promise<ProcessDroppedFilesResult> {
 	const fileDataResults = await pMap(
 		files,
 		async (file) => {
 			return {
 				fileName: file.name,
-				fileData: await processFile(file),
+				fileData: await processFile(file, extractCover),
 			};
 		},
 		{ concurrency },
@@ -157,6 +176,57 @@ export async function processDroppedFiles(
 		},
 		{ processedFiles: [], failedFileNames: [] },
 	);
+}
+
+export function getAudioTags(metadata: IAudioMetadata): AudioTags {
+	const { common } = metadata;
+
+	return {
+		title: common.title ?? null,
+		album: common.album ?? null,
+		artists: common.artists ?? [],
+		albumArtists: common.albumartists ?? [],
+		trackNumber: common.track.no,
+		trackTotal: common.track.of,
+		discNumber: common.disk.no,
+		discTotal: common.disk.of,
+		date: common.date ?? (common.year ? String(common.year) : null),
+		genres: common.genre ?? [],
+	};
+}
+
+export function getAudioDurationInMs(metadata: IAudioMetadata) {
+	return Math.round((metadata.format.duration ?? 0) * 1000);
+}
+
+export function createAudioFileRequest(
+	fileData: ProcessedFileData,
+): components["schemas"]["FileRequest"] {
+	const mimeType =
+		fileData.file.type || getMimeTypeFromFileName(fileData.file.name);
+	const extension =
+		getExtensionFromMimeType(mimeType) ||
+		getExtensionFromFileName(fileData.file.name);
+
+	return {
+		blake3Hash: fileData.blake3Hash,
+		mimeType,
+		sizeInBytes: fileData.file.size,
+		container:
+			fileData.metadata.format.container?.trim().toLowerCase() || extension,
+		extension: extension,
+		codec: fileData.metadata.format.codec?.trim().toLowerCase() ?? null,
+		width: null,
+		height: null,
+		audioSampleRate: fileData.metadata.format.sampleRate ?? null,
+		bitrate: Math.round(fileData.metadata.format.bitrate ?? 0),
+		frameRate: null,
+		durationInMs: getAudioDurationInMs(fileData.metadata),
+		originalFileName: fileData.file.name,
+		bitsPerSample: fileData.metadata.format.bitsPerSample ?? null,
+		lossless: fileData.metadata.format.lossless ?? false,
+		audioChannels: fileData.metadata.format.numberOfChannels ?? null,
+	};
 }
 
 export function makeAlbumMatchingKey(

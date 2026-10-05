@@ -1,16 +1,10 @@
-import type { IAudioMetadata } from "music-metadata";
-
 import {
 	ALBUM_TITLE,
 	DEFAULT_TRACK_AUDIO_SOURCE,
 	TRACK_TITLE,
 } from "#/constant/album";
 import type { components } from "#/data/APIschema";
-import {
-	getExtensionFromFileName,
-	getExtensionFromMimeType,
-	getMimeTypeFromFileName,
-} from "#/lib/utils/file";
+import type { InboxItemDetails } from "#/lib/queries/inbox.queries";
 import {
 	checkIfInstrumental,
 	checkIfInterlude,
@@ -18,8 +12,13 @@ import {
 	checkIfMC,
 } from "#/lib/utils/music";
 import { resolveParty } from "#/lib/utils/party";
-import { makeAlbumMatchingKey } from "#/lib/utils/upload";
-import type { ProcessedFileData } from "#/lib/utils/upload";
+import {
+	createAudioFileRequest,
+	getAudioDurationInMs,
+	getAudioTags,
+	makeAlbumMatchingKey,
+} from "#/lib/utils/upload";
+import type { AudioTags, ProcessedFileData } from "#/lib/utils/upload";
 
 import type {
 	AlbumDraft,
@@ -117,22 +116,26 @@ function getTrackVersionType(
 	return checkIfInstrumental(title, fileName) ? "Instrumental" : "Original";
 }
 
-function getMetadata(
-	metadata: IAudioMetadata,
-	file: File,
-	parties: PartyItem[],
-) {
-	const albumTitle = metadata.common.album?.trim() || ALBUM_TITLE;
-	const albumParty = resolveParty(metadata.common.albumartists ?? [], parties);
-	const trackTitle = metadata.common.title?.trim() || TRACK_TITLE;
-	const trackParty = resolveParty(metadata.common.artists ?? [], parties);
+type TrackDraftSource = {
+	tags: AudioTags;
+	durationInMs: number;
+	fileName: string;
+	cover: CoverAsset | null;
+	audio: components["schemas"]["TrackAudioRequest"];
+};
 
-	const discNumber = metadata.common.disk.no ?? 1;
-	const trackNumber = metadata.common.track.no ?? 1;
-	const durationInMs = Math.round((metadata.format.duration ?? 0) * 1000);
+function getMetadata(source: TrackDraftSource, parties: PartyItem[]) {
+	const { tags, durationInMs, fileName } = source;
+	const albumTitle = tags.album?.trim() || ALBUM_TITLE;
+	const albumParty = resolveParty(tags.albumArtists, parties);
+	const trackTitle = tags.title?.trim() || TRACK_TITLE;
+	const trackParty = resolveParty(tags.artists, parties);
 
-	const trackContentType = getTrackContentType(trackTitle, file.name);
-	const trackVersionType = getTrackVersionType(trackTitle, file.name);
+	const discNumber = tags.discNumber ?? 1;
+	const trackNumber = tags.trackNumber ?? 1;
+
+	const trackContentType = getTrackContentType(trackTitle, fileName);
+	const trackVersionType = getTrackVersionType(trackTitle, fileName);
 
 	const albumMatchingKey = makeAlbumMatchingKey(
 		albumTitle,
@@ -184,39 +187,16 @@ function findDiscByNumber(
 }
 
 function createTrackAudioRequest(
-	fileData: ProcessedFileData,
-	durationInMs: number,
+	file: components["schemas"]["FileRequest"],
+	inboxItemId: string | null = null,
 ): components["schemas"]["TrackAudioRequest"] {
-	const mimeType =
-		fileData.file.type || getMimeTypeFromFileName(fileData.file.name);
-	const extension =
-		getExtensionFromMimeType(mimeType) ||
-		getExtensionFromFileName(fileData.file.name);
-
 	return {
-		file: {
-			blake3Hash: fileData.blake3Hash,
-			mimeType,
-			sizeInBytes: fileData.file.size,
-			container:
-				fileData.metadata.format.container?.trim().toLowerCase() || extension,
-			extension: extension,
-			codec: fileData.metadata.format.codec?.trim().toLowerCase() ?? null,
-			width: null,
-			height: null,
-			audioSampleRate: fileData.metadata.format.sampleRate ?? null,
-			bitrate: Math.round(fileData.metadata.format.bitrate ?? 0),
-			frameRate: null,
-			durationInMs,
-			originalFileName: fileData.file.name,
-			bitsPerSample: fileData.metadata.format.bitsPerSample ?? null,
-			lossless: fileData.metadata.format.lossless ?? false,
-			audioChannels: fileData.metadata.format.numberOfChannels ?? null,
-		},
+		file,
 		rank: 0,
 		pinned: true,
 		source: DEFAULT_TRACK_AUDIO_SOURCE,
 		sourceUrl: null,
+		inboxItemId,
 	};
 }
 
@@ -231,15 +211,68 @@ export function insertPreparedFile(
 	fileData: ProcessedFileData,
 	parties: PartyItem[],
 ) {
-	if (hasTrackAudio(state, fileData.blake3Hash)) {
-		if (fileData.cover) URL.revokeObjectURL(fileData.cover.localURL);
+	return insertTrackDraft(
+		state,
+		{
+			tags: getAudioTags(fileData.metadata),
+			durationInMs: getAudioDurationInMs(fileData.metadata),
+			fileName: fileData.file.name,
+			cover: fileData.cover,
+			audio: createTrackAudioRequest(createAudioFileRequest(fileData)),
+		},
+		parties,
+	);
+}
+
+function toNumberOrNull(value: number | string | null | undefined) {
+	return value == null ? null : Number(value);
+}
+
+export function insertInboxItem(
+	state: AlbumUploadState,
+	item: InboxItemDetails,
+	parties: PartyItem[],
+) {
+	const { tags } = item;
+
+	return insertTrackDraft(
+		state,
+		{
+			tags: {
+				title: tags.title ?? null,
+				album: tags.album ?? null,
+				artists: tags.artists ?? [],
+				albumArtists: tags.albumArtists ?? [],
+				trackNumber: toNumberOrNull(tags.trackNumber),
+				trackTotal: toNumberOrNull(tags.trackTotal),
+				discNumber: toNumberOrNull(tags.discNumber),
+				discTotal: toNumberOrNull(tags.discTotal),
+				date: tags.date ?? null,
+				genres: tags.genres ?? [],
+			},
+			durationInMs: Number(item.file.durationInMs ?? 0),
+			fileName: item.file.originalFileName,
+			cover: null,
+			audio: createTrackAudioRequest(item.file, item.itemId),
+		},
+		parties,
+	);
+}
+
+function insertTrackDraft(
+	state: AlbumUploadState,
+	source: TrackDraftSource,
+	parties: PartyItem[],
+) {
+	if (hasTrackAudio(state, source.audio.file.blake3Hash)) {
+		if (source.cover) URL.revokeObjectURL(source.cover.localURL);
 		return false;
 	}
 
-	const metadata = getMetadata(fileData.metadata, fileData.file, parties);
+	const metadata = getMetadata(source, parties);
 
-	const coverAssetId = fileData.cover
-		? upsertCoverAsset(state, fileData.cover)
+	const coverAssetId = source.cover
+		? upsertCoverAsset(state, source.cover)
 		: null;
 
 	let albumId = state.albumsByMatchingKey[metadata.albumMatchingKey];
@@ -321,12 +354,12 @@ export function insertPreparedFile(
 		unsolvedCredits: metadata.trackParty.unsolved,
 		trackNumber: metadata.trackNumber,
 		description: "",
-		durationInMs: metadata.durationInMs,
+		durationInMs: source.durationInMs,
 		contentType: metadata.trackContentType,
 		versionType: metadata.trackVersionType,
 		basedOnTrackId: null,
 		hasVariousArtists: metadata.albumParty.hasVariousArtists,
-		audios: [createTrackAudioRequest(fileData, metadata.durationInMs)],
+		audios: [source.audio],
 	};
 	disc.trackIds.push(trackId);
 

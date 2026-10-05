@@ -12,11 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as AuthedHistoryRouteImport } from './routes/_authed/history'
+import { Route as AuthedInboxRouteRouteImport } from './routes/_authed/inbox/route'
 import { Route as AuthedAlbumsIndexRouteImport } from './routes/_authed/albums/index'
 import { Route as AuthedAlbumsIdRouteImport } from './routes/_authed/albums/$id'
 import { Route as AuthedConcertsIndexRouteImport } from './routes/_authed/concerts/index'
 import { Route as AuthedConcertsIdRouteImport } from './routes/_authed/concerts/$id'
 import { Route as AuthedCreateIndexRouteImport } from './routes/_authed/create/index'
+import { Route as AuthedInboxIndexRouteImport } from './routes/_authed/inbox/index'
+import { Route as AuthedInboxIdRouteImport } from './routes/_authed/inbox/$id'
 import { Route as AuthedPartiesIndexRouteImport } from './routes/_authed/parties/index'
 import { Route as AuthedPartiesIdRouteImport } from './routes/_authed/parties/$id'
 import { Route as AuthedPlaylistsIndexRouteImport } from './routes/_authed/playlists/index'
@@ -38,6 +41,11 @@ const AuthedIndexRoute = AuthedIndexRouteImport.update({
 const AuthedHistoryRoute = AuthedHistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedInboxRouteRoute = AuthedInboxRouteRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
 const AuthedAlbumsIndexRoute = AuthedAlbumsIndexRouteImport.update({
@@ -64,6 +72,16 @@ const AuthedCreateIndexRoute = AuthedCreateIndexRouteImport.update({
   id: '/create/',
   path: '/create/',
   getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedInboxIndexRoute = AuthedInboxIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedInboxRouteRoute,
+} as any)
+const AuthedInboxIdRoute = AuthedInboxIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthedInboxRouteRoute,
 } as any)
 const AuthedPartiesIndexRoute = AuthedPartiesIndexRouteImport.update({
   id: '/parties/',
@@ -108,15 +126,18 @@ const BotAlbumsIdRoute = BotAlbumsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
+  '/inbox': typeof AuthedInboxRouteRouteWithChildren
   '/history': typeof AuthedHistoryRoute
   '/albums/$id': typeof AuthedAlbumsIdRoute
   '/concerts/$id': typeof AuthedConcertsIdRoute
+  '/inbox/$id': typeof AuthedInboxIdRoute
   '/parties/$id': typeof AuthedPartiesIdRoute
   '/playlists/$id': typeof AuthedPlaylistsIdRoute
   '/bot/albums/$id': typeof BotAlbumsIdRoute
   '/albums/': typeof AuthedAlbumsIndexRoute
   '/concerts/': typeof AuthedConcertsIndexRoute
   '/create/': typeof AuthedCreateIndexRoute
+  '/inbox/': typeof AuthedInboxIndexRoute
   '/parties/': typeof AuthedPartiesIndexRoute
   '/playlists/': typeof AuthedPlaylistsIndexRoute
   '/settings/': typeof AuthedSettingsIndexRoute
@@ -128,12 +149,14 @@ export interface FileRoutesByTo {
   '/': typeof AuthedIndexRoute
   '/albums/$id': typeof AuthedAlbumsIdRoute
   '/concerts/$id': typeof AuthedConcertsIdRoute
+  '/inbox/$id': typeof AuthedInboxIdRoute
   '/parties/$id': typeof AuthedPartiesIdRoute
   '/playlists/$id': typeof AuthedPlaylistsIdRoute
   '/bot/albums/$id': typeof BotAlbumsIdRoute
   '/albums': typeof AuthedAlbumsIndexRoute
   '/concerts': typeof AuthedConcertsIndexRoute
   '/create': typeof AuthedCreateIndexRoute
+  '/inbox': typeof AuthedInboxIndexRoute
   '/parties': typeof AuthedPartiesIndexRoute
   '/playlists': typeof AuthedPlaylistsIndexRoute
   '/settings': typeof AuthedSettingsIndexRoute
@@ -143,16 +166,19 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authed': typeof AuthedRouteRouteWithChildren
+  '/_authed/inbox': typeof AuthedInboxRouteRouteWithChildren
   '/_authed/history': typeof AuthedHistoryRoute
   '/_authed/': typeof AuthedIndexRoute
   '/_authed/albums/$id': typeof AuthedAlbumsIdRoute
   '/_authed/concerts/$id': typeof AuthedConcertsIdRoute
+  '/_authed/inbox/$id': typeof AuthedInboxIdRoute
   '/_authed/parties/$id': typeof AuthedPartiesIdRoute
   '/_authed/playlists/$id': typeof AuthedPlaylistsIdRoute
   '/bot/albums/$id': typeof BotAlbumsIdRoute
   '/_authed/albums/': typeof AuthedAlbumsIndexRoute
   '/_authed/concerts/': typeof AuthedConcertsIndexRoute
   '/_authed/create/': typeof AuthedCreateIndexRoute
+  '/_authed/inbox/': typeof AuthedInboxIndexRoute
   '/_authed/parties/': typeof AuthedPartiesIndexRoute
   '/_authed/playlists/': typeof AuthedPlaylistsIndexRoute
   '/_authed/settings/': typeof AuthedSettingsIndexRoute
@@ -163,15 +189,18 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/inbox'
     | '/history'
     | '/albums/$id'
     | '/concerts/$id'
+    | '/inbox/$id'
     | '/parties/$id'
     | '/playlists/$id'
     | '/bot/albums/$id'
     | '/albums/'
     | '/concerts/'
     | '/create/'
+    | '/inbox/'
     | '/parties/'
     | '/playlists/'
     | '/settings/'
@@ -183,12 +212,14 @@ export interface FileRouteTypes {
     | '/'
     | '/albums/$id'
     | '/concerts/$id'
+    | '/inbox/$id'
     | '/parties/$id'
     | '/playlists/$id'
     | '/bot/albums/$id'
     | '/albums'
     | '/concerts'
     | '/create'
+    | '/inbox'
     | '/parties'
     | '/playlists'
     | '/settings'
@@ -197,16 +228,19 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authed'
+    | '/_authed/inbox'
     | '/_authed/history'
     | '/_authed/'
     | '/_authed/albums/$id'
     | '/_authed/concerts/$id'
+    | '/_authed/inbox/$id'
     | '/_authed/parties/$id'
     | '/_authed/playlists/$id'
     | '/bot/albums/$id'
     | '/_authed/albums/'
     | '/_authed/concerts/'
     | '/_authed/create/'
+    | '/_authed/inbox/'
     | '/_authed/parties/'
     | '/_authed/playlists/'
     | '/_authed/settings/'
@@ -243,6 +277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedHistoryRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/inbox': {
+      id: '/_authed/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof AuthedInboxRouteRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/_authed/albums/': {
       id: '/_authed/albums/'
       path: '/albums'
@@ -277,6 +318,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/create/'
       preLoaderRoute: typeof AuthedCreateIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/inbox/': {
+      id: '/_authed/inbox/'
+      path: '/'
+      fullPath: '/inbox/'
+      preLoaderRoute: typeof AuthedInboxIndexRouteImport
+      parentRoute: typeof AuthedInboxRouteRoute
+    }
+    '/_authed/inbox/$id': {
+      id: '/_authed/inbox/$id'
+      path: '/$id'
+      fullPath: '/inbox/$id'
+      preLoaderRoute: typeof AuthedInboxIdRouteImport
+      parentRoute: typeof AuthedInboxRouteRoute
     }
     '/_authed/parties/': {
       id: '/_authed/parties/'
@@ -337,7 +392,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthedInboxRouteRouteChildren {
+  AuthedInboxIdRoute: typeof AuthedInboxIdRoute
+  AuthedInboxIndexRoute: typeof AuthedInboxIndexRoute
+}
+
+const AuthedInboxRouteRouteChildren: AuthedInboxRouteRouteChildren = {
+  AuthedInboxIdRoute: AuthedInboxIdRoute,
+  AuthedInboxIndexRoute: AuthedInboxIndexRoute,
+}
+
+const AuthedInboxRouteRouteWithChildren =
+  AuthedInboxRouteRoute._addFileChildren(AuthedInboxRouteRouteChildren)
+
 interface AuthedRouteRouteChildren {
+  AuthedInboxRouteRoute: typeof AuthedInboxRouteRouteWithChildren
   AuthedHistoryRoute: typeof AuthedHistoryRoute
   AuthedIndexRoute: typeof AuthedIndexRoute
   AuthedAlbumsIdRoute: typeof AuthedAlbumsIdRoute
@@ -354,6 +423,7 @@ interface AuthedRouteRouteChildren {
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
+  AuthedInboxRouteRoute: AuthedInboxRouteRouteWithChildren,
   AuthedHistoryRoute: AuthedHistoryRoute,
   AuthedIndexRoute: AuthedIndexRoute,
   AuthedAlbumsIdRoute: AuthedAlbumsIdRoute,

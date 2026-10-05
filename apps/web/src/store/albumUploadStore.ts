@@ -4,10 +4,12 @@ import { immer } from "zustand/middleware/immer";
 
 import { createAlbums } from "#/lib/api/albums";
 import { completeUpload } from "#/lib/api/uploads";
+import { inboxActions } from "#/lib/queries/inbox.queries";
 import { processDroppedFiles } from "#/lib/utils/upload";
 
 import {
 	buildAlbumRequests,
+	insertInboxItem,
 	insertPreparedFile,
 	mergeAlbumDraft,
 	removeCreatedAlbumDraft,
@@ -153,6 +155,28 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 				}
 				return result;
 			},
+			addInboxItems: (items, parties) => {
+				const result: AddDroppedFilesResult = {
+					processedFileNames: [],
+					ignoredFileNames: [],
+				};
+
+				set((state) => {
+					for (const item of items) {
+						const fileName = item.file.originalFileName;
+
+						if (insertInboxItem(state, item, parties)) {
+							result.processedFileNames.push(fileName);
+						} else {
+							result.ignoredFileNames.push(fileName);
+						}
+					}
+
+					if (state.albumOrder.length > 0) state.submitStatus = "creating";
+				});
+
+				return result;
+			},
 			submitAlbums: async () => {
 				const currentState = get();
 				if (
@@ -170,7 +194,16 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 
 				try {
 					const requests = buildAlbumRequests(get());
-					const results = await createAlbums(requests);
+					const usesInbox = requests.some((album) =>
+						album.discs.some((disc) =>
+							disc.tracks.some((track) =>
+								track.audios.some((audio) => audio.inboxItemId),
+							),
+						),
+					);
+					const results = usesInbox
+						? await inboxActions.createAlbums(requests)
+						: await createAlbums(requests);
 					const successfulResults = results.filter(
 						(result) => result.isSuccess === true && result.upload,
 					);
