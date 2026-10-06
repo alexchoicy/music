@@ -10,7 +10,10 @@
 		},
 		"production": {
 			"autoIncrement": true,
-			"env": { "APP_VARIANT": "production" },
+			"env": {
+				"APP_VARIANT": "production",
+				"ORG_GRADLE_PROJECT_reactNativeArchitectures": "arm64-v8a"
+			},
 			"android": { "buildType": "apk" }
 		}
 	}

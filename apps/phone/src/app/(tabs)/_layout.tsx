@@ -5,7 +5,7 @@ import { TabBar } from "@/components/navigation/tabBar";
 export default function TabsLayout() {
 	return (
 		<Tabs
-			screenOptions={{ headerShown: false, animation: "fade" }}
+			screenOptions={{ headerShown: false }}
 			tabBar={(props) => <TabBar {...props} />}
 		>
 			<Tabs.Screen name="(albums)" />
