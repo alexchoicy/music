@@ -13,7 +13,8 @@
 		"lint": "oxlint --tsconfig tsconfig.json",
 		"format": "oxfmt && oxlint --fix --tsconfig tsconfig.json",
 		"check": "oxfmt --check",
-		"web": "expo start --web"
+		"web": "expo start --web",
+		"api": "openapi-typescript http://localhost:5287/openapi/v1.json -o ./src/data/APIschema.ts"
 	},
 	"dependencies": {
 		"@react-native-community/slider": "5.2.0",
@@ -55,6 +56,7 @@
 	},
 	"devDependencies": {
 		"@types/react": "~19.2.2",
+		"openapi-typescript": "^7.13.0",
 		"oxfmt": "^0.71.0",
 		"oxlint": "^1.86.0",
 		"oxlint-tsgolint": "^7.0.2003",

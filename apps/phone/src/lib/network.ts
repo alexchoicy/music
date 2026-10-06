@@ -24,7 +24,7 @@ Network.addNetworkStateListener((state) => {
 	update(state);
 });
 
-/** Wi‑Fi or Ethernet, where original files and downloads use no mobile data. */
+/** Wi‑Fi or Ethernet, where originals and downloads use no mobile data. */
 export function isOnWifi() {
 	return isUnmetered;
 }

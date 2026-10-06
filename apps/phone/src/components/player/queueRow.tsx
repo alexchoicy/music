@@ -1,12 +1,17 @@
-import { Image } from "expo-image";
 import { Pressable, Text, View } from "react-native";
 
+import { openTrackActions } from "@/components/tracks/trackActions";
+import { Artwork } from "@/components/ui/artwork";
 import { Icon } from "@/components/ui/icon";
+import { IconButton } from "@/components/ui/iconButton";
 import { cn } from "@/lib/cn";
-import { formatTrackDuration } from "@/lib/duration";
-import { useArtworkUri, useIsOnline } from "@/lib/offline/media";
-import type { QueueEntry } from "@/lib/player/track";
-import { useOfflineStore } from "@/store/offlineStore";
+import { formatTrackDuration } from "@/lib/format";
+import {
+	useArtworkUri,
+	useIsOnline,
+	useOfflineStore,
+} from "@/offline/offlineStore";
+import type { QueueEntry } from "@/player/track";
 
 type QueueRowProps = {
 	entry: QueueEntry;
@@ -15,7 +20,7 @@ type QueueRowProps = {
 	onRemove: () => void;
 	/** Starts dragging the row; shows a drag handle when set. */
 	onDragStart?: () => void;
-	/** Accessibility alternatives to dragging; undefined at the ends of the list. */
+	/** Screen reader alternatives to dragging; unset at the ends of the list. */
 	onMoveUp?: () => void;
 	onMoveDown?: () => void;
 };
@@ -29,7 +34,7 @@ export function QueueRow({
 	onMoveUp,
 	onMoveDown,
 }: QueueRowProps) {
-	const coverUrl = useArtworkUri(entry.cover);
+	const coverUri = useArtworkUri(entry.cover);
 	const isOnline = useIsOnline();
 	const isDownloaded = useOfflineStore(
 		(state) => state.tracks[entry.trackId]?.status === "downloaded",
@@ -42,29 +47,10 @@ export function QueueRow({
 	return (
 		<View
 			className={cn(
-				"min-h-16 flex-row items-center gap-1 bg-background",
-				isUnavailable && "opacity-50",
+				"min-h-16 flex-row items-center bg-background",
+				isUnavailable && "opacity-45",
 			)}
 		>
-			{onDragStart && (
-				<Pressable
-					// Screen readers use the Move up/down actions on the row instead.
-					accessibilityElementsHidden
-					className="h-11 w-8 items-center justify-center"
-					importantForAccessibility="no-hide-descendants"
-					onPressIn={onDragStart}
-				>
-					<Icon
-						className="accent-muted-foreground"
-						name={{
-							ios: "line.3.horizontal",
-							android: "drag_handle",
-							web: "drag_handle",
-						}}
-						size={20}
-					/>
-				</Pressable>
-			)}
 			<Pressable
 				accessibilityActions={[
 					...(onMoveUp ? [{ name: "moveUp", label: "Move up" }] : []),
@@ -81,7 +67,7 @@ export function QueueRow({
 					.join(", ")}
 				accessibilityRole="button"
 				accessibilityState={{ selected: isCurrent, disabled: isUnavailable }}
-				className="flex-1 flex-row items-center gap-3 py-2 active:opacity-70"
+				className="flex-1 flex-row items-center gap-3 py-2 active:opacity-60"
 				disabled={isUnavailable}
 				onAccessibilityAction={(event) => {
 					if (event.nativeEvent.actionName === "moveUp") onMoveUp?.();
@@ -89,58 +75,54 @@ export function QueueRow({
 				}}
 				onPress={onPress}
 			>
-				<View className="size-12 overflow-hidden rounded-md bg-muted">
-					{coverUrl ? (
-						<Image
-							contentFit="cover"
-							recyclingKey={entry.entryId}
-							source={coverUrl}
-							style={{ width: "100%", height: "100%" }}
-						/>
-					) : (
-						<View className="flex-1 items-center justify-center">
-							<Icon
-								className="accent-muted-foreground"
-								name={{
-									ios: "music.note",
-									android: "music_note",
-									web: "music_note",
-								}}
-								size={20}
-							/>
-						</View>
-					)}
-				</View>
+				<Artwork
+					icon="musicNote"
+					recyclingKey={entry.entryId}
+					size={48}
+					uri={coverUri}
+				/>
 				<View className="flex-1 gap-0.5">
 					<Text
 						className={cn(
-							"text-sm text-foreground",
-							isCurrent ? "font-semibold" : "font-medium",
+							"text-base",
+							isCurrent ? "font-semibold text-primary" : "text-foreground",
 						)}
 						numberOfLines={1}
 					>
 						{entry.title}
 					</Text>
-					<Text className="text-xs text-muted-foreground" numberOfLines={1}>
-						{artists}
+					<Text className="text-sm text-muted-foreground" numberOfLines={1}>
+						{artists} · {duration}
 					</Text>
 				</View>
-				<Text className="text-xs text-muted-foreground tabular-nums">
-					{duration}
-				</Text>
 			</Pressable>
-			<Pressable
-				accessibilityLabel={`Remove ${entry.title} from queue`}
-				accessibilityRole="button"
-				className="size-11 items-center justify-center rounded-full active:opacity-60"
+			<IconButton
+				icon="more"
+				iconClassName="accent-muted-foreground"
+				iconSize={20}
+				label={`More actions for ${entry.title}`}
+				onPress={() => openTrackActions({ track: entry, fromPlayer: true })}
+				size={48}
+			/>
+			<IconButton
+				icon="close"
+				iconClassName="accent-muted-foreground"
+				iconSize={18}
+				label={`Remove ${entry.title} from queue`}
 				onPress={onRemove}
-			>
-				<Icon
-					className="accent-muted-foreground"
-					name={{ ios: "xmark", android: "close", web: "close" }}
-					size={18}
-				/>
-			</Pressable>
+				size={48}
+			/>
+			{onDragStart && (
+				<Pressable
+					// Screen readers use the row's Move up and Move down actions instead.
+					accessibilityElementsHidden
+					className="size-12 items-center justify-center"
+					importantForAccessibility="no-hide-descendants"
+					onPressIn={onDragStart}
+				>
+					<Icon className="accent-muted-foreground" name="drag" size={22} />
+				</Pressable>
+			)}
 		</View>
 	);
 }

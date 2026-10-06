@@ -1,40 +1,18 @@
-import { TabList, TabSlot, TabTrigger, Tabs } from "expo-router/ui";
-import { View } from "react-native";
+import { Tabs } from "expo-router/js-tabs";
 
-import {
-	BottomNavBar,
-	leftTabs,
-	PlayingButton,
-	rightTabs,
-	TabButton,
-} from "@/components/navigation/bottomNav";
-import { ToastHost } from "@/components/ui/toast";
+import { TabBar } from "@/components/navigation/tabBar";
 
-// Tabs discovers routes from TabTriggers written directly inside TabList, so they stay in this layout.
 export default function TabsLayout() {
 	return (
-		<Tabs className="flex-1 bg-background">
-			<View className="flex-1">
-				<TabSlot />
-				<ToastHost />
-			</View>
-			<TabList asChild>
-				<BottomNavBar>
-					{leftTabs.map((tab) => (
-						<TabTrigger asChild href={tab.href} key={tab.name} name={tab.name}>
-							<TabButton icon={tab.icon} label={tab.label} />
-						</TabTrigger>
-					))}
-					<TabTrigger asChild href="/" name="index">
-						<PlayingButton />
-					</TabTrigger>
-					{rightTabs.map((tab) => (
-						<TabTrigger asChild href={tab.href} key={tab.name} name={tab.name}>
-							<TabButton icon={tab.icon} label={tab.label} />
-						</TabTrigger>
-					))}
-				</BottomNavBar>
-			</TabList>
+		<Tabs
+			screenOptions={{ headerShown: false, animation: "fade" }}
+			tabBar={(props) => <TabBar {...props} />}
+		>
+			<Tabs.Screen name="(albums)" />
+			<Tabs.Screen name="(parties)" />
+			<Tabs.Screen name="(search)" />
+			<Tabs.Screen name="(playlists)" />
+			<Tabs.Screen name="(settings)" />
 		</Tabs>
 	);
 }

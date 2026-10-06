@@ -1,7 +1,7 @@
 import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
 
-import { queryClient } from "@/lib/query-client";
+import { queryClient } from "@/lib/queryClient";
 
 const serverUrlKey = "serverUrl";
 const tokenKey = "authToken";

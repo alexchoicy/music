@@ -22,20 +22,21 @@ export function TextField({
 			<TextInput
 				accessibilityLabel={label}
 				className={cn(
-					"h-11 rounded-lg border border-border bg-background px-3 text-base text-foreground",
+					"h-12 rounded-xl border border-transparent bg-surface px-4 text-base text-foreground",
 					error && "border-destructive",
 					className,
 				)}
 				placeholderTextColorClassName="accent-muted-foreground"
 				{...props}
 			/>
-			{description && !error && (
-				<Text className="text-sm text-muted-foreground">{description}</Text>
-			)}
-			{error && (
+			{error ? (
 				<Text accessibilityRole="alert" className="text-sm text-destructive">
 					{error}
 				</Text>
+			) : (
+				description && (
+					<Text className="text-sm text-muted-foreground">{description}</Text>
+				)
 			)}
 		</View>
 	);

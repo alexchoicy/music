@@ -4,9 +4,9 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 import { useCSSVariable } from "uniwind";
 
-import { formatTrackDuration } from "@/lib/duration";
-import { audioPlayer } from "@/lib/player/engine";
-import { usePlayerStore } from "@/store/playerStore";
+import { formatTrackDuration } from "@/lib/format";
+import { audioPlayer } from "@/player/engine";
+import { usePlayerStore } from "@/player/playerStore";
 
 type SeekBarProps = {
 	/** Used until the player knows the file's duration. */
@@ -19,10 +19,10 @@ export function SeekBar({ durationInMs }: SeekBarProps) {
 		(state) => state.status === "playing" || state.status === "paused",
 	);
 	const seekTo = usePlayerStore((state) => state.seekTo);
-	// The position while dragging, so updates from playback do not fight the finger.
+	// The position while dragging, so playback updates do not fight the finger.
 	const [dragging, setDragging] = useState<number | null>(null);
 	const foreground = useCSSVariable("--color-foreground");
-	const track = useCSSVariable("--color-muted-foreground");
+	const track = useCSSVariable("--color-surface-strong");
 
 	const duration =
 		isLoaded && status.duration > 0 ? status.duration : durationInMs / 1000;
@@ -49,15 +49,15 @@ export function SeekBar({ durationInMs }: SeekBarProps) {
 					if (dragging !== null) setDragging(value);
 				}}
 				step={0}
-				style={{ height: 40, marginHorizontal: -12 }}
+				style={{ height: 36, marginHorizontal: -12 }}
 				thumbTintColor={String(foreground)}
 				value={Math.min(position, duration)}
 			/>
 			<View className="flex-row justify-between">
-				<Text className="text-xs text-muted-foreground tabular-nums">
+				<Text className="text-xs font-medium text-muted-foreground tabular-nums">
 					{formatTrackDuration(position * 1000)}
 				</Text>
-				<Text className="text-xs text-muted-foreground tabular-nums">
+				<Text className="text-xs font-medium text-muted-foreground tabular-nums">
 					-{formatTrackDuration(Math.max(duration - position, 0) * 1000)}
 				</Text>
 			</View>

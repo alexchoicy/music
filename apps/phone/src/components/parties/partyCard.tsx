@@ -1,64 +1,48 @@
-import type { components } from "@api/schema";
-import { Image } from "expo-image";
 import { Link } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-import { Icon } from "@/components/ui/icon";
+import { Artwork } from "@/components/ui/artwork";
+import { plural } from "@/lib/format";
+import type { PartyListItem } from "@/lib/schema";
 
 type PartyCardProps = {
-	party: components["schemas"]["PartyItems"];
+	party: PartyListItem;
+	width?: number;
 };
 
-export function PartyCard({ party }: PartyCardProps) {
-	const albumCount = Number(party.albumCount);
-	const albumLabel = `${albumCount} ${albumCount === 1 ? "release" : "releases"}`;
+export function PartyCard({ party, width }: PartyCardProps) {
+	const releases = plural(party.albumCount, "release");
 
 	return (
 		<Link
 			asChild
-			href={{
-				pathname: "/parties/[id]",
-				params: { id: String(party.partyId) },
-			}}
+			href={{ pathname: "/party/[id]", params: { id: String(party.partyId) } }}
 			push
-			withAnchor
 		>
 			<Pressable
-				accessibilityLabel={`${party.name}, ${albumLabel}`}
+				accessibilityLabel={`${party.name}, ${releases}`}
 				accessibilityRole="link"
-				className="flex-1 items-center gap-1.5 active:opacity-70"
+				className="items-center gap-2 active:opacity-70"
+				style={width ? { width } : undefined}
 			>
-				<View className="aspect-square w-full overflow-hidden rounded-full bg-muted">
-					{party.coverUrl ? (
-						<Image
-							contentFit="cover"
-							recyclingKey={String(party.partyId)}
-							source={party.coverUrl}
-							style={{ width: "100%", height: "100%" }}
-							transition={150}
-						/>
-					) : (
-						<View className="flex-1 items-center justify-center">
-							<Icon
-								className="accent-muted-foreground"
-								name={{ ios: "person.fill", android: "person", web: "person" }}
-								size={28}
-							/>
-						</View>
-					)}
-				</View>
+				<Artwork
+					icon="person"
+					recyclingKey={String(party.partyId)}
+					shape="circle"
+					uri={party.coverUrl || null}
+				/>
 				<View className="w-full items-center">
 					<Text
-						className="text-center text-xs font-medium text-foreground"
+						className="text-center text-sm font-semibold text-foreground"
 						numberOfLines={1}
 					>
 						{party.name}
 					</Text>
 					<Text
-						className="text-center text-[11px] text-muted-foreground"
+						className="text-center text-xs text-muted-foreground"
 						numberOfLines={1}
 					>
-						{albumLabel}
+						{releases}
 					</Text>
 				</View>
 			</Pressable>

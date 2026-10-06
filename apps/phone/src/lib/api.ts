@@ -1,32 +1,81 @@
 import { useSessionStore } from "@/store/sessionStore";
 
-export type ApiResult<T> =
-	| { ok: true; status: number; data: T }
-	| { ok: false; status: number; data: null };
+type QueryValue = string | number | boolean | null | undefined;
+
+type RequestOptions = {
+	method?: "GET" | "POST" | "PUT" | "DELETE";
+	/** Arrays repeat the key, e.g. `Types=Album&Types=Single`. */
+	query?: Record<string, QueryValue | readonly QueryValue[]>;
+	body?: unknown;
+	signal?: AbortSignal;
+};
+
+/** A response outside 2xx; `status` tells e.g. a stale playlist version (409) apart. */
+export class ApiError extends Error {
+	constructor(readonly status: number) {
+		super(`Server responded with ${status}`);
+	}
+}
 
 const serverCheckTimeoutMs = 10_000;
 
-function joinUrl(baseUrl: string, endpoint: string) {
-	return `${baseUrl}/${endpoint.replace(/^\/+/, "")}`;
+function toQueryString(query: RequestOptions["query"] = {}) {
+	const params = Object.entries(query).flatMap(([key, value]) =>
+		(Array.isArray(value) ? value : [value])
+			.filter((item) => item !== undefined && item !== null && item !== "")
+			.map((item) => `${key}=${encodeURIComponent(String(item))}`),
+	);
+	return params.length > 0 ? `?${params.join("&")}` : "";
 }
 
-/** Returns the https base URL for user input such as `music.example.com/api`, or null when invalid. */
+/** Calls the signed-in server; a rejected token signs the user out. */
+export async function api<T>(
+	path: string,
+	{ method = "GET", query, body, signal }: RequestOptions = {},
+): Promise<T> {
+	const { serverUrl, token, setToken } = useSessionStore.getState();
+	if (!serverUrl) throw new Error("No server configured");
+
+	const headers = new Headers({ Accept: "application/json" });
+	if (token) headers.set("Authorization", `Bearer ${token}`);
+	if (body !== undefined) headers.set("Content-Type", "application/json");
+
+	const response = await fetch(`${serverUrl}${path}${toQueryString(query)}`, {
+		method,
+		headers,
+		body: body === undefined ? undefined : JSON.stringify(body),
+		credentials: "omit",
+		signal,
+	});
+
+	if (response.status === 401 && token) await setToken(null);
+	if (!response.ok) throw new ApiError(response.status);
+
+	const text = await response.text();
+	return (text.trim() ? JSON.parse(text) : null) as T;
+}
+
+/**
+ * The base URL for input such as `music.example.com/api`, or null when invalid.
+ * Development builds also accept http, e.g. a local server on the emulator.
+ */
 export function normalizeServerUrl(input: string) {
 	const value = input.trim().replace(/\/+$/, "");
 	const url = /^[a-z][a-z\d+.-]*:\/\//i.test(value)
 		? value
 		: `https://${value}`;
-
-	return /^https:\/\/[^\s/?#@]+(\/[^\s?#]*)?$/i.test(url) ? url : null;
+	const scheme = __DEV__ ? "https?" : "https";
+	return new RegExp(`^${scheme}://[^\\s/?#@]+(/[^\\s?#]*)?$`, "i").test(url)
+		? url
+		: null;
 }
 
-/** Checks that the server responds to the auth endpoint before it is saved. */
+/** Whether a Music server answers at the URL, before it is saved. */
 export async function checkServer(serverUrl: string) {
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), serverCheckTimeoutMs);
-
 	try {
-		const response = await fetch(joinUrl(serverUrl, "/auth"), {
+		const response = await fetch(`${serverUrl}/auth`, {
 			credentials: "omit",
 			signal: controller.signal,
 		});
@@ -36,39 +85,4 @@ export async function checkServer(serverUrl: string) {
 	} finally {
 		clearTimeout(timeout);
 	}
-}
-
-export async function apiFetch<T>(
-	endpoint: string,
-	options: RequestInit = {},
-): Promise<ApiResult<T>> {
-	const { serverUrl, token, setToken } = useSessionStore.getState();
-	if (!serverUrl) throw new Error("No server configured");
-
-	const headers = new Headers(options.headers);
-	if (token) headers.set("Authorization", `Bearer ${token}`);
-	if (typeof options.body === "string" && !headers.has("Content-Type")) {
-		headers.set("Content-Type", "application/json");
-	}
-
-	const response = await fetch(joinUrl(serverUrl, endpoint), {
-		...options,
-		headers,
-		credentials: "omit",
-	});
-
-	if (response.status === 401 && token) {
-		await setToken(null);
-	}
-
-	if (!response.ok) {
-		return { ok: false, status: response.status, data: null };
-	}
-
-	const raw = await response.text();
-	return {
-		ok: true,
-		status: response.status,
-		data: (raw.trim() ? JSON.parse(raw) : null) as T,
-	};
 }

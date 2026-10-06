@@ -17,6 +17,7 @@
 		"**/.vscode/**/*",
 		"**/src/global.css",
 		"**/src/uniwind-types.d.ts",
+		"**/src/data/APIschema.ts",
 		"expo-env.d.ts",
 		"/android/**",
 		"/ios/**"

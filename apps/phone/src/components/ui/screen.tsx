@@ -6,6 +6,7 @@ type ScreenProps = {
 	children?: ReactNode;
 };
 
+/** A full screen below the status bar; the tab bar handles the bottom inset. */
 export function Screen({ children }: ScreenProps) {
 	const insets = useSafeAreaInsets();
 

@@ -1,63 +1,11 @@
 import { useAudioPlayerStatus } from "expo-audio";
 import { ActivityIndicator, Pressable, View } from "react-native";
 
-import type { IconName } from "@/components/ui/icon";
+import { ToggleButton } from "@/components/player/toggleButton";
 import { Icon } from "@/components/ui/icon";
-import { cn } from "@/lib/cn";
-import { audioPlayer } from "@/lib/player/engine";
-import { usePlayerStore } from "@/store/playerStore";
-
-type ControlButtonProps = {
-	icon: IconName;
-	label: string;
-	onPress: () => void;
-	/** Shown with a dot; undefined for plain buttons. */
-	active?: boolean;
-	/** Announced as an on/off switch; repeat has three modes, so it is a button. */
-	isSwitch?: boolean;
-	disabled?: boolean;
-	/** Defaults to large for transport buttons and smaller for toggles. */
-	size?: number;
-};
-
-export function ControlButton({
-	icon,
-	label,
-	onPress,
-	active,
-	isSwitch = active !== undefined,
-	disabled,
-	size = active === undefined ? 30 : 24,
-}: ControlButtonProps) {
-	return (
-		<Pressable
-			accessibilityLabel={label}
-			accessibilityRole={isSwitch ? "switch" : "button"}
-			accessibilityState={{
-				disabled: disabled ?? false,
-				...(isSwitch && { checked: active }),
-			}}
-			className="size-12 items-center justify-center rounded-full active:opacity-60 disabled:opacity-40"
-			disabled={disabled}
-			onPress={onPress}
-		>
-			<Icon
-				className={
-					active === false ? "accent-muted-foreground" : "accent-foreground"
-				}
-				name={icon}
-				size={size}
-			/>
-			{/* A dot marks an active toggle without relying on color alone. */}
-			<View
-				className={cn(
-					"absolute bottom-1 size-1 rounded-full bg-foreground",
-					!active && "opacity-0",
-				)}
-			/>
-		</Pressable>
-	);
-}
+import { IconButton } from "@/components/ui/iconButton";
+import { audioPlayer } from "@/player/engine";
+import { usePlayerStore } from "@/player/playerStore";
 
 const repeatLabels = { off: "off", all: "queue", one: "track" };
 
@@ -78,68 +26,55 @@ export function PlayerControls() {
 
 	return (
 		<View className="flex-row items-center justify-between">
-			<ControlButton
+			<ToggleButton
 				active={shuffle}
-				icon={{ ios: "shuffle", android: "shuffle", web: "shuffle" }}
+				icon="shuffle"
 				label="Shuffle"
 				onPress={toggleShuffle}
 			/>
-			<ControlButton
+			<IconButton
 				disabled={!hasQueue}
-				icon={{
-					ios: "backward.end.fill",
-					android: "skip_previous",
-					web: "skip_previous",
-				}}
+				icon="skipPrevious"
+				iconSize={34}
 				label="Previous"
 				onPress={skipPrevious}
+				size={56}
 			/>
 			<Pressable
 				accessibilityLabel={isPlaying ? "Pause" : "Play"}
 				accessibilityRole="button"
 				accessibilityState={{ busy: isLoading, disabled: !hasQueue }}
-				className="size-18 items-center justify-center rounded-full bg-primary active:opacity-80 disabled:opacity-40"
+				className="size-20 items-center justify-center rounded-full bg-primary active:scale-95 active:opacity-90 disabled:opacity-40"
 				disabled={!hasQueue}
 				onPress={togglePlayback}
 			>
 				{isLoading ? (
-					<ActivityIndicator colorClassName="accent-primary-foreground" />
+					<ActivityIndicator
+						colorClassName="accent-primary-foreground"
+						size="large"
+					/>
 				) : (
 					<Icon
 						className="accent-primary-foreground"
-						name={
-							isPlaying
-								? { ios: "pause.fill", android: "pause", web: "pause" }
-								: {
-										ios: "play.fill",
-										android: "play_arrow",
-										web: "play_arrow",
-									}
-						}
-						size={36}
+						name={isPlaying ? "pause" : "play"}
+						size={40}
 					/>
 				)}
 			</Pressable>
-			<ControlButton
+			<IconButton
 				disabled={!hasQueue}
-				icon={{
-					ios: "forward.end.fill",
-					android: "skip_next",
-					web: "skip_next",
-				}}
+				icon="skipNext"
+				iconSize={34}
 				label="Next"
 				onPress={skipNext}
+				size={56}
 			/>
-			<ControlButton
+			<ToggleButton
 				active={repeatMode !== "off"}
-				icon={
-					repeatMode === "one"
-						? { ios: "repeat.1", android: "repeat_one", web: "repeat_one" }
-						: { ios: "repeat", android: "repeat", web: "repeat" }
-				}
-				isSwitch={false}
+				icon={repeatMode === "one" ? "repeatOne" : "repeat"}
 				label={`Repeat: ${repeatLabels[repeatMode]}`}
 				onPress={cycleRepeatMode}
+				role="button"
 			/>
 		</View>
 	);

@@ -7,13 +7,15 @@ import { TextField } from "@/components/ui/textField";
 import { checkServer, normalizeServerUrl } from "@/lib/api";
 import { useSessionStore } from "@/store/sessionStore";
 
-const serverRequestDto = z.object({
+const serverSchema = z.object({
 	serverUrl: z
 		.string()
 		.trim()
-		.min(1, "Server address is required")
+		.min(1, "Enter your server's address")
 		.refine((value) => normalizeServerUrl(value) !== null, {
-			message: "Enter an https:// address",
+			message: __DEV__
+				? "Enter an http:// or https:// address"
+				: "Enter an https:// address",
 		}),
 });
 
@@ -21,12 +23,8 @@ export default function SetupScreen() {
 	const setServerUrl = useSessionStore((state) => state.setServerUrl);
 
 	const form = useForm({
-		defaultValues: {
-			serverUrl: "",
-		},
-		validators: {
-			onSubmit: serverRequestDto,
-		},
+		defaultValues: { serverUrl: "" },
+		validators: { onSubmit: serverSchema },
 		onSubmit: async ({ value }) => {
 			const serverUrl = normalizeServerUrl(value.serverUrl);
 			if (!serverUrl) return;
@@ -36,7 +34,7 @@ export default function SetupScreen() {
 					...prev,
 					errorMap: {
 						...prev.errorMap,
-						onSubmit: [{ message: "Couldn't reach a Music server here" }],
+						onSubmit: [{ message: "Couldn't reach a Music server there" }],
 					},
 				}));
 				return;
@@ -48,8 +46,8 @@ export default function SetupScreen() {
 
 	return (
 		<AuthLayout
-			description="Enter the address of your Music server to continue."
-			title="Connect to server"
+			description="Enter the address of your Music server to get started."
+			title="Connect to your library"
 		>
 			<form.Field name="serverUrl">
 				{(field) => (

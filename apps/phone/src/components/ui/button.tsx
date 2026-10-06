@@ -1,35 +1,48 @@
 import type { PressableProps } from "react-native";
 import { ActivityIndicator, Pressable, Text } from "react-native";
 
+import type { IconName } from "@/components/ui/icon";
+import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 
 type ButtonProps = Omit<PressableProps, "children"> & {
 	children: string;
 	className?: string;
+	icon?: IconName;
 	loading?: boolean;
-	variant?: "default" | "outline" | "ghost" | "destructive";
+	variant?:
+		| "primary"
+		| "secondary"
+		| "ghost"
+		| "destructive"
+		| "destructiveFilled";
 };
 
 const variants = {
-	default: {
+	primary: {
 		container: "bg-primary",
 		text: "text-primary-foreground",
-		indicator: "accent-primary-foreground",
+		tint: "accent-primary-foreground",
 	},
-	outline: {
-		container: "border border-border bg-background",
+	secondary: {
+		container: "bg-surface",
 		text: "text-foreground",
-		indicator: "accent-foreground",
+		tint: "accent-foreground",
 	},
 	ghost: {
 		container: "",
 		text: "text-foreground",
-		indicator: "accent-foreground",
+		tint: "accent-foreground",
 	},
 	destructive: {
-		container: "border border-destructive bg-background",
+		container: "bg-surface",
 		text: "text-destructive",
-		indicator: "accent-destructive",
+		tint: "accent-destructive",
+	},
+	destructiveFilled: {
+		container: "bg-destructive",
+		text: "text-destructive-foreground",
+		tint: "accent-destructive-foreground",
 	},
 };
 
@@ -37,8 +50,9 @@ export function Button({
 	children,
 	className,
 	disabled,
+	icon,
 	loading = false,
-	variant = "default",
+	variant = "primary",
 	...props
 }: ButtonProps) {
 	const styles = variants[variant];
@@ -46,17 +60,21 @@ export function Button({
 	return (
 		<Pressable
 			accessibilityRole="button"
-			accessibilityState={{ busy: loading, disabled: disabled ?? false }}
+			accessibilityState={{ busy: loading, disabled: !!disabled }}
 			className={cn(
-				"h-11 flex-row items-center justify-center gap-2 rounded-lg px-4 active:opacity-80 disabled:opacity-50",
+				"h-12 flex-row items-center justify-center gap-2 rounded-full px-5 active:opacity-75 disabled:opacity-45",
 				styles.container,
 				className,
 			)}
 			disabled={disabled || loading}
 			{...props}
 		>
-			{loading && <ActivityIndicator colorClassName={styles.indicator} />}
-			<Text className={cn("text-base font-medium", styles.text)}>
+			{loading ? (
+				<ActivityIndicator colorClassName={styles.tint} />
+			) : (
+				icon && <Icon className={styles.tint} name={icon} size={18} />
+			)}
+			<Text className={cn("text-base font-semibold", styles.text)}>
 				{children}
 			</Text>
 		</Pressable>

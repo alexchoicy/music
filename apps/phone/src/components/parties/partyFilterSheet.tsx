@@ -1,10 +1,12 @@
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
-import { Sheet } from "@/components/ui/sheet";
-import type { PartyGender, PartyKind, PartyType } from "@/lib/party";
-import { partyGenders, partyKinds, partyTypes } from "@/lib/party";
+import { Sheet, SheetSection } from "@/components/ui/sheet";
+import { SwitchRow } from "@/components/ui/switchRow";
+import type { Option } from "@/lib/music";
+import { partyGenders, partyKinds, partyTypes } from "@/lib/music";
+import type { PartyGender, PartyKind, PartyType } from "@/lib/schema";
 
 export type PartyFilters = {
 	type: PartyType | null;
@@ -20,30 +22,29 @@ export const defaultPartyFilters: PartyFilters = {
 	excludeNoAlbums: true,
 };
 
-type PartyFilterSheetProps = {
-	open: boolean;
-	filters: PartyFilters;
-	onChange: (filters: PartyFilters) => void;
-	onClose: () => void;
-};
+export function countPartyFilters(filters: PartyFilters) {
+	return (
+		[filters.type, filters.kind, filters.gender].filter(Boolean).length +
+		(filters.excludeNoAlbums === defaultPartyFilters.excludeNoAlbums ? 0 : 1)
+	);
+}
 
-type FilterGroupProps<T extends string> = {
+type ChoiceProps<T extends string> = {
 	label: string;
-	options: { label: string; value: T }[];
+	options: Option<T>[];
 	value: T | null;
 	onChange: (value: T | null) => void;
 };
 
-// The API accepts one value per filter, so selecting a chip replaces the previous one.
-function FilterGroup<T extends string>({
+// The API takes one value per filter, so a chip replaces the previous choice.
+function Choice<T extends string>({
 	label,
 	options,
 	value,
 	onChange,
-}: FilterGroupProps<T>) {
+}: ChoiceProps<T>) {
 	return (
-		<View className="gap-2.5">
-			<Text className="text-sm font-medium text-muted-foreground">{label}</Text>
+		<SheetSection label={label}>
 			<View
 				accessibilityLabel={label}
 				accessibilityRole="radiogroup"
@@ -61,9 +62,16 @@ function FilterGroup<T extends string>({
 					/>
 				))}
 			</View>
-		</View>
+		</SheetSection>
 	);
 }
+
+type PartyFilterSheetProps = {
+	open: boolean;
+	filters: PartyFilters;
+	onChange: (filters: PartyFilters) => void;
+	onClose: () => void;
+};
 
 export function PartyFilterSheet({
 	open,
@@ -78,9 +86,9 @@ export function PartyFilterSheet({
 					<Button
 						className="flex-1"
 						onPress={() => onChange(defaultPartyFilters)}
-						variant="outline"
+						variant="secondary"
 					>
-						Clear
+						Reset
 					</Button>
 					<Button className="flex-1" onPress={onClose}>
 						Done
@@ -91,41 +99,32 @@ export function PartyFilterSheet({
 			open={open}
 			title="Filter parties"
 		>
-			<FilterGroup
+			<SwitchRow
+				description="Hide parties without releases in your library."
+				label="Only with albums"
+				onChange={(excludeNoAlbums) =>
+					onChange({ ...filters, excludeNoAlbums })
+				}
+				value={filters.excludeNoAlbums}
+			/>
+			<Choice
 				label="Type"
 				onChange={(type) => onChange({ ...filters, type })}
 				options={partyTypes}
 				value={filters.type}
 			/>
-			<FilterGroup
+			<Choice
 				label="Kind"
 				onChange={(kind) => onChange({ ...filters, kind })}
 				options={partyKinds}
 				value={filters.kind}
 			/>
-			<FilterGroup
+			<Choice
 				label="Gender"
 				onChange={(gender) => onChange({ ...filters, gender })}
 				options={partyGenders}
 				value={filters.gender}
 			/>
-			<View className="gap-2.5">
-				<Text className="text-sm font-medium text-muted-foreground">
-					Albums
-				</Text>
-				<View className="flex-row flex-wrap gap-2">
-					<Chip
-						label="Only with albums"
-						onPress={() =>
-							onChange({
-								...filters,
-								excludeNoAlbums: !filters.excludeNoAlbums,
-							})
-						}
-						selected={filters.excludeNoAlbums}
-					/>
-				</View>
-			</View>
 		</Sheet>
 	);
 }
