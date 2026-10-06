@@ -65,7 +65,12 @@ export function autoSelectPlaybackQuality(): AudioPlayerState["playbackQuality"]
 export function resolvePlaybackSource(
 	playbackQuality: AudioPlayerState["playbackQuality"],
 	track: AudioPlayerTrack,
-): { key: string; quality: ResolvedPlaybackQuality; url: string } {
+): {
+	key: string;
+	quality: ResolvedPlaybackQuality;
+	url: string;
+	fileUrl: string;
+} {
 	const selectedQuality =
 		playbackQuality === "Auto" ? autoSelectPlaybackQuality() : playbackQuality;
 	const originalExtension = track.audio.file.original.extension.toLowerCase();
@@ -75,12 +80,14 @@ export function resolvePlaybackSource(
 		(selectedQuality === "Opus96" || needsPlayableFallback) &&
 		track.audio.file.opus96
 	) {
-		const url = `${track.audio.file.opus96.url}/play`;
-		return { key: `Opus96:${url}`, quality: "Opus96", url };
+		const fileUrl = track.audio.file.opus96.url;
+		const url = `${fileUrl}/play`;
+		return { key: `Opus96:${url}`, quality: "Opus96", url, fileUrl };
 	}
 
-	const url = `${track.audio.file.original.url}/play`;
-	return { key: `Original:${url}`, quality: "Original", url };
+	const fileUrl = track.audio.file.original.url;
+	const url = `${fileUrl}/play`;
+	return { key: `Original:${url}`, quality: "Original", url, fileUrl };
 }
 
 export async function getWaveformData(url: string): Promise<number[] | null> {

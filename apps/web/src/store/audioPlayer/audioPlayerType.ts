@@ -1,6 +1,7 @@
 import type WaveSurfer from "wavesurfer.js";
 
 import type { components } from "#/data/APIschema";
+import type { TransferSnapshot } from "#/data/webSocket";
 
 type TrackAudio = components["schemas"]["TrackAudioDetails"];
 
@@ -79,6 +80,11 @@ export type AudioPlayerAction = {
 	setPlayTalkTrack: (playTalkTrack: boolean) => void;
 	setPlayInstrumental: (playInstrumental: boolean) => void;
 	setStopAfterMusicCount: (stopAfterMusicCount: number | null) => void;
+
+	getTransferSnapshot: () => TransferSnapshot | null;
+	// Resolves true once the snapshot is loaded and, when it was playing, audibly playing here.
+	adoptTransfer: (snapshot: TransferSnapshot) => Promise<boolean>;
+	stopForTransfer: () => void;
 
 	markReady: () => void;
 	markPlaying: (playing: boolean) => void;

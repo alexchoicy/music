@@ -30,6 +30,7 @@ public class WsController(WebSocketService webSocketService) : ControllerBase
         using WebSocket webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
         await webSocketService.HandleConnectionAsync(
             userId,
+            User,
             webSocket,
             HttpContext.RequestAborted
         );
