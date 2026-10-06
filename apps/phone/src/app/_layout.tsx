@@ -7,12 +7,12 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { TrackActionsHost } from "@/components/tracks/trackActions";
 import { ConfirmDialogHost } from "@/components/ui/confirmDialog";
+import { connectPlaybackDevice } from "@/lib/playbackDevices";
 import {
 	queryCacheMaxAge,
 	queryClient,
 	queryPersister,
 } from "@/lib/queryClient";
-import { connectWebSocket } from "@/lib/webSocket";
 import { startDownloads } from "@/offline/downloads";
 import { useSessionStore } from "@/store/sessionStore";
 
@@ -23,7 +23,7 @@ export default function RootLayout() {
 	useEffect(() => {
 		if (!isSignedIn) return;
 		startDownloads();
-		return connectWebSocket();
+		return connectPlaybackDevice();
 	}, [isSignedIn]);
 
 	return (

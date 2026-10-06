@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { DevicesSheet } from "@/components/player/devicesSheet";
 import { PlaybackOptionsSheet } from "@/components/player/playbackOptionsSheet";
 import { PlayerControls } from "@/components/player/playerControls";
 import { SeekBar } from "@/components/player/seekBar";
@@ -202,6 +203,7 @@ function BottomActions({ entry }: { entry: QueueEntry }) {
 		(state) => state.stopAfterMusicCount,
 	);
 	const [optionsOpen, setOptionsOpen] = useState(false);
+	const [devicesOpen, setDevicesOpen] = useState(false);
 	const artists = entry.artists.map((artist) => artist.name).join(", ");
 
 	return (
@@ -221,6 +223,12 @@ function BottomActions({ entry }: { entry: QueueEntry }) {
 						message: `${entry.title}${artists ? ` – ${artists}` : ""} (${entry.albumTitle})`,
 					})
 				}
+			/>
+			<IconButton
+				icon="devices"
+				iconSize={22}
+				label="Devices"
+				onPress={() => setDevicesOpen(true)}
 			/>
 			<ToggleButton
 				// Marks a running Stop after timer.
@@ -244,6 +252,7 @@ function BottomActions({ entry }: { entry: QueueEntry }) {
 				onClose={() => setOptionsOpen(false)}
 				open={optionsOpen}
 			/>
+			<DevicesSheet onClose={() => setDevicesOpen(false)} open={devicesOpen} />
 		</View>
 	);
 }

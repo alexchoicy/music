@@ -88,3 +88,36 @@ export function findPlayerTrack(
 	);
 	return disc && track ? toPlayerTrack(album, disc, track) : null;
 }
+
+/**
+ * A track as moved to another device, in the web player's shape. The phone's
+ * own fields stay alongside, and the web player keeps them.
+ */
+export function toTransferTrack({ entryId: _, ...track }: QueueEntry) {
+	return {
+		...track,
+		party: track.artists,
+		albumCoverUrl: track.cover?.url ?? "",
+	};
+}
+
+/** A track moved from another device, rebuilt from its album; null when it has no audio here. */
+export function fromTransferTrack(
+	album: AlbumDetails,
+	track: { trackId: string; albumDiscId?: unknown },
+) {
+	const discId =
+		typeof track.albumDiscId === "string" ? track.albumDiscId : undefined;
+	// Web players do not send the disc, so it is found by track.
+	const disc =
+		album.discs.find((item) => String(item.albumDiscId) === discId) ??
+		album.discs.find((item) =>
+			item.tracks.some(
+				(albumTrack) => String(albumTrack.trackId) === track.trackId,
+			),
+		);
+	const albumTrack = disc?.tracks.find(
+		(item) => String(item.trackId) === track.trackId,
+	);
+	return disc && albumTrack ? toPlayerTrack(album, disc, albumTrack) : null;
+}

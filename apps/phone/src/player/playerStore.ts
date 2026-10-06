@@ -4,8 +4,7 @@ import { create } from "zustand";
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import type { RadioTrack, RadioTrackRequest } from "@/lib/schema";
-import type { PlaybackMessage } from "@/lib/webSocket";
-import { sendPlaybackMessage } from "@/lib/webSocket";
+import type { TransferSnapshot } from "@/lib/webSocket";
 import { savePlayedTrack } from "@/offline/downloads";
 import type { PlaybackSource } from "@/player/engine";
 import {
@@ -30,7 +29,12 @@ import {
 	shuffleIndices,
 } from "@/player/queue";
 import type { PlayerTrack, QueueEntry } from "@/player/track";
-import { createQueueEntries, findPlayerTrack } from "@/player/track";
+import {
+	createQueueEntries,
+	findPlayerTrack,
+	fromTransferTrack,
+	toTransferTrack,
+} from "@/player/track";
 import { albumQueries } from "@/queries/albums";
 import { getStreamingQuality, useSettingsStore } from "@/store/settingsStore";
 import { showToast } from "@/store/toastStore";
@@ -240,7 +244,7 @@ export const usePlayerStore = create<PlayerState>()((set, get) => ({
 				? null
 				: getPrevPlayback(get(), isAvailable);
 		if (prev) playPlayback(prev);
-		else void audioPlayer.seekTo(0);
+		else get().seekTo(0);
 	},
 	togglePlayback: () => {
 		const { queue, index, status, error } = get();
@@ -258,7 +262,7 @@ export const usePlayerStore = create<PlayerState>()((set, get) => ({
 	},
 	seekTo: (seconds) => {
 		void audioPlayer.seekTo(seconds);
-		sendPlayback("changeTime", seconds);
+		for (const listener of seekListeners) listener();
 	},
 	toggleShuffle: () => {
 		const state = get();
@@ -319,11 +323,21 @@ function isAutoPlayable(entry: QueueEntry) {
 // Each load gets an id so a slow, outdated load cannot replace a newer one.
 let loadId = 0;
 let finishedLoadId = -1;
+const seekListeners = new Set<() => void>();
 
+/** Calls the listener when the user seeks; returns an unsubscribe function. */
+export function onPlayerSeek(listener: () => void) {
+	seekListeners.add(listener);
+	return () => {
+		seekListeners.delete(listener);
+	};
+}
+
+/** Resolves whether the track loaded; false when it failed or a newer load replaced it. */
 async function load(
 	entry: QueueEntry,
 	{ autoplay = true, position }: { autoplay?: boolean; position?: number } = {},
-) {
+): Promise<boolean> {
 	const id = ++loadId;
 	// Stops the previous track so it never plays under the new track's details.
 	audioPlayer.pause();
@@ -333,16 +347,16 @@ async function load(
 	try {
 		source = await resolveSource(entry);
 	} catch (error) {
-		if (id !== loadId) return;
+		if (id !== loadId) return false;
 		const message = error instanceof Error ? error.message : "Unable to play";
 		if (error instanceof UnplayableError) showToast(message);
 		// The previous file stays loaded, so its lock screen controls are removed
 		// (the status listener also pauses it while in error).
 		audioPlayer.clearLockScreenControls();
 		usePlayerStore.setState({ status: "paused", error: message, source: null });
-		return;
+		return false;
 	}
-	if (id !== loadId) return;
+	if (id !== loadId) return false;
 
 	showNotice(entry, source.notice);
 	if (!source.isLocal && useSettingsStore.getState().savePlayedTracks) {
@@ -355,6 +369,7 @@ async function load(
 	if (position === undefined) startListeningSession(entry);
 	if (autoplay) audioPlayer.play();
 	usePlayerStore.setState({ status: autoplay ? "playing" : "paused", source });
+	return true;
 }
 
 // A fallback notice repeats for every track of e.g. a DSF album, so it shows once per album.
@@ -384,7 +399,7 @@ function playPlayback(next: NextPlayback) {
 	usePlayerStore.setState(next);
 	// Repeat-one replays the loaded file instead of fetching it again.
 	if (next.index === state.index && state.status !== "idle" && !state.error) {
-		void audioPlayer.seekTo(0);
+		state.seekTo(0);
 		audioPlayer.play();
 		startListeningSession(entry);
 		usePlayerStore.setState({ status: "playing" });
@@ -517,31 +532,6 @@ useSettingsStore.subscribe((settings, prev) => {
 	}
 });
 
-/** Tells the server what plays, like the web player, e.g. for Discord presence. */
-function sendPlayback(
-	action: PlaybackMessage["action"],
-	positionSeconds = audioPlayer.currentTime,
-) {
-	const { queue, index } = usePlayerStore.getState();
-	sendPlaybackMessage({
-		action,
-		positionMs: Math.max(0, Math.round(positionSeconds * 1000)),
-		trackID: queue.at(index)?.trackId,
-	});
-}
-
-usePlayerStore.subscribe((state, prev) => {
-	if (state.status === prev.status) return;
-	if (state.status === "playing") {
-		// Resuming the same track is play; a newly loaded track is change.
-		sendPlayback(prev.status === "paused" ? "play" : "change");
-	} else if (state.status === "paused" && prev.status === "playing") {
-		sendPlayback("pause");
-	} else if (state.status === "idle") {
-		sendPlayback("end", 0);
-	}
-});
-
 usePlayerStore.subscribe((state, prev) => {
 	const saved: SavedPlayer = {
 		queue: state.queue,
@@ -565,3 +555,100 @@ usePlayerStore.subscribe((state, prev) => {
 		return;
 	Storage.setItemSync(storageKey, JSON.stringify(saved));
 });
+
+/** The queue and position to move to another device; null when nothing is queued. */
+export function getTransferSnapshot(): TransferSnapshot | null {
+	const { queue, index, status } = usePlayerStore.getState();
+	if (!queue.at(index)) return null;
+	return {
+		queue: queue.map(toTransferTrack),
+		index,
+		positionMs: Math.max(0, Math.round(audioPlayer.currentTime * 1000)),
+		playing: status === "playing" || status === "loading",
+	};
+}
+
+/** Rebuilds a moved queue from its albums, skipping tracks this phone cannot play. */
+async function resolveTransferQueue({ queue, index }: TransferSnapshot) {
+	const albumIds = [...new Set(queue.map((track) => track.albumId))];
+	const albums = new Map(
+		await Promise.all(
+			albumIds.map(async (albumId) => {
+				const album = await queryClient
+					.ensureQueryData(albumQueries.detail(albumId))
+					.catch(() => null);
+				return [albumId, album] as const;
+			}),
+		),
+	);
+
+	const tracks: PlayerTrack[] = [];
+	let currentIndex: number | null = null;
+	for (const [i, item] of queue.entries()) {
+		const album = albums.get(item.albumId);
+		const track = album ? fromTransferTrack(album, item) : null;
+		if (!track) continue;
+		if (i === index) currentIndex = tracks.length;
+		tracks.push(track);
+	}
+	return currentIndex === null ? null : { tracks, index: currentIndex };
+}
+
+/**
+ * Takes over playback moved from another device. Resolves true once it loaded;
+ * on failure, this phone's queue is restored.
+ */
+export async function adoptTransfer(snapshot: TransferSnapshot) {
+	const startLoadId = loadId;
+	const resolved = await resolveTransferQueue(snapshot);
+	// Something else started playing meanwhile.
+	if (!resolved || loadId !== startLoadId) return false;
+
+	const previous = usePlayerStore.getState();
+	const queue = createQueueEntries(resolved.tracks);
+	const entry = queue[resolved.index];
+	usePlayerStore.setState({
+		queue,
+		index: resolved.index,
+		stopAfterMusicCount: null,
+		...createShuffleState(queue.length, resolved.index, previous.shuffle),
+	});
+	startListeningSession(entry);
+	const loading = load(entry, {
+		autoplay: snapshot.playing,
+		position: snapshot.positionMs / 1000,
+	});
+	const id = loadId;
+	if (await loading) return true;
+	if (loadId !== id) return false;
+
+	loadId++;
+	audioPlayer.pause();
+	audioPlayer.clearLockScreenControls();
+	usePlayerStore.setState({
+		queue: previous.queue,
+		index: previous.index,
+		shuffleHistory: previous.shuffleHistory,
+		shuffleHistoryIndex: previous.shuffleHistoryIndex,
+		shuffleRemaining: previous.shuffleRemaining,
+		stopAfterMusicCount: previous.stopAfterMusicCount,
+		status: "idle",
+		error: null,
+		source: null,
+	});
+	return false;
+}
+
+/** Stops here after another device took over; the queue stays. */
+export function stopForTransfer() {
+	const { status } = usePlayerStore.getState();
+	// Cancels a track or radio pick still loading so it cannot start afterwards.
+	loadId++;
+	audioPlayer.pause();
+	if (status === "loading") {
+		audioPlayer.clearLockScreenControls();
+		usePlayerStore.setState({ status: "idle", error: null, source: null });
+	} else if (status === "playing") {
+		usePlayerStore.setState({ status: "paused" });
+	}
+}

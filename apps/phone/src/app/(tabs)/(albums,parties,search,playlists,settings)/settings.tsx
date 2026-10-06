@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "expo-router";
 import type { ReactNode } from "react";
+import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 
+import { DevicesSheet } from "@/components/player/devicesSheet";
 import { Artwork } from "@/components/ui/artwork";
 import { confirm } from "@/components/ui/confirmDialog";
 import { PageHeader } from "@/components/ui/header";
@@ -17,6 +19,10 @@ import { getDownloadStats, useOfflineStore } from "@/offline/offlineStore";
 import { usePlayerStore } from "@/player/playerStore";
 import { authQueries } from "@/queries/auth";
 import { useEndPadding } from "@/store/miniPlayerStore";
+import {
+	getDefaultDeviceName,
+	usePlaybackDeviceStore,
+} from "@/store/playbackDeviceStore";
 import { useSessionStore } from "@/store/sessionStore";
 import {
 	qualityOptions,
@@ -49,6 +55,7 @@ export default function SettingsScreen() {
 			>
 				<Account />
 				<Playback />
+				<Devices />
 				<Storage />
 			</ScrollView>
 		</Screen>
@@ -144,6 +151,44 @@ function Playback() {
 				onChange={(value) => update({ savePlayedTracks: value })}
 				value={savePlayedTracks}
 			/>
+		</Section>
+	);
+}
+
+function Devices() {
+	const deviceName = usePlaybackDeviceStore((state) => state.deviceName);
+	const connected = usePlaybackDeviceStore((state) => state.connected);
+	const otherCount = usePlaybackDeviceStore(
+		(state) =>
+			state.devices.filter((device) => device.deviceId !== state.deviceId)
+				.length,
+	);
+	const [open, setOpen] = useState(false);
+	const name = deviceName ?? getDefaultDeviceName();
+	const summary = connected
+		? `${name} · ${otherCount === 0 ? "No other devices" : plural(otherCount, "other device")}`
+		: `${name} · Not connected`;
+
+	return (
+		<Section title="Devices">
+			<ListRow
+				accessibilityHint="Rename this phone, control other devices, or move their playback here"
+				accessibilityLabel={`Devices, ${summary}`}
+				accessibilityRole="button"
+				className="min-h-12"
+				leading={<Icon name="devices" size={22} />}
+				onPress={() => setOpen(true)}
+				subtitle={summary}
+				title="Devices"
+				trailing={
+					<Icon
+						className="accent-muted-foreground"
+						name="chevronRight"
+						size={18}
+					/>
+				}
+			/>
+			<DevicesSheet onClose={() => setOpen(false)} open={open} />
 		</Section>
 	);
 }
