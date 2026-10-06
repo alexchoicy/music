@@ -57,11 +57,11 @@ import {
 import { Switch } from "#/components/coss/switch";
 import { toastManager } from "#/components/coss/toast";
 import { Toggle } from "#/components/coss/toggle";
+import { PlaybackDevices } from "#/components/ui/playbackDevices";
 import { VolumeControl } from "#/components/VolumeControl";
 import { shareUrl } from "#/lib/utils/browser";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
-import { sendMusicWebSocketMessage } from "#/lib/webSocket";
 import {
 	AUDIO_PLAYER_IDLE_DURATION,
 	AUDIO_PLAYER_IDLE_PEAKS,
@@ -695,15 +695,6 @@ export function AudioPlayer() {
 		markPlaying(false);
 	});
 
-	const sendChangeTime = (position: number) => {
-		sendMusicWebSocketMessage({
-			action: "changeTime",
-			positionMs: Math.max(0, Math.round(position * 1000)),
-			...(currentTrack && { trackID: currentTrack.trackId }),
-		});
-	};
-	const onSeekInteraction = useEffectEvent(sendChangeTime);
-
 	const onFinish = useEffectEvent(() => {
 		markFinished();
 	});
@@ -863,9 +854,6 @@ export function AudioPlayer() {
 		const unsubscribeFinish = player.on("finish", () => {
 			onFinish();
 		});
-		const unsubscribeInteraction = player.on("interaction", (position) => {
-			onSeekInteraction(position);
-		});
 		const handleStalled = (event: Event) => onStalled(event);
 		const handleMediaError = (event: Event) => onMediaError(event);
 
@@ -877,7 +865,6 @@ export function AudioPlayer() {
 			unsubscribePlay();
 			unsubscribePause();
 			unsubscribeFinish();
-			unsubscribeInteraction();
 			audio.removeEventListener("error", handleMediaError);
 			audio.removeEventListener("stalled", handleStalled);
 			bindWaveSurfer(null);
@@ -927,9 +914,10 @@ export function AudioPlayer() {
 		() => {
 			if (!audioRef.current) return;
 
-			const position = Math.max(audioRef.current.currentTime - 1, 0);
-			audioRef.current.currentTime = position;
-			sendChangeTime(position);
+			audioRef.current.currentTime = Math.max(
+				audioRef.current.currentTime - 1,
+				0,
+			);
 		},
 		hotkeyConfig,
 	);
@@ -938,12 +926,10 @@ export function AudioPlayer() {
 		"ArrowRight",
 		() => {
 			if (!audioRef.current) return;
-			const position = Math.min(
+			audioRef.current.currentTime = Math.min(
 				audioRef.current.currentTime + 1,
 				audioRef.current.duration || audioRef.current.currentTime + 1,
 			);
-			audioRef.current.currentTime = position;
-			sendChangeTime(position);
 		},
 		hotkeyConfig,
 	);
@@ -1020,6 +1006,7 @@ export function AudioPlayer() {
 							)}
 						</Button>
 					)}
+					<PlaybackDevices />
 					<Button
 						aria-controls="audio-player-controls"
 						aria-expanded={isMobilePlayerExpanded}
@@ -1268,6 +1255,7 @@ export function AudioPlayer() {
 							queue={queue}
 							queueLength={queueLength}
 						/>
+						<PlaybackDevices className="max-sm:hidden" />
 						<Button
 							aria-label="Share current track"
 							disabled={!currentTrack}

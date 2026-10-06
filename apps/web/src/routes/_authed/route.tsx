@@ -16,11 +16,11 @@ import { Command } from "#/components/ui/command";
 import { MobileHeader } from "#/components/ui/mobileHeader";
 import { UserInfoProvider } from "#/context/UserInfoContext";
 import { getResolvedApiEndpoint } from "#/lib/APIFetchClient";
+import { connectPlaybackDevice } from "#/lib/playbackDevices";
 import { authQueries } from "#/lib/queries/auth.queries";
 import { playlistQueries } from "#/lib/queries/playlist.queries";
 import { checkBotHeader } from "#/lib/ServerFunction/checkBotHeader";
 import { getWebSocketEndpoint } from "#/lib/ServerFunction/getApiEndpoint";
-import { connectMusicWebSocket } from "#/lib/webSocket";
 import { useUploadStore } from "#/store/uploadStore";
 
 const authedSearchSchema = z.object({
@@ -131,7 +131,7 @@ function RouteComponent() {
 		void getWebSocketEndpoint().then((endpoint) => {
 			if (disposed) return;
 
-			disconnect = connectMusicWebSocket(`${endpoint}/ws`);
+			disconnect = connectPlaybackDevice(`${endpoint}/ws`);
 		});
 
 		return () => {
