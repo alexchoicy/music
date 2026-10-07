@@ -1,4 +1,5 @@
 import Storage from "expo-sqlite/kv-store";
+import { AppState } from "react-native";
 import { create } from "zustand";
 
 import { api } from "@/lib/api";
@@ -84,6 +85,12 @@ type PlayerState = SavedPlayer & {
 };
 
 const storageKey = "player";
+// Kept apart from the queue so frequent saves do not rewrite it.
+const positionStorageKey = "player-position";
+// While playing, the position is saved this often in case the app is killed.
+const positionSaveIntervalMs = 15_000;
+// A saved position this close to the end restarts the track instead.
+const positionEndMarginMs = 5_000;
 // Pressing previous later than this restarts the track instead.
 const restartThresholdSeconds = 3;
 const repeatModes: RepeatMode[] = ["off", "all", "one"];
@@ -254,7 +261,7 @@ export const usePlayerStore = create<PlayerState>()((set, get) => ({
 			audioPlayer.pause();
 			set({ status: "paused" });
 		} else if (status === "idle" || error) {
-			void load(entry);
+			resume(entry);
 		} else {
 			audioPlayer.play();
 			set({ status: "playing" });
@@ -262,6 +269,7 @@ export const usePlayerStore = create<PlayerState>()((set, get) => ({
 	},
 	seekTo: (seconds) => {
 		void audioPlayer.seekTo(seconds);
+		savePosition(seconds);
 		for (const listener of seekListeners) listener();
 	},
 	toggleShuffle: () => {
@@ -369,7 +377,47 @@ async function load(
 	if (position === undefined) startListeningSession(entry);
 	if (autoplay) audioPlayer.play();
 	usePlayerStore.setState({ status: autoplay ? "playing" : "paused", source });
+	if (position !== undefined) savePosition(position);
 	return true;
+}
+
+type SavedPosition = { entryId: string; positionMs: number };
+let lastPositionSave = 0;
+
+/** Saves where the current entry is, so it resumes there after a restart. */
+function savePosition(seconds = audioPlayer.currentTime) {
+	const { queue, index, status, error } = usePlayerStore.getState();
+	const entry = queue.at(index);
+	// Otherwise the player holds no position, or an earlier track's.
+	if (!entry || status === "idle" || status === "loading" || error) return;
+	lastPositionSave = Date.now();
+	const saved: SavedPosition = {
+		entryId: entry.entryId,
+		positionMs: Math.max(0, Math.round(seconds * 1000)),
+	};
+	Storage.setItemSync(positionStorageKey, JSON.stringify(saved));
+}
+
+/** Seconds to resume the entry from; undefined when it starts over. */
+function getSavedPosition(entry: QueueEntry) {
+	const value = Storage.getItemSync(positionStorageKey);
+	if (!value) return undefined;
+	const saved = JSON.parse(value) as SavedPosition;
+	if (
+		saved.entryId !== entry.entryId ||
+		saved.positionMs <= 0 ||
+		saved.positionMs > entry.durationInMs - positionEndMarginMs
+	)
+		return undefined;
+	return saved.positionMs / 1000;
+}
+
+/** Plays the current entry, from its saved position after a restart. */
+function resume(entry: QueueEntry) {
+	const position = getSavedPosition(entry);
+	// Loading at a position continues a session, so this starts a new one.
+	if (position !== undefined) startListeningSession(entry);
+	void load(entry, { position });
 }
 
 // A fallback notice repeats for every track of e.g. a DSF album, so it shows once per album.
@@ -477,6 +525,8 @@ function onTrackFinished() {
 
 audioPlayer.addListener("playbackStatusUpdate", (status) => {
 	trackListeningProgress(status.currentTime);
+	if (status.playing && Date.now() - lastPositionSave >= positionSaveIntervalMs)
+		savePosition(status.currentTime);
 
 	if (status.didJustFinish) {
 		if (finishedLoadId === loadId) return;
@@ -554,6 +604,16 @@ usePlayerStore.subscribe((state, prev) => {
 	)
 		return;
 	Storage.setItemSync(storageKey, JSON.stringify(saved));
+});
+
+// Pauses from anywhere, e.g. the lock screen or another device taking over.
+usePlayerStore.subscribe((state, prev) => {
+	if (prev.status === "playing" && state.status === "paused") savePosition();
+});
+
+// The app may be killed without warning once it is in the background.
+AppState.addEventListener("change", (state) => {
+	if (state !== "active") savePosition();
 });
 
 /** The queue and position to move to another device; null when nothing is queued. */

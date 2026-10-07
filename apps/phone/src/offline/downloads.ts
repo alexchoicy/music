@@ -2,9 +2,9 @@ import { Directory, File, Paths } from "expo-file-system";
 
 import { api } from "@/lib/api";
 import {
-	getAudioVariant,
 	getAvatar,
 	getCover,
+	getPlaybackFile,
 	getPreferredAudio,
 	isUnplayableExtension,
 } from "@/lib/music";
@@ -237,17 +237,16 @@ export function downloadAlbum(album: AlbumDetails) {
 		.flatMap((track) => {
 			const audio = getPreferredAudio(track);
 			if (!audio) return [];
-			// Files already downloaded at another quality of the same source are kept.
+			// An unplayable original, e.g. DSF, falls back to Opus like streaming.
+			const file = getPlaybackFile(audio, quality);
+			if (isUnplayableExtension(file.extension)) return [];
+			// Playable files already downloaded at another quality of the same source are kept.
 			const sourceFileIds = Object.values(audio.file).flatMap((variant) =>
-				variant ? [variant.id] : [],
+				variant && !isUnplayableExtension(variant.extension)
+					? [variant.id]
+					: [],
 			);
-			return [
-				{
-					trackId: String(track.trackId),
-					file: getAudioVariant(audio, quality),
-					sourceFileIds,
-				},
-			];
+			return [{ trackId: String(track.trackId), file, sourceFileIds }];
 		});
 	const trackIds = tracks.map((track) => track.trackId);
 
@@ -408,7 +407,7 @@ function stopWifiOnlyDownloads() {
 	// Off Wi‑Fi, this is the mobile-data quality.
 	const quality = getStreamingQuality();
 	for (const { row, audio } of getPlayedTracks(["queued", "downloading"])) {
-		const file = getAudioVariant(audio, quality);
+		const file = getPlaybackFile(audio, quality);
 		if (file.id === row.fileObjectId) continue;
 		db.runSync(
 			"UPDATE track_download SET fileObjectId = ?, uri = ?, sizeInBytes = ?, status = 'queued', error = NULL WHERE trackId = ?",
