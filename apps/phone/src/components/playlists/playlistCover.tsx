@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import { View } from "react-native";
 
 import { Icon } from "@/components/ui/icon";
+import { cn } from "@/lib/cn";
 import {
 	getCoverEntries,
 	getEntryCover,
@@ -32,7 +33,11 @@ export function PlaylistCover({ entries, size }: PlaylistCoverProps) {
 
 	return (
 		<View
-			className="aspect-square flex-row flex-wrap overflow-hidden rounded-xl bg-surface-strong"
+			className={cn(
+				"bg-surface-strong aspect-square flex-row flex-wrap overflow-hidden",
+				// Matches Artwork, which rounds small covers less.
+				size && size < 64 ? "rounded-md" : "rounded-xl",
+			)}
 			style={size ? { width: size } : { width: "100%" }}
 		>
 			{tiles.length === 0 ? (
@@ -46,6 +51,7 @@ export function PlaylistCover({ entries, size }: PlaylistCoverProps) {
 			) : (
 				tiles.map((uri, index) => (
 					<Image
+						cachePolicy="memory-disk"
 						contentFit="cover"
 						key={index}
 						source={uri}

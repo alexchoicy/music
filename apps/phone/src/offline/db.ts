@@ -20,7 +20,10 @@ export type TrackDownload = {
 	error: string | null;
 };
 
-/** `album` is a whole downloaded album; `played` holds only tracks saved while playing. */
+/**
+ * `album` is a whole downloaded album; `played` holds only some of its tracks,
+ * saved while playing or for downloaded playlists.
+ */
 export type OfflineAlbumKind = "album" | "played";
 
 export const db = openDatabaseSync("offline.db");
@@ -43,6 +46,15 @@ db.execSync(`
 		error TEXT
 	);
 	CREATE INDEX IF NOT EXISTS track_download_album ON track_download (albumId);
+	CREATE TABLE IF NOT EXISTS offline_playlist (
+		playlistId TEXT PRIMARY KEY NOT NULL,
+		snapshot TEXT NOT NULL,
+		downloadedAt INTEGER NOT NULL
+	);
+	-- Track downloads queued for playlists rather than saved while playing.
+	CREATE TABLE IF NOT EXISTS playlist_track (
+		trackId TEXT PRIMARY KEY NOT NULL
+	);
 	CREATE TABLE IF NOT EXISTS artwork (
 		fileObjectId TEXT PRIMARY KEY NOT NULL,
 		uri TEXT NOT NULL

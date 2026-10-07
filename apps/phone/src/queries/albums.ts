@@ -1,3 +1,4 @@
+import type { QueryClient } from "@tanstack/react-query";
 import { queryOptions } from "@tanstack/react-query";
 
 import type { paths } from "@/data/APIschema";
@@ -44,3 +45,11 @@ export const albumQueries = {
 			staleTime: 5 * 60 * 1000,
 		}),
 };
+
+/** Album details for downloads, reusing ones loaded in the last minute. */
+export function fetchAlbum(client: QueryClient, id: number | string) {
+	return client.fetchQuery({
+		...albumQueries.detail(id),
+		staleTime: 60 * 1000,
+	});
+}

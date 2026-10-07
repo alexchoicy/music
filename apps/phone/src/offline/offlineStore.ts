@@ -4,7 +4,7 @@ import { create } from "zustand";
 
 import { getCover, isUnplayableExtension, joinNames } from "@/lib/music";
 import type { AlbumTile } from "@/lib/music";
-import type { AlbumDetails, FileObject } from "@/lib/schema";
+import type { AlbumDetails, FileObject, PlaylistDetails } from "@/lib/schema";
 import type { OfflineAlbumKind, TrackDownload } from "@/offline/db";
 import { db } from "@/offline/db";
 
@@ -18,9 +18,16 @@ export type OfflineAlbum = Pick<
 	kind: OfflineAlbumKind;
 };
 
+/** A downloaded playlist snapshot. */
+export type OfflinePlaylist = PlaylistDetails & { downloadedAt: number };
+
 type OfflineState = {
 	/** Saved albums, keyed by album id. */
 	albums: Partial<Record<string, OfflineAlbum>>;
+	/** Downloaded playlists, keyed by playlist id. */
+	playlists: Partial<Record<string, OfflinePlaylist>>;
+	/** Ids of track downloads queued for playlists rather than saved while playing. */
+	playlistTrackIds: ReadonlySet<string>;
 	/** Track downloads, keyed by track id. */
 	tracks: Partial<Record<string, TrackDownload>>;
 	/** Download progress from 0 to 1, keyed by track id. Not persisted. */
@@ -42,6 +49,14 @@ function loadState(): Omit<OfflineState, "progress"> {
 			json_extract(snapshot, '$.cover') AS cover
 		FROM offline_album`,
 	);
+	const playlists = db.getAllSync<{
+		playlistId: string;
+		snapshot: string;
+		downloadedAt: number;
+	}>("SELECT * FROM offline_playlist");
+	const playlistTracks = db.getAllSync<{ trackId: string }>(
+		"SELECT trackId FROM playlist_track",
+	);
 	const tracks = db.getAllSync<TrackDownload>("SELECT * FROM track_download");
 	const artwork = db.getAllSync<{ fileObjectId: string; uri: string }>(
 		"SELECT * FROM artwork",
@@ -58,6 +73,16 @@ function loadState(): Omit<OfflineState, "progress"> {
 				},
 			]),
 		),
+		playlists: Object.fromEntries(
+			playlists.map((row) => [
+				row.playlistId,
+				{
+					...(JSON.parse(row.snapshot) as PlaylistDetails),
+					downloadedAt: row.downloadedAt,
+				},
+			]),
+		),
+		playlistTrackIds: new Set(playlistTracks.map((row) => row.trackId)),
 		tracks: Object.fromEntries(tracks.map((row) => [row.trackId, row])),
 		artwork: Object.fromEntries(
 			artwork.map((row) => [row.fileObjectId, row.uri]),
@@ -118,20 +143,39 @@ export const emptyDownloadStats: AlbumDownloadStats = {
 	sizeInBytes: 0,
 };
 
+function addToStats(stats: AlbumDownloadStats, track: TrackDownload) {
+	stats.total += 1;
+	if (track.status === "failed") stats.failed += 1;
+	if (track.status === "downloaded") {
+		stats.downloaded += 1;
+		stats.sizeInBytes += track.sizeInBytes;
+	}
+}
+
 /** Track counts and downloaded size per album. */
 export function getDownloadStats(
 	tracks: OfflineState["tracks"],
 ): Partial<Record<string, AlbumDownloadStats>> {
 	const stats: Partial<Record<string, AlbumDownloadStats>> = {};
 	for (const track of Object.values(tracks)) {
-		if (!track) continue;
-		const album = (stats[track.albumId] ??= { ...emptyDownloadStats });
-		album.total += 1;
-		if (track.status === "failed") album.failed += 1;
-		if (track.status === "downloaded") {
-			album.downloaded += 1;
-			album.sizeInBytes += track.sizeInBytes;
-		}
+		if (track)
+			addToStats((stats[track.albumId] ??= { ...emptyDownloadStats }), track);
+	}
+	return stats;
+}
+
+/** Track counts and downloaded size of a playlist; tracks without audio are not counted. */
+export function getPlaylistDownloadStats(
+	playlist: Pick<PlaylistDetails, "entries">,
+	tracks: OfflineState["tracks"],
+) {
+	const stats = { ...emptyDownloadStats };
+	const trackIds = new Set(
+		playlist.entries.map((entry) => String(entry.trackId)),
+	);
+	for (const trackId of trackIds) {
+		const track = tracks[trackId];
+		if (track) addToStats(stats, track);
 	}
 	return stats;
 }

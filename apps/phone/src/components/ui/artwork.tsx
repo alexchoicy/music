@@ -32,7 +32,7 @@ export function Artwork({
 			accessibilityRole={accessibilityLabel ? "image" : undefined}
 			accessible={!!accessibilityLabel}
 			className={cn(
-				"overflow-hidden bg-surface-strong",
+				"bg-surface-strong overflow-hidden",
 				shape === "circle"
 					? "rounded-full"
 					: size && size < 64
@@ -45,6 +45,8 @@ export function Artwork({
 		>
 			{uri ? (
 				<Image
+					// Grids scroll back over the same covers; memory skips decoding them again.
+					cachePolicy="memory-disk"
 					contentFit="cover"
 					recyclingKey={recyclingKey}
 					source={uri}

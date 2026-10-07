@@ -5,6 +5,7 @@ import { FlatList, Text, useWindowDimensions, View } from "react-native";
 
 import { PlaylistActions } from "@/components/playlists/playlistActions";
 import { PlaylistCover } from "@/components/playlists/playlistCover";
+import { PlaylistDownloadButton } from "@/components/playlists/playlistDownloadButton";
 import { openTrackActions } from "@/components/tracks/trackActions";
 import { TrackRow } from "@/components/tracks/trackRow";
 import { Button } from "@/components/ui/button";
@@ -42,11 +43,7 @@ export default function PlaylistScreen() {
 				}
 			/>
 			{playlist.data ? (
-				<Playlist
-					onRefresh={() => void playlist.refetch()}
-					playlist={playlist.data}
-					refreshing={playlist.isRefetching}
-				/>
+				<Playlist playlist={playlist.data} />
 			) : playlist.isPending ? (
 				<Loading />
 			) : (
@@ -74,13 +71,7 @@ export default function PlaylistScreen() {
 	);
 }
 
-type PlaylistProps = {
-	playlist: PlaylistDetails;
-	onRefresh: () => void;
-	refreshing: boolean;
-};
-
-function Playlist({ playlist, onRefresh, refreshing }: PlaylistProps) {
+function Playlist({ playlist }: { playlist: PlaylistDetails }) {
 	const { width } = useWindowDimensions();
 	const albums = usePlaylistAlbums(playlist.entries);
 	const isOnline = useIsOnline();
@@ -140,7 +131,9 @@ function Playlist({ playlist, onRefresh, refreshing }: PlaylistProps) {
 							{formatTotalDuration(durationInMs)}
 						</Text>
 					</View>
-					<View className="w-full flex-row items-center justify-end gap-2">
+					<View className="w-full flex-row items-center gap-2">
+						<PlaylistDownloadButton playlist={playlist} />
+						<View className="flex-1" />
 						<IconButton
 							disabled={playableTracks.length === 0}
 							icon="shuffle"
@@ -161,8 +154,6 @@ function Playlist({ playlist, onRefresh, refreshing }: PlaylistProps) {
 					</View>
 				</View>
 			}
-			onRefresh={onRefresh}
-			refreshing={refreshing}
 			renderItem={({ item: { entry, track } }) => {
 				const index = playable.findIndex((item) => item.entry === entry);
 				return (

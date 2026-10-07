@@ -1,9 +1,12 @@
 import "@/global.css";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { Stack } from "expo-router";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
+import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useCSSVariable, useUniwind } from "uniwind";
 
 import { TrackActionsHost } from "@/components/tracks/trackActions";
 import { ConfirmDialogHost } from "@/components/ui/confirmDialog";
@@ -42,35 +45,59 @@ export default function RootLayout() {
 		>
 			{/* Drag gestures, e.g. reordering the queue, need a gesture root. */}
 			<GestureHandlerRootView style={{ flex: 1 }}>
-				<Stack screenOptions={{ headerShown: false }}>
-					<Stack.Protected guard={isSignedIn}>
-						<Stack.Screen name="(tabs)" />
-						<Stack.Screen
-							name="player"
-							options={{
-								presentation: "modal",
-								animation: "slide_from_bottom",
-							}}
-						/>
-						<Stack.Screen
-							name="queue"
-							options={{
-								presentation: "modal",
-								animation: "slide_from_bottom",
-							}}
-						/>
-					</Stack.Protected>
-					<Stack.Protected guard={serverUrl !== null && !isSignedIn}>
-						<Stack.Screen name="login" />
-					</Stack.Protected>
-					<Stack.Protected guard={serverUrl === null}>
-						<Stack.Screen name="setup" />
-					</Stack.Protected>
-				</Stack>
+				<NavigationTheme>
+					<Stack screenOptions={{ headerShown: false }}>
+						<Stack.Protected guard={isSignedIn}>
+							<Stack.Screen name="(tabs)" />
+							<Stack.Screen
+								name="player"
+								options={{
+									presentation: "modal",
+									animation: "slide_from_bottom",
+								}}
+							/>
+							<Stack.Screen
+								name="queue"
+								options={{
+									presentation: "modal",
+									animation: "slide_from_bottom",
+								}}
+							/>
+						</Stack.Protected>
+						<Stack.Protected guard={serverUrl !== null && !isSignedIn}>
+							<Stack.Screen name="login" />
+						</Stack.Protected>
+						<Stack.Protected guard={serverUrl === null}>
+							<Stack.Screen name="setup" />
+						</Stack.Protected>
+					</Stack>
+				</NavigationTheme>
 				{isSignedIn && <TrackActionsHost />}
 				<ConfirmDialogHost />
 			</GestureHandlerRootView>
 			<StatusBar style="auto" />
 		</PersistQueryClientProvider>
+	);
+}
+
+/** Screens and transitions use the app background, so navigating never flashes the default white. */
+function NavigationTheme({ children }: { children: ReactNode }) {
+	const { theme } = useUniwind();
+	const background = String(useCSSVariable("--color-background"));
+	const base = theme === "dark" ? DarkTheme : DefaultTheme;
+
+	useEffect(() => {
+		void SystemUI.setBackgroundColorAsync(background);
+	}, [background]);
+
+	return (
+		<ThemeProvider
+			value={{
+				...base,
+				colors: { ...base.colors, background, card: background },
+			}}
+		>
+			{children}
+		</ThemeProvider>
 	);
 }

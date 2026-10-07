@@ -110,8 +110,6 @@ export default function PartyAlbumsScreen() {
 								title={search.trim() ? "No matching albums" : "No albums"}
 							/>
 						}
-						onRefresh={() => void party.refetch()}
-						refreshing={party.isRefetching}
 					/>
 				</>
 			)}

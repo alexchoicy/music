@@ -1,13 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocalSearchParams } from "expo-router";
 import { Fragment } from "react";
-import {
-	RefreshControl,
-	ScrollView,
-	Text,
-	useWindowDimensions,
-	View,
-} from "react-native";
+import { ScrollView, Text, useWindowDimensions, View } from "react-native";
 
 import { AlbumDownloadButton } from "@/components/albums/albumDownloadButton";
 import { openTrackActions } from "@/components/tracks/trackActions";
@@ -55,14 +49,6 @@ export default function AlbumScreen() {
 				<ScrollView
 					contentContainerClassName="gap-8 px-4"
 					contentContainerStyle={{ paddingBottom: endPadding }}
-					refreshControl={
-						<RefreshControl
-							colorsClassName="accent-muted-foreground"
-							onRefresh={() => void album.refetch()}
-							refreshing={album.isRefetching}
-							tintColorClassName="accent-muted-foreground"
-						/>
-					}
 				>
 					<AlbumContent album={album.data} />
 				</ScrollView>

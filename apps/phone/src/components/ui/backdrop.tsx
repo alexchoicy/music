@@ -22,6 +22,7 @@ export function Backdrop({ uri, height }: BackdropProps) {
 		>
 			<Image
 				blurRadius={50}
+				cachePolicy="memory-disk"
 				source={uri}
 				style={[StyleSheet.absoluteFill, styles.image]}
 			/>

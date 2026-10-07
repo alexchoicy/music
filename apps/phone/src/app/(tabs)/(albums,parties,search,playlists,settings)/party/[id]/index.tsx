@@ -4,7 +4,6 @@ import { Link, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
 	Pressable,
-	RefreshControl,
 	ScrollView,
 	Text,
 	useWindowDimensions,
@@ -71,14 +70,6 @@ export default function PartyScreen() {
 				<ScrollView
 					contentContainerClassName="gap-8"
 					contentContainerStyle={{ paddingBottom: endPadding }}
-					refreshControl={
-						<RefreshControl
-							colorsClassName="accent-muted-foreground"
-							onRefresh={() => void party.refetch()}
-							refreshing={party.isRefetching}
-							tintColorClassName="accent-muted-foreground"
-						/>
-					}
 				>
 					<Hero party={party.data} />
 					{party.data.albums.length === 0 &&

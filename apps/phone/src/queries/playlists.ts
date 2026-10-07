@@ -6,6 +6,8 @@ import type {
 	PlaylistEntry,
 	PlaylistListItem,
 } from "@/lib/schema";
+import { getOfflinePlaylist, syncSavedPlaylist } from "@/offline/downloads";
+import { fetchAlbum } from "@/queries/albums";
 
 export const playlistQueries = {
 	list: () =>
@@ -17,8 +19,25 @@ export const playlistQueries = {
 	detail: (id: number | string) =>
 		queryOptions({
 			queryKey: ["playlists", "detail", String(id)],
-			queryFn: ({ signal }) =>
-				api<PlaylistDetails>(`/playlists/${id}`, { signal }),
+			queryFn: async ({ client, signal }) => {
+				let playlist: PlaylistDetails;
+				try {
+					playlist = await api<PlaylistDetails>(`/playlists/${id}`, {
+						signal,
+					});
+				} catch (error) {
+					// Without the server, a downloaded copy still opens.
+					if (error instanceof TypeError) {
+						const saved = getOfflinePlaylist(String(id));
+						if (saved) return saved;
+					}
+					throw error;
+				}
+				syncSavedPlaylist(playlist, (albumId) => fetchAlbum(client, albumId));
+				return playlist;
+			},
+			// Runs while offline so downloaded playlists load from the device.
+			networkMode: "offlineFirst",
 		}),
 };
 

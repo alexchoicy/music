@@ -6,6 +6,7 @@ import { confirm } from "@/components/ui/confirmDialog";
 import { Sheet, SheetAction } from "@/components/ui/sheet";
 import { ApiError } from "@/lib/api";
 import type { PlaylistListItem } from "@/lib/schema";
+import { removePlaylistDownloads } from "@/offline/downloads";
 import { useIsOnline } from "@/offline/offlineStore";
 import { playlistMutations } from "@/queries/playlists";
 import { showToast } from "@/store/toastStore";
@@ -35,6 +36,7 @@ export function PlaylistActions({
 	const remove = useMutation({
 		mutationFn: (target: PlaylistTarget) => playlistMutations.delete(target),
 		onSuccess: (_, deleted) => {
+			removePlaylistDownloads([String(deleted.playlistId)]);
 			showToast(`Deleted ${deleted.name}`);
 			onDeleted?.();
 		},

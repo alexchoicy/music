@@ -14,7 +14,8 @@ export default function TabStackLayout({ segment }: { segment: string }) {
 	return (
 		<Stack
 			initialRouteName={initialRoutes[segment]}
-			screenOptions={{ headerShown: false }}
+			// Android's default transition fades both pages over each other; a slide keeps one on top.
+			screenOptions={{ headerShown: false, animation: "ios_from_right" }}
 		/>
 	);
 }
