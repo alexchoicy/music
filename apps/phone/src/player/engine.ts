@@ -106,18 +106,33 @@ export async function resolveSource(
 	};
 }
 
+let isOnLockScreen = false;
+
 export function showOnLockScreen(track: PlayerTrack) {
+	const metadata = {
+		title: track.title,
+		artist: track.artists.map((artist) => artist.name).join(", "),
+		albumTitle: track.albumTitle,
+		artworkUrl: resolveArtworkUri(track.cover) ?? undefined,
+	};
+	// Activating again rebuilds the Android media session, which ends the
+	// playback foreground service; the app then loses network in the background.
+	if (isOnLockScreen) {
+		audioPlayer.updateLockScreenMetadata(metadata);
+		return;
+	}
+	isOnLockScreen = true;
 	audioPlayer.setActiveForLockScreen(
 		true,
-		{
-			title: track.title,
-			artist: track.artists.map((artist) => artist.name).join(", "),
-			albumTitle: track.albumTitle,
-			artworkUrl: resolveArtworkUri(track.cover) ?? undefined,
-		},
+		metadata,
 		// Next and previous come from patched expo-audio; the player store handles them.
 		{ showNextTrack: true, showPreviousTrack: true },
 	);
+}
+
+export function clearLockScreen() {
+	isOnLockScreen = false;
+	audioPlayer.clearLockScreenControls();
 }
 
 // A play counts once half the track was heard, capped at four minutes, like

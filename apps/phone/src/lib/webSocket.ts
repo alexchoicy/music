@@ -132,6 +132,8 @@ export type ClientMessage =
 	  };
 
 type WebSocketHandlers = {
+	/** Whether the connection should be open now; checked on connecting and on `update`. */
+	isWanted: () => boolean;
 	onOpen: () => void;
 	onClose: () => void;
 	onMessage: (message: ServerMessage) => void;
@@ -164,7 +166,10 @@ function parseMessage(data: unknown) {
 	}
 }
 
-/** Keeps a live connection while signed in, reconnecting with backoff. Returns a disconnect function. */
+/**
+ * Keeps a live connection while signed in and wanted, reconnecting with backoff.
+ * Call `update` when `isWanted` may have changed.
+ */
 export function connectWebSocket(handlers: WebSocketHandlers) {
 	let active = true;
 	let attempt = 0;
@@ -173,7 +178,8 @@ export function connectWebSocket(handlers: WebSocketHandlers) {
 	const connect = () => {
 		clearTimeout(retryTimer);
 		const { serverUrl, token } = useSessionStore.getState();
-		if (!active || socket || !serverUrl || !token) return;
+		if (!active || socket || !serverUrl || !token || !handlers.isWanted())
+			return;
 
 		// The socket signs in with the token, like other requests.
 		const current = new NativeWebSocket(toWebSocketUrl(serverUrl), undefined, {
@@ -209,17 +215,27 @@ export function connectWebSocket(handlers: WebSocketHandlers) {
 		if (state === "active") connect();
 	});
 
-	connect();
-
-	return () => {
-		active = false;
+	const close = () => {
 		clearTimeout(retryTimer);
-		unsubscribeOnline();
-		appState.remove();
 		const current = socket;
 		socket = null;
 		current?.close();
 		if (current) handlers.onClose();
+	};
+
+	connect();
+
+	return {
+		update: () => {
+			if (handlers.isWanted()) connect();
+			else close();
+		},
+		disconnect: () => {
+			active = false;
+			unsubscribeOnline();
+			appState.remove();
+			close();
+		},
 	};
 }
 

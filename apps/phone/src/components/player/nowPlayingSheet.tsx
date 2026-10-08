@@ -1,6 +1,5 @@
 import { Image } from "expo-image";
-import { router } from "expo-router";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import {
 	Pressable,
 	ScrollView,
@@ -10,68 +9,57 @@ import {
 	useWindowDimensions,
 	View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GestureDetector } from "react-native-gesture-handler";
 
 import { DevicesSheet } from "@/components/player/devicesSheet";
 import { PlaybackOptionsSheet } from "@/components/player/playbackOptionsSheet";
 import { PlayerControls } from "@/components/player/playerControls";
+import {
+	PlayerLayerView,
+	useLayerDragGesture,
+} from "@/components/player/playerLayerView";
 import { SeekBar } from "@/components/player/seekBar";
 import { ToggleButton } from "@/components/player/toggleButton";
 import { openTrackActions } from "@/components/tracks/trackActions";
 import { Artwork } from "@/components/ui/artwork";
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/emptyState";
 import { IconButton } from "@/components/ui/iconButton";
 import { formatAudioFile } from "@/lib/format";
 import { openPage } from "@/lib/navigation";
 import { useArtworkUri } from "@/offline/offlineStore";
+import { closePlayer, nowPlaying, queueLayer } from "@/player/nowPlaying";
 import { usePlayerStore } from "@/player/playerStore";
 import type { QueueEntry } from "@/player/track";
 
-export default function PlayerScreen() {
+/** Now Playing, expanded from the mini player over the tabs; drag it down or press back to close it. */
+export function NowPlayingSheet() {
+	const open = nowPlaying.useStore((state) => state.open);
 	const entry = usePlayerStore((state) => state.queue.at(state.index));
-	const insets = useSafeAreaInsets();
+	// After the queue is cleared, the last track stays while the player slides away.
+	const lastEntry = useRef(entry);
+	if (entry) lastEntry.current = entry;
+	const shown = entry ?? lastEntry.current;
+
+	// Clearing the queue leaves nothing to show.
+	useEffect(() => {
+		if (open && !entry) closePlayer();
+	}, [open, entry]);
 
 	return (
-		<View
-			className="flex-1 bg-background"
-			style={{
-				paddingTop: insets.top,
-				paddingBottom: insets.bottom,
-				paddingLeft: insets.left,
-				paddingRight: insets.right,
-			}}
-		>
-			{entry ? (
-				<NowPlaying entry={entry} />
-			) : (
-				<>
-					<Header />
-					<EmptyState
-						action={
-							<Button onPress={() => router.back()} variant="secondary">
-								Back to library
-							</Button>
-						}
-						description="Pick something from your library to start listening."
-						icon="musicNote"
-						title="Nothing playing"
-					/>
-				</>
-			)}
-		</View>
+		<PlayerLayerView layer={nowPlaying}>
+			{shown && <NowPlaying entry={shown} />}
+		</PlayerLayerView>
 	);
 }
 
-function Header({ entry }: { entry?: QueueEntry }) {
+function Header({ entry }: { entry: QueueEntry }) {
 	return (
-		<View className="h-14 flex-row items-center px-2">
-			<IconButton
-				icon="chevronDown"
-				label="Close Now Playing"
-				onPress={() => router.back()}
-			/>
-			{entry ? (
+		<GestureDetector gesture={useLayerDragGesture(nowPlaying, "close")}>
+			<View className="h-14 flex-row items-center px-2">
+				<IconButton
+					icon="chevronDown"
+					label="Close Now Playing"
+					onPress={() => nowPlaying.close()}
+				/>
 				<Pressable
 					accessibilityHint="Opens the album"
 					accessibilityLabel={`Playing from ${entry.albumTitle}`}
@@ -89,19 +77,13 @@ function Header({ entry }: { entry?: QueueEntry }) {
 						{entry.albumTitle}
 					</Text>
 				</Pressable>
-			) : (
-				<View className="flex-1" />
-			)}
-			{entry ? (
 				<IconButton
 					icon="more"
 					label="More actions"
 					onPress={() => openTrackActions({ track: entry, fromPlayer: true })}
 				/>
-			) : (
-				<View className="size-11" />
-			)}
-		</View>
+			</View>
+		</GestureDetector>
 	);
 }
 
@@ -112,6 +94,7 @@ function NowPlaying({ entry }: { entry: QueueEntry }) {
 	const source = usePlayerStore((state) => state.source);
 	// Leaves room for the details and controls on short screens.
 	const coverSize = Math.min(width - 48, height * 0.42, 440);
+	const closeGesture = useLayerDragGesture(nowPlaying, "close");
 
 	return (
 		<>
@@ -128,14 +111,18 @@ function NowPlaying({ entry }: { entry: QueueEntry }) {
 			)}
 			<Header entry={entry} />
 			<ScrollView contentContainerClassName="grow items-center justify-center gap-7 px-6 pb-4">
-				<Artwork
-					accessibilityLabel={`${entry.albumTitle} cover`}
-					className="rounded-3xl shadow-2xl"
-					icon="musicNote"
-					recyclingKey={entry.entryId}
-					size={coverSize}
-					uri={coverUri}
-				/>
+				<GestureDetector gesture={closeGesture}>
+					<View>
+						<Artwork
+							accessibilityLabel={`${entry.albumTitle} cover`}
+							className="rounded-3xl shadow-2xl"
+							icon="musicNote"
+							recyclingKey={entry.entryId}
+							size={coverSize}
+							uri={coverUri}
+						/>
+					</View>
+				</GestureDetector>
 
 				<View className="w-full max-w-md gap-5">
 					<View className="gap-1">
@@ -246,7 +233,7 @@ function BottomActions({ entry }: { entry: QueueEntry }) {
 				icon="queue"
 				iconSize={22}
 				label="Queue"
-				onPress={() => router.push("/queue")}
+				onPress={queueLayer.open}
 			/>
 			<PlaybackOptionsSheet
 				onClose={() => setOptionsOpen(false)}

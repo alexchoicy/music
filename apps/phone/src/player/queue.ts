@@ -182,6 +182,17 @@ export function getPrevPlayback(
 	return null;
 }
 
+/** How many previous tracks the queue shows; they render outside the list's virtualization. */
+const previousLimit = 50;
+
+/** The most recent queue indices played before the current track, oldest first. */
+export function getPreviousIndices(state: QueueState) {
+	const previous = state.shuffle
+		? state.shuffleHistory.slice(0, state.shuffleHistoryIndex)
+		: state.queue.map((_, i) => i).slice(0, state.index);
+	return previous.slice(-previousLimit);
+}
+
 /** Queue indices in the order they play after the current track. */
 export function getUpcomingIndices(state: QueueState) {
 	if (!state.shuffle) {

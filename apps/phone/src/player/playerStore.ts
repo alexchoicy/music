@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import Storage from "expo-sqlite/kv-store";
 import { AppState } from "react-native";
 import { create } from "zustand";
@@ -11,6 +12,7 @@ import type { PlaybackSource } from "@/player/engine";
 import {
 	audioPlayer,
 	canPlay,
+	clearLockScreen,
 	isAvailable,
 	resolveSource,
 	showOnLockScreen,
@@ -221,7 +223,7 @@ export const usePlayerStore = create<PlayerState>()((set, get) => ({
 	clearQueue: () => {
 		loadId++;
 		audioPlayer.pause();
-		audioPlayer.clearLockScreenControls();
+		clearLockScreen();
 		set({
 			queue: [],
 			index: 0,
@@ -357,10 +359,15 @@ async function load(
 	} catch (error) {
 		if (id !== loadId) return false;
 		const message = error instanceof Error ? error.message : "Unable to play";
+		Sentry.logger.warn("Track failed to load", {
+			trackId: entry.trackId,
+			albumId: entry.albumId,
+			error: message,
+		});
 		if (error instanceof UnplayableError) showToast(message);
 		// The previous file stays loaded, so its lock screen controls are removed
 		// (the status listener also pauses it while in error).
-		audioPlayer.clearLockScreenControls();
+		clearLockScreen();
 		usePlayerStore.setState({ status: "paused", error: message, source: null });
 		return false;
 	}
@@ -479,7 +486,8 @@ async function playRadioTrack() {
 			);
 			track = findPlayerTrack(album, pick.albumDiscId, pick.trackId);
 		}
-	} catch {
+	} catch (error) {
+		Sentry.logger.warn("Radio pick failed", { error: String(error) });
 		// Treated like no pick below.
 	}
 	if (id !== loadId) return;
@@ -527,6 +535,23 @@ audioPlayer.addListener("playbackStatusUpdate", (status) => {
 	trackListeningProgress(status.currentTime);
 	if (status.playing && Date.now() - lastPositionSave >= positionSaveIntervalMs)
 		savePosition(status.currentTime);
+
+	// e.g. a stream that loses the network partway through the track.
+	if (status.error) {
+		const { queue, index, error } = usePlayerStore.getState();
+		const entry = queue.at(index);
+		if (error || !entry) return;
+		// Retrying resumes from the saved position, so it continues where playback stopped.
+		savePosition(status.currentTime);
+		Sentry.logger.warn("Playback failed", {
+			trackId: entry.trackId,
+			albumId: entry.albumId,
+			positionSeconds: Math.round(status.currentTime),
+			error: status.error,
+		});
+		usePlayerStore.setState({ status: "paused", error: status.error });
+		return;
+	}
 
 	if (status.didJustFinish) {
 		if (finishedLoadId === loadId) return;
@@ -684,7 +709,7 @@ export async function adoptTransfer(snapshot: TransferSnapshot) {
 
 	loadId++;
 	audioPlayer.pause();
-	audioPlayer.clearLockScreenControls();
+	clearLockScreen();
 	usePlayerStore.setState({
 		queue: previous.queue,
 		index: previous.index,
@@ -706,7 +731,7 @@ export function stopForTransfer() {
 	loadId++;
 	audioPlayer.pause();
 	if (status === "loading") {
-		audioPlayer.clearLockScreenControls();
+		clearLockScreen();
 		usePlayerStore.setState({ status: "idle", error: null, source: null });
 	} else if (status === "playing") {
 		usePlayerStore.setState({ status: "paused" });

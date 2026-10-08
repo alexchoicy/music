@@ -40,16 +40,23 @@ type TopBarProps = {
 	actions?: ReactNode;
 	/** `close` for screens presented from the bottom. */
 	leading?: "back" | "close";
+	/** Replaces going back, e.g. to close a sheet that is not a route. */
+	onLeadingPress?: () => void;
 };
 
 /** The bar of a pushed or presented screen, with a way back. */
-export function TopBar({ title, actions, leading = "back" }: TopBarProps) {
+export function TopBar({
+	title,
+	actions,
+	leading = "back",
+	onLeadingPress = () => router.back(),
+}: TopBarProps) {
 	return (
 		<View className="h-14 flex-row items-center gap-1 px-2">
 			<IconButton
 				icon={leading === "back" ? "back" : "chevronDown"}
 				label={leading === "back" ? "Back" : "Close"}
-				onPress={() => router.back()}
+				onPress={onLeadingPress}
 				size={48}
 			/>
 			<Text

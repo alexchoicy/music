@@ -41,6 +41,14 @@
 					"recordAudioAndroid": false,
 					"microphonePermission": false
 				}
+			],
+			[
+				"@sentry/react-native/expo",
+				{
+					"url": "https://sentry.io/",
+					"project": "music-phone",
+					"organization": "alexchoicy"
+				}
 			]
 		],
 		"experiments": {

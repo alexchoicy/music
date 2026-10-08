@@ -1,3 +1,5 @@
+import { AppState } from "react-native";
+
 import type {
 	DeviceControlAction,
 	PlaybackDeviceSession,
@@ -24,7 +26,6 @@ import {
 } from "@/store/playbackDeviceStore";
 import { showToast } from "@/store/toastStore";
 
-const stateReportDelayMs = 150;
 const transferTimeoutMs = 30_000;
 
 // A new session per connection: after a network change the server may still
@@ -162,13 +163,30 @@ function handleMessage(message: ServerMessage) {
 
 /** Connects this phone as a player and keeps the user's other devices informed of its playback. */
 export function connectPlaybackDevice() {
-	let reportTimer: ReturnType<typeof setTimeout> | undefined;
+	let active = true;
+	let reportQueued = false;
+	// Batches the store updates of one change into one report. Android pauses
+	// JS timers in the background, so a timer would hold reports until the app opens.
 	const scheduleReport = () => {
-		clearTimeout(reportTimer);
-		reportTimer = setTimeout(reportPlaybackState, stateReportDelayMs);
+		if (reportQueued) return;
+		reportQueued = true;
+		queueMicrotask(() => {
+			reportQueued = false;
+			if (active) reportPlaybackState();
+		});
 	};
 
-	const disconnect = connectWebSocket({
+	const connection = connectWebSocket({
+		// Paused in the background, the phone needs no live updates, and closing
+		// the connection lets Android idle the app.
+		isWanted: () => {
+			const { status } = usePlayerStore.getState();
+			return (
+				AppState.currentState === "active" ||
+				status === "playing" ||
+				status === "loading"
+			);
+		},
 		onOpen: () => {
 			sessionId = createId();
 			usePlaybackDeviceStore.getState().setConnected(true);
@@ -186,7 +204,9 @@ export function connectPlaybackDevice() {
 		onMessage: handleMessage,
 	});
 
+	const appState = AppState.addEventListener("change", connection.update);
 	const unsubscribePlayer = usePlayerStore.subscribe((state, prev) => {
+		if (state.status !== prev.status) connection.update();
 		if (
 			state.status !== prev.status ||
 			state.queue.at(state.index)?.trackId !==
@@ -198,10 +218,11 @@ export function connectPlaybackDevice() {
 	const unsubscribeSeek = onPlayerSeek(scheduleReport);
 
 	return () => {
-		clearTimeout(reportTimer);
+		active = false;
+		appState.remove();
 		unsubscribePlayer();
 		unsubscribeSeek();
-		disconnect();
+		connection.disconnect();
 	};
 }
 

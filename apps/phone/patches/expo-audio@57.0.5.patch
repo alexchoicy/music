@@ -38,10 +38,36 @@ index 86880d92fd5b6413e8596e1b2b8ae28f2981addd..9ad0d668b440c5ef7b6f3c84e1cd8a81
  
  enum class InterruptionMode(val value: String) : Enumerable {
 diff --git a/android/src/main/java/expo/modules/audio/service/AudioControlsService.kt b/android/src/main/java/expo/modules/audio/service/AudioControlsService.kt
-index 196a5d57f887c2667a88543bd2f6a80044a044f2..339866fcd6c0390d217c5cb5a14fde699e3c3b9a 100644
+index 196a5d57f887c2667a88543bd2f6a80044a044f2..0a6fc8b94b878f170ca6b8dd938c441042b9019b 100644
 --- a/android/src/main/java/expo/modules/audio/service/AudioControlsService.kt
 +++ b/android/src/main/java/expo/modules/audio/service/AudioControlsService.kt
-@@ -90,6 +90,8 @@ class AudioControlsService : MediaSessionService() {
+@@ -12,7 +12,9 @@ import android.graphics.Bitmap
+ import android.graphics.BitmapFactory
+ import android.os.Build
+ import android.os.Bundle
++import android.os.Handler
+ import android.os.IBinder
++import android.os.Looper
+ import androidx.annotation.OptIn
+ import androidx.core.app.NotificationCompat
+ import androidx.media3.common.ForwardingPlayer
+@@ -63,6 +65,15 @@ class AudioControlsService : MediaSessionService() {
+   var playsInSilentMode: Boolean = true
+   var playbackListener: Player.Listener? = null
+ 
++  // A paused player leaves the foreground after a while, so Android can idle the app.
++  // The notification stays, and resuming from it promotes the service again.
++  private val pauseHandler = Handler(Looper.getMainLooper())
++  private var isPausedOutOfForeground = false
++  private val leaveForegroundWhilePaused = Runnable {
++    isPausedOutOfForeground = true
++    stopForeground(STOP_FOREGROUND_DETACH)
++  }
++
+   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+     ensureForegroundNotification()
+ 
+@@ -90,6 +101,8 @@ class AudioControlsService : MediaSessionService() {
  
          ACTION_SEEK_FORWARD -> currentPlayerRef.seekTo(currentPlayerRef.currentPosition + SEEK_INTERVAL_MS)
          ACTION_SEEK_BACKWARD -> currentPlayerRef.seekTo(currentPlayerRef.currentPosition - SEEK_INTERVAL_MS)
@@ -50,7 +76,7 @@ index 196a5d57f887c2667a88543bd2f6a80044a044f2..339866fcd6c0390d217c5cb5a14fde69
        }
      }
  
-@@ -192,6 +194,18 @@ class AudioControlsService : MediaSessionService() {
+@@ -192,6 +205,18 @@ class AudioControlsService : MediaSessionService() {
        val compactViewIndices = mutableListOf<Int>()
        var currentIndex = 0
  
@@ -69,13 +95,13 @@ index 196a5d57f887c2667a88543bd2f6a80044a044f2..339866fcd6c0390d217c5cb5a14fde69
        if (currentOptions?.showSeekBackward == true) {
          builder.addAction(
            NotificationCompat.Action(
-@@ -227,8 +241,21 @@ class AudioControlsService : MediaSessionService() {
+@@ -227,8 +252,21 @@ class AudioControlsService : MediaSessionService() {
            )
          )
          compactViewIndices.add(currentIndex)
 +        currentIndex++
-       }
- 
++      }
++
 +      if (currentOptions?.showNextTrack == true) {
 +        builder.addAction(
 +          NotificationCompat.Action(
@@ -85,13 +111,13 @@ index 196a5d57f887c2667a88543bd2f6a80044a044f2..339866fcd6c0390d217c5cb5a14fde69
 +          )
 +        )
 +        compactViewIndices.add(currentIndex)
-+      }
-+
+       }
+ 
 +      // The compact view shows at most three actions.
        style.setShowActionsInCompactView(*compactViewIndices.toIntArray())
      }
  
-@@ -240,6 +267,17 @@ class AudioControlsService : MediaSessionService() {
+@@ -240,6 +278,17 @@ class AudioControlsService : MediaSessionService() {
      val session = mediaSession ?: return
      val mediaButtons = mutableListOf<CommandButton>()
  
@@ -109,7 +135,7 @@ index 196a5d57f887c2667a88543bd2f6a80044a044f2..339866fcd6c0390d217c5cb5a14fde69
      // Add seek backward button if enabled
      if (currentOptions?.showSeekBackward == true) {
        mediaButtons.add(
-@@ -274,6 +312,17 @@ class AudioControlsService : MediaSessionService() {
+@@ -274,6 +323,17 @@ class AudioControlsService : MediaSessionService() {
        )
      }
  
@@ -127,7 +153,7 @@ index 196a5d57f887c2667a88543bd2f6a80044a044f2..339866fcd6c0390d217c5cb5a14fde69
      session.setCustomLayout(mediaButtons)
      session.setMediaButtonPreferences(mediaButtons)
    }
-@@ -322,15 +371,50 @@ class AudioControlsService : MediaSessionService() {
+@@ -322,15 +382,50 @@ class AudioControlsService : MediaSessionService() {
  
    private fun resolveSessionPlayer(player: AudioPlayer, options: AudioLockScreenOptions?): Player {
      val isLive = options?.isLiveStream ?: player.isLive
@@ -182,7 +208,31 @@ index 196a5d57f887c2667a88543bd2f6a80044a044f2..339866fcd6c0390d217c5cb5a14fde69
        }
      }
    }
-@@ -558,6 +642,8 @@ class AudioControlsService : MediaSessionService() {
+@@ -531,7 +626,14 @@ class AudioControlsService : MediaSessionService() {
+     val listener = object : Player.Listener {
+       override fun onIsPlayingChanged(isPlaying: Boolean) {
+         updateSessionCustomLayout(isPlaying)
+-        postOrStartForegroundNotification(startInForeground = false)
++        pauseHandler.removeCallbacks(leaveForegroundWhilePaused)
++        if (isPlaying) {
++          postOrStartForegroundNotification(startInForeground = isPausedOutOfForeground)
++          isPausedOutOfForeground = false
++        } else {
++          pauseHandler.postDelayed(leaveForegroundWhilePaused, PAUSED_FOREGROUND_TIMEOUT_MS)
++          postOrStartForegroundNotification(startInForeground = false)
++        }
+       }
+ 
+       override fun onPlaybackStateChanged(playbackState: Int) {
+@@ -543,6 +645,7 @@ class AudioControlsService : MediaSessionService() {
+   }
+ 
+   private fun removePlayerListener() {
++    pauseHandler.removeCallbacks(leaveForegroundWhilePaused)
+     appContext?.mainQueue?.launch {
+       val listener = playbackListener ?: return@launch
+       currentPlayer?.ref?.removeListener(listener)
+@@ -558,7 +661,10 @@ class AudioControlsService : MediaSessionService() {
  
      const val ACTION_SEEK_FORWARD = "expo.modules.audio.action.SEEK_FORWARD"
      const val ACTION_SEEK_BACKWARD = "expo.modules.audio.action.SEEK_BACKWARD"
@@ -190,7 +240,9 @@ index 196a5d57f887c2667a88543bd2f6a80044a044f2..339866fcd6c0390d217c5cb5a14fde69
 +    private const val ACTION_PREVIOUS = "expo.modules.audio.action.PREVIOUS"
  
      const val SEEK_INTERVAL_MS = 10000L
++    private const val PAUSED_FOREGROUND_TIMEOUT_MS = 5 * 60 * 1000L
    }
+ }
 diff --git a/android/src/main/java/expo/modules/audio/service/AudioMediaSessionCallback.kt b/android/src/main/java/expo/modules/audio/service/AudioMediaSessionCallback.kt
 index 839aaef12d7699ea1a89037b31849775daa079f4..5d2858fd668220f7768053cc8caa867e49a57ae9 100644
 --- a/android/src/main/java/expo/modules/audio/service/AudioMediaSessionCallback.kt

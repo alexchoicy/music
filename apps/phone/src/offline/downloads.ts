@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import { Directory, File, Paths } from "expo-file-system";
 
 import { api } from "@/lib/api";
@@ -197,9 +198,14 @@ async function downloadTrack(row: TrackDownload, signal: AbortSignal) {
 	} catch (error) {
 		// Removing the album already cleared its rows.
 		if (signal.aborted) return;
-		updateTrack(row, "failed", {
-			error: error instanceof Error ? error.message : "Download failed",
+		const message = error instanceof Error ? error.message : "Download failed";
+		Sentry.logger.warn("Track download failed", {
+			trackId: row.trackId,
+			albumId: row.albumId,
+			fileObjectId: row.fileObjectId,
+			error: message,
 		});
+		updateTrack(row, "failed", { error: message });
 	} finally {
 		setProgress(row.trackId, null);
 	}
@@ -257,7 +263,12 @@ function enqueue(albumId: string) {
 	work = work
 		.then(() => processAlbum(albumId, controller.signal))
 		// A broken album must not stop the albums queued after it.
-		.catch(() => {})
+		.catch((error: unknown) =>
+			Sentry.logger.error("Album download failed", {
+				albumId,
+				error: String(error),
+			}),
+		)
 		.finally(() => {
 			if (controllers.get(albumId) === controller) controllers.delete(albumId);
 		});

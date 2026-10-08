@@ -1,6 +1,8 @@
 import type { Href } from "expo-router";
 import { router } from "expo-router";
 
+import { closePlayer } from "@/player/nowPlaying";
+
 // The tab group shown below Now Playing, e.g. `(settings)`; set by the tab bar.
 let currentTab = "(albums)";
 
@@ -10,7 +12,7 @@ export function setCurrentTab(tab: string) {
 
 /**
  * Opens an album or Party page in the current tab. From Now Playing or the
- * queue (`fromPlayer`), those close first so the page opens below them.
+ * queue (`fromPlayer`), those close first so the page shows.
  */
 export function openPage(
 	page: "album" | "party",
@@ -21,7 +23,7 @@ export function openPage(
 		router.push({ pathname: `/${page}/[id]`, params: { id } });
 		return;
 	}
-	router.dismissAll();
-	// Below the modal, the route alone would resolve to the first tab, so the tab is named.
+	closePlayer();
+	// The tab is named so the page opens in the tab below Now Playing.
 	router.push(`/${currentTab}/${page}/${encodeURIComponent(id)}` as Href);
 }
