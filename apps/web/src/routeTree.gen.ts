@@ -25,6 +25,7 @@ import { Route as AuthedSettingsIndexRouteImport } from './routes/_authed/settin
 import { Route as AuthedUploadsIndexRouteImport } from './routes/_authed/uploads/index'
 import { Route as PublicLoginIndexRouteImport } from './routes/_public/login/index'
 import { Route as BotAlbumsIdRouteImport } from './routes/bot/albums.$id'
+import { Route as AuthedAlbumsIdEditRouteImport } from './routes/_authed/albums/$id_.edit'
 
 const AuthedRouteRoute = AuthedRouteRouteImport.update({
   id: '/_authed',
@@ -105,6 +106,11 @@ const BotAlbumsIdRoute = BotAlbumsIdRouteImport.update({
   path: '/bot/albums/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedAlbumsIdEditRoute = AuthedAlbumsIdEditRouteImport.update({
+  id: '/albums/$id_/edit',
+  path: '/albums/$id/edit',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof AuthedSettingsIndexRoute
   '/uploads/': typeof AuthedUploadsIndexRoute
   '/login/': typeof PublicLoginIndexRoute
+  '/albums/$id/edit': typeof AuthedAlbumsIdEditRoute
 }
 export interface FileRoutesByTo {
   '/history': typeof AuthedHistoryRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthedSettingsIndexRoute
   '/uploads': typeof AuthedUploadsIndexRoute
   '/login': typeof PublicLoginIndexRoute
+  '/albums/$id/edit': typeof AuthedAlbumsIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/_authed/settings/': typeof AuthedSettingsIndexRoute
   '/_authed/uploads/': typeof AuthedUploadsIndexRoute
   '/_public/login/': typeof PublicLoginIndexRoute
+  '/_authed/albums/$id_/edit': typeof AuthedAlbumsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/uploads/'
     | '/login/'
+    | '/albums/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/history'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/uploads'
     | '/login'
+    | '/albums/$id/edit'
   id:
     | '__root__'
     | '/_authed'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/_authed/settings/'
     | '/_authed/uploads/'
     | '/_public/login/'
+    | '/_authed/albums/$id_/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -334,6 +346,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BotAlbumsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/albums/$id_/edit': {
+      id: '/_authed/albums/$id_/edit'
+      path: '/albums/$id/edit'
+      fullPath: '/albums/$id/edit'
+      preLoaderRoute: typeof AuthedAlbumsIdEditRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
   }
 }
 
@@ -351,6 +370,7 @@ interface AuthedRouteRouteChildren {
   AuthedPlaylistsIndexRoute: typeof AuthedPlaylistsIndexRoute
   AuthedSettingsIndexRoute: typeof AuthedSettingsIndexRoute
   AuthedUploadsIndexRoute: typeof AuthedUploadsIndexRoute
+  AuthedAlbumsIdEditRoute: typeof AuthedAlbumsIdEditRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
@@ -367,6 +387,7 @@ const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedPlaylistsIndexRoute: AuthedPlaylistsIndexRoute,
   AuthedSettingsIndexRoute: AuthedSettingsIndexRoute,
   AuthedUploadsIndexRoute: AuthedUploadsIndexRoute,
+  AuthedAlbumsIdEditRoute: AuthedAlbumsIdEditRoute,
 }
 
 const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(

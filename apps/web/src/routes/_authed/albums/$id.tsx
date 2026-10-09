@@ -8,9 +8,12 @@ import { AlbumCreditsCard } from "#/components/albums/AlbumCreditsCard";
 import { AlbumDetailHero } from "#/components/albums/AlbumDetailHero";
 import { AlbumInfoCard } from "#/components/albums/AlbumInfoCard";
 import { AlbumTrackListCard } from "#/components/albums/AlbumTrackListCard";
+import { AlbumExtrasSection } from "#/components/albums/extras/AlbumExtrasSection";
 import { AddToPlaylistDialog } from "#/components/playlists/AddToPlaylistDialog";
+import { useUserInfo } from "#/context/UserInfoContext";
 import { albumQueries } from "#/lib/queries/album.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
+import { canEditContent } from "#/lib/utils/roles";
 import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
@@ -30,6 +33,7 @@ function RouteComponent() {
 	const [addingToPlaylist, setAddingToPlaylist] = useState(false);
 	const { track } = Route.useSearch();
 	const { data: album } = useSuspenseQuery(albumQueries.getAlbum(id));
+	const userInfo = useUserInfo();
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
 	const coverUrl = getAlbumCoverUrl(album.cover.album);
@@ -57,13 +61,17 @@ function RouteComponent() {
 					onAddToQueue={() => addToQueue(audioPlayerTracks)}
 					onAddToPlaylist={() => setAddingToPlaylist(true)}
 					playAlbumDisabled={audioPlayerTracks.length === 0}
+					canEdit={canEditContent(userInfo)}
 				/>
 
 				<div className="grid items-start gap-4 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-					<AlbumTrackListCard
-						album={album}
-						highlightedTrackKey={track ? `track-${track}` : undefined}
-					/>
+					<div className="flex min-w-0 flex-col gap-4 sm:gap-6">
+						<AlbumTrackListCard
+							album={album}
+							highlightedTrackKey={track ? `track-${track}` : undefined}
+						/>
+						<AlbumExtrasSection albumId={Number(album.albumId)} />
+					</div>
 
 					<aside className="flex flex-col gap-4 sm:gap-6">
 						<AlbumCreditsCard album={album} />

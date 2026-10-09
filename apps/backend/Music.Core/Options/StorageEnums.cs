@@ -19,4 +19,5 @@ public enum MediaFolderOptions
     AssetsPeak,
     AssetsVideoSubtitle,
     AssetsVideoArtwork,
+    AssetsExtra,
 }

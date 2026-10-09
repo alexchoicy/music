@@ -12,6 +12,7 @@ public sealed class MediaFoldersOptions
 
     public string AssetsCropped { get; init; } = "assets/cropped";
     public string AssetsCover { get; init; } = "assets/cover";
+    public string AssetsExtra { get; init; } = "assets/extra";
     public string AssetsParty { get; init; } = "assets/party";
     public string AssetsPeak { get; init; } = "assets/peak";
     public string AssetsVideoSubtitle { get; init; } = "assets/video/subtitle";

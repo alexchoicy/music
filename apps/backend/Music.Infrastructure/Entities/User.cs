@@ -8,6 +8,7 @@ public class User : IdentityUser
     public ICollection<Album> CreatedAlbums { get; set; } = [];
     public ICollection<Track> CreatedTracks { get; set; } = [];
     public ICollection<Concert> CreatedConcerts { get; set; } = [];
+    public ICollection<Extra> CreatedExtras { get; set; } = [];
     public ICollection<TrackAudio> UploadedTrackAudios { get; set; } = [];
 
     public ICollection<StoredFile> UploadedFiles { get; set; } = [];
