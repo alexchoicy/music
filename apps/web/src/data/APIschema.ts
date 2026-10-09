@@ -1000,6 +1000,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/home": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HomeOverview"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/languages": {
         parameters: {
             query?: never;
@@ -1103,24 +1138,7 @@ export interface paths {
                 };
             };
         };
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description No Content */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1167,6 +1185,43 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/history/counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ListeningHistoryCounts"];
+                        "application/json": components["schemas"]["ListeningHistoryCounts"];
+                        "text/json": components["schemas"]["ListeningHistoryCounts"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3245,6 +3300,14 @@ export interface components {
             durationInMs?: null | number | string;
             originalFileName: string;
         };
+        HomeOverview: {
+            /** Format: int32 */
+            albumCount: number | string;
+            /** Format: int32 */
+            artistCount: number | string;
+            /** Format: int32 */
+            concertCount: number | string;
+        };
         ImageFileVariants: {
             original?: null | components["schemas"]["FileObjectDetails"];
             imageCover1024x1024?: null | components["schemas"]["FileObjectDetails"];
@@ -3259,6 +3322,13 @@ export interface components {
             /** Format: int32 */
             id: number | string;
             language: string;
+        };
+        ListeningHistoryCounts: {
+            /** Format: int32 */
+            totalPlays: number | string;
+            /** Format: int32 */
+            trackCount: number | string;
+            tracks: components["schemas"]["ListeningHistoryTrackCount"][];
         };
         ListeningHistoryEntryDetails: {
             /** Format: int64 */
@@ -3280,6 +3350,22 @@ export interface components {
             entries: components["schemas"]["ListeningHistoryEntryDetails"][];
             /** Format: int64 */
             nextCursor: null | number | string;
+        };
+        ListeningHistoryTrackCount: {
+            /** Format: int32 */
+            albumId: number | string;
+            albumTitle: string;
+            /** Format: int32 */
+            albumDiscId: number | string;
+            /** Format: int32 */
+            trackId: number | string;
+            title: string;
+            /** Format: int32 */
+            durationInMs: number | string;
+            /** Format: int32 */
+            playCount: number | string;
+            /** Format: date-time */
+            lastPlayedAt: string;
         };
         /** @enum {unknown} */
         ListSortOption: "TitleAsc" | "TitleDesc" | "CreatedAtDesc" | "CreatedAtAsc";
