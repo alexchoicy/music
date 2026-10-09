@@ -178,7 +178,12 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy(
         AuthorizationPolicies.BotAllowed,
-        policy => policy.RequireClaim(AuthClaimNames.AccessType, TokenUseType.Machine.ToString())
+        policy =>
+            policy.RequireClaim(
+                AuthClaimNames.AccessType,
+                TokenUseType.Machine.ToString(),
+                TokenUseType.UserAccess.ToString()
+            )
     );
 
     options.AddPolicy(

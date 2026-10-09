@@ -5,7 +5,7 @@ using Music.Core.Services.Home;
 namespace Music.Api.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Policy = AuthorizationPolicies.BotAllowed)]
 [Route("home")]
 public class HomeController(IHomeService homeService) : ControllerBase
 {
