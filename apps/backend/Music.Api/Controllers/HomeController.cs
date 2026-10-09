@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Music.Core.Common.Constants;
 using Music.Core.Services.Home;
 
 namespace Music.Api.Controllers;
