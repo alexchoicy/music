@@ -12,5 +12,6 @@ public enum TrackVersionType
     Acoustic,
     RadioEdit,
     Demo,
+    Cover,
     Other = 99,
 }

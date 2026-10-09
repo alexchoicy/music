@@ -23,6 +23,7 @@ public sealed class BackgroundTaskQueue : IBackgroundTaskQueue
             PartyInfoEnrichmentWorker => WorkerType.PartyInfoEnrichment,
             ConcertUploadProcessWorker => WorkerType.ConcertUploadProcess,
             ImageUploadProcessWorker => WorkerType.ImageUploadProcess,
+            YouTubeCoverImportWorker => WorkerType.YouTubeCoverImport,
             _ => throw new ArgumentOutOfRangeException(nameof(workerModel)),
         };
     }

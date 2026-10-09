@@ -1,7 +1,9 @@
+using System.Text.Json.Serialization;
 using Music.Core.Workers;
 
 namespace Music.Core.Entities;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum WorkerJobStatus
 {
     Pending,

@@ -26,6 +26,7 @@ using Music.Core.Services.Tracks;
 using Music.Core.Services.Uploads;
 using Music.Core.Services.Uploads.Requests;
 using Music.Core.Services.Uploads.Results;
+using Music.Core.Services.YouTube;
 using Music.Core.Storage;
 using Music.Core.Workers;
 using Music.Infrastructure.Data;
@@ -47,6 +48,7 @@ using Music.Infrastructure.Services.Search;
 using Music.Infrastructure.Services.Tracks;
 using Music.Infrastructure.Services.Upload;
 using Music.Infrastructure.Services.WebSockets;
+using Music.Infrastructure.Services.YouTube;
 using Music.Infrastructure.Storages.S3;
 using Music.Infrastructure.Workers;
 using Music.Infrastructure.Workers.Processor;
@@ -101,6 +103,7 @@ public static class DependencyInjection
         services.AddScoped<ISearchService, SearchService>();
         services.AddScoped<ITrackService, TrackService>();
         services.AddScoped<IFileUrlService, FileUrlService>();
+        services.AddScoped<IYouTubeService, YouTubeService>();
         services.AddScoped<WebSocketService>();
         // services.AddScoped<IMigrationService, MigrationService>();
 
@@ -108,6 +111,7 @@ public static class DependencyInjection
         services.AddScoped<TrackUploadWorkerProcessor>();
         services.AddScoped<PartyInfoEnrichmentWorkerProcessor>();
         services.AddScoped<ConcertUploadWorkerProcessor>();
+        services.AddScoped<YouTubeCoverImportWorkerProcessor>();
 
         services.AddScoped<PartyAvatarService>();
         services.AddScoped<TwitterService>();

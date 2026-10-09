@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Music.Core.Services.Files.Requests;
 
 namespace Music.Core.Workers;
 
@@ -8,6 +9,7 @@ public enum WorkerType
     PartyInfoEnrichment,
     ConcertUploadProcess,
     ImageUploadProcess,
+    YouTubeCoverImport,
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
@@ -15,6 +17,7 @@ public enum WorkerType
 [JsonDerivedType(typeof(PartyInfoEnrichmentWorker), (int)WorkerType.PartyInfoEnrichment)]
 [JsonDerivedType(typeof(ConcertUploadProcessWorker), (int)WorkerType.ConcertUploadProcess)]
 [JsonDerivedType(typeof(ImageUploadProcessWorker), (int)WorkerType.ImageUploadProcess)]
+[JsonDerivedType(typeof(YouTubeCoverImportWorker), (int)WorkerType.YouTubeCoverImport)]
 public abstract class WorkerModel { }
 
 public sealed class TrackUploadProcessWorker : WorkerModel
@@ -35,4 +38,13 @@ public sealed class ConcertUploadProcessWorker : WorkerModel
 public sealed class ImageUploadProcessWorker : WorkerModel
 {
     public required Guid FileObjectId { get; init; }
+}
+
+public sealed class YouTubeCoverImportWorker : WorkerModel
+{
+    public required int TrackId { get; init; }
+    public required string Url { get; init; }
+    public required string UserId { get; init; }
+    public string? ThumbnailUrl { get; init; }
+    public FileCroppedAreaRequest? CroppedArea { get; init; }
 }
