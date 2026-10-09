@@ -4,8 +4,7 @@ using Music.Core.Services.Images.Enums;
 namespace Music.Core.Entities;
 
 // Only handle cover
-// Other extra content will be handled by
-// TODO: AlbumExtraContent
+// Other extra content (booklet, packaging scans, etc.) is handled by Extra
 
 public class AlbumImage
 {

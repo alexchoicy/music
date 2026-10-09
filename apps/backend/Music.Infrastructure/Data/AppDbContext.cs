@@ -38,6 +38,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<ConcertParty> ConcertParties { get; set; }
     public DbSet<ConcertFile> ConcertFiles { get; set; }
 
+    public DbSet<Extra> Extras { get; set; }
+    public DbSet<ExtraAsset> ExtraAssets { get; set; }
+    public DbSet<ExtraAlbum> ExtraAlbums { get; set; }
+    public DbSet<ExtraConcert> ExtraConcerts { get; set; }
+    public DbSet<ExtraParty> ExtraParties { get; set; }
+
     public DbSet<Playlist> Playlists { get; set; }
     public DbSet<PlaylistEntry> PlaylistEntries { get; set; }
 

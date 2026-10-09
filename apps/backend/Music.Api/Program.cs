@@ -177,6 +177,16 @@ builder.Services.AddAuthorization(options =>
     );
 
     options.AddPolicy(
+        AuthorizationPolicies.RequireUploaderRole,
+        policy =>
+            policy.RequireRole(
+                Roles.Uploader.ToString(),
+                Roles.Admin.ToString(),
+                Roles.Owner.ToString()
+            )
+    );
+
+    options.AddPolicy(
         AuthorizationPolicies.BotAllowed,
         policy => policy.RequireClaim(AuthClaimNames.AccessType, TokenUseType.Machine.ToString())
     );

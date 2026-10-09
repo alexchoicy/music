@@ -11,4 +11,5 @@ public static class AuthorizationPolicies
     public const string RequireAdminRole = "RequireAdminRole";
     public const string BotAllowed = "BotAllowed";
     public const string UploadAllowed = "UploadAllowed";
+    public const string RequireUploaderRole = "RequireUploaderRole";
 }

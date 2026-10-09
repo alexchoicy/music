@@ -3,6 +3,7 @@ import {
 	Disc3Icon,
 	EllipsisVertical,
 	ListPlusIcon,
+	PencilIcon,
 	PlayIcon,
 	Share2Icon,
 } from "lucide-react";
@@ -86,6 +87,7 @@ type AlbumDetailHeroProps = {
 	onAddToQueue: () => void;
 	onAddToPlaylist: () => void;
 	playAlbumDisabled?: boolean;
+	canEdit?: boolean;
 };
 
 export function AlbumDetailHero({
@@ -94,6 +96,7 @@ export function AlbumDetailHero({
 	onAddToQueue,
 	onAddToPlaylist,
 	playAlbumDisabled,
+	canEdit,
 }: AlbumDetailHeroProps) {
 	const coverUrl = getAlbumCoverUrl(album.cover.album);
 	const hoverCoverUrl = getAlbumHoverCoverUrl(album);
@@ -348,6 +351,20 @@ export function AlbumDetailHero({
 							</MenuGroup>
 						</MenuPopup>
 					</Menu>
+					{canEdit && (
+						<Button
+							render={
+								<Link
+									params={{ id: String(album.albumId) }}
+									to="/albums/$id/edit"
+								/>
+							}
+							variant="outline"
+						>
+							<PencilIcon aria-hidden="true" />
+							Edit album
+						</Button>
+					)}
 				</div>
 			</div>
 		</section>
