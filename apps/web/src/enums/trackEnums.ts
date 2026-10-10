@@ -10,6 +10,7 @@ const TRACK_CONTENT_TYPE: Record<TrackContentType, string> = {
 	MC: "Talk",
 	Interlude: "Interlude",
 	Intro: "Intro",
+	BGM: "BGM",
 };
 
 export const TRACK_CONTENT_TYPE_OPTIONS = enumOptions(TRACK_CONTENT_TYPE);

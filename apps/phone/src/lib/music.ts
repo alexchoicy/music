@@ -166,6 +166,7 @@ const contentLabels: Record<AlbumTrack["contentType"], string | null> = {
 	MC: "Talk",
 	Interlude: "Interlude",
 	Intro: "Intro",
+	BGM: "BGM",
 };
 
 /** Labels for tracks that are not original music, e.g. `Instrumental` or `Talk`. */

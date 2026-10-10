@@ -4441,7 +4441,7 @@ export interface components {
             sourceUrl?: null | string;
         };
         /** @enum {unknown} */
-        TrackContentType: "Music" | "MC" | "Interlude" | "Intro";
+        TrackContentType: "Music" | "MC" | "Interlude" | "Intro" | "BGM";
         TrackPartyCredit: {
             /** Format: int32 */
             partyId: number | string;
