@@ -196,6 +196,230 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAlbumDetailsRequest"];
+                    "text/json": components["schemas"]["UpdateAlbumDetailsRequest"];
+                    "application/*+json": components["schemas"]["UpdateAlbumDetailsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AlbumEditDetails"];
+                        "application/json": components["schemas"]["AlbumEditDetails"];
+                        "text/json": components["schemas"]["AlbumEditDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/albums/{id}/edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AlbumEditDetails"];
+                        "application/json": components["schemas"]["AlbumEditDetails"];
+                        "text/json": components["schemas"]["AlbumEditDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/albums/{id}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAlbumCoverRequest"];
+                    "text/json": components["schemas"]["UpdateAlbumCoverRequest"];
+                    "application/*+json": components["schemas"]["UpdateAlbumCoverRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UpdateAlbumCoverResult"];
+                        "application/json": components["schemas"]["UpdateAlbumCoverResult"];
+                        "text/json": components["schemas"]["UpdateAlbumCoverResult"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/albums/{id}/tracks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAlbumTracksRequest"];
+                    "text/json": components["schemas"]["UpdateAlbumTracksRequest"];
+                    "application/*+json": components["schemas"]["UpdateAlbumTracksRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AlbumEditDetails"];
+                        "application/json": components["schemas"]["AlbumEditDetails"];
+                        "text/json": components["schemas"]["AlbumEditDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -846,6 +1070,182 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/albums/{albumId}/extras": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    albumId: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ExtraDetails"][];
+                        "application/json": components["schemas"]["ExtraDetails"][];
+                        "text/json": components["schemas"]["ExtraDetails"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    albumId: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveExtraRequest"];
+                    "text/json": components["schemas"]["SaveExtraRequest"];
+                    "application/*+json": components["schemas"]["SaveExtraRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["SaveExtraResult"];
+                        "application/json": components["schemas"]["SaveExtraResult"];
+                        "text/json": components["schemas"]["SaveExtraResult"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/extras/{extraId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    extraId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveExtraRequest"];
+                    "text/json": components["schemas"]["SaveExtraRequest"];
+                    "application/*+json": components["schemas"]["SaveExtraRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["SaveExtraResult"];
+                        "application/json": components["schemas"]["SaveExtraResult"];
+                        "text/json": components["schemas"]["SaveExtraResult"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    extraId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/files/{id}": {
         parameters: {
             query?: never;
@@ -988,6 +1388,41 @@ export interface paths {
                         "text/plain": string;
                         "application/json": string;
                         "text/json": string;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/home": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HomeOverview"];
                     };
                 };
             };
@@ -2787,6 +3222,203 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/youtube/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    url: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["YouTubeVideoInfo"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/youtube/covers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateYouTubeCoverRequest"];
+                    "text/json": components["schemas"]["CreateYouTubeCoverRequest"];
+                    "application/*+json": components["schemas"]["CreateYouTubeCoverRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CreateYouTubeCoverResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/youtube/jobs/{jobId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    jobId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["YouTubeImportJobStatus"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/youtube/jobs/{jobId}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    jobId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2836,6 +3468,54 @@ export interface components {
             subtitle?: string;
             image?: null | components["schemas"]["AlbumImageRequest"];
             tracks: components["schemas"]["AlbumTrackRequest"][];
+        };
+        AlbumEditCover: {
+            /** Format: int32 */
+            fileId: number | string;
+            processingStatus: components["schemas"]["FileProcessingStatus"];
+            croppedArea?: null | components["schemas"]["FileCroppedAreaRequest"];
+            variants: components["schemas"]["ImageFileVariants"];
+        };
+        AlbumEditDetails: {
+            /** Format: int32 */
+            albumId: number | string;
+            title: string;
+            description: string;
+            type: components["schemas"]["AlbumType"];
+            /** Format: int32 */
+            languageId?: null | number | string;
+            /** Format: date-time */
+            releaseDate?: null | string;
+            /** Format: uint32 */
+            version: number | string;
+            artistIds: (number | string)[];
+            cover?: null | components["schemas"]["AlbumEditCover"];
+            discs: components["schemas"]["AlbumEditDisc"][];
+        };
+        AlbumEditDisc: {
+            /** Format: int32 */
+            albumDiscId: number | string;
+            /** Format: int32 */
+            discNumber: number | string;
+            subtitle: string;
+            cover?: null | components["schemas"]["AlbumEditCover"];
+            tracks: components["schemas"]["AlbumEditTrack"][];
+        };
+        AlbumEditTrack: {
+            /** Format: int32 */
+            trackId: number | string;
+            /** Format: int32 */
+            trackNumber: number | string;
+            title: string;
+            /** Format: int32 */
+            durationInMs: number | string;
+            contentType: components["schemas"]["TrackContentType"];
+            versionType: components["schemas"]["TrackVersionType"];
+            /** Format: int32 */
+            languageId?: null | number | string;
+            artistIds: (number | string)[];
+            /** Format: int32 */
+            otherAlbumCount: number | string;
         };
         AlbumImageRequest: {
             clientReferenceId: string;
@@ -3187,6 +3867,27 @@ export interface components {
             password: string;
             role: components["schemas"]["Roles"];
         };
+        CreateYouTubeCoverRequest: {
+            url: string;
+            title: string;
+            partyIds?: (number | string)[];
+            /** Format: int32 */
+            languageId?: null | number | string;
+            /** Format: int32 */
+            basedOnTrackId?: null | number | string;
+            thumbnailUrl?: null | string;
+            croppedArea?: null | components["schemas"]["FileCroppedAreaRequest"];
+            /** Format: int32 */
+            linkChannelToPartyId?: null | number | string;
+        };
+        CreateYouTubeCoverResult: {
+            /** Format: int32 */
+            albumId: number | string;
+            /** Format: int32 */
+            trackId: number | string;
+            /** Format: uuid */
+            jobId: string;
+        };
         CreditRequest: {
             /** Format: int32 */
             partyId: number | string;
@@ -3194,6 +3895,46 @@ export interface components {
         };
         /** @enum {unknown} */
         CreditType: "Artist";
+        ExtraAssetDetails: {
+            /** Format: uuid */
+            assetId: string;
+            title?: null | string;
+            /** Format: int32 */
+            sortOrder: number | string;
+            fileType: components["schemas"]["FileType"];
+            originalFileName: string;
+            processingStatus: components["schemas"]["FileProcessingStatus"];
+            original?: null | components["schemas"]["FileObjectDetails"];
+            preview?: null | components["schemas"]["FileObjectDetails"];
+            thumbnail?: null | components["schemas"]["FileObjectDetails"];
+        };
+        ExtraAssetUploadResult: {
+            blake3Hash: string;
+            /** Format: uuid */
+            fileObjectId: string;
+            uploadUrl?: null | string;
+            multipartUploadInfo?: null | components["schemas"]["MultipartUploadResults"];
+        };
+        /** @enum {unknown} */
+        ExtraCategory: "Booklet" | "Packaging" | "Insert" | "Bonus" | "Other";
+        ExtraDetails: {
+            /** Format: uuid */
+            extraId: string;
+            title: string;
+            description: string;
+            category: components["schemas"]["ExtraCategory"];
+            source: components["schemas"]["MediaSource"];
+            /** Format: uuid */
+            coverAssetId?: null | string;
+            coverCroppedArea?: null | components["schemas"]["FileCroppedAreaRequest"];
+            /** Format: uint32 */
+            version: number | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            assets?: components["schemas"]["ExtraAssetDetails"][];
+        };
         FileCroppedAreaRequest: {
             /** Format: int32 */
             width: number | string;
@@ -3235,7 +3976,7 @@ export interface components {
             updatedAt: string;
         };
         /** @enum {unknown} */
-        FileObjectVariant: "Original" | "TaggedOriginal" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup" | "RemuxedOriginal" | "ImageCover1024x1024" | "ImageAvatar512x512" | "ImageBanner1500x500" | "ImageWide1280x720";
+        FileObjectVariant: "Original" | "TaggedOriginal" | "Opus96" | "WaveformB8Pixel20" | "OriginalDash" | "DashAV1" | "Thumbnail640x360" | "AttachedPicture" | "SubtitleVtt" | "SubtitleSup" | "RemuxedOriginal" | "ImageCover1024x1024" | "ImageAvatar512x512" | "ImageBanner1500x500" | "ImageWide1280x720" | "ImagePreview2048" | "ImageThumbnail512";
         /** @enum {unknown} */
         FileProcessingStatus: "Pending" | "Processing" | "Completed" | "Failed" | "Uploaded";
         FileRequest: {
@@ -3264,6 +4005,16 @@ export interface components {
             /** Format: int32 */
             durationInMs?: null | number | string;
             originalFileName: string;
+        };
+        /** @enum {unknown} */
+        FileType: "Image" | "Audio" | "Video" | "Document";
+        HomeOverview: {
+            /** Format: int32 */
+            albumCount: number | string;
+            /** Format: int32 */
+            artistCount: number | string;
+            /** Format: int32 */
+            concertCount: number | string;
         };
         ImageFileVariants: {
             original?: null | components["schemas"]["FileObjectDetails"];
@@ -3578,6 +4329,28 @@ export interface components {
         };
         /** @enum {unknown} */
         Roles: "Admin" | "Uploader" | "User" | "Owner";
+        SaveExtraAssetRequest: {
+            /** Format: uuid */
+            assetId?: null | string;
+            file?: null | components["schemas"]["FileRequest"];
+            title?: null | string;
+        };
+        SaveExtraRequest: {
+            title: string;
+            description?: string;
+            category?: components["schemas"]["ExtraCategory"];
+            source?: components["schemas"]["MediaSource"];
+            assets?: components["schemas"]["SaveExtraAssetRequest"][];
+            /** Format: int32 */
+            coverAssetIndex?: null | number | string;
+            coverCroppedArea?: null | components["schemas"]["FileCroppedAreaRequest"];
+            /** Format: uint32 */
+            version?: null | number | string;
+        };
+        SaveExtraResult: {
+            extra: components["schemas"]["ExtraDetails"];
+            uploads?: components["schemas"]["ExtraAssetUploadResult"][];
+        };
         SearchResult: {
             albums: components["schemas"]["AlbumListItem"][];
             concerts: components["schemas"]["ConcertListItem"][];
@@ -3621,7 +4394,52 @@ export interface components {
             avatar: components["schemas"]["ImageFileVariants"];
         };
         /** @enum {unknown} */
-        TrackVersionType: "Original" | "Instrumental" | "Remix" | "Live" | "Acoustic" | "RadioEdit" | "Demo" | "Other";
+        TrackVersionType: "Original" | "Instrumental" | "Remix" | "Live" | "Acoustic" | "RadioEdit" | "Demo" | "Cover" | "Other";
+        UpdateAlbumCoverRequest: {
+            /** Format: int32 */
+            albumDiscId?: null | number | string;
+            image?: null | components["schemas"]["AlbumImageRequest"];
+            croppedArea?: null | components["schemas"]["FileCroppedAreaRequest"];
+            useAlbumCover?: boolean;
+            remove?: boolean;
+        };
+        UpdateAlbumCoverResult: {
+            album: components["schemas"]["AlbumEditDetails"];
+            upload?: null | components["schemas"]["CreateAlbumImageUploadItemResult"];
+        };
+        UpdateAlbumDetailsRequest: {
+            title: string;
+            description?: string;
+            type: components["schemas"]["AlbumType"];
+            /** Format: int32 */
+            languageId?: null | number | string;
+            /** Format: date-time */
+            releaseDate?: null | string;
+            artistIds?: (number | string)[];
+            /** Format: uint32 */
+            version: number | string;
+        };
+        UpdateAlbumDiscRequest: {
+            /** Format: int32 */
+            albumDiscId: number | string;
+            subtitle?: string;
+            tracks: components["schemas"]["UpdateAlbumTrackRequest"][];
+        };
+        UpdateAlbumTrackRequest: {
+            /** Format: int32 */
+            trackId: number | string;
+            title: string;
+            contentType?: components["schemas"]["TrackContentType"];
+            versionType?: components["schemas"]["TrackVersionType"];
+            /** Format: int32 */
+            languageId?: null | number | string;
+            artistIds?: (number | string)[];
+        };
+        UpdateAlbumTracksRequest: {
+            discs: components["schemas"]["UpdateAlbumDiscRequest"][];
+            /** Format: uint32 */
+            version: number | string;
+        };
         UpdatePartyExternalInfoRequest: {
             /** Format: int32 */
             id?: null | number | string;
@@ -3661,6 +4479,36 @@ export interface components {
             id: string;
             userName: string;
             roles: string[];
+        };
+        /** @enum {unknown} */
+        WorkerJobStatus: "Pending" | "Processing" | "Completed" | "Failed";
+        YouTubeImportJobStatus: {
+            /** Format: uuid */
+            jobId: string;
+            status: components["schemas"]["WorkerJobStatus"];
+            errorMessage?: null | string;
+        };
+        /** @enum {unknown} */
+        YouTubePartyMatch: "ChannelLink" | "Name";
+        YouTubePartySuggestion: {
+            /** Format: int32 */
+            partyId: number | string;
+            name: string;
+            matchedBy: components["schemas"]["YouTubePartyMatch"];
+        };
+        YouTubeVideoInfo: {
+            videoId: string;
+            title: string;
+            webpageUrl: string;
+            channel?: string;
+            channelId?: null | string;
+            channelHandle?: null | string;
+            /** Format: int32 */
+            durationInMs?: number | string;
+            /** Format: date-time */
+            uploadDate?: null | string;
+            thumbnailUrl?: null | string;
+            suggestedParties?: components["schemas"]["YouTubePartySuggestion"][];
         };
     };
     responses: never;

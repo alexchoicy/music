@@ -157,6 +157,7 @@ const versionLabels: Record<AlbumTrack["versionType"], string | null> = {
 	Acoustic: "Acoustic",
 	RadioEdit: "Radio edit",
 	Demo: "Demo",
+	Cover: "Cover",
 	Other: "Other",
 };
 
