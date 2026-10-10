@@ -121,6 +121,11 @@ public sealed class BackgroundWorker(
                     .GetRequiredService<ConcertUploadWorkerProcessor>()
                     .ProcessAsync(job, cancellationToken);
                 break;
+            case YouTubeCoverImportWorker job:
+                await serviceProvider
+                    .GetRequiredService<YouTubeCoverImportWorkerProcessor>()
+                    .ProcessAsync(job, cancellationToken);
+                break;
             default:
                 logger.LogWarning("Unknown worker type {WorkerType}", workerModel.GetType().Name);
                 break;

@@ -17,6 +17,7 @@ using Music.Core.Services.Auth.Enums;
 using Music.Core.Services.Concerts;
 using Music.Core.Services.Extras;
 using Music.Core.Services.Files;
+using Music.Core.Services.Home;
 using Music.Core.Services.Languages;
 using Music.Core.Services.ListeningHistory;
 using Music.Core.Services.Parties;
@@ -26,6 +27,7 @@ using Music.Core.Services.Tracks;
 using Music.Core.Services.Uploads;
 using Music.Core.Services.Uploads.Requests;
 using Music.Core.Services.Uploads.Results;
+using Music.Core.Services.YouTube;
 using Music.Core.Storage;
 using Music.Core.Workers;
 using Music.Infrastructure.Data;
@@ -37,6 +39,7 @@ using Music.Infrastructure.Services.Concert;
 using Music.Infrastructure.Services.External;
 using Music.Infrastructure.Services.Extras;
 using Music.Infrastructure.Services.Files;
+using Music.Infrastructure.Services.Home;
 using Music.Infrastructure.Services.Language;
 using Music.Infrastructure.Services.ListeningHistory;
 using Music.Infrastructure.Services.Me;
@@ -47,6 +50,7 @@ using Music.Infrastructure.Services.Search;
 using Music.Infrastructure.Services.Tracks;
 using Music.Infrastructure.Services.Upload;
 using Music.Infrastructure.Services.WebSockets;
+using Music.Infrastructure.Services.YouTube;
 using Music.Infrastructure.Storages.S3;
 using Music.Infrastructure.Workers;
 using Music.Infrastructure.Workers.Processor;
@@ -89,6 +93,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAlbumService, AlbumService>();
+        services.AddScoped<IHomeService, HomeService>();
         services.AddScoped<ILanguageService, LanguageService>();
         services.AddScoped<IUploadService, UploadService>();
         services.AddScoped<IMeService, MeService>();
@@ -102,6 +107,7 @@ public static class DependencyInjection
         services.AddScoped<ISearchService, SearchService>();
         services.AddScoped<ITrackService, TrackService>();
         services.AddScoped<IFileUrlService, FileUrlService>();
+        services.AddScoped<IYouTubeService, YouTubeService>();
         services.AddScoped<WebSocketService>();
         // services.AddScoped<IMigrationService, MigrationService>();
 
@@ -109,6 +115,7 @@ public static class DependencyInjection
         services.AddScoped<TrackUploadWorkerProcessor>();
         services.AddScoped<PartyInfoEnrichmentWorkerProcessor>();
         services.AddScoped<ConcertUploadWorkerProcessor>();
+        services.AddScoped<YouTubeCoverImportWorkerProcessor>();
 
         services.AddScoped<PartyAvatarService>();
         services.AddScoped<TwitterService>();

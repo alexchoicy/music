@@ -63,6 +63,7 @@ type PartyComboboxItem = PartyItem & {
 type PartyComboboxProps = {
 	allowCreate?: boolean;
 	ariaLabel?: string;
+	disabled?: boolean;
 	filterOutIds?: PartyComboboxId[];
 	placeholder?: string;
 	selectedIds: PartyComboboxId[];
@@ -103,6 +104,7 @@ function partyDetailsToItem(party: PartyDetails): PartyItem {
 export function PartyCombobox({
 	allowCreate = false,
 	ariaLabel = "Parties",
+	disabled = false,
 	filterOutIds = EMPTY_FILTER_OUT_IDS,
 	placeholder,
 	selectedIds,
@@ -249,6 +251,7 @@ export function PartyCombobox({
 	return (
 		<>
 			<Combobox<PartyComboboxItem, true>
+				disabled={disabled}
 				filter={null}
 				inputValue={query}
 				items={items}
@@ -284,6 +287,7 @@ export function PartyCombobox({
 								))}
 								<ComboboxChipsInput
 									aria-label={ariaLabel}
+									disabled={disabled}
 									onKeyDown={handleInputKeyDown}
 									placeholder={value.length > 0 ? "" : placeholderText}
 								/>

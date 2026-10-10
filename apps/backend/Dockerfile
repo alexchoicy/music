@@ -75,6 +75,9 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*; \
     mkdir -p /app/temp
 
+COPY --from=denoland/deno:bin /deno /usr/local/bin/deno
+ADD --chmod=755 https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux /usr/local/bin/yt-dlp
+
 COPY --from=audiowaveform /usr/local/bin/audiowaveform /usr/local/bin/
 
 COPY --from=build /app/publish ./
