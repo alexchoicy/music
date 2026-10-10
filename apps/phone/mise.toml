@@ -1,0 +1,9 @@
+[tools]
+java = "temurin-17"
+
+[env]
+ANDROID_HOME = "{{env.HOME}}/Android/Sdk"
+_.path = [
+	"{{env.HOME}}/Android/Sdk/emulator",
+	"{{env.HOME}}/Android/Sdk/platform-tools",
+]

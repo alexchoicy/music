@@ -1,0 +1,366 @@
+diff --git a/android/src/main/java/expo/modules/audio/AudioPlayer.kt b/android/src/main/java/expo/modules/audio/AudioPlayer.kt
+index c76a9fd2a53743a691782e0f67d0d71401df58f6..1f7bb436bceecc198dc285be231f398c4ab47854 100644
+--- a/android/src/main/java/expo/modules/audio/AudioPlayer.kt
++++ b/android/src/main/java/expo/modules/audio/AudioPlayer.kt
+@@ -24,6 +24,7 @@ import java.lang.ref.WeakReference
+ 
+ private const val PLAYBACK_STATUS_UPDATE = "playbackStatusUpdate"
+ private const val AUDIO_SAMPLE_UPDATE = "audioSampleUpdate"
++private const val REMOTE_COMMAND = "remoteCommand"
+ private const val SEEK_JUMP_INTERVAL_MS: Long = 10_000
+ 
+ @UnstableApi
+@@ -97,6 +98,11 @@ class AudioPlayer(
+     startUpdating()
+   }
+ 
++  /** Forwards a next/previous press from the lock screen or headset to JavaScript. */
++  fun emitRemoteCommand(command: String) {
++    emit(REMOTE_COMMAND, mapOf("command" to command))
++  }
++
+   fun setActiveForLockScreen(active: Boolean, metadata: Metadata? = null, options: AudioLockScreenOptions? = null) {
+     if (active) {
+       this.metadata = metadata
+diff --git a/android/src/main/java/expo/modules/audio/AudioRecords.kt b/android/src/main/java/expo/modules/audio/AudioRecords.kt
+index 86880d92fd5b6413e8596e1b2b8ae28f2981addd..9ad0d668b440c5ef7b6f3c84e1cd8a81a1c80481 100644
+--- a/android/src/main/java/expo/modules/audio/AudioRecords.kt
++++ b/android/src/main/java/expo/modules/audio/AudioRecords.kt
+@@ -110,7 +110,9 @@ enum class AndroidAudioEncoder(val value: String) : Enumerable {
+ class AudioLockScreenOptions(
+   @Field val showSeekForward: Boolean,
+   @Field val showSeekBackward: Boolean,
+-  @Field val isLiveStream: Boolean? = null
++  @Field val isLiveStream: Boolean? = null,
++  @Field val showNextTrack: Boolean = false,
++  @Field val showPreviousTrack: Boolean = false
+ ) : Record
+ 
+ enum class InterruptionMode(val value: String) : Enumerable {
+diff --git a/android/src/main/java/expo/modules/audio/service/AudioControlsService.kt b/android/src/main/java/expo/modules/audio/service/AudioControlsService.kt
+index 196a5d57f887c2667a88543bd2f6a80044a044f2..0a6fc8b94b878f170ca6b8dd938c441042b9019b 100644
+--- a/android/src/main/java/expo/modules/audio/service/AudioControlsService.kt
++++ b/android/src/main/java/expo/modules/audio/service/AudioControlsService.kt
+@@ -12,7 +12,9 @@ import android.graphics.Bitmap
+ import android.graphics.BitmapFactory
+ import android.os.Build
+ import android.os.Bundle
++import android.os.Handler
+ import android.os.IBinder
++import android.os.Looper
+ import androidx.annotation.OptIn
+ import androidx.core.app.NotificationCompat
+ import androidx.media3.common.ForwardingPlayer
+@@ -63,6 +65,15 @@ class AudioControlsService : MediaSessionService() {
+   var playsInSilentMode: Boolean = true
+   var playbackListener: Player.Listener? = null
+ 
++  // A paused player leaves the foreground after a while, so Android can idle the app.
++  // The notification stays, and resuming from it promotes the service again.
++  private val pauseHandler = Handler(Looper.getMainLooper())
++  private var isPausedOutOfForeground = false
++  private val leaveForegroundWhilePaused = Runnable {
++    isPausedOutOfForeground = true
++    stopForeground(STOP_FOREGROUND_DETACH)
++  }
++
+   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+     ensureForegroundNotification()
+ 
+@@ -90,6 +101,8 @@ class AudioControlsService : MediaSessionService() {
+ 
+         ACTION_SEEK_FORWARD -> currentPlayerRef.seekTo(currentPlayerRef.currentPosition + SEEK_INTERVAL_MS)
+         ACTION_SEEK_BACKWARD -> currentPlayerRef.seekTo(currentPlayerRef.currentPosition - SEEK_INTERVAL_MS)
++        ACTION_NEXT -> currentPlayer?.emitRemoteCommand("next")
++        ACTION_PREVIOUS -> currentPlayer?.emitRemoteCommand("previous")
+       }
+     }
+ 
+@@ -192,6 +205,18 @@ class AudioControlsService : MediaSessionService() {
+       val compactViewIndices = mutableListOf<Int>()
+       var currentIndex = 0
+ 
++      if (currentOptions?.showPreviousTrack == true) {
++        builder.addAction(
++          NotificationCompat.Action(
++            androidx.media3.session.R.drawable.media3_icon_previous,
++            "Previous",
++            buildActionPendingIntent(ACTION_PREVIOUS)
++          )
++        )
++        compactViewIndices.add(currentIndex)
++        currentIndex++
++      }
++
+       if (currentOptions?.showSeekBackward == true) {
+         builder.addAction(
+           NotificationCompat.Action(
+@@ -227,8 +252,21 @@ class AudioControlsService : MediaSessionService() {
+           )
+         )
+         compactViewIndices.add(currentIndex)
++        currentIndex++
++      }
++
++      if (currentOptions?.showNextTrack == true) {
++        builder.addAction(
++          NotificationCompat.Action(
++            androidx.media3.session.R.drawable.media3_icon_next,
++            "Next",
++            buildActionPendingIntent(ACTION_NEXT)
++          )
++        )
++        compactViewIndices.add(currentIndex)
+       }
+ 
++      // The compact view shows at most three actions.
+       style.setShowActionsInCompactView(*compactViewIndices.toIntArray())
+     }
+ 
+@@ -240,6 +278,17 @@ class AudioControlsService : MediaSessionService() {
+     val session = mediaSession ?: return
+     val mediaButtons = mutableListOf<CommandButton>()
+ 
++    if (currentOptions?.showPreviousTrack == true) {
++      mediaButtons.add(
++        CommandButton.Builder(CommandButton.ICON_PREVIOUS)
++          .setDisplayName("Previous")
++          .setEnabled(true)
++          .setPlayerCommand(Player.COMMAND_SEEK_TO_PREVIOUS)
++          .setSlots(CommandButton.SLOT_BACK)
++          .build()
++      )
++    }
++
+     // Add seek backward button if enabled
+     if (currentOptions?.showSeekBackward == true) {
+       mediaButtons.add(
+@@ -274,6 +323,17 @@ class AudioControlsService : MediaSessionService() {
+       )
+     }
+ 
++    if (currentOptions?.showNextTrack == true) {
++      mediaButtons.add(
++        CommandButton.Builder(CommandButton.ICON_NEXT)
++          .setDisplayName("Next")
++          .setEnabled(true)
++          .setPlayerCommand(Player.COMMAND_SEEK_TO_NEXT)
++          .setSlots(CommandButton.SLOT_FORWARD)
++          .build()
++      )
++    }
++
+     session.setCustomLayout(mediaButtons)
+     session.setMediaButtonPreferences(mediaButtons)
+   }
+@@ -322,15 +382,50 @@ class AudioControlsService : MediaSessionService() {
+ 
+   private fun resolveSessionPlayer(player: AudioPlayer, options: AudioLockScreenOptions?): Player {
+     val isLive = options?.isLiveStream ?: player.isLive
+-    if (!isLive) {
++    val showNext = options?.showNextTrack == true
++    val showPrevious = options?.showPreviousTrack == true
++    if (!isLive && !showNext && !showPrevious) {
+       return player.ref
+     }
+ 
++    // The player holds a single item, so track navigation is handed to JS,
++    // which owns the queue.
+     return object : ForwardingPlayer(player.ref) {
+       override fun getAvailableCommands(): Player.Commands {
+-        return super.getAvailableCommands().buildUpon()
+-          .remove(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
+-          .build()
++        val commands = super.getAvailableCommands().buildUpon()
++        if (isLive) {
++          commands.remove(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
++        }
++        if (showNext) {
++          commands.add(Player.COMMAND_SEEK_TO_NEXT).add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
++        } else {
++          commands.remove(Player.COMMAND_SEEK_TO_NEXT).remove(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
++        }
++        if (showPrevious) {
++          commands.add(Player.COMMAND_SEEK_TO_PREVIOUS).add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
++        } else {
++          commands.remove(Player.COMMAND_SEEK_TO_PREVIOUS).remove(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
++        }
++        return commands.build()
++      }
++
++      override fun isCommandAvailable(command: Int): Boolean = availableCommands.contains(command)
++
++      override fun hasNextMediaItem(): Boolean = showNext || super.hasNextMediaItem()
++
++      override fun hasPreviousMediaItem(): Boolean = showPrevious || super.hasPreviousMediaItem()
++
++      override fun seekToNext() = forwardOr("next", showNext) { super.seekToNext() }
++
++      override fun seekToNextMediaItem() = forwardOr("next", showNext) { super.seekToNextMediaItem() }
++
++      override fun seekToPrevious() = forwardOr("previous", showPrevious) { super.seekToPrevious() }
++
++      override fun seekToPreviousMediaItem() =
++        forwardOr("previous", showPrevious) { super.seekToPreviousMediaItem() }
++
++      private fun forwardOr(command: String, enabled: Boolean, fallback: () -> Unit) {
++        if (enabled) player.emitRemoteCommand(command) else fallback()
+       }
+     }
+   }
+@@ -531,7 +626,14 @@ class AudioControlsService : MediaSessionService() {
+     val listener = object : Player.Listener {
+       override fun onIsPlayingChanged(isPlaying: Boolean) {
+         updateSessionCustomLayout(isPlaying)
+-        postOrStartForegroundNotification(startInForeground = false)
++        pauseHandler.removeCallbacks(leaveForegroundWhilePaused)
++        if (isPlaying) {
++          postOrStartForegroundNotification(startInForeground = isPausedOutOfForeground)
++          isPausedOutOfForeground = false
++        } else {
++          pauseHandler.postDelayed(leaveForegroundWhilePaused, PAUSED_FOREGROUND_TIMEOUT_MS)
++          postOrStartForegroundNotification(startInForeground = false)
++        }
+       }
+ 
+       override fun onPlaybackStateChanged(playbackState: Int) {
+@@ -543,6 +645,7 @@ class AudioControlsService : MediaSessionService() {
+   }
+ 
+   private fun removePlayerListener() {
++    pauseHandler.removeCallbacks(leaveForegroundWhilePaused)
+     appContext?.mainQueue?.launch {
+       val listener = playbackListener ?: return@launch
+       currentPlayer?.ref?.removeListener(listener)
+@@ -558,7 +661,10 @@ class AudioControlsService : MediaSessionService() {
+ 
+     const val ACTION_SEEK_FORWARD = "expo.modules.audio.action.SEEK_FORWARD"
+     const val ACTION_SEEK_BACKWARD = "expo.modules.audio.action.SEEK_BACKWARD"
++    private const val ACTION_NEXT = "expo.modules.audio.action.NEXT"
++    private const val ACTION_PREVIOUS = "expo.modules.audio.action.PREVIOUS"
+ 
+     const val SEEK_INTERVAL_MS = 10000L
++    private const val PAUSED_FOREGROUND_TIMEOUT_MS = 5 * 60 * 1000L
+   }
+ }
+diff --git a/android/src/main/java/expo/modules/audio/service/AudioMediaSessionCallback.kt b/android/src/main/java/expo/modules/audio/service/AudioMediaSessionCallback.kt
+index 839aaef12d7699ea1a89037b31849775daa079f4..5d2858fd668220f7768053cc8caa867e49a57ae9 100644
+--- a/android/src/main/java/expo/modules/audio/service/AudioMediaSessionCallback.kt
++++ b/android/src/main/java/expo/modules/audio/service/AudioMediaSessionCallback.kt
+@@ -24,11 +24,12 @@ class AudioMediaSessionCallback : MediaSession.Callback {
+             .add(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
+             .add(Player.COMMAND_SEEK_FORWARD)
+             .add(Player.COMMAND_SEEK_BACK)
+-            // Remove track navigation commands
+-            .remove(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+-            .remove(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
+-            .remove(Player.COMMAND_SEEK_TO_PREVIOUS)
+-            .remove(Player.COMMAND_SEEK_TO_NEXT)
++            // Track navigation is only offered when the session player enables it
++            // (`showNextTrack` / `showPreviousTrack`); presses are forwarded to JS.
++            .add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
++            .add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
++            .add(Player.COMMAND_SEEK_TO_PREVIOUS)
++            .add(Player.COMMAND_SEEK_TO_NEXT)
+             .build()
+         )
+         .setAvailableSessionCommands(
+diff --git a/build/AudioConstants.d.ts b/build/AudioConstants.d.ts
+index cfd92ad0ff5765254c4e6db974fe44bce34aad06..b9452a38bafb877ded1dfe8e16a2d7795fcd7d69 100644
+--- a/build/AudioConstants.d.ts
++++ b/build/AudioConstants.d.ts
+@@ -15,5 +15,15 @@ export type AudioLockScreenOptions = {
+      * and scrub bar, and disable seek controls.
+      */
+     isLiveStream?: boolean;
++    /**
++     * Whether the next track button should be displayed on the lock screen.
++     * Pressing it emits a `remoteCommand` event with `command: 'next'`; the app decides what plays next.
++     */
++    showNextTrack?: boolean;
++    /**
++     * Whether the previous track button should be displayed on the lock screen.
++     * Pressing it emits a `remoteCommand` event with `command: 'previous'`.
++     */
++    showPreviousTrack?: boolean;
+ };
+ //# sourceMappingURL=AudioConstants.d.ts.map
+\ No newline at end of file
+diff --git a/build/AudioModule.types.d.ts b/build/AudioModule.types.d.ts
+index f3ae4ee4044d86032cd5c6dbcfee6f905d1ce99f..edc806b8f2242ab92d4cf0065b049022c26c3be0 100644
+--- a/build/AudioModule.types.d.ts
++++ b/build/AudioModule.types.d.ts
+@@ -222,6 +222,10 @@ export type AudioEvents = {
+     playbackStatusUpdate(status: AudioStatus): void;
+     /** Fired when audio sampling is enabled and new sample data is available. */
+     audioSampleUpdate(data: AudioSample): void;
++    /** Fired when the next or previous track button is pressed on the lock screen, notification, or headset. */
++    remoteCommand(event: {
++        command: 'next' | 'previous';
++    }): void;
+ };
+ export declare class AudioRecorder extends SharedObject<RecordingEvents> {
+     /**
+diff --git a/ios/AudioRecords.swift b/ios/AudioRecords.swift
+index 33db27c3b8fb40fa9db6659a0787c6b2b503d1ab..c10aeeac010fece05e79553dcab2c673a956cb2a 100644
+--- a/ios/AudioRecords.swift
++++ b/ios/AudioRecords.swift
+@@ -70,6 +70,8 @@ struct LockScreenOptions: Record {
+   @Field var showSeekForward: Bool = false
+   @Field var showSeekBackward: Bool = false
+   @Field var isLiveStream: Bool? = false
++  @Field var showNextTrack: Bool = false
++  @Field var showPreviousTrack: Bool = false
+ }
+ 
+ enum BitRateStrategy: String, Enumerable {
+diff --git a/ios/MediaController.swift b/ios/MediaController.swift
+index e977f577cd2e16b194b56537ad76b423f40d2496..a53107aa580fab02f82f7ac3929f71e23c393482 100644
+--- a/ios/MediaController.swift
++++ b/ios/MediaController.swift
+@@ -303,12 +303,34 @@ class MediaController {
+       return .success
+     }
+ 
++    // The player holds a single item, so track navigation is handed to JS, which owns the queue.
++    // Targets are cleared first so re-activating the player does not register duplicates.
++    remoteCommandCenter.nextTrackCommand.removeTarget(nil)
++    remoteCommandCenter.nextTrackCommand.addTarget { [weak self] _ in
++      guard let player = self?.activePlayer else {
++        return .commandFailed
++      }
++      player.emit(event: "remoteCommand", payload: ["command": "next"])
++      return .success
++    }
++
++    remoteCommandCenter.previousTrackCommand.removeTarget(nil)
++    remoteCommandCenter.previousTrackCommand.addTarget { [weak self] _ in
++      guard let player = self?.activePlayer else {
++        return .commandFailed
++      }
++      player.emit(event: "remoteCommand", payload: ["command": "previous"])
++      return .success
++    }
++
+     remoteCommandCenter.playCommand.isEnabled = true
+     remoteCommandCenter.pauseCommand.isEnabled = true
+     remoteCommandCenter.togglePlayPauseCommand.isEnabled = true
+     remoteCommandCenter.changePlaybackPositionCommand.isEnabled = !isLiveStream
+     remoteCommandCenter.skipForwardCommand.isEnabled = options?.showSeekForward ?? false
+     remoteCommandCenter.skipBackwardCommand.isEnabled = options?.showSeekBackward ?? false
++    remoteCommandCenter.nextTrackCommand.isEnabled = options?.showNextTrack ?? false
++    remoteCommandCenter.previousTrackCommand.isEnabled = options?.showPreviousTrack ?? false
+   }
+ 
+   private func disableRemoteCommands() {
+@@ -318,6 +340,10 @@ class MediaController {
+     remoteCommandCenter.changePlaybackPositionCommand.isEnabled = false
+     remoteCommandCenter.skipForwardCommand.isEnabled = false
+     remoteCommandCenter.skipBackwardCommand.isEnabled = false
++    remoteCommandCenter.nextTrackCommand.isEnabled = false
++    remoteCommandCenter.previousTrackCommand.isEnabled = false
++    remoteCommandCenter.nextTrackCommand.removeTarget(nil)
++    remoteCommandCenter.previousTrackCommand.removeTarget(nil)
+ 
+     // Remove event targets
+     remoteCommandCenter.playCommand.removeTarget(self)

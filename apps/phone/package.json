@@ -1,0 +1,73 @@
+{
+	"name": "phone",
+	"version": "1.0.0",
+	"private": true,
+	"main": "expo-router/entry",
+	"scripts": {
+		"start": "APP_VARIANT=development expo start",
+		"android": "APP_VARIANT=development expo run:android",
+		"android:build": "mkdir -p dist && npx eas-cli@latest build --platform android --profile development --local --output dist/music-dev.apk",
+		"android:release": "mkdir -p dist && npx eas-cli@latest build --platform android --profile production --local --output dist/music.apk",
+		"eas:login": "npx eas-cli@latest login",
+		"ios": "APP_VARIANT=development expo run:ios",
+		"lint": "oxlint --tsconfig tsconfig.json",
+		"format": "oxfmt && oxlint --fix --tsconfig tsconfig.json",
+		"check": "oxfmt --check",
+		"web": "expo start --web",
+		"api": "openapi-typescript http://localhost:5287/openapi/v1.json -o ./src/data/APIschema.ts"
+	},
+	"dependencies": {
+		"@react-native-community/slider": "5.2.0",
+		"@sentry/react-native": "^8.29.0",
+		"@tanstack/query-async-storage-persister": "^5.104.1",
+		"@tanstack/react-form": "^1.33.5",
+		"@tanstack/react-query": "^5.104.1",
+		"@tanstack/react-query-persist-client": "^5.104.1",
+		"expo": "~57.0.26",
+		"expo-audio": "~57.0.5",
+		"expo-constants": "~57.0.20",
+		"expo-dev-client": "~57.0.19",
+		"expo-file-system": "~57.0.7",
+		"expo-font": "~57.0.4",
+		"expo-image": "~57.0.5",
+		"expo-linking": "~57.0.11",
+		"expo-network": "~57.0.2",
+		"expo-router": "~57.0.24",
+		"expo-secure-store": "~57.0.4",
+		"expo-splash-screen": "~57.0.9",
+		"expo-sqlite": "~57.0.3",
+		"expo-status-bar": "~57.0.1",
+		"expo-symbols": "~57.0.3",
+		"expo-system-ui": "~57.0.4",
+		"react": "19.2.3",
+		"react-dom": "19.2.3",
+		"react-native": "0.86.3",
+		"react-native-gesture-handler": "~2.32.0",
+		"react-native-reanimated": "4.5.1",
+		"react-native-reorderable-list": "^0.18.1",
+		"react-native-safe-area-context": "~5.7.0",
+		"react-native-screens": "~4.26.0",
+		"react-native-web": "~0.21.0",
+		"react-native-worklets": "0.10.4",
+		"tailwind-merge": "^3.7.0",
+		"tailwindcss": "^4.3.3",
+		"uniwind": "^1.12.1",
+		"zod": "^4.6.5",
+		"zustand": "^5.0.15"
+	},
+	"devDependencies": {
+		"@types/react": "~19.2.2",
+		"openapi-typescript": "^7.13.0",
+		"oxfmt": "^0.71.0",
+		"oxlint": "^1.86.0",
+		"oxlint-tsgolint": "^7.0.2003",
+		"typescript": "~6.0.3"
+	},
+	"expo": {
+		"autolinking": {
+			"buildFromSource": [
+				"expo-audio"
+			]
+		}
+	}
+}
