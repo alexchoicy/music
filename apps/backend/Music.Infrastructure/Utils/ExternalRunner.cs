@@ -16,6 +16,31 @@ public static class ExternalRunner
         string? workingDirectory = null
     )
     {
+        (bool success, _) = await RunWithOutputAsync(
+            logger,
+            progress,
+            arguments,
+            inputPath,
+            outputPath,
+            toolName,
+            cancellationToken,
+            workingDirectory
+        );
+
+        return success;
+    }
+
+    public static async Task<(bool Success, string Stdout)> RunWithOutputAsync(
+        ILogger logger,
+        string progress,
+        IReadOnlyList<string> arguments,
+        string inputPath,
+        string outputPath,
+        string toolName,
+        CancellationToken cancellationToken,
+        string? workingDirectory = null
+    )
+    {
         ProcessStartInfo psi = new()
         {
             FileName = progress,
@@ -42,13 +67,13 @@ public static class ExternalRunner
             if (!process.Start())
             {
                 logger.LogError("Failed to start {ToolName} for {InputPath}", toolName, inputPath);
-                return false;
+                return (false, string.Empty);
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to start {ToolName} for {InputPath}", toolName, inputPath);
-            return false;
+            return (false, string.Empty);
         }
 
         using CancellationTokenRegistration cancellationRegistration = cancellationToken.Register(
@@ -84,7 +109,7 @@ public static class ExternalRunner
                 string.IsNullOrWhiteSpace(stderr) ? stdout : stderr
             );
 
-            return false;
+            return (false, stdout);
         }
 
         logger.LogInformation(
@@ -94,6 +119,6 @@ public static class ExternalRunner
             outputPath
         );
 
-        return true;
+        return (true, stdout);
     }
 }

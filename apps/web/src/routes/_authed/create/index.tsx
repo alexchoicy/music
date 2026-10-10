@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AlbumIcon, MicVocalIcon, UsersIcon } from "lucide-react";
+import { AlbumIcon, MicVocalIcon, UsersIcon, YoutubeIcon } from "lucide-react";
 import { lazy, Suspense } from "react";
+import { z } from "zod";
 
 import {
 	Tabs,
@@ -24,13 +25,24 @@ const ConcertTabContent = lazy(() =>
 	})),
 );
 
+const YouTubeCoverTabContent = lazy(() =>
+	import("#/components/create/youtubeCoverTabContent").then((module) => ({
+		default: module.YouTubeCoverTabContent,
+	})),
+);
+
 const PartyTabContent = lazy(() =>
 	import("#/components/create/partyTabContent").then((module) => ({
 		default: module.PartyTabContent,
 	})),
 );
 
+const CREATE_TABS = ["album", "concert", "cover", "party"] as const;
+
 export const Route = createFileRoute("/_authed/create/")({
+	validateSearch: z.object({
+		tab: z.enum(CREATE_TABS).optional(),
+	}),
 	component: RouteComponent,
 	loader: ({ context }) => {
 		context.queryClient.prefetchQuery(albumQueries.getAlbums());
@@ -40,9 +52,26 @@ export const Route = createFileRoute("/_authed/create/")({
 });
 
 function RouteComponent() {
+	const { tab = "album" } = Route.useSearch();
+	const navigate = Route.useNavigate();
+
 	return (
 		<main className="flex min-h-full w-full flex-col p-4 sm:p-6">
-			<Tabs className="min-h-0 flex-1 gap-4" defaultValue="album">
+			<Tabs
+				className="min-h-0 flex-1 gap-4"
+				onValueChange={(value) =>
+					navigate({
+						search: {
+							tab:
+								value === "album"
+									? undefined
+									: (value as (typeof CREATE_TABS)[number]),
+						},
+						replace: true,
+					})
+				}
+				value={tab}
+			>
 				<TabsList className="mx-auto">
 					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="album">
 						<AlbumIcon />
@@ -51,6 +80,10 @@ function RouteComponent() {
 					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="concert">
 						<MicVocalIcon />
 						Concert
+					</TabsTrigger>
+					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="cover">
+						<YoutubeIcon />
+						Cover
 					</TabsTrigger>
 					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="party">
 						<UsersIcon />
@@ -72,6 +105,14 @@ function RouteComponent() {
 				>
 					<Suspense fallback={<CreateTabFallback label="concert" />}>
 						<ConcertTabContent />
+					</Suspense>
+				</TabsContent>
+				<TabsContent
+					className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
+					value="cover"
+				>
+					<Suspense fallback={<CreateTabFallback label="cover" />}>
+						<YouTubeCoverTabContent />
 					</Suspense>
 				</TabsContent>
 				<TabsContent

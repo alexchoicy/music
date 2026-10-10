@@ -1,24 +1,20 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Disc3Icon, MicVocalIcon, UsersRoundIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { AlbumGrid } from "#/components/AlbumGrid";
 import { ConcertCard } from "#/components/concerts/ConcertCard";
-import {
-	Card,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "#/components/coss/card";
+import { LibraryCounts } from "#/components/home/LibraryCounts";
 import { PartyCard } from "#/components/parties/PartyCard";
 import { albumQueries } from "#/lib/queries/album.queries";
 import { concertQueries } from "#/lib/queries/concert.queries";
+import { homeQueries } from "#/lib/queries/home.queries";
 import { partyQueries } from "#/lib/queries/party.queries";
 
 export const Route = createFileRoute("/_authed/")({
 	loader: ({ context }) => {
 		return Promise.all([
+			context.queryClient.ensureQueryData(homeQueries.getOverview()),
 			context.queryClient.ensureQueryData(
 				albumQueries.getAlbums({ Sort: "CreatedAtDesc", Limit: 10 }),
 			),
@@ -38,6 +34,7 @@ export const Route = createFileRoute("/_authed/")({
 });
 
 function RouteComponent() {
+	const { data: overview } = useSuspenseQuery(homeQueries.getOverview());
 	const { data: albums } = useSuspenseQuery(
 		albumQueries.getAlbums({ Sort: "CreatedAtDesc", Limit: 10 }),
 	);
@@ -61,29 +58,7 @@ function RouteComponent() {
 				</h1>
 			</header>
 
-			<section
-				aria-label="Library counts"
-				className="grid grid-cols-3 gap-2 sm:gap-4"
-			>
-				<CounterCard
-					count={albums.length}
-					icon={<Disc3Icon aria-hidden="true" />}
-					label="Albums"
-					to="/albums"
-				/>
-				<CounterCard
-					count={parties.length}
-					icon={<UsersRoundIcon aria-hidden="true" />}
-					label="Parties"
-					to="/parties"
-				/>
-				<CounterCard
-					count={concerts.length}
-					icon={<MicVocalIcon aria-hidden="true" />}
-					label="Concerts"
-					to="/concerts"
-				/>
-			</section>
+			<LibraryCounts overview={overview} />
 
 			<RecentSection title="Recent albums" to="/albums">
 				<AlbumGrid albums={albums} variant="preview" />
@@ -117,34 +92,6 @@ function RouteComponent() {
 				</RecentGrid>
 			</RecentSection>
 		</main>
-	);
-}
-
-type CounterCardProps = {
-	count: number;
-	icon: ReactNode;
-	label: string;
-	to: "/albums" | "/concerts" | "/parties";
-};
-
-function CounterCard({ count, icon, label, to }: CounterCardProps) {
-	return (
-		<Link
-			className="block rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-			to={to}
-		>
-			<Card className="h-full transition-shadow hover:shadow-md">
-				<CardHeader className="grid-cols-[1fr_auto]" size="sm">
-					<div className="flex flex-col gap-2">
-						<CardDescription>{label}</CardDescription>
-						<CardTitle size="metric">{count}</CardTitle>
-					</div>
-					<div className="hidden size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground sm:flex [&_svg]:size-6">
-						{icon}
-					</div>
-				</CardHeader>
-			</Card>
-		</Link>
 	);
 }
 

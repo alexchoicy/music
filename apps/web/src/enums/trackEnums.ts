@@ -22,6 +22,7 @@ const TRACK_VERSION_TYPE: Record<TrackVersionType, string> = {
 	Acoustic: "Acoustic",
 	RadioEdit: "Radio edit",
 	Demo: "Demo",
+	Cover: "Cover",
 	Other: "Other",
 };
 
