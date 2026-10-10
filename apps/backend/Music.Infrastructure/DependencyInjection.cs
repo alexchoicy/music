@@ -98,6 +98,7 @@ public static class DependencyInjection
         services.AddScoped<IListeningHistoryService, ListeningHistoryService>();
         services.AddScoped<IConcertService, ConcertService>();
         services.AddScoped<IExtraService, ExtraService>();
+        services.AddScoped<IAlbumEditService, AlbumEditService>();
         services.AddScoped<ISearchService, SearchService>();
         services.AddScoped<ITrackService, TrackService>();
         services.AddScoped<IFileUrlService, FileUrlService>();

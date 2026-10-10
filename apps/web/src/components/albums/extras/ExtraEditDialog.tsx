@@ -502,6 +502,17 @@ export function ExtraEditDialog({
 				description="Choose the square crop used as this extra's cover."
 				imageAlt="Cover image"
 				imageSrc={cropTarget?.cropSourceUrl ?? null}
+				// Saved crop is in original pixels, the crop source can be a smaller preview
+				initialCroppedArea={
+					cropTarget && cropTarget.id === coverId && coverCrop
+						? {
+								x: coverCrop.x / cropTarget.cropScale,
+								y: coverCrop.y / cropTarget.cropScale,
+								width: coverCrop.width / cropTarget.cropScale,
+								height: coverCrop.height / cropTarget.cropScale,
+							}
+						: null
+				}
 				onConfirm={(area) => {
 					const scale = cropTarget?.cropScale ?? 1;
 					setCoverCrop({

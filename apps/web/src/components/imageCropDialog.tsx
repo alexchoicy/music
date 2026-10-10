@@ -23,6 +23,8 @@ type ImageCropDialogProps = {
 	description?: string;
 	imageAlt: string;
 	imageSrc: string | null;
+	// Starting selection in the image's natural pixels, defaults to a centered crop
+	initialCroppedArea?: CroppedArea | null;
 	onConfirm: (croppedArea: CroppedArea) => Promise<void> | void;
 	onOpenChange: (open: boolean) => void;
 	onOpenChangeComplete?: (open: boolean) => void;
@@ -35,6 +37,7 @@ type ImageCropDialogContentProps = {
 	confirmLabel: string;
 	imageAlt: string;
 	imageSrc: string;
+	initialCroppedArea?: CroppedArea | null;
 	onConfirm: (croppedArea: CroppedArea) => Promise<void> | void;
 };
 
@@ -54,6 +57,20 @@ function makeCenteredCrop(aspectRatio: number, width: number, height: number) {
 	);
 }
 
+function toPercentCrop(
+	area: CroppedArea,
+	width: number,
+	height: number,
+): PercentCrop {
+	return {
+		unit: "%",
+		x: (area.x / width) * 100,
+		y: (area.y / height) * 100,
+		width: (area.width / width) * 100,
+		height: (area.height / height) * 100,
+	};
+}
+
 function getNaturalCroppedArea(
 	crop: PercentCrop,
 	image: HTMLImageElement,
@@ -71,6 +88,7 @@ function ImageCropDialogContent({
 	confirmLabel,
 	imageAlt,
 	imageSrc,
+	initialCroppedArea,
 	onConfirm,
 }: ImageCropDialogContentProps) {
 	const [crop, setCrop] = useState<PercentCrop>();
@@ -80,7 +98,17 @@ function ImageCropDialogContent({
 		const image = event.currentTarget;
 
 		setCrop(
-			makeCenteredCrop(aspectRatio, image.naturalWidth, image.naturalHeight),
+			initialCroppedArea
+				? toPercentCrop(
+						initialCroppedArea,
+						image.naturalWidth,
+						image.naturalHeight,
+					)
+				: makeCenteredCrop(
+						aspectRatio,
+						image.naturalWidth,
+						image.naturalHeight,
+					),
 		);
 	}
 
@@ -130,6 +158,7 @@ export function ImageCropDialog({
 	description = "Move and resize the crop area to choose the stored crop coordinates.",
 	imageAlt,
 	imageSrc,
+	initialCroppedArea,
 	onConfirm,
 	onOpenChange,
 	onOpenChangeComplete,
@@ -155,6 +184,7 @@ export function ImageCropDialog({
 						confirmLabel={confirmLabel}
 						imageAlt={imageAlt}
 						imageSrc={imageSrc}
+						initialCroppedArea={initialCroppedArea}
 						onConfirm={onConfirm}
 					/>
 				) : (
