@@ -562,10 +562,15 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						}
 					}
 				},
-				playAlbum: (album: AudioPlayerTrack[], trackId?: string) => {
+				playAlbum: (
+					album: AudioPlayerTrack[],
+					trackId?: string,
+					positionMs?: number,
+				) => {
 					console.log("[audio-player] playAlbum", {
 						trackCount: album.length,
 						trackId,
+						positionMs,
 					});
 
 					if (album.length === 0) {
@@ -597,6 +602,8 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						...createShuffleState(album.length, index, get().shuffle),
 					});
 					void loadAndPlay(get().playbackQuality, track, {
+						currentTime:
+							positionMs === undefined ? undefined : positionMs / 1000,
 						startListening: true,
 					});
 				},

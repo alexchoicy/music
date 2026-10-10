@@ -56,3 +56,15 @@ public sealed class ListeningHistoryTrackCount
     public required int PlayCount { get; init; }
     public required DateTimeOffset LastPlayedAt { get; init; }
 }
+
+public sealed class SaveResumePointRequest
+{
+    public required Guid DeviceId { get; init; }
+    public required string DeviceName { get; init; }
+    public required int AlbumId { get; init; }
+    public required int TrackId { get; init; }
+    public required long PositionMs { get; init; }
+
+    // When the device reported this position; older reports never replace newer ones.
+    public required DateTimeOffset ObservedAt { get; init; }
+}

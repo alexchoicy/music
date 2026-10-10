@@ -63,6 +63,10 @@ function readStoredIdentity(): Partial<DeviceIdentity> {
 	}
 }
 
+export function readStoredDeviceId(): string | null {
+	return readStoredIdentity().deviceId ?? null;
+}
+
 function writeStoredIdentity(identity: DeviceIdentity): void {
 	localStorage.setItem(
 		PLAYBACK_DEVICE_STORAGE_KEY,

@@ -58,15 +58,7 @@ public sealed class ListeningHistoryService(AppDbContext dbContext) : IListening
     {
         Validator.ValidateObject(request, new ValidationContext(request), true);
         int albumTrackId =
-            await dbContext
-                .AlbumTracks.AsNoTracking()
-                .Where(track =>
-                    track.TrackId == request.TrackId && track.AlbumDisc!.AlbumId == request.AlbumId
-                )
-                .OrderBy(track => track.AlbumDisc!.DiscNumber)
-                .ThenBy(track => track.TrackNumber)
-                .Select(track => (int?)track.Id)
-                .FirstOrDefaultAsync(cancellationToken)
+            await FindAlbumTrackIdAsync(request.AlbumId, request.TrackId, cancellationToken)
             ?? throw new EntityNotFoundException("Album track not found.");
 
         dbContext.ListeningHistoryEntries.Add(
@@ -74,6 +66,95 @@ public sealed class ListeningHistoryService(AppDbContext dbContext) : IListening
         );
         await dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task SaveResumePointAsync(
+        SaveResumePointRequest request,
+        string userId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        // Devices report tracks that may have been deleted since; there is nothing to resume then.
+        if (
+            await FindAlbumTrackIdAsync(request.AlbumId, request.TrackId, cancellationToken)
+            is not int albumTrackId
+        )
+        {
+            return;
+        }
+
+        DateTimeOffset observedAt = request.ObservedAt;
+        long positionMs = Math.Max(0, request.PositionMs);
+        Task<int> UpdateAsync() =>
+            dbContext
+                .PlaybackResumePoints.Where(point =>
+                    point.UserId == userId
+                    && point.DeviceId == request.DeviceId
+                    && point.UpdatedAt <= observedAt
+                )
+                .ExecuteUpdateAsync(
+                    setters =>
+                        setters
+                            .SetProperty(point => point.DeviceName, request.DeviceName)
+                            .SetProperty(point => point.AlbumTrackId, albumTrackId)
+                            .SetProperty(point => point.PositionMs, positionMs)
+                            .SetProperty(point => point.UpdatedAt, observedAt),
+                    cancellationToken
+                );
+
+        if (
+            await UpdateAsync() > 0
+            || await dbContext.PlaybackResumePoints.AnyAsync(
+                point => point.UserId == userId && point.DeviceId == request.DeviceId,
+                cancellationToken
+            )
+        )
+            return;
+
+        PlaybackResumePoint point = new()
+        {
+            UserId = userId,
+            DeviceId = request.DeviceId,
+            DeviceName = request.DeviceName,
+            AlbumTrackId = albumTrackId,
+            PositionMs = positionMs,
+            UpdatedAt = observedAt,
+        };
+        dbContext.PlaybackResumePoints.Add(point);
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Another tab of the same device inserted the row first.
+            dbContext.Entry(point).State = EntityState.Detached;
+            await UpdateAsync();
+        }
+    }
+
+    public Task ClearResumePointAsync(
+        Guid deviceId,
+        string userId,
+        CancellationToken cancellationToken = default
+    ) =>
+        dbContext
+            .PlaybackResumePoints.Where(point =>
+                point.UserId == userId && point.DeviceId == deviceId
+            )
+            .ExecuteDeleteAsync(cancellationToken);
+
+    private Task<int?> FindAlbumTrackIdAsync(
+        int albumId,
+        int trackId,
+        CancellationToken cancellationToken
+    ) =>
+        dbContext
+            .AlbumTracks.AsNoTracking()
+            .Where(track => track.TrackId == trackId && track.AlbumDisc!.AlbumId == albumId)
+            .OrderBy(track => track.AlbumDisc!.DiscNumber)
+            .ThenBy(track => track.TrackNumber)
+            .Select(track => (int?)track.Id)
+            .FirstOrDefaultAsync(cancellationToken);
 
     public async Task DeleteEntryAsync(
         long entryId,

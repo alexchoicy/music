@@ -13,7 +13,7 @@ import type { components } from "#/data/APIschema";
 export function LibraryCounts({
 	overview,
 }: {
-	overview: components["schemas"]["HomeOverview"];
+	overview: components["schemas"]["LibraryStats"];
 }) {
 	return (
 		<section

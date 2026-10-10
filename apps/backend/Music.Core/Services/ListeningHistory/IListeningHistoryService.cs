@@ -21,4 +21,14 @@ public interface IListeningHistoryService
         string userId,
         CancellationToken cancellationToken = default
     );
+    Task SaveResumePointAsync(
+        SaveResumePointRequest request,
+        string userId,
+        CancellationToken cancellationToken = default
+    );
+    Task ClearResumePointAsync(
+        Guid deviceId,
+        string userId,
+        CancellationToken cancellationToken = default
+    );
 }

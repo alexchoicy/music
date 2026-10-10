@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Music.Core.Services.Auth;
+using Music.Core.Services.ListeningHistory;
 using Music.Core.Services.Tracks;
 using Music.Core.Services.WebSockets;
 using Music.Infrastructure.Discord;
@@ -348,6 +349,8 @@ public sealed class WebSocketService(
     )
     {
         PlaybackSession session = connection.Session!;
+        ResumePoint? resumePoint;
+        Guid? finishedDeviceId;
         lock (SocketLock)
         {
             PlaybackStateData? previous = session.State;
@@ -363,12 +366,131 @@ public sealed class WebSocketService(
                 session.ActivatedAt = now;
             }
 
+            finishedDeviceId =
+                session.ActivatedAt != 0
+                && state.Status == PlaybackStatus.Idle
+                && previous?.Status == PlaybackStatus.Playing
+                    ? session.DeviceId
+                    : null;
+
             session.State = state;
             session.StateUpdatedAt = now;
+            resumePoint = GetResumePoint(session, now);
+        }
+
+        if (finishedDeviceId is Guid deviceId)
+        {
+            await UpdateResumePointAsync(
+                connection.UserId,
+                service =>
+                    service.ClearResumePointAsync(deviceId, connection.UserId, cancellationToken),
+                cancellationToken
+            );
+        }
+        else
+        {
+            await SaveResumePointAsync(connection.UserId, resumePoint, cancellationToken);
         }
 
         await BroadcastDevicesAsync(connection.UserId, connection.Room!);
         await UpdateDiscordPresenceAsync(connection.UserId, cancellationToken);
+    }
+
+    private sealed record ResumePoint(
+        Guid DeviceId,
+        string DeviceName,
+        PlaybackTrackData Track,
+        long PositionMs,
+        long ObservedAt
+    );
+
+    private static ResumePoint? GetResumePoint(PlaybackSession session, long now)
+    {
+        if (
+            session.ActivatedAt == 0
+            || session.State
+                is not {
+                    Status: PlaybackStatus.Playing or PlaybackStatus.Paused,
+                    Track: { } track
+                } state
+        )
+        {
+            return null;
+        }
+
+        long positionMs =
+            state.Status == PlaybackStatus.Playing
+                ? state.PositionMs + Math.Max(0, now - session.StateUpdatedAt)
+                : state.PositionMs;
+        return new(
+            session.DeviceId,
+            session.Name,
+            track,
+            Math.Min(positionMs, track.DurationMs),
+            now
+        );
+    }
+
+    private async Task SaveResumePointAsync(
+        string userId,
+        ResumePoint? resumePoint,
+        CancellationToken cancellationToken
+    )
+    {
+        if (
+            resumePoint is null
+            || !int.TryParse(resumePoint.Track.AlbumId, out int albumId)
+            || !int.TryParse(resumePoint.Track.TrackId, out int trackId)
+        )
+        {
+            return;
+        }
+
+        await UpdateResumePointAsync(
+            userId,
+            service =>
+                service.SaveResumePointAsync(
+                    new SaveResumePointRequest
+                    {
+                        DeviceId = resumePoint.DeviceId,
+                        DeviceName = resumePoint.DeviceName,
+                        AlbumId = albumId,
+                        TrackId = trackId,
+                        PositionMs = resumePoint.PositionMs,
+                        ObservedAt = DateTimeOffset.FromUnixTimeMilliseconds(
+                            resumePoint.ObservedAt
+                        ),
+                    },
+                    userId,
+                    cancellationToken
+                ),
+            cancellationToken
+        );
+    }
+
+    private async Task UpdateResumePointAsync(
+        string userId,
+        Func<IListeningHistoryService, Task> update,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+            await update(scope.ServiceProvider.GetRequiredService<IListeningHistoryService>());
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(
+                exception,
+                "Updating the playback resume point failed for user {UserId}.",
+                userId
+            );
+        }
     }
 
     private async Task ControlAsync(Connection connection, DeviceControlData data)
@@ -555,9 +677,14 @@ public sealed class WebSocketService(
 
         List<(PlaybackSession Target, Guid RequestId)> failedTransfers = [];
         bool roomRemoved = false;
+        ResumePoint? resumePoint;
 
         lock (SocketLock)
         {
+            resumePoint =
+                session.State?.Status == PlaybackStatus.Playing
+                    ? GetResumePoint(session, Now())
+                    : null;
             room.Sessions.Remove(session);
             foreach ((Guid requestId, PendingTransfer transfer) in room.Transfers.ToArray())
             {
@@ -583,6 +710,8 @@ public sealed class WebSocketService(
                 roomRemoved = true;
             }
         }
+
+        await SaveResumePointAsync(connection.UserId, resumePoint, CancellationToken.None);
 
         if (roomRemoved)
         {

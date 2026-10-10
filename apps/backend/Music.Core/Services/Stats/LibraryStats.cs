@@ -1,6 +1,6 @@
-namespace Music.Core.Services.Home;
+namespace Music.Core.Services.Stats;
 
-public sealed class HomeOverview
+public sealed class LibraryStats
 {
     public required int AlbumCount { get; init; }
     public required int ArtistCount { get; init; }

@@ -1422,7 +1422,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["HomeOverview"];
+                        "application/json": components["schemas"]["HomeFeed"];
                     };
                 };
             };
@@ -2696,6 +2696,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LibraryStats"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tracks/radio": {
         parameters: {
             query?: never;
@@ -3745,6 +3780,21 @@ export interface components {
             type: components["schemas"]["PartyType"];
             role: components["schemas"]["ConcertPartyRole"];
         };
+        ContinueListeningItem: {
+            /** Format: uuid */
+            deviceId: string;
+            deviceName: string;
+            /** Format: int32 */
+            trackId: number | string;
+            trackTitle: string;
+            /** Format: int32 */
+            durationInMs: number | string;
+            /** Format: int64 */
+            positionMs: number | string;
+            /** Format: date-time */
+            updatedAt: string;
+            album: components["schemas"]["AlbumListItem"];
+        };
         /** @enum {unknown} */
         CountryCode: "XX" | "HK" | "JP" | "KR" | "US" | "CN" | "TW" | "ID" | "UK";
         CreateAlbumImageUploadItemResult: {
@@ -4008,13 +4058,12 @@ export interface components {
         };
         /** @enum {unknown} */
         FileType: "Image" | "Audio" | "Video" | "Document";
-        HomeOverview: {
-            /** Format: int32 */
-            albumCount: number | string;
-            /** Format: int32 */
-            artistCount: number | string;
-            /** Format: int32 */
-            concertCount: number | string;
+        HomeFeed: {
+            continueListening: components["schemas"]["ContinueListeningItem"][];
+            recentlyPlayed: components["schemas"]["AlbumListItem"][];
+            recentAlbums: components["schemas"]["AlbumListItem"][];
+            recentParties: components["schemas"]["PartyItems"][];
+            recentConcerts: components["schemas"]["ConcertListItem"][];
         };
         ImageFileVariants: {
             original?: null | components["schemas"]["FileObjectDetails"];
@@ -4030,6 +4079,14 @@ export interface components {
             /** Format: int32 */
             id: number | string;
             language: string;
+        };
+        LibraryStats: {
+            /** Format: int32 */
+            albumCount: number | string;
+            /** Format: int32 */
+            artistCount: number | string;
+            /** Format: int32 */
+            concertCount: number | string;
         };
         ListeningHistoryCounts: {
             /** Format: int32 */

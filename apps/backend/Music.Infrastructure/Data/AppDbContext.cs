@@ -48,6 +48,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<PlaylistEntry> PlaylistEntries { get; set; }
 
     public DbSet<ListeningHistoryEntry> ListeningHistoryEntries { get; set; }
+    public DbSet<PlaybackResumePoint> PlaybackResumePoints { get; set; }
 
     public DbSet<WorkerJob> WorkerJobs { get; set; }
 

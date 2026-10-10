@@ -131,17 +131,7 @@ public class AlbumService(
             query = query.Take(request.Limit);
         }
 
-        List<Core.Entities.Album> albums = await query
-            .AsSplitQuery()
-            .Include(a => a.Credits)
-                .ThenInclude(c => c.Party)
-            .Include(a => a.Discs)
-                .ThenInclude(d => d.Tracks)
-                    .ThenInclude(at => at.Track)
-                        .ThenInclude(track => track!.BasedOnTrack)
-            .Include(a => a.Images)
-                .ThenInclude(i => i.File)
-                    .ThenInclude(f => f!.FileObjects)
+        List<Core.Entities.Album> albums = await IncludeListItemData(query)
             .ToListAsync(cancellationToken);
 
         Dictionary<int, HashSet<int>> matchedTrackIdsByAlbumId = [];
@@ -204,6 +194,45 @@ public class AlbumService(
             )
             .ToList();
     }
+
+    public async Task<IReadOnlyList<AlbumListItem>> GetListItemsByIdsAsync(
+        IReadOnlyCollection<int> albumIds,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (albumIds.Count == 0)
+            return [];
+
+        List<Core.Entities.Album> albums = await IncludeListItemData(
+                _dbContext.Albums.AsNoTracking().Where(album => albumIds.Contains(album.Id))
+            )
+            .ToListAsync(cancellationToken);
+
+        Dictionary<int, AlbumListItem> itemsById = albums.ToDictionary(
+            album => album.Id,
+            album => album.ToListItem(_assetsService)
+        );
+        return albumIds
+            .Where(itemsById.ContainsKey)
+            .Distinct()
+            .Select(albumId => itemsById[albumId])
+            .ToList();
+    }
+
+    private static IQueryable<Core.Entities.Album> IncludeListItemData(
+        IQueryable<Core.Entities.Album> query
+    ) =>
+        query
+            .AsSplitQuery()
+            .Include(a => a.Credits)
+                .ThenInclude(c => c.Party)
+            .Include(a => a.Discs)
+                .ThenInclude(d => d.Tracks)
+                    .ThenInclude(at => at.Track)
+                        .ThenInclude(track => track!.BasedOnTrack)
+            .Include(a => a.Images)
+                .ThenInclude(i => i.File)
+                    .ThenInclude(f => f!.FileObjects);
 
     public async Task<AlbumDetails> GetByIdAsync(
         int albumId,
