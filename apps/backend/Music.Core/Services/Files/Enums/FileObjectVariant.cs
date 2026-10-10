@@ -27,4 +27,6 @@ public enum FileObjectVariant
     ImageAvatar512x512 = 302,
     ImageBanner1500x500 = 303,
     ImageWide1280x720 = 304,
+    ImagePreview2048 = 305, // fit within 2048x2048, no crop
+    ImageThumbnail512 = 306, // fit within 512x512, no crop
 }

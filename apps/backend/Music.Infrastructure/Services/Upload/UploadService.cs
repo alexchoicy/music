@@ -133,6 +133,7 @@ namespace Music.Infrastructure.Services.Upload
                     .Include(fo => fo.File!.ConcertFiles)
                     .Include(fo => fo.File!.AlbumImages)
                     .Include(fo => fo.File!.PartyImages)
+                    .Include(fo => fo.File!.ExtraAssets)
                     .FirstOrDefaultAsync(fo => fo.Id == request.FileObjectId, cancellationToken)
                 ?? throw new EntityNotFoundException("File object not found");
 
@@ -157,7 +158,15 @@ namespace Music.Infrastructure.Services.Upload
                 );
             }
 
-            fileObject.ProcessingStatus = FileProcessingStatus.Uploaded;
+            // Non-image extras (bonus audio/video, documents) are served as uploaded
+            bool isUnprocessedExtra =
+                storedFile
+                    is { ExtraAssets.Count: > 0, TrackAudios.Count: 0, ConcertFiles.Count: 0 }
+                && storedFile.Type != FileType.Image;
+
+            fileObject.ProcessingStatus = isUnprocessedExtra
+                ? FileProcessingStatus.Completed
+                : FileProcessingStatus.Uploaded;
             await _dbContext.SaveChangesAsync(cancellationToken);
 
             WorkerModel? workerModel = storedFile switch
@@ -172,7 +181,8 @@ namespace Music.Infrastructure.Services.Upload
                 },
                 { AlbumImages.Count: > 0 }
                 or { PartyImages.Count: > 0 }
-                or { ConcertImages.Count: > 0 } => new ImageUploadProcessWorker
+                or { ConcertImages.Count: > 0 }
+                or { Type: FileType.Image, ExtraAssets.Count: > 0 } => new ImageUploadProcessWorker
                 {
                     FileObjectId = fileObject.Id,
                 },

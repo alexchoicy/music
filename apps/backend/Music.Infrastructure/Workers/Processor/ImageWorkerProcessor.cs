@@ -37,7 +37,6 @@ class ImageUploadWorkerProcessor(
     )
     {
         string? sourcePath = null;
-        string? outputPath = null;
 
         string tempDir = storageOptions.Value.TempDir;
         Directory.CreateDirectory(tempDir);
@@ -76,74 +75,113 @@ class ImageUploadWorkerProcessor(
             );
             image.Mutate(operation => operation.AutoOrient());
 
-            ImageVariantPlan variantPlan = await GetImageVariantPlanAsync(
+            IReadOnlyList<ImageVariantPlan> variantPlans = await GetImageVariantPlansAsync(
                 sourceFileObject.FileId,
                 cancellationToken
             );
 
-            FileCroppedAreaRequest croppedArea = variantPlan.ToCroppedArea(
-                image.Width,
-                image.Height
-            );
-            bool isExplicitCrop =
-                croppedArea.Width != image.Width || croppedArea.Height != image.Height;
-
-            if (
-                !isExplicitCrop
-                && image.Width <= variantPlan.TargetWidth
-                && image.Height <= variantPlan.TargetHeight
-            )
+            foreach (ImageVariantPlan variantPlan in variantPlans)
             {
-                logger.LogInformation(
-                    "Skipping image variant {Variant} for file object {FileObjectId}: source {Width}x{Height} fits within target {TargetWidth}x{TargetHeight}",
-                    variantPlan.Variant,
-                    sourceFileObject.Id,
-                    image.Width,
-                    image.Height,
-                    variantPlan.TargetWidth,
-                    variantPlan.TargetHeight
+                await ProcessVariantAsync(
+                    image,
+                    sourceFileObject,
+                    variantPlan,
+                    tempDir,
+                    cancellationToken
                 );
-                sourceFileObject.ProcessingStatus = FileProcessingStatus.Completed;
-                await dbContext.SaveChangesAsync(cancellationToken);
-                return;
             }
 
-            Rectangle cropRectangle = isExplicitCrop
-                ? BuildCropRectangle(
-                    image.Width,
-                    image.Height,
-                    croppedArea,
-                    variantPlan.TargetWidth,
-                    variantPlan.TargetHeight
-                )
-                : new Rectangle(0, 0, image.Width, image.Height);
+            sourceFileObject.ProcessingStatus = FileProcessingStatus.Completed;
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        finally
+        {
+            WorkerFileOperations.TryDeleteTempFile(sourcePath, logger);
+        }
+    }
 
-            Size outputSize = FitWithin(
-                cropRectangle.Width,
-                cropRectangle.Height,
-                variantPlan.TargetWidth,
-                variantPlan.TargetHeight
-            );
+    private async Task ProcessVariantAsync(
+        Image<Rgba32> image,
+        FileObject sourceFileObject,
+        ImageVariantPlan variantPlan,
+        string tempDir,
+        CancellationToken cancellationToken
+    )
+    {
+        FileCroppedAreaRequest croppedArea = variantPlan.ToCroppedArea(image.Width, image.Height);
+        bool isExplicitCrop =
+            croppedArea.Width != image.Width || croppedArea.Height != image.Height;
 
+        if (
+            !isExplicitCrop
+            && image.Width <= variantPlan.TargetWidth
+            && image.Height <= variantPlan.TargetHeight
+        )
+        {
             logger.LogInformation(
-                "Processing image variant {Variant} for file object {FileObjectId}: source {SourceWidth}x{SourceHeight}, crop {CropX},{CropY} {CropWidth}x{CropHeight}, output {OutputWidth}x{OutputHeight}",
+                "Skipping image variant {Variant} for file object {FileObjectId}: source {Width}x{Height} fits within target {TargetWidth}x{TargetHeight}",
                 variantPlan.Variant,
                 sourceFileObject.Id,
                 image.Width,
                 image.Height,
-                cropRectangle.X,
-                cropRectangle.Y,
-                cropRectangle.Width,
-                cropRectangle.Height,
-                outputSize.Width,
-                outputSize.Height
+                variantPlan.TargetWidth,
+                variantPlan.TargetHeight
             );
 
-            outputPath = Path.Combine(
-                tempDir,
-                $"image_{sourceFileObject.Id}_{variantPlan.Variant}.{GeneratedImageExtension}"
+            // A re-crop back to the full image must not leave the old cropped variant behind,
+            // readers fall back to the original when the variant is missing
+            FileObject? staleVariant = await dbContext.FileObjects.FirstOrDefaultAsync(
+                fileObject =>
+                    fileObject.FileId == sourceFileObject.FileId
+                    && fileObject.FileObjectVariant == variantPlan.Variant,
+                cancellationToken
             );
+            if (staleVariant is not null)
+            {
+                dbContext.FileObjects.Remove(staleVariant);
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+            return;
+        }
 
+        Rectangle cropRectangle = isExplicitCrop
+            ? BuildCropRectangle(
+                image.Width,
+                image.Height,
+                croppedArea,
+                variantPlan.TargetWidth,
+                variantPlan.TargetHeight
+            )
+            : new Rectangle(0, 0, image.Width, image.Height);
+
+        Size outputSize = FitWithin(
+            cropRectangle.Width,
+            cropRectangle.Height,
+            variantPlan.TargetWidth,
+            variantPlan.TargetHeight
+        );
+
+        logger.LogInformation(
+            "Processing image variant {Variant} for file object {FileObjectId}: source {SourceWidth}x{SourceHeight}, crop {CropX},{CropY} {CropWidth}x{CropHeight}, output {OutputWidth}x{OutputHeight}",
+            variantPlan.Variant,
+            sourceFileObject.Id,
+            image.Width,
+            image.Height,
+            cropRectangle.X,
+            cropRectangle.Y,
+            cropRectangle.Width,
+            cropRectangle.Height,
+            outputSize.Width,
+            outputSize.Height
+        );
+
+        string outputPath = Path.Combine(
+            tempDir,
+            $"image_{sourceFileObject.Id}_{variantPlan.Variant}.{GeneratedImageExtension}"
+        );
+
+        try
+        {
             using Image<Rgba32> variantImage = image.Clone(operation =>
             {
                 operation.Crop(cropRectangle);
@@ -174,13 +212,9 @@ class ImageUploadWorkerProcessor(
                 outputSize,
                 cancellationToken
             );
-
-            sourceFileObject.ProcessingStatus = FileProcessingStatus.Completed;
-            await dbContext.SaveChangesAsync(cancellationToken);
         }
         finally
         {
-            WorkerFileOperations.TryDeleteTempFile(sourcePath, logger);
             WorkerFileOperations.TryDeleteTempFile(outputPath, logger);
         }
     }
@@ -265,21 +299,22 @@ class ImageUploadWorkerProcessor(
         image.Metadata.XmpProfile = null;
     }
 
-    private async Task<ImageVariantPlan> GetImageVariantPlanAsync(
+    // A file can be used by several owners (e.g. an album cover that is also a booklet page),
+    // so collect the plans from all of them.
+    private async Task<IReadOnlyList<ImageVariantPlan>> GetImageVariantPlansAsync(
         int fileId,
         CancellationToken cancellationToken
     )
     {
+        List<ImageVariantPlan> plans = [];
+
         AlbumImage? albumImage = await dbContext.AlbumImages.FirstOrDefaultAsync(
             image => image.FileId == fileId,
             cancellationToken
         );
         if (albumImage is not null)
-            return ImageVariantPlan.From(
-                albumImage,
-                FileObjectVariant.ImageCover1024x1024,
-                1024,
-                1024
+            plans.Add(
+                ImageVariantPlan.From(albumImage, FileObjectVariant.ImageCover1024x1024, 1024, 1024)
             );
 
         PartyImage? partyImage = await dbContext.PartyImages.FirstOrDefaultAsync(
@@ -295,7 +330,7 @@ class ImageUploadWorkerProcessor(
                 _ => (FileObjectVariant.ImageCover1024x1024, 1024, 1024),
             };
 
-            return ImageVariantPlan.From(partyImage, variant, width, height);
+            plans.Add(ImageVariantPlan.From(partyImage, variant, width, height));
         }
 
         ConcertImage? concertImage = await dbContext.ConcertImages.FirstOrDefaultAsync(
@@ -303,14 +338,25 @@ class ImageUploadWorkerProcessor(
             cancellationToken
         );
         if (concertImage is not null)
-            return ImageVariantPlan.From(
-                concertImage,
-                FileObjectVariant.ImageWide1280x720,
-                1280,
-                720
+            plans.Add(
+                ImageVariantPlan.From(concertImage, FileObjectVariant.ImageWide1280x720, 1280, 720)
             );
 
-        throw new EntityNotFoundException($"Image owner for file ID {fileId} not found.");
+        bool isExtraAsset = await dbContext.ExtraAssets.AnyAsync(
+            asset => asset.FileId == fileId,
+            cancellationToken
+        );
+        if (isExtraAsset)
+        {
+            // Scans keep their own aspect ratio, the cover crop is applied by the client
+            plans.Add(ImageVariantPlan.Uncropped(FileObjectVariant.ImagePreview2048, 2048, 2048));
+            plans.Add(ImageVariantPlan.Uncropped(FileObjectVariant.ImageThumbnail512, 512, 512));
+        }
+
+        if (plans.Count == 0)
+            throw new EntityNotFoundException($"Image owner for file ID {fileId} not found.");
+
+        return plans.DistinctBy(plan => plan.Variant).ToList();
     }
 
     private static Rectangle BuildCropRectangle(
@@ -405,6 +451,12 @@ class ImageUploadWorkerProcessor(
                 image.CropWidth,
                 image.CropHeight
             );
+
+        public static ImageVariantPlan Uncropped(
+            FileObjectVariant variant,
+            int targetWidth,
+            int targetHeight
+        ) => new(variant, targetWidth, targetHeight, null, null, null, null);
 
         public FileCroppedAreaRequest ToCroppedArea(int imageWidth, int imageHeight) =>
             new()

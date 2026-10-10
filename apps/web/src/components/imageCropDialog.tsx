@@ -23,7 +23,8 @@ type ImageCropDialogProps = {
 	description?: string;
 	imageAlt: string;
 	imageSrc: string | null;
-	initialCroppedArea?: CroppedArea;
+	// Starting selection in the image's natural pixels, defaults to a centered crop
+	initialCroppedArea?: CroppedArea | null;
 	onConfirm: (croppedArea: CroppedArea) => Promise<void> | void;
 	onOpenChange: (open: boolean) => void;
 	onOpenChangeComplete?: (open: boolean) => void;
@@ -36,7 +37,7 @@ type ImageCropDialogContentProps = {
 	confirmLabel: string;
 	imageAlt: string;
 	imageSrc: string;
-	initialCroppedArea?: CroppedArea;
+	initialCroppedArea?: CroppedArea | null;
 	onConfirm: (croppedArea: CroppedArea) => Promise<void> | void;
 };
 
@@ -56,16 +57,17 @@ function makeCenteredCrop(aspectRatio: number, width: number, height: number) {
 	);
 }
 
-function getPercentCrop(
-	croppedArea: CroppedArea,
-	image: HTMLImageElement,
+function toPercentCrop(
+	area: CroppedArea,
+	width: number,
+	height: number,
 ): PercentCrop {
 	return {
 		unit: "%",
-		height: (croppedArea.height / image.naturalHeight) * 100,
-		width: (croppedArea.width / image.naturalWidth) * 100,
-		x: (croppedArea.x / image.naturalWidth) * 100,
-		y: (croppedArea.y / image.naturalHeight) * 100,
+		x: (area.x / width) * 100,
+		y: (area.y / height) * 100,
+		width: (area.width / width) * 100,
+		height: (area.height / height) * 100,
 	};
 }
 
@@ -97,7 +99,11 @@ function ImageCropDialogContent({
 
 		setCrop(
 			initialCroppedArea
-				? getPercentCrop(initialCroppedArea, image)
+				? toPercentCrop(
+						initialCroppedArea,
+						image.naturalWidth,
+						image.naturalHeight,
+					)
 				: makeCenteredCrop(
 						aspectRatio,
 						image.naturalWidth,

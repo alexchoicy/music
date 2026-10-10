@@ -5,8 +5,7 @@ using Music.Core.Services.Images.Enums;
 namespace Music.Core.Entities;
 
 // I think this only apply to party cover and banner images
-// other extra content will be handled by
-// TODO: PartyExtraContent
+// other extra content is handled by Extra
 public class PartyImage
 {
     public int Id { get; set; }

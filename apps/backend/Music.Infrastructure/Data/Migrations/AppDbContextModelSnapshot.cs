@@ -683,6 +683,153 @@ namespace Music.Infrastructure.Migrations
                     b.ToTable("ConcertParties", (string)null);
                 });
 
+            modelBuilder.Entity("Music.Core.Entities.Extra", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("CoverAssetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("CoverCropHeight")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CoverCropWidth")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CoverCropX")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CoverCropY")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedByUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("CoverAssetId");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("UpdatedAt");
+
+                    b.ToTable("Extras", (string)null);
+                });
+
+            modelBuilder.Entity("Music.Core.Entities.ExtraAlbum", b =>
+                {
+                    b.Property<Guid>("ExtraId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AlbumId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("AlbumDiscId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ExtraId", "AlbumId");
+
+                    b.HasIndex("AlbumDiscId");
+
+                    b.HasIndex("AlbumId");
+
+                    b.ToTable("ExtraAlbums", (string)null);
+                });
+
+            modelBuilder.Entity("Music.Core.Entities.ExtraAsset", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ExtraId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("FileId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("FileId");
+
+                    b.HasIndex("ExtraId", "SortOrder");
+
+                    b.ToTable("ExtraAssets", (string)null);
+                });
+
+            modelBuilder.Entity("Music.Core.Entities.ExtraConcert", b =>
+                {
+                    b.Property<Guid>("ExtraId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ConcertId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ExtraId", "ConcertId");
+
+                    b.HasIndex("ConcertId");
+
+                    b.ToTable("ExtraConcerts", (string)null);
+                });
+
+            modelBuilder.Entity("Music.Core.Entities.ExtraParty", b =>
+                {
+                    b.Property<Guid>("ExtraId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("PartyId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ExtraId", "PartyId");
+
+                    b.HasIndex("PartyId");
+
+                    b.ToTable("ExtraParties", (string)null);
+                });
+
             modelBuilder.Entity("Music.Core.Entities.FileObject", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1755,6 +1902,104 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Party");
                 });
 
+            modelBuilder.Entity("Music.Core.Entities.Extra", b =>
+                {
+                    b.HasOne("Music.Core.Entities.ExtraAsset", "CoverAsset")
+                        .WithMany()
+                        .HasForeignKey("CoverAssetId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Music.Infrastructure.Entities.User", null)
+                        .WithMany("CreatedExtras")
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CoverAsset");
+                });
+
+            modelBuilder.Entity("Music.Core.Entities.ExtraAlbum", b =>
+                {
+                    b.HasOne("Music.Core.Entities.AlbumDisc", "AlbumDisc")
+                        .WithMany()
+                        .HasForeignKey("AlbumDiscId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Music.Core.Entities.Album", "Album")
+                        .WithMany()
+                        .HasForeignKey("AlbumId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Music.Core.Entities.Extra", "Extra")
+                        .WithMany("ExtraAlbums")
+                        .HasForeignKey("ExtraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Album");
+
+                    b.Navigation("AlbumDisc");
+
+                    b.Navigation("Extra");
+                });
+
+            modelBuilder.Entity("Music.Core.Entities.ExtraAsset", b =>
+                {
+                    b.HasOne("Music.Core.Entities.Extra", "Extra")
+                        .WithMany("Assets")
+                        .HasForeignKey("ExtraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Music.Core.Entities.StoredFile", "File")
+                        .WithMany("ExtraAssets")
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Extra");
+
+                    b.Navigation("File");
+                });
+
+            modelBuilder.Entity("Music.Core.Entities.ExtraConcert", b =>
+                {
+                    b.HasOne("Music.Core.Entities.Concert", "Concert")
+                        .WithMany()
+                        .HasForeignKey("ConcertId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Music.Core.Entities.Extra", "Extra")
+                        .WithMany("ExtraConcerts")
+                        .HasForeignKey("ExtraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Concert");
+
+                    b.Navigation("Extra");
+                });
+
+            modelBuilder.Entity("Music.Core.Entities.ExtraParty", b =>
+                {
+                    b.HasOne("Music.Core.Entities.Extra", "Extra")
+                        .WithMany("ExtraParties")
+                        .HasForeignKey("ExtraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Music.Core.Entities.Party", "Party")
+                        .WithMany()
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Extra");
+
+                    b.Navigation("Party");
+                });
+
             modelBuilder.Entity("Music.Core.Entities.FileObject", b =>
                 {
                     b.HasOne("Music.Core.Entities.StoredFile", "File")
@@ -1986,6 +2231,17 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Images");
                 });
 
+            modelBuilder.Entity("Music.Core.Entities.Extra", b =>
+                {
+                    b.Navigation("Assets");
+
+                    b.Navigation("ExtraAlbums");
+
+                    b.Navigation("ExtraConcerts");
+
+                    b.Navigation("ExtraParties");
+                });
+
             modelBuilder.Entity("Music.Core.Entities.Language", b =>
                 {
                     b.Navigation("Albums");
@@ -2023,6 +2279,8 @@ namespace Music.Infrastructure.Migrations
 
                     b.Navigation("ConcertImages");
 
+                    b.Navigation("ExtraAssets");
+
                     b.Navigation("FileObjects");
 
                     b.Navigation("PartyImages");
@@ -2048,6 +2306,8 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("CreatedAlbums");
 
                     b.Navigation("CreatedConcerts");
+
+                    b.Navigation("CreatedExtras");
 
                     b.Navigation("CreatedTracks");
 
