@@ -79,3 +79,5 @@ appConfig.yaml
 **/appsettings.*.json
 # BRO AS EXAMPLE
 !**/appsettings.json
+
+apps/desktop-rust/target

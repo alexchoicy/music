@@ -1,0 +1,45 @@
+{
+  "name": "Music",
+  "themes": [
+    {
+      "name": "Music Light",
+      "mode": "light",
+      "colors": {
+        "background": "#ffffff",
+        "foreground": "#121214",
+        "muted.background": "#f3f3f5",
+        "muted.foreground": "#6b6b76",
+        "border": "#00000014",
+        "input.border": "#e6e6ea",
+        "primary.background": "#d92d4a",
+        "primary.hover.background": "#c72843",
+        "primary.active.background": "#b3233c",
+        "primary.foreground": "#ffffff",
+        "ring": "#d92d4a",
+        "caret": "#d92d4a",
+        "danger.background": "#c81e1e",
+        "danger.foreground": "#ffffff"
+      }
+    },
+    {
+      "name": "Music Dark",
+      "mode": "dark",
+      "colors": {
+        "background": "#0b0b0d",
+        "foreground": "#f4f4f5",
+        "muted.background": "#18181b",
+        "muted.foreground": "#9a9aa5",
+        "border": "#ffffff14",
+        "input.border": "#26262b",
+        "primary.background": "#ff6b7a",
+        "primary.hover.background": "#ff808d",
+        "primary.active.background": "#ff94a0",
+        "primary.foreground": "#1a0508",
+        "ring": "#ff6b7a",
+        "caret": "#ff6b7a",
+        "danger.background": "#f87171",
+        "danger.foreground": "#1f0606"
+      }
+    }
+  ]
+}
