@@ -1,8 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
-	ArrowDownToLineIcon,
 	Disc3Icon,
+	MonitorDownIcon,
 	MonitorSpeakerIcon,
 	PlayIcon,
 } from "lucide-react";
@@ -235,7 +235,7 @@ function ContinueListeningCard({ item }: { item: ContinueListeningItem }) {
 						{busy ? (
 							<Spinner aria-hidden="true" />
 						) : liveSession ? (
-							<ArrowDownToLineIcon aria-hidden="true" />
+							<MonitorDownIcon aria-hidden="true" />
 						) : (
 							<PlayIcon aria-hidden="true" />
 						)}

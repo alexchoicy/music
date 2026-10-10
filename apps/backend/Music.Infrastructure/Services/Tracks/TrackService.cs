@@ -4,6 +4,7 @@ using Music.Core.Entities;
 using Music.Core.Services.Albums.Enums;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Images.Enums;
+using Music.Core.Services.Parties.Enums;
 using Music.Core.Services.Tracks;
 using Music.Core.Services.Tracks.Enums;
 using Music.Core.Storage;
@@ -14,6 +15,9 @@ namespace Music.Infrastructure.Services.Tracks;
 public sealed class TrackService(AppDbContext dbContext, IAssetsService assetsService)
     : ITrackService
 {
+    private const int UnknownPartyId = 1;
+    private const int RadioSeedTrackCount = 5;
+
     public async Task<TrackPlaybackDetails?> GetPlaybackDetailsAsync(
         int trackId,
         CancellationToken cancellationToken = default
@@ -107,22 +111,71 @@ public sealed class TrackService(AppDbContext dbContext, IAssetsService assetsSe
                 item.Track!.VersionType != TrackVersionType.Instrumental
             );
 
-        // Stay in the queue's languages until they run out of unqueued music.
+        int[] seedTrackIds = queueTrackIds.TakeLast(RadioSeedTrackCount).ToArray();
+        int[] artistIds = await dbContext
+            .TrackCredits.AsNoTracking()
+            .Where(credit =>
+                seedTrackIds.Contains(credit.TrackId)
+                && credit.Credit == CreditType.Artist
+                && credit.PartyId != UnknownPartyId
+            )
+            .Select(credit => credit.PartyId)
+            .Distinct()
+            .ToArrayAsync(cancellationToken);
+        int[] relatedArtistIds =
+            artistIds.Length == 0
+                ? []
+                : await dbContext
+                    .PartyMemberships.AsNoTracking()
+                    .Where(membership =>
+                        membership.Type == PartyRelationshipType.MemberOf
+                        && (
+                            artistIds.Contains(membership.PartyId)
+                            || artistIds.Contains(membership.MemberId)
+                        )
+                    )
+                    .Select(membership =>
+                        artistIds.Contains(membership.PartyId)
+                            ? membership.MemberId
+                            : membership.PartyId
+                    )
+                    .Where(partyId => partyId != UnknownPartyId && !artistIds.Contains(partyId))
+                    .Distinct()
+                    .ToArrayAsync(cancellationToken);
+
+        List<IQueryable<AlbumTrack>> preferences = [];
+        if (artistIds.Length > 0)
+            preferences.Add(CreditedTo(candidates, artistIds));
+        if (relatedArtistIds.Length > 0)
+            preferences.Add(CreditedTo(candidates, relatedArtistIds));
         if (languageIds.Length > 0)
-        {
-            RadioTrack? sameLanguageTrack = await PickRandomAsync(
+            preferences.Add(
                 candidates.Where(item =>
                     item.Track!.LanguageId != null
                     && languageIds.Contains(item.Track.LanguageId.Value)
-                ),
-                cancellationToken
+                )
             );
-            if (sameLanguageTrack is not null)
-                return sameLanguageTrack;
+        preferences.Add(candidates);
+
+        foreach (IQueryable<AlbumTrack> preference in preferences)
+        {
+            RadioTrack? track = await PickRandomAsync(preference, cancellationToken);
+            if (track is not null)
+                return track;
         }
 
-        return await PickRandomAsync(candidates, cancellationToken);
+        return null;
     }
+
+    private static IQueryable<AlbumTrack> CreditedTo(
+        IQueryable<AlbumTrack> candidates,
+        int[] partyIds
+    ) =>
+        candidates.Where(item =>
+            item.Track!.Credits.Any(credit =>
+                credit.Credit == CreditType.Artist && partyIds.Contains(credit.PartyId)
+            )
+        );
 
     private static Task<RadioTrack?> PickRandomAsync(
         IQueryable<AlbumTrack> candidates,

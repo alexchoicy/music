@@ -9,4 +9,5 @@ public enum TrackContentType
     MC,
     Interlude,
     Intro,
+    BGM,
 }
