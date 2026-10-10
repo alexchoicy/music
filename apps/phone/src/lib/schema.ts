@@ -29,6 +29,11 @@ export type PlaylistListItem = Schemas["PlaylistListItem"];
 export type PlaylistDetails = Schemas["PlaylistDetails"];
 export type PlaylistEntry = Schemas["PlaylistEntryDetails"];
 
+export type HomeFeed = Schemas["HomeFeed"];
+export type ContinueListeningItem = Schemas["ContinueListeningItem"];
+export type ConcertListItem = Schemas["ConcertListItem"];
+export type LibraryStats = Schemas["LibraryStats"];
+
 export type SearchResult = Schemas["SearchResult"];
 export type RadioTrack = Schemas["RadioTrack"];
 export type RadioTrackRequest = Schemas["RadioTrackRequest"];

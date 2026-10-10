@@ -36,6 +36,16 @@ export function formatTrackDuration(durationInMs: Numeric) {
 		: `${minutes}:${seconds}`;
 }
 
+/** How long ago a time was, e.g. `just now`, `5 min ago`, `3 days ago`. */
+export function formatTimeAgo(value: string, now = Date.now()) {
+	const minutes = Math.floor((now - Date.parse(value)) / 60_000);
+	if (!Number.isFinite(minutes) || minutes < 1) return "just now";
+	if (minutes < 60) return `${minutes} min ago`;
+	const hours = Math.floor(minutes / 60);
+	if (hours < 24) return `${hours} h ago`;
+	return `${plural(Math.floor(hours / 24), "day")} ago`;
+}
+
 // Release dates are calendar dates, so they are read in UTC to avoid shifting a day.
 const releaseDateFormatter = new Intl.DateTimeFormat(undefined, {
 	year: "numeric",

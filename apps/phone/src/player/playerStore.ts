@@ -65,7 +65,8 @@ type PlayerState = SavedPlayer & {
 	playTracks: (
 		tracks: PlayerTrack[],
 		startIndex?: number,
-		options?: { shuffle?: boolean },
+		/** `position` in seconds starts the first track partway, e.g. to resume. */
+		options?: { shuffle?: boolean; position?: number },
 	) => void;
 	addToQueue: (tracks: PlayerTrack[]) => void;
 	playNext: (tracks: PlayerTrack[]) => void;
@@ -131,7 +132,10 @@ export const usePlayerStore = create<PlayerState>()((set, get) => ({
 			shuffle,
 			...createShuffleState(queue.length, index, shuffle),
 		});
-		void load(queue[index]);
+		const position = options?.position;
+		// Load only starts a listening session for a fresh start, not a restore.
+		if (position !== undefined) startListeningSession(queue[index]);
+		void load(queue[index], { position });
 	},
 	addToQueue: (tracks) => {
 		if (tracks.length === 0) return;

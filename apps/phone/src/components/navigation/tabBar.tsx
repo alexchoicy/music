@@ -12,6 +12,7 @@ import { setCurrentTab } from "@/lib/navigation";
 import { useMiniPlayerStore } from "@/store/miniPlayerStore";
 
 export const tabs: Record<string, { label: string; icon: IconName }> = {
+	"(home)": { label: "Home", icon: "home" },
 	"(albums)": { label: "Albums", icon: "albums" },
 	"(parties)": { label: "Parties", icon: "parties" },
 	"(search)": { label: "Search", icon: "search" },

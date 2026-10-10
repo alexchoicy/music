@@ -37,6 +37,7 @@ export const icons = {
 	error: symbol("exclamationmark.circle", "error"),
 	externalLink: symbol("arrow.up.right", "open_in_new"),
 	filter: symbol("line.3.horizontal.decrease", "filter_list"),
+	home: symbol("house.fill", "home"),
 	more: symbol("ellipsis", "more_horiz"),
 	moveHere: symbol("arrow.down.to.line", "vertical_align_bottom"),
 	musicNote: symbol("music.note", "music_note"),

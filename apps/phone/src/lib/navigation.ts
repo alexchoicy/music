@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import { closePlayer } from "@/player/nowPlaying";
 
 // The tab group shown below Now Playing, e.g. `(settings)`; set by the tab bar.
-let currentTab = "(albums)";
+let currentTab = "(home)";
 
 export function setCurrentTab(tab: string) {
 	currentTab = tab;
