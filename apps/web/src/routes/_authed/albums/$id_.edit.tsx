@@ -1,18 +1,31 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeftIcon, Disc3Icon, LockIcon } from "lucide-react";
 import { z } from "zod";
 
+import { AlbumCoverTab } from "#/components/albums/edit/AlbumCoverTab";
+import { AlbumDetailsTab } from "#/components/albums/edit/AlbumDetailsTab";
+import { AlbumTracksTab } from "#/components/albums/edit/AlbumTracksTab";
 import { AlbumExtrasTab } from "#/components/albums/extras/AlbumExtrasTab";
 import { Button } from "#/components/coss/button";
+import { Skeleton } from "#/components/coss/skeleton";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "#/components/coss/tabs";
 import { LibraryEmptyState } from "#/components/LibraryEmptyState";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { albumQueries } from "#/lib/queries/album.queries";
+import { albumEditQueries } from "#/lib/queries/albumEdit.queries";
+import type { AlbumEditDetails } from "#/lib/queries/albumEdit.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { canEditContent } from "#/lib/utils/roles";
 
-const editTabs = ["extras"] as const;
+const editTabs = ["details", "cover", "tracks", "extras"] as const;
+
+function hasProcessingCover(album: AlbumEditDetails | undefined) {
+	if (!album) return false;
+	return [album.cover, ...album.discs.map((disc) => disc.cover)].some(
+		(cover) => cover && cover.processingStatus !== "Completed",
+	);
+}
 
 export const Route = createFileRoute("/_authed/albums/$id_/edit")({
 	validateSearch: z.object({
@@ -28,11 +41,19 @@ export const Route = createFileRoute("/_authed/albums/$id_/edit")({
 
 function RouteComponent() {
 	const { id } = Route.useParams();
-	const { tab = "extras" } = Route.useSearch();
+	const { tab = "details" } = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const userInfo = useUserInfo();
 	const { data: album } = useSuspenseQuery(albumQueries.getAlbum(id));
 	const coverUrl = getAlbumCoverUrl(album.cover.album);
+	const canEdit = canEditContent(userInfo);
+	const { data: editAlbum } = useQuery({
+		...albumEditQueries.getAlbumEdit(id),
+		enabled: canEdit,
+		// Pick up the processed cover once the worker finishes
+		refetchInterval: (query) =>
+			hasProcessingCover(query.state.data) ? 4000 : false,
+	});
 
 	return (
 		<main className="flex min-h-full w-full flex-col gap-6 p-4 sm:p-6">
@@ -60,7 +81,7 @@ function RouteComponent() {
 				</div>
 			</header>
 
-			{canEditContent(userInfo) ? (
+			{canEdit ? (
 				<Tabs
 					onValueChange={(value) =>
 						void navigate({ search: { tab: value }, replace: true })
@@ -68,8 +89,37 @@ function RouteComponent() {
 					value={tab}
 				>
 					<TabsList variant="underline">
+						<TabsTab value="details">Details</TabsTab>
+						<TabsTab value="cover">Cover</TabsTab>
+						<TabsTab value="tracks">Tracks</TabsTab>
 						<TabsTab value="extras">Extras</TabsTab>
 					</TabsList>
+					{editAlbum ? (
+						<>
+							<TabsPanel value="details">
+								<div className="mt-6">
+									<AlbumDetailsTab album={editAlbum} />
+								</div>
+							</TabsPanel>
+							<TabsPanel value="cover">
+								<div className="mt-6">
+									<AlbumCoverTab album={editAlbum} />
+								</div>
+							</TabsPanel>
+							<TabsPanel value="tracks">
+								<div className="mt-6">
+									<AlbumTracksTab album={editAlbum} />
+								</div>
+							</TabsPanel>
+						</>
+					) : (
+						tab !== "extras" && (
+							<div className="mt-6 grid max-w-3xl gap-4">
+								<Skeleton className="h-10" />
+								<Skeleton className="h-40" />
+							</div>
+						)
+					)}
 					<TabsPanel value="extras">
 						<div className="mt-6">
 							<AlbumExtrasTab albumId={Number(album.albumId)} />

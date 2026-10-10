@@ -127,6 +127,20 @@ class ImageUploadWorkerProcessor(
                 variantPlan.TargetWidth,
                 variantPlan.TargetHeight
             );
+
+            // A re-crop back to the full image must not leave the old cropped variant behind,
+            // readers fall back to the original when the variant is missing
+            FileObject? staleVariant = await dbContext.FileObjects.FirstOrDefaultAsync(
+                fileObject =>
+                    fileObject.FileId == sourceFileObject.FileId
+                    && fileObject.FileObjectVariant == variantPlan.Variant,
+                cancellationToken
+            );
+            if (staleVariant is not null)
+            {
+                dbContext.FileObjects.Remove(staleVariant);
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
             return;
         }
 
