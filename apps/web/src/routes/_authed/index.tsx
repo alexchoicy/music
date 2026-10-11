@@ -3,13 +3,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 
-import { AlbumGrid } from "#/components/AlbumGrid";
-import { ConcertCard } from "#/components/concerts/ConcertCard";
-import { ContinueListening } from "#/components/home/ContinueListening";
-import { LibraryCounts } from "#/components/home/LibraryCounts";
-import { PartyCard } from "#/components/parties/PartyCard";
 import { homeQueries } from "#/lib/queries/home.queries";
 import { statsQueries } from "#/lib/queries/stats.queries";
+import { AlbumGrid } from "#/old-components/AlbumGrid";
+import { ConcertCard } from "#/old-components/concerts/ConcertCard";
+import { ContinueListening } from "#/old-components/home/ContinueListening";
+import { LibraryCounts } from "#/old-components/home/LibraryCounts";
+import { PartyCard } from "#/old-components/parties/PartyCard";
 import { onListeningHistoryRecorded } from "#/store/audioPlayer/listeningHistory";
 import { usePlaybackDeviceStore } from "#/store/playbackDeviceStore";
 

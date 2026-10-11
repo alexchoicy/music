@@ -9,23 +9,6 @@ import { ChevronDownIcon, SearchIcon, UsersRoundIcon } from "lucide-react";
 import { useDeferredValue, useRef } from "react";
 import { z } from "zod";
 
-import { Card, CardPanel } from "#/components/coss/card";
-import { Checkbox } from "#/components/coss/checkbox";
-import {
-	Collapsible,
-	CollapsiblePanel,
-	CollapsibleTrigger,
-} from "#/components/coss/collapsible";
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput,
-} from "#/components/coss/input-group";
-import { Label } from "#/components/coss/label";
-import { Skeleton } from "#/components/coss/skeleton";
-import { EnumFieldSelect } from "#/components/enumFieldSelect";
-import { LibraryEmptyState } from "#/components/LibraryEmptyState";
-import { PartyCard } from "#/components/parties/PartyCard";
 import {
 	DEFAULT_LIST_SORT,
 	isListSortOption,
@@ -39,6 +22,23 @@ import {
 } from "#/enums/partyEnums";
 import { partyQueries } from "#/lib/queries/party.queries";
 import type { PartyQuery } from "#/lib/queries/party.queries";
+import { Card, CardPanel } from "#/old-components/coss/card";
+import { Checkbox } from "#/old-components/coss/checkbox";
+import {
+	Collapsible,
+	CollapsiblePanel,
+	CollapsibleTrigger,
+} from "#/old-components/coss/collapsible";
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput,
+} from "#/old-components/coss/input-group";
+import { Label } from "#/old-components/coss/label";
+import { Skeleton } from "#/old-components/coss/skeleton";
+import { EnumFieldSelect } from "#/old-components/enumFieldSelect";
+import { LibraryEmptyState } from "#/old-components/LibraryEmptyState";
+import { PartyCard } from "#/old-components/parties/PartyCard";
 
 type PartyGenderFilter = "All" | (typeof PARTY_GENDER_OPTIONS)[number]["value"];
 type PartyKindFilter = "All" | (typeof PARTY_KIND_OPTIONS)[number]["value"];

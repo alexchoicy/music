@@ -3,12 +3,12 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ListMusicIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "#/components/coss/button";
-import { LibraryEmptyState } from "#/components/LibraryEmptyState";
-import { PlaylistCard } from "#/components/playlists/PlaylistCard";
-import { PlaylistNameDialog } from "#/components/playlists/PlaylistNameDialog";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { playlistQueries } from "#/lib/queries/playlist.queries";
+import { Button } from "#/old-components/coss/button";
+import { LibraryEmptyState } from "#/old-components/LibraryEmptyState";
+import { PlaylistCard } from "#/old-components/playlists/PlaylistCard";
+import { PlaylistNameDialog } from "#/old-components/playlists/PlaylistNameDialog";
 
 export const Route = createFileRoute("/_authed/playlists/")({
 	component: PlaylistsPage,

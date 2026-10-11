@@ -4,16 +4,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 
-import { AlbumCreditsCard } from "#/components/albums/AlbumCreditsCard";
-import { AlbumDetailHero } from "#/components/albums/AlbumDetailHero";
-import { AlbumInfoCard } from "#/components/albums/AlbumInfoCard";
-import { AlbumTrackListCard } from "#/components/albums/AlbumTrackListCard";
-import { AlbumExtrasSection } from "#/components/albums/extras/AlbumExtrasSection";
-import { AddToPlaylistDialog } from "#/components/playlists/AddToPlaylistDialog";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { albumQueries } from "#/lib/queries/album.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { canEditContent } from "#/lib/utils/roles";
+import { AlbumCreditsCard } from "#/old-components/albums/AlbumCreditsCard";
+import { AlbumDetailHero } from "#/old-components/albums/AlbumDetailHero";
+import { AlbumInfoCard } from "#/old-components/albums/AlbumInfoCard";
+import { AlbumTrackListCard } from "#/old-components/albums/AlbumTrackListCard";
+import { AlbumExtrasSection } from "#/old-components/albums/extras/AlbumExtrasSection";
+import { AddToPlaylistDialog } from "#/old-components/playlists/AddToPlaylistDialog";
 import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 

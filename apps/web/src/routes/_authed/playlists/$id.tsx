@@ -9,13 +9,6 @@ import {
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ListMusicIcon, ListPlusIcon, PlayIcon } from "lucide-react";
 
-import { Alert, AlertDescription } from "#/components/coss/alert";
-import { Button } from "#/components/coss/button";
-import { toastManager } from "#/components/coss/toast";
-import { LibraryEmptyState } from "#/components/LibraryEmptyState";
-import { PlaylistActionsMenu } from "#/components/playlists/PlaylistActionsMenu";
-import { PlaylistArtwork } from "#/components/playlists/PlaylistArtwork";
-import { PlaylistTrackRow } from "#/components/playlists/PlaylistTrackRow";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { albumQueries } from "#/lib/queries/album.queries";
 import { authQueries } from "#/lib/queries/auth.queries";
@@ -29,6 +22,13 @@ import {
 	playlistCoverEntries,
 	playlistEntryCoverUrl,
 } from "#/lib/utils/playlist";
+import { Alert, AlertDescription } from "#/old-components/coss/alert";
+import { Button } from "#/old-components/coss/button";
+import { toastManager } from "#/old-components/coss/toast";
+import { LibraryEmptyState } from "#/old-components/LibraryEmptyState";
+import { PlaylistActionsMenu } from "#/old-components/playlists/PlaylistActionsMenu";
+import { PlaylistArtwork } from "#/old-components/playlists/PlaylistArtwork";
+import { PlaylistTrackRow } from "#/old-components/playlists/PlaylistTrackRow";
 import { albumTrackDetailsToAudioPlayerTrack } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 

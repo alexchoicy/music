@@ -11,9 +11,14 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { Badge } from "#/components/coss/badge";
-import { Button } from "#/components/coss/button";
-import { Switch } from "#/components/coss/switch";
+import type { components } from "#/data/APIschema";
+import { startUpload } from "#/lib/api/uploads";
+import { uploadQueries } from "#/lib/queries/upload.queries";
+import { hashBlake3Simple, hashFileStream } from "#/lib/utils/hash";
+import { cn } from "#/lib/utils/styles";
+import { Badge } from "#/old-components/coss/badge";
+import { Button } from "#/old-components/coss/button";
+import { Switch } from "#/old-components/coss/switch";
 import {
 	Table,
 	TableBody,
@@ -21,18 +26,13 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from "#/components/coss/table";
+} from "#/old-components/coss/table";
 import {
 	Tooltip,
 	TooltipPopup,
 	TooltipTrigger,
-} from "#/components/coss/tooltip";
-import { DropBox } from "#/components/dropBox";
-import type { components } from "#/data/APIschema";
-import { startUpload } from "#/lib/api/uploads";
-import { uploadQueries } from "#/lib/queries/upload.queries";
-import { hashBlake3Simple, hashFileStream } from "#/lib/utils/hash";
-import { cn } from "#/lib/utils/styles";
+} from "#/old-components/coss/tooltip";
+import { DropBox } from "#/old-components/dropBox";
 import { useUploadStore } from "#/store/uploadStore";
 
 export const Route = createFileRoute("/_authed/uploads/")({

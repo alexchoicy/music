@@ -2,15 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { KeyRoundIcon, UsersIcon } from "lucide-react";
 import { useState } from "react";
 
+import { useUserInfo } from "#/context/UserInfoContext";
 import {
 	Tabs,
 	TabsContent,
 	TabsList,
 	TabsTrigger,
-} from "#/components/coss/tabs";
-import { AuthTabContent } from "#/components/settings/authTabContent";
-import { UsersTabContent } from "#/components/settings/usersTabContent";
-import { useUserInfo } from "#/context/UserInfoContext";
+} from "#/old-components/coss/tabs";
+import { AuthTabContent } from "#/old-components/settings/authTabContent";
+import { UsersTabContent } from "#/old-components/settings/usersTabContent";
 
 export const Route = createFileRoute("/_authed/settings/")({
 	component: RouteComponent,

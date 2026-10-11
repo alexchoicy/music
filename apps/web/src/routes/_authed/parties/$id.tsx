@@ -1,10 +1,10 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PartyDetailHero } from "#/components/parties/PartyDetailHero";
-import { PartyDetailTabs } from "#/components/parties/PartyDetailTabs";
 import { partyQueries } from "#/lib/queries/party.queries";
 import { getPartyAvatarUrl } from "#/lib/utils/party";
+import { PartyDetailHero } from "#/old-components/parties/PartyDetailHero";
+import { PartyDetailTabs } from "#/old-components/parties/PartyDetailTabs";
 
 export const Route = createFileRoute("/_authed/parties/$id")({
 	loader: ({ context, params }) => {

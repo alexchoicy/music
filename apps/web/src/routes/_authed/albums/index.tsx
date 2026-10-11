@@ -13,25 +13,6 @@ import { ChevronDownIcon, Disc3Icon, SearchIcon } from "lucide-react";
 import { useDeferredValue, useRef } from "react";
 import { z } from "zod";
 
-import { AlbumGrid, albumGridClassName } from "#/components/AlbumGrid";
-import { Card, CardPanel } from "#/components/coss/card";
-import { Checkbox } from "#/components/coss/checkbox";
-import {
-	Collapsible,
-	CollapsiblePanel,
-	CollapsibleTrigger,
-} from "#/components/coss/collapsible";
-import { Field, FieldLabel } from "#/components/coss/field";
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput,
-} from "#/components/coss/input-group";
-import { Label } from "#/components/coss/label";
-import { Skeleton } from "#/components/coss/skeleton";
-import { EnumFieldSelect } from "#/components/enumFieldSelect";
-import { LibraryEmptyState } from "#/components/LibraryEmptyState";
-import { PartyCombobox } from "#/components/PartyCombobox";
 import { ALBUM_TYPE_OPTIONS } from "#/enums/albumEnums";
 import {
 	DEFAULT_LIST_SORT,
@@ -42,6 +23,25 @@ import type { ListSortOption } from "#/enums/listSortEnums";
 import { albumQueries } from "#/lib/queries/album.queries";
 import type { AlbumQuery } from "#/lib/queries/album.queries";
 import { languageQueries } from "#/lib/queries/language.queries";
+import { AlbumGrid, albumGridClassName } from "#/old-components/AlbumGrid";
+import { Card, CardPanel } from "#/old-components/coss/card";
+import { Checkbox } from "#/old-components/coss/checkbox";
+import {
+	Collapsible,
+	CollapsiblePanel,
+	CollapsibleTrigger,
+} from "#/old-components/coss/collapsible";
+import { Field, FieldLabel } from "#/old-components/coss/field";
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput,
+} from "#/old-components/coss/input-group";
+import { Label } from "#/old-components/coss/label";
+import { Skeleton } from "#/old-components/coss/skeleton";
+import { EnumFieldSelect } from "#/old-components/enumFieldSelect";
+import { LibraryEmptyState } from "#/old-components/LibraryEmptyState";
+import { PartyCombobox } from "#/old-components/PartyCombobox";
 import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 

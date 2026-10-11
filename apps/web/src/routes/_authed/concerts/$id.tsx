@@ -2,12 +2,12 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
-import { ConcertDetails } from "#/components/concerts/ConcertDetails";
-import { ConcertFilesPanel } from "#/components/concerts/ConcertFilesPanel";
-import { ConcertPlayer } from "#/components/concerts/ConcertPlayer";
 import { concertQueries } from "#/lib/queries/concert.queries";
 import { getConcertCoverUrl } from "#/lib/utils/concert";
 import { cn } from "#/lib/utils/styles";
+import { ConcertDetails } from "#/old-components/concerts/ConcertDetails";
+import { ConcertFilesPanel } from "#/old-components/concerts/ConcertFilesPanel";
+import { ConcertPlayer } from "#/old-components/concerts/ConcertPlayer";
 
 export const Route = createFileRoute("/_authed/concerts/$id")({
 	loader: ({ context, params }) => {

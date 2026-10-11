@@ -3,36 +3,36 @@ import { AlbumIcon, MicVocalIcon, UsersIcon, YoutubeIcon } from "lucide-react";
 import { lazy, Suspense } from "react";
 import { z } from "zod";
 
+import { albumQueries } from "#/lib/queries/album.queries";
+import { languageQueries } from "#/lib/queries/language.queries";
+import { partyQueries } from "#/lib/queries/party.queries";
 import {
 	Tabs,
 	TabsContent,
 	TabsList,
 	TabsTrigger,
-} from "#/components/coss/tabs";
-import { albumQueries } from "#/lib/queries/album.queries";
-import { languageQueries } from "#/lib/queries/language.queries";
-import { partyQueries } from "#/lib/queries/party.queries";
+} from "#/old-components/coss/tabs";
 
 const AlbumTabContent = lazy(() =>
-	import("#/components/create/albumTabContent").then((module) => ({
+	import("#/old-components/create/albumTabContent").then((module) => ({
 		default: module.AlbumTabContent,
 	})),
 );
 
 const ConcertTabContent = lazy(() =>
-	import("#/components/create/concertTabContent").then((module) => ({
+	import("#/old-components/create/concertTabContent").then((module) => ({
 		default: module.ConcertTabContent,
 	})),
 );
 
 const YouTubeCoverTabContent = lazy(() =>
-	import("#/components/create/youtubeCoverTabContent").then((module) => ({
+	import("#/old-components/create/youtubeCoverTabContent").then((module) => ({
 		default: module.YouTubeCoverTabContent,
 	})),
 );
 
 const PartyTabContent = lazy(() =>
-	import("#/components/create/partyTabContent").then((module) => ({
+	import("#/old-components/create/partyTabContent").then((module) => ({
 		default: module.PartyTabContent,
 	})),
 );

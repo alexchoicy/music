@@ -11,21 +11,6 @@ import { KeyRoundIcon } from "lucide-react";
 import { useEffect, useEffectEvent, useState } from "react";
 import { z } from "zod";
 
-import { Button } from "#/components/coss/button";
-import {
-	Card,
-	CardDescription,
-	CardHeader,
-	CardPanel,
-	CardTitle,
-} from "#/components/coss/card";
-import {
-	Field,
-	FieldDescription,
-	FieldError,
-	FieldLabel,
-} from "#/components/coss/field";
-import { Input } from "#/components/coss/input";
 import {
 	passkeyAuthenticationOptions,
 	passkeyRegistrationOptions,
@@ -33,6 +18,21 @@ import {
 	signInWithPasskey,
 } from "#/lib/api/auth";
 import { authMutations, authQueries } from "#/lib/queries/auth.queries";
+import { Button } from "#/old-components/coss/button";
+import {
+	Card,
+	CardDescription,
+	CardHeader,
+	CardPanel,
+	CardTitle,
+} from "#/old-components/coss/card";
+import {
+	Field,
+	FieldDescription,
+	FieldError,
+	FieldLabel,
+} from "#/old-components/coss/field";
+import { Input } from "#/old-components/coss/input";
 
 export const Route = createFileRoute("/_public/login/")({
 	validateSearch: (search) => ({

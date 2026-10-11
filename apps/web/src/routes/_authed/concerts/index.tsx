@@ -9,25 +9,6 @@ import { ChevronDownIcon, MicVocalIcon, SearchIcon } from "lucide-react";
 import { useDeferredValue, useRef } from "react";
 import { z } from "zod";
 
-import { ConcertCard } from "#/components/concerts/ConcertCard";
-import { Card, CardPanel } from "#/components/coss/card";
-import { Checkbox } from "#/components/coss/checkbox";
-import {
-	Collapsible,
-	CollapsiblePanel,
-	CollapsibleTrigger,
-} from "#/components/coss/collapsible";
-import { Field, FieldLabel } from "#/components/coss/field";
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput,
-} from "#/components/coss/input-group";
-import { Label } from "#/components/coss/label";
-import { Skeleton } from "#/components/coss/skeleton";
-import { EnumFieldSelect } from "#/components/enumFieldSelect";
-import { LibraryEmptyState } from "#/components/LibraryEmptyState";
-import { PartyCombobox } from "#/components/PartyCombobox";
 import {
 	DEFAULT_LIST_SORT,
 	isListSortOption,
@@ -36,6 +17,25 @@ import {
 import type { ListSortOption } from "#/enums/listSortEnums";
 import { concertQueries } from "#/lib/queries/concert.queries";
 import type { ConcertQuery } from "#/lib/queries/concert.queries";
+import { ConcertCard } from "#/old-components/concerts/ConcertCard";
+import { Card, CardPanel } from "#/old-components/coss/card";
+import { Checkbox } from "#/old-components/coss/checkbox";
+import {
+	Collapsible,
+	CollapsiblePanel,
+	CollapsibleTrigger,
+} from "#/old-components/coss/collapsible";
+import { Field, FieldLabel } from "#/old-components/coss/field";
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput,
+} from "#/old-components/coss/input-group";
+import { Label } from "#/old-components/coss/label";
+import { Skeleton } from "#/old-components/coss/skeleton";
+import { EnumFieldSelect } from "#/old-components/enumFieldSelect";
+import { LibraryEmptyState } from "#/old-components/LibraryEmptyState";
+import { PartyCombobox } from "#/old-components/PartyCombobox";
 
 type ConcertSearch = {
 	includeGuestCredit: boolean;

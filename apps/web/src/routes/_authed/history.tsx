@@ -9,10 +9,14 @@ import { CalendarDaysIcon, HistoryIcon } from "lucide-react";
 import { useEffect } from "react";
 import { z } from "zod";
 
-import { Alert, AlertDescription } from "#/components/coss/alert";
-import { Badge } from "#/components/coss/badge";
-import { Button } from "#/components/coss/button";
-import { Card } from "#/components/coss/card";
+import { useUserInfo } from "#/context/UserInfoContext";
+import { authQueries } from "#/lib/queries/auth.queries";
+import { historyActions, historyQueries } from "#/lib/queries/history.queries";
+import type { ListeningHistoryEntry } from "#/lib/queries/history.queries";
+import { Alert, AlertDescription } from "#/old-components/coss/alert";
+import { Badge } from "#/old-components/coss/badge";
+import { Button } from "#/old-components/coss/button";
+import { Card } from "#/old-components/coss/card";
 import {
 	Table,
 	TableBody,
@@ -20,23 +24,19 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from "#/components/coss/table";
-import { Tabs, TabsList, TabsPanel, TabsTab } from "#/components/coss/tabs";
-import { toastManager } from "#/components/coss/toast";
-import { HistoryTrackMenu } from "#/components/history/HistoryTrackMenu";
+} from "#/old-components/coss/table";
+import { Tabs, TabsList, TabsPanel, TabsTab } from "#/old-components/coss/tabs";
+import { toastManager } from "#/old-components/coss/toast";
+import { HistoryTrackMenu } from "#/old-components/history/HistoryTrackMenu";
 import {
 	HistoryTrackCover,
 	HistoryTrackRow,
 	HistoryTrackTitle,
-} from "#/components/history/HistoryTrackRow";
-import { useHistoryTracks } from "#/components/history/useHistoryTracks";
-import type { HistoryTrack } from "#/components/history/useHistoryTracks";
-import { LibraryEmptyState } from "#/components/LibraryEmptyState";
-import { PlaylistArtwork } from "#/components/playlists/PlaylistArtwork";
-import { useUserInfo } from "#/context/UserInfoContext";
-import { authQueries } from "#/lib/queries/auth.queries";
-import { historyActions, historyQueries } from "#/lib/queries/history.queries";
-import type { ListeningHistoryEntry } from "#/lib/queries/history.queries";
+} from "#/old-components/history/HistoryTrackRow";
+import { useHistoryTracks } from "#/old-components/history/useHistoryTracks";
+import type { HistoryTrack } from "#/old-components/history/useHistoryTracks";
+import { LibraryEmptyState } from "#/old-components/LibraryEmptyState";
+import { PlaylistArtwork } from "#/old-components/playlists/PlaylistArtwork";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 import type { AudioPlayerTrack } from "#/store/audioPlayer/audioPlayerType";
 import { onListeningHistoryRecorded } from "#/store/audioPlayer/listeningHistory";
