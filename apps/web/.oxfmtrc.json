@@ -24,7 +24,7 @@
 		"yarn.lock",
 		"**/src/routeTree.gen.ts",
 		"**/src/styles.css",
-		"**/coss/**/*",
+		"**/base/**/*",
 		"**/.vscode/**/*",
 		"**/data/APIschema.ts"
 	]
