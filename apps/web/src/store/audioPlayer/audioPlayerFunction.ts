@@ -90,6 +90,23 @@ export function resolvePlaybackSource(
 	return { key: `Original:${url}`, quality: "Original", url, fileUrl };
 }
 
+// Peaks from loud masters sit near the ceiling, so a linear scale fills the
+// whole bar height. Mapping amplitude in dB keeps quiet passages visibly lower.
+const WAVEFORM_DYNAMIC_RANGE_DB = 36;
+
+export function shapeWaveformPeaks(data: number[]): number[] {
+	let max = 0;
+	for (const value of data) max = Math.max(max, Math.abs(value));
+	if (max === 0) return data;
+
+	return data.map((value) => {
+		const linear = Math.abs(value) / max;
+		const db = 20 * Math.log10(linear || Number.EPSILON);
+		const shaped = Math.max(0, 1 + db / WAVEFORM_DYNAMIC_RANGE_DB);
+		return Math.sign(value) * shaped;
+	});
+}
+
 export async function getWaveformData(url: string): Promise<number[] | null> {
 	try {
 		const response = await fetch(url, {
@@ -101,7 +118,7 @@ export async function getWaveformData(url: string): Promise<number[] | null> {
 		}
 
 		const data: AudioWaveformJson = await response.json();
-		return data.data;
+		return shapeWaveformPeaks(data.data);
 	} catch (error) {
 		if (error instanceof DOMException && error.name === "AbortError") {
 			throw error;

@@ -834,7 +834,8 @@ export function AudioPlayer() {
 			peaks: AUDIO_PLAYER_IDLE_PEAKS,
 			dragToSeek: true,
 			barWidth: 2,
-			barGap: 2,
+			barGap: 1,
+			barRadius: 2,
 		});
 
 		bindWaveSurfer(player);
