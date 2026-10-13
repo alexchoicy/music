@@ -101,17 +101,13 @@ export function RelationshipCanvas({
 						: event.deltaMode === 2
 							? container.clientHeight
 							: 1;
+				//weird firefox
 				const bounds = container.getBoundingClientRect();
-				setView((current) =>
-					zoomView(
-						current,
-						Math.exp(-event.deltaY * unit * 0.002),
-						event.clientX - bounds.left - bounds.width / 2,
-						event.clientY - bounds.top - bounds.height / 2,
-					),
-				);
+				const factor = Math.exp(-event.deltaY * unit * 0.002);
+				const x = event.clientX - bounds.left - bounds.width / 2;
+				const y = event.clientY - bounds.top - bounds.height / 2;
+				setView((current) => zoomView(current, factor, x, y));
 			};
-			// React's wheel handler is passive and cannot stop the page scrolling.
 			container.addEventListener("wheel", wheel, { passive: false });
 			return () => {
 				observer.disconnect();
