@@ -5,7 +5,7 @@ import {
 	useNavigate,
 } from "@tanstack/react-router";
 import { UsersRoundIcon } from "lucide-react";
-import { useDeferredValue, useId } from "react";
+import { useDeferredValue, useId, useRef } from "react";
 import { z } from "zod";
 
 import { PageHeader } from "#/components/app/PageHeader";
@@ -22,8 +22,9 @@ import {
 	ResetFiltersButton,
 	SearchField,
 } from "#/components/library/LibraryToolbar";
-import { suppressNativeContextMenu } from "#/components/library/suppressNativeContextMenu";
+import { useGridFocusHotkeys } from "#/components/library/useGridFocusHotkeys";
 import { PartyTile } from "#/components/party/PartyTile";
+import { usePlayParty } from "#/components/party/usePlayParty";
 import {
 	DEFAULT_LIST_SORT,
 	isListSortOption,
@@ -125,6 +126,8 @@ function isDefaultSearch(search: PartySearch) {
 
 function RouteComponent() {
 	const navigate = useNavigate({ from: Route.fullPath });
+	const partyGridRef = useRef<HTMLUListElement>(null);
+	const playParty = usePlayParty();
 	const excludeNoAlbumsId = useId();
 	const filters = Route.useSearch();
 	const deferredFilters = useDeferredValue(filters);
@@ -146,6 +149,19 @@ function RouteComponent() {
 		placeholderData: keepPreviousData,
 	});
 
+	function playFocusedParty(
+		index: number,
+		options?: { queue?: boolean; next?: boolean },
+	) {
+		const party = parties?.[index];
+		if (party) void playParty(party, options);
+	}
+	useGridFocusHotkeys(partyGridRef, {
+		onPlay: (index) => playFocusedParty(index),
+		onPlayNext: (index) => playFocusedParty(index, { next: true }),
+		onQueue: (index) => playFocusedParty(index, { queue: true }),
+	});
+
 	function updateSearch(nextSearch: Partial<PartySearch>) {
 		void navigate({
 			replace: true,
@@ -154,10 +170,7 @@ function RouteComponent() {
 	}
 
 	return (
-		<main
-			className="flex min-h-full w-full min-w-0 flex-col gap-6 p-4 sm:p-6"
-			onContextMenu={suppressNativeContextMenu}
-		>
+		<main className="flex min-h-full w-full min-w-0 flex-col gap-6 p-4 sm:p-6">
 			<PageHeader title="Parties" />
 
 			<div
@@ -241,7 +254,11 @@ function RouteComponent() {
 				/>
 			) : (
 				<>
-					<ul aria-label="Parties" className={PARTY_GRID_CLASS}>
+					<ul
+						aria-label="Parties"
+						ref={partyGridRef}
+						className={PARTY_GRID_CLASS}
+					>
 						{parties.map((party) => (
 							<li className="min-w-0" key={party.partyId}>
 								<PartyTile party={party} variant="library" />

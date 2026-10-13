@@ -5,11 +5,12 @@ import {
 	useNavigate,
 } from "@tanstack/react-router";
 import { Disc3Icon } from "lucide-react";
-import { useDeferredValue } from "react";
+import { useDeferredValue, useRef } from "react";
 import { z } from "zod";
 
 import { AlbumTile } from "#/components/album/AlbumTile";
 import { ALBUM_TYPE_ICON } from "#/components/album/AlbumTypeBadge";
+import { usePlayAlbum } from "#/components/album/usePlayAlbum";
 import { PageHeader } from "#/components/app/PageHeader";
 import { FilterChips } from "#/components/library/FilterChips";
 import { FilterSelect } from "#/components/library/FilterSelect";
@@ -22,7 +23,7 @@ import {
 	ResetFiltersButton,
 	SearchField,
 } from "#/components/library/LibraryToolbar";
-import { suppressNativeContextMenu } from "#/components/library/suppressNativeContextMenu";
+import { useGridFocusHotkeys } from "#/components/library/useGridFocusHotkeys";
 import { PartyFilterField } from "#/components/party/PartyFilterCombobox";
 import { ALBUM_TYPE_OPTIONS } from "#/enums/albumEnums";
 import {
@@ -113,6 +114,8 @@ function isDefaultSearch(search: AlbumSearch) {
 
 function RouteComponent() {
 	const navigate = useNavigate({ from: Route.fullPath });
+	const albumGridRef = useRef<HTMLUListElement>(null);
+	const playAlbum = usePlayAlbum();
 	const filters = Route.useSearch();
 	const deferredFilters = useDeferredValue(filters);
 	const albumQuery: AlbumQuery = {
@@ -138,6 +141,18 @@ function RouteComponent() {
 		...albumQueries.getAlbums(albumQuery),
 		placeholderData: keepPreviousData,
 	});
+	function playFocusedAlbum(
+		index: number,
+		options?: { queue?: boolean; next?: boolean },
+	) {
+		const album = albums?.[index];
+		if (album) void playAlbum(album, options);
+	}
+	useGridFocusHotkeys(albumGridRef, {
+		onPlay: (index) => playFocusedAlbum(index),
+		onPlayNext: (index) => playFocusedAlbum(index, { next: true }),
+		onQueue: (index) => playFocusedAlbum(index, { queue: true }),
+	});
 	const { data: languages = [] } = useQuery(languageQueries.getLanguages());
 	const languageOptions = languages.map((language) => ({
 		label: language.language,
@@ -152,10 +167,7 @@ function RouteComponent() {
 	}
 
 	return (
-		<main
-			className="flex min-h-full w-full min-w-0 flex-col gap-6 p-4 sm:p-6"
-			onContextMenu={suppressNativeContextMenu}
-		>
+		<main className="flex min-h-full w-full min-w-0 flex-col gap-6 p-4 sm:p-6">
 			<PageHeader title="Albums" />
 
 			<div
@@ -242,7 +254,11 @@ function RouteComponent() {
 				/>
 			) : (
 				<>
-					<ul aria-label="Albums" className={ALBUM_GRID_CLASS}>
+					<ul
+						aria-label="Albums"
+						ref={albumGridRef}
+						className={ALBUM_GRID_CLASS}
+					>
 						{albums.map((album) => (
 							<li className="min-w-0" key={album.albumId}>
 								<AlbumTile album={album} />

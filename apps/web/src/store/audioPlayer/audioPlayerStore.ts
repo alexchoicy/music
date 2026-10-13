@@ -683,7 +683,17 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					)
 						return;
 					if (queue.length === 1) {
-						get().clearQueue();
+						loadRequestId++;
+						finishedRequestId = 0;
+						set({
+							queue: [],
+							index: 0,
+							currentPlayingKey: null,
+							status: "idle",
+							stopAfterMusicCount: null,
+							...createShuffleState(0, 0, get().shuffle),
+						});
+						resetWaveSurferToIdle();
 						return;
 					}
 					const removedCurrent = removeIndex === index;
@@ -744,18 +754,15 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						remapShuffleIndices(state, mapIndex);
 					});
 				},
+				// Keeps the current track loaded and playing; drops everything else.
 				clearQueue: () => {
-					loadRequestId++;
-					finishedRequestId = 0;
+					const { index, queue, shuffle } = get();
+					if (queue.length <= 1) return;
 					set({
-						queue: [],
+						queue: [queue[index]],
 						index: 0,
-						currentPlayingKey: null,
-						status: "idle",
-						stopAfterMusicCount: null,
-						...createShuffleState(0, 0, get().shuffle),
+						...createShuffleState(1, 0, shuffle),
 					});
-					resetWaveSurferToIdle();
 				},
 				playQueueTrack: (index) => {
 					const { playbackQuality, queue } = get();

@@ -34,7 +34,7 @@ export const badgeVariants = cva(
 				secondary:
 					"bg-secondary text-secondary-foreground [button&,a&]:hover:bg-secondary/90",
 				artwork:
-					"bg-background/80 text-foreground shadow-[inset_0_0_0_1px_--theme(--color-white/12%)] [&_svg]:opacity-100",
+					"bg-background/80 text-foreground  [&_svg]:opacity-100",
 				success: "bg-success/8 text-success-foreground dark:bg-success/16",
 				warning: "bg-warning/8 text-warning-foreground dark:bg-warning/16",
 			},

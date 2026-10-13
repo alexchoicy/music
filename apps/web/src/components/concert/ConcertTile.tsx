@@ -53,7 +53,7 @@ export function ConcertTile({
 			</div>
 			<div className="flex min-w-0 flex-col gap-0.5">
 				<Link
-					className="truncate text-sm font-semibold outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-ring"
+					className="truncate text-sm font-semibold outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:outline-2 focus-visible:after:outline-offset-6 focus-visible:after:outline-ring"
 					params={{ id: String(concert.concertId) }}
 					title={concert.title}
 					to="/concerts/$id"

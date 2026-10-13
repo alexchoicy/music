@@ -308,7 +308,7 @@
 		@apply border-border outline-ring/50;
 	}
 	body {
-		@apply font-sans bg-background text-foreground antialiased;
+		@apply font-sans bg-background text-foreground antialiased select-none;
 		font-feature-settings:
 			"rlig" 1,
 			"calt" 1;

@@ -6,17 +6,18 @@ import { partyQueries } from "#/lib/queries/party.queries";
 import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
-type PlayPartyOptions = { shuffle?: boolean; queue?: boolean };
+type PlayPartyOptions = { shuffle?: boolean; queue?: boolean; next?: boolean };
 
 export function usePlayParty() {
 	const queryClient = useQueryClient();
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
+	const addNextToQueue = useAudioPlayerStore((state) => state.addNextToQueue);
 	const toggleShuffle = useAudioPlayerStore((state) => state.toggleShuffle);
 
 	return async function playParty(
 		party: { partyId: number | string; name: string },
-		{ shuffle = false, queue = false }: PlayPartyOptions = {},
+		{ shuffle = false, queue = false, next = false }: PlayPartyOptions = {},
 	) {
 		try {
 			const details = await queryClient.ensureQueryData(
@@ -30,11 +31,12 @@ export function usePlayParty() {
 			const tracks = albums.flatMap(albumDetailsToAudioPlayerTracks);
 			if (tracks.length === 0) throw new Error("No playable tracks.");
 
-			if (queue) {
-				addToQueue(tracks);
+			if (queue || next) {
+				if (next) addNextToQueue(tracks);
+				else addToQueue(tracks);
 				toastManager.add({
 					type: "success",
-					title: "Added to queue",
+					title: next ? "Playing next" : "Added to queue",
 					description: `${tracks.length} tracks by ${party.name}`,
 				});
 				return;

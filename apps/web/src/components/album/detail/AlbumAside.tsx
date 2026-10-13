@@ -6,6 +6,7 @@ import type {
 	PartyCredit,
 } from "#/components/album/detail/albumDetail";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/base/avatar";
+import { PartyContextMenu } from "#/components/party/PartyContextMenu";
 import { formatDate } from "#/lib/utils/date";
 import { formatDurationInHoursMinutesSeconds } from "#/lib/utils/music";
 import { getPartyAvatarUrl } from "#/lib/utils/party";
@@ -43,10 +44,15 @@ function CreditList({ credits }: { credits: PartyCredit[] }) {
 				const avatarUrl = getPartyAvatarUrl(credit.avatar);
 				return (
 					<li key={`${credit.partyId}-${credit.creditType}`}>
-						<Link
-							className="-mx-2 flex min-w-0 items-center gap-3 rounded-lg p-2 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-							params={{ id: String(credit.partyId) }}
-							to="/parties/$id"
+						<PartyContextMenu
+							party={credit}
+							render={
+								<Link
+									className="-mx-2 flex min-w-0 items-center gap-3 rounded-lg p-2 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset data-popup-open:bg-accent"
+									params={{ id: String(credit.partyId) }}
+									to="/parties/$id"
+								/>
+							}
 						>
 							<Avatar size="md">
 								{avatarUrl && <AvatarImage alt="" src={avatarUrl} />}
@@ -60,7 +66,7 @@ function CreditList({ credits }: { credits: PartyCredit[] }) {
 									{credit.creditType}
 								</span>
 							</span>
-						</Link>
+						</PartyContextMenu>
 					</li>
 				);
 			})}

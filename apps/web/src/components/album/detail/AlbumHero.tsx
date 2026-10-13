@@ -26,6 +26,7 @@ import {
 	MenuSeparator,
 	MenuTrigger,
 } from "#/components/base/menu";
+import { PartyContextMenu } from "#/components/party/PartyContextMenu";
 import { useTitleLang } from "#/hooks/use-title-lang";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { formatDate } from "#/lib/utils/date";
@@ -110,13 +111,18 @@ export function AlbumHero({
 							? album.credits.map((credit, index) => (
 									<span key={`${credit.partyId}-${credit.creditType}`}>
 										{index > 0 && ", "}
-										<Link
-											className="rounded-xs outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-											params={{ id: String(credit.partyId) }}
-											to="/parties/$id"
+										<PartyContextMenu
+											party={credit}
+											render={
+												<Link
+													className="rounded-xs outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+													params={{ id: String(credit.partyId) }}
+													to="/parties/$id"
+												/>
+											}
 										>
 											{credit.name}
-										</Link>
+										</PartyContextMenu>
 									</span>
 								))
 							: "Unknown artist"}

@@ -11,6 +11,7 @@ import { z } from "zod";
 import { AppSidebar } from "#/components/app/AppSidebar";
 import { MobileHeader } from "#/components/app/MobileHeader";
 import { SearchCommand } from "#/components/app/SearchCommand";
+import { suppressNativeContextMenu } from "#/components/app/suppressNativeContextMenu";
 import { ScrollArea } from "#/components/base/scroll-area";
 import { SidebarInset, SidebarProvider } from "#/components/base/sidebar";
 import { PlayerBar } from "#/components/player/PlayerBar";
@@ -158,7 +159,7 @@ function RouteComponent() {
 
 	return (
 		<UserInfoProvider>
-			<SidebarProvider>
+			<SidebarProvider onContextMenu={suppressNativeContextMenu}>
 				<AppSidebar onOpenSearch={() => setOpenCommand(true)} />
 				<SidebarInset className="h-svh overflow-hidden">
 					<MobileHeader onOpenSearch={() => setOpenCommand(true)} />

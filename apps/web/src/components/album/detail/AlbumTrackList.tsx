@@ -1,5 +1,6 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import {
+	CopyIcon,
 	DownloadIcon,
 	EllipsisIcon,
 	ListEndIcon,
@@ -20,6 +21,7 @@ import type {
 	AlbumDetails,
 	AlbumTrack,
 } from "#/components/album/detail/albumDetail";
+import { copyText } from "#/components/app/copyText";
 import { Badge } from "#/components/base/badge";
 import { Button } from "#/components/base/button";
 import {
@@ -314,7 +316,7 @@ function TrackRow({
 						onClick={onPlay}
 						type="button"
 					>
-						<span className="flex min-w-0 items-center gap-2">
+						<span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
 							<span
 								className={cn(
 									"min-w-0 truncate text-sm font-semibold",
@@ -325,7 +327,11 @@ function TrackRow({
 								{track.title}
 							</span>
 							{badges.map((badge) => (
-								<Badge className="shrink-0" key={badge} variant="secondary">
+								<Badge
+									className="max-w-full overflow-hidden"
+									key={badge}
+									variant="secondary"
+								>
 									{badge}
 								</Badge>
 							))}
@@ -410,6 +416,17 @@ function TrackMenuItems({
 }: TrackMenuActions & { parts: typeof menuParts }) {
 	return (
 		<>
+			<Item onClick={() => void copyText(track.title)}>
+				<CopyIcon aria-hidden="true" />
+				Copy name
+			</Item>
+			{track.credits.length > 0 && (
+				<Item onClick={() => void copyText(getCreditNames(track.credits))}>
+					<CopyIcon aria-hidden="true" />
+					Copy artists
+				</Item>
+			)}
+			<Separator />
 			<Item disabled={!canPlay} onClick={onPlay}>
 				<PlayIcon aria-hidden="true" />
 				Play

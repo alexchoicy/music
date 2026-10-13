@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 
 import { AlbumTile } from "#/components/album/AlbumTile";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/base/avatar";
+import { PartyContextMenu } from "#/components/party/PartyContextMenu";
 import type { components } from "#/data/APIschema";
 import { PARTY_TYPE } from "#/enums/partyEnums";
 import { formatDate } from "#/lib/utils/date";
@@ -100,10 +101,15 @@ function PerformerLink({ party }: { party: ConcertParty }) {
 	const avatarUrl = getPartyAvatarUrl(party.avatar);
 
 	return (
-		<Link
-			className="-mx-2 flex items-center gap-3 rounded-lg p-2 transition-colors duration-100 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none"
-			params={{ id: String(party.partyId) }}
-			to="/parties/$id"
+		<PartyContextMenu
+			party={party}
+			render={
+				<Link
+					className="-mx-2 flex items-center gap-3 rounded-lg p-2 transition-colors duration-100 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring data-popup-open:bg-accent motion-reduce:transition-none"
+					params={{ id: String(party.partyId) }}
+					to="/parties/$id"
+				/>
+			}
 		>
 			<Avatar size="md">
 				{avatarUrl && <AvatarImage alt="" src={avatarUrl} />}
@@ -115,6 +121,6 @@ function PerformerLink({ party }: { party: ConcertParty }) {
 					{PARTY_ROLE[party.role]} · {PARTY_TYPE[party.type]}
 				</span>
 			</span>
-		</Link>
+		</PartyContextMenu>
 	);
 }

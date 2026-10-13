@@ -1,7 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { suppressNativeContextMenu } from "#/components/library/suppressNativeContextMenu";
 import { PartyHero } from "#/components/party/detail/PartyHero";
 import { PartyTabs } from "#/components/party/detail/PartyTabs";
 import { partyQueries } from "#/lib/queries/party.queries";
@@ -25,7 +24,6 @@ function RouteComponent() {
 	return (
 		<main
 			className="relative min-h-full w-full overflow-hidden"
-			onContextMenu={suppressNativeContextMenu}
 		>
 			<div
 				aria-hidden="true"

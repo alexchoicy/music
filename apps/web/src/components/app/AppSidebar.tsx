@@ -21,6 +21,7 @@ import type { LucideIcon } from "lucide-react";
 
 import { AppMark } from "#/components/app/AppMark";
 import { Button } from "#/components/base/button";
+import { Kbd, KbdGroup } from "#/components/base/kbd";
 import {
 	Menu,
 	MenuItem,
@@ -47,6 +48,7 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "#/components/base/sidebar";
+import { PlaylistContextMenu } from "#/components/playlist/PlaylistContextMenu";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { ROLE } from "#/enums/userEnums";
 import { authMutations } from "#/lib/queries/auth.queries";
@@ -59,15 +61,17 @@ type NavigationItem = {
 	label: string;
 	icon: LucideIcon;
 	to: Exclude<FileRouteTypes["to"], "/login">;
+	// Matches the shortcut registered in the authed layout.
+	hotkey?: string;
 	uploader?: boolean;
 	exact?: boolean;
 };
 
 const mainNavigation = [
-	{ label: "Home", icon: HouseIcon, to: "/" },
-	{ label: "Albums", icon: Disc3Icon, to: "/albums" },
-	{ label: "Parties", icon: UsersRoundIcon, to: "/parties" },
-	{ label: "Concerts", icon: MicVocalIcon, to: "/concerts" },
+	{ label: "Home", icon: HouseIcon, to: "/", hotkey: "1" },
+	{ label: "Albums", icon: Disc3Icon, to: "/albums", hotkey: "2" },
+	{ label: "Parties", icon: UsersRoundIcon, to: "/parties", hotkey: "3" },
+	{ label: "Concerts", icon: MicVocalIcon, to: "/concerts", hotkey: "4" },
 	{ label: "Create", icon: CirclePlusIcon, to: "/create", uploader: true },
 	// A playlist page highlights that playlist in the Playlists group instead.
 	{ label: "Playlists", icon: ListMusicIcon, to: "/playlists", exact: true },
@@ -103,6 +107,7 @@ export function AppSidebar({ onOpenSearch }: { onOpenSearch: () => void }) {
 					{canUpload && <UploadStatus onNavigate={closeMobileSidebar} />}
 				</div>
 				<SidebarMenuButton
+					aria-keyshortcuts="Control+K"
 					onClick={() => {
 						closeMobileSidebar();
 						onOpenSearch();
@@ -111,7 +116,14 @@ export function AppSidebar({ onOpenSearch }: { onOpenSearch: () => void }) {
 					variant="outline"
 				>
 					<SearchIcon aria-hidden="true" />
-					<span>Search</span>
+					<span className="truncate">Search</span>
+					<KbdGroup
+						aria-hidden="true"
+						className="ms-auto hidden md:inline-flex"
+					>
+						<Kbd>Ctrl</Kbd>
+						<Kbd>K</Kbd>
+					</KbdGroup>
 				</SidebarMenuButton>
 			</SidebarHeader>
 
@@ -124,6 +136,7 @@ export function AppSidebar({ onOpenSearch }: { onOpenSearch: () => void }) {
 								return (
 									<SidebarMenuItem key={item.to}>
 										<SidebarMenuButton
+											aria-keyshortcuts={item.hotkey}
 											onClick={closeMobileSidebar}
 											render={
 												<Link
@@ -139,7 +152,15 @@ export function AppSidebar({ onOpenSearch }: { onOpenSearch: () => void }) {
 											}
 										>
 											<item.icon aria-hidden="true" />
-											<span>{item.label}</span>
+											<span className="truncate">{item.label}</span>
+											{item.hotkey && (
+												<Kbd
+													aria-hidden="true"
+													className="ms-auto hidden md:inline-flex"
+												>
+													{item.hotkey}
+												</Kbd>
+											)}
 										</SidebarMenuButton>
 									</SidebarMenuItem>
 								);
@@ -155,23 +176,28 @@ export function AppSidebar({ onOpenSearch }: { onOpenSearch: () => void }) {
 							<SidebarMenu>
 								{playlists.map((playlist) => (
 									<SidebarMenuItem key={playlist.playlistId}>
-										<SidebarMenuButton
-											onClick={closeMobileSidebar}
+										<PlaylistContextMenu
+											playlist={playlist}
 											render={
-												<Link
-													activeOptions={{ exact: true }}
-													activeProps={{
-														"aria-current": "page",
-														"data-active": "true",
-													}}
-													params={{ id: String(playlist.playlistId) }}
-													to="/playlists/$id"
+												<SidebarMenuButton
+													onClick={closeMobileSidebar}
+													render={
+														<Link
+															activeOptions={{ exact: true }}
+															activeProps={{
+																"aria-current": "page",
+																"data-active": "true",
+															}}
+															params={{ id: String(playlist.playlistId) }}
+															to="/playlists/$id"
+														/>
+													}
+													size="sm"
 												/>
 											}
-											size="sm"
 										>
 											<span>{playlist.name}</span>
-										</SidebarMenuButton>
+										</PlaylistContextMenu>
 									</SidebarMenuItem>
 								))}
 							</SidebarMenu>

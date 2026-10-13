@@ -65,7 +65,7 @@ export function AlbumTile({
 				className,
 			)}
 		>
-			<div className="relative aspect-square w-full transition-transform duration-150 ease-out group-hover/tile:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover/tile:translate-y-0">
+			<div className="pointer-events-none relative z-10 aspect-square w-full transition-transform duration-150 ease-out group-hover/tile:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover/tile:translate-y-0">
 				<div className="absolute inset-0 overflow-hidden rounded-xl bg-muted">
 					{coverUrl ? (
 						<img
@@ -91,7 +91,7 @@ export function AlbumTile({
 						type={album.type}
 					/>
 				)}
-				<span className="absolute right-2 bottom-2 z-10 opacity-0 transition-[opacity,translate] duration-150 group-hover/tile:opacity-100 focus-within:opacity-100 motion-safe:translate-y-1 motion-safe:group-hover/tile:translate-y-0 motion-safe:focus-within:translate-y-0">
+				<span className="pointer-events-auto absolute right-2 bottom-2 z-10 opacity-0 transition-[opacity,translate] duration-150 group-hover/tile:opacity-100 focus-within:opacity-100 motion-safe:translate-y-1 motion-safe:group-hover/tile:translate-y-0 motion-safe:focus-within:translate-y-0">
 					<Button
 						aria-label={`Play ${album.title}`}
 						onClick={() => void play()}
@@ -109,7 +109,7 @@ export function AlbumTile({
 					<Link
 						className={cn(
 							"truncate text-sm font-semibold outline-none",
-							"after:absolute after:inset-0 after:rounded-xl focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-ring",
+							"after:absolute after:inset-0 after:rounded-xl focus-visible:after:outline-2 focus-visible:after:outline-offset-6 focus-visible:after:outline-ring",
 							isPlaying && "text-primary",
 						)}
 						lang={titleLang(album.languageId)}

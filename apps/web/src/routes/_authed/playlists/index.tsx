@@ -6,7 +6,6 @@ import { useState } from "react";
 import { PageHeader } from "#/components/app/PageHeader";
 import { Button } from "#/components/base/button";
 import { LibraryEmptyState } from "#/components/library/LibraryStates";
-import { suppressNativeContextMenu } from "#/components/library/suppressNativeContextMenu";
 import { PlaylistNameDialog } from "#/components/playlist/PlaylistNameDialog";
 import { PlaylistTile } from "#/components/playlist/PlaylistTile";
 import { useUserInfo } from "#/context/UserInfoContext";
@@ -23,10 +22,7 @@ function PlaylistsPage() {
 	const navigate = useNavigate();
 
 	return (
-		<main
-			className="flex min-h-full w-full min-w-0 flex-col gap-6 p-4 sm:p-6"
-			onContextMenu={suppressNativeContextMenu}
-		>
+		<main className="flex min-h-full w-full min-w-0 flex-col gap-6 p-4 sm:p-6">
 			<div className="flex flex-wrap items-end justify-between gap-4">
 				<PageHeader title="Playlists" />
 				<Button onClick={() => setCreating(true)}>

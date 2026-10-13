@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
+	CopyIcon,
 	Disc3Icon,
 	ListEndIcon,
 	ListPlusIcon,
@@ -14,6 +15,7 @@ import type { ReactNode } from "react";
 
 import { shareAlbumLink } from "#/components/album/detail/albumDetail";
 import type { AlbumDetails } from "#/components/album/detail/albumDetail";
+import { copyText } from "#/components/app/copyText";
 import {
 	ContextMenu,
 	ContextMenuItem,
@@ -86,6 +88,23 @@ export function AlbumContextMenu({
 					{children}
 				</ContextMenuTrigger>
 				<ContextMenuPopup className="w-56">
+					<ContextMenuItem onClick={() => void copyText(album.title)}>
+						<CopyIcon aria-hidden="true" />
+						Copy name
+					</ContextMenuItem>
+					{album.artists.length > 0 && (
+						<ContextMenuItem
+							onClick={() =>
+								void copyText(
+									album.artists.map((artist) => artist.name).join(", "),
+								)
+							}
+						>
+							<CopyIcon aria-hidden="true" />
+							Copy artists
+						</ContextMenuItem>
+					)}
+					<ContextMenuSeparator />
 					<ContextMenuItem
 						onClick={() =>
 							void withAlbum((details) =>

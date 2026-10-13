@@ -8,7 +8,6 @@ import { ConcertTile } from "#/components/concert/ConcertTile";
 import { ContinueListening } from "#/components/home/ContinueListening";
 import { HomeSection, TileRow } from "#/components/home/HomeSection";
 import { LibraryCounts } from "#/components/home/LibraryCounts";
-import { suppressNativeContextMenu } from "#/components/library/suppressNativeContextMenu";
 import { PartyTile } from "#/components/party/PartyTile";
 import { homeQueries } from "#/lib/queries/home.queries";
 import { statsQueries } from "#/lib/queries/stats.queries";
@@ -66,10 +65,7 @@ function RouteComponent() {
 	}, [queryClient, userInfo.id]);
 
 	return (
-		<main
-			className="flex min-h-full w-full min-w-0 flex-col gap-8 p-4 sm:p-6"
-			onContextMenu={suppressNativeContextMenu}
-		>
+		<main className="flex min-h-full w-full min-w-0 flex-col gap-8 p-4 sm:p-6">
 			<PageHeader title="Home" />
 
 			<LibraryCounts stats={stats} />

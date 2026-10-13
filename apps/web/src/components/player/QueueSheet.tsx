@@ -70,7 +70,7 @@ export function QueueSheet({
 					</SheetDescription>
 					<Button
 						className="self-start"
-						disabled={queueLength === 0}
+						disabled={queueLength <= 1}
 						onClick={clearQueue}
 						size="sm"
 						variant="outline"

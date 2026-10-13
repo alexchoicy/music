@@ -8,7 +8,6 @@ import { AlbumAbout, AlbumCredits } from "#/components/album/detail/AlbumAside";
 import { AlbumHero } from "#/components/album/detail/AlbumHero";
 import { AlbumTrackList } from "#/components/album/detail/AlbumTrackList";
 import { AlbumExtras } from "#/components/album/extras/AlbumExtras";
-import { suppressNativeContextMenu } from "#/components/library/suppressNativeContextMenu";
 import { showQueueToast } from "#/components/player/queueToast";
 import { AddToPlaylistDialog } from "#/components/playlist/AddToPlaylistDialog";
 import { useUserInfo } from "#/context/UserInfoContext";
@@ -63,7 +62,6 @@ function RouteComponent() {
 	return (
 		<main
 			className="relative min-h-full w-full overflow-hidden"
-			onContextMenu={suppressNativeContextMenu}
 		>
 			<div
 				aria-hidden="true"

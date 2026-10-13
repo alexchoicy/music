@@ -100,7 +100,10 @@ export function PlaylistTrackRow({
 			number={index + 1}
 			onPlay={onPlay}
 			playDisabled={audioDisabled}
-			ref={ref}
+			// Without a mounted grip handle, dnd-kit makes the whole row its drag
+			// activator and marks it as a disabled button, so register the row only
+			// while reordering.
+			ref={editing ? ref : undefined}
 			subtitle={
 				credits === undefined
 					? "—"

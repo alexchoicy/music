@@ -466,6 +466,7 @@ export function PlayerBar() {
 				aria-label="Player"
 				className="rounded-4xl bg-popover/85 shadow-player backdrop-blur-xl backdrop-saturate-150"
 				role="region"
+				data-slot="player-bar"
 			>
 				<div className="flex items-center gap-1 px-2 py-1.5 sm:hidden">
 					<div className="min-w-0 flex-1">

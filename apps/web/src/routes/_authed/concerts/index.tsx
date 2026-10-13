@@ -5,7 +5,7 @@ import {
 	useNavigate,
 } from "@tanstack/react-router";
 import { MicVocalIcon } from "lucide-react";
-import { useDeferredValue } from "react";
+import { useDeferredValue, useRef } from "react";
 import { z } from "zod";
 
 import { PageHeader } from "#/components/app/PageHeader";
@@ -20,6 +20,7 @@ import {
 	ResetFiltersButton,
 	SearchField,
 } from "#/components/library/LibraryToolbar";
+import { useGridFocusHotkeys } from "#/components/library/useGridFocusHotkeys";
 import { PartyFilterField } from "#/components/party/PartyFilterCombobox";
 import {
 	DEFAULT_LIST_SORT,
@@ -80,6 +81,8 @@ function isDefaultSearch(search: ConcertSearch) {
 
 function RouteComponent() {
 	const navigate = useNavigate({ from: Route.fullPath });
+	const concertGridRef = useRef<HTMLUListElement>(null);
+	useGridFocusHotkeys(concertGridRef);
 	const filters = Route.useSearch();
 	const deferredFilters = useDeferredValue(filters);
 	const concertQuery: ConcertQuery = {
@@ -172,7 +175,11 @@ function RouteComponent() {
 				/>
 			) : (
 				<>
-					<ul aria-label="Concerts" className={CONCERT_GRID_CLASS}>
+					<ul
+						aria-label="Concerts"
+						ref={concertGridRef}
+						className={CONCERT_GRID_CLASS}
+					>
 						{concerts.map((concert) => (
 							<li className="min-w-0" key={concert.concertId}>
 								<ConcertTile concert={concert} />
