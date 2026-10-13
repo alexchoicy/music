@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AlbumIcon, MicVocalIcon, UsersIcon, YoutubeIcon } from "lucide-react";
+import { AlbumIcon, MicVocalIcon, UsersIcon, PlayIcon } from "lucide-react";
 import { lazy, Suspense } from "react";
 import { z } from "zod";
 
@@ -82,7 +82,7 @@ function RouteComponent() {
 						Concert
 					</TabsTrigger>
 					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="cover">
-						<YoutubeIcon />
+						<PlayIcon />
 						Cover
 					</TabsTrigger>
 					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="party">

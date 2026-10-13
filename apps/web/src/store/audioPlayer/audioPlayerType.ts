@@ -14,6 +14,9 @@ export type AudioPlayerTrack = {
 	albumId: string;
 	albumTitle: string;
 	title: string;
+	// Optional so queues saved before these fields existed still load.
+	languageId?: number | string | null;
+	albumLanguageId?: number | string | null;
 	contentType: components["schemas"]["TrackContentType"];
 	versionType: components["schemas"]["TrackVersionType"];
 	party: {

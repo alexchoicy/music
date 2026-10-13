@@ -4,7 +4,7 @@ import { cva } from 'class-variance-authority';
 import type { VariantProps } from 'class-variance-authority';
 import type * as React from "react";
 
-import { Separator } from "@/old-components/coss/separator";
+import { Separator } from "@/components/base/separator";
 import { cn } from "@/lib/utils/styles";
 
 export const groupVariants = cva(

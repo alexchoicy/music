@@ -8,8 +8,8 @@ import { ChevronRightIcon, XIcon } from "lucide-react";
 import type React from "react";
 import { createContext, useContext } from "react";
 
-import { Button } from "@/old-components/coss/button";
-import { ScrollArea } from "@/old-components/coss/scroll-area";
+import { Button } from "@/components/base/button";
+import { ScrollArea } from "@/components/base/scroll-area";
 import { cn } from "@/lib/utils/styles";
 
 type DrawerPosition = "right" | "left" | "top" | "bottom";

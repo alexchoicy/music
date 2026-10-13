@@ -64,8 +64,10 @@ public sealed class PlaylistEntryDetails
     public required int EntryId { get; init; }
     public required int AlbumId { get; init; }
     public required string AlbumTitle { get; init; }
+    public int? AlbumLanguageId { get; init; }
     public required int AlbumDiscId { get; init; }
     public required int TrackId { get; init; }
     public required string Title { get; init; }
+    public int? LanguageId { get; init; }
     public required int DurationInMs { get; init; }
 }

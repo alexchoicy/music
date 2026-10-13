@@ -1,14 +1,29 @@
-import { useHotkey } from "@tanstack/react-hotkeys";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
 	stripSearchParams,
 	useNavigate,
 } from "@tanstack/react-router";
-import { ChevronDownIcon, SearchIcon, UsersRoundIcon } from "lucide-react";
-import { useDeferredValue, useRef } from "react";
+import { UsersRoundIcon } from "lucide-react";
+import { useDeferredValue, useId } from "react";
 import { z } from "zod";
 
+import { PageHeader } from "#/components/app/PageHeader";
+import { Label } from "#/components/base/label";
+import { Switch } from "#/components/base/switch";
+import { FilterChips } from "#/components/library/FilterChips";
+import { FilterSelect } from "#/components/library/FilterSelect";
+import {
+	LibraryEmptyState,
+	TileGridSkeleton,
+} from "#/components/library/LibraryStates";
+import {
+	LibraryFooter,
+	ResetFiltersButton,
+	SearchField,
+} from "#/components/library/LibraryToolbar";
+import { suppressNativeContextMenu } from "#/components/library/suppressNativeContextMenu";
+import { PartyTile } from "#/components/party/PartyTile";
 import {
 	DEFAULT_LIST_SORT,
 	isListSortOption,
@@ -22,42 +37,10 @@ import {
 } from "#/enums/partyEnums";
 import { partyQueries } from "#/lib/queries/party.queries";
 import type { PartyQuery } from "#/lib/queries/party.queries";
-import { Card, CardPanel } from "#/old-components/coss/card";
-import { Checkbox } from "#/old-components/coss/checkbox";
-import {
-	Collapsible,
-	CollapsiblePanel,
-	CollapsibleTrigger,
-} from "#/old-components/coss/collapsible";
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput,
-} from "#/old-components/coss/input-group";
-import { Label } from "#/old-components/coss/label";
-import { Skeleton } from "#/old-components/coss/skeleton";
-import { EnumFieldSelect } from "#/old-components/enumFieldSelect";
-import { LibraryEmptyState } from "#/old-components/LibraryEmptyState";
-import { PartyCard } from "#/old-components/parties/PartyCard";
 
 type PartyGenderFilter = "All" | (typeof PARTY_GENDER_OPTIONS)[number]["value"];
 type PartyKindFilter = "All" | (typeof PARTY_KIND_OPTIONS)[number]["value"];
 type PartyTypeFilter = "All" | (typeof PARTY_TYPE_OPTIONS)[number]["value"];
-
-const PARTY_GENDER_FILTER_OPTIONS: {
-	label: string;
-	value: PartyGenderFilter;
-}[] = [{ label: "All", value: "All" }, ...PARTY_GENDER_OPTIONS];
-
-const PARTY_KIND_FILTER_OPTIONS: {
-	label: string;
-	value: PartyKindFilter;
-}[] = [{ label: "All", value: "All" }, ...PARTY_KIND_OPTIONS];
-
-const PARTY_TYPE_FILTER_OPTIONS: {
-	label: string;
-	value: PartyTypeFilter;
-}[] = [{ label: "All", value: "All" }, ...PARTY_TYPE_OPTIONS];
 
 type PartySearch = {
 	gender: PartyGenderFilter;
@@ -117,10 +100,32 @@ export const Route = createFileRoute("/_authed/parties/")({
 	component: RouteComponent,
 });
 
+const PARTY_GRID_CLASS =
+	"grid min-w-0 grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-[repeat(auto-fill,minmax(148px,1fr))]";
+
+// Chip groups use [] for "All"; the URL keeps the "All" sentinel.
+function toChips<Value extends string>(value: "All" | Value): Value[] {
+	return value === "All" ? [] : [value];
+}
+
+function fromChips<Value extends string>(value: Value[]): "All" | Value {
+	return value[0] ?? "All";
+}
+
+function isDefaultSearch(search: PartySearch) {
+	return (
+		!search.search &&
+		search.gender === "All" &&
+		search.kind === "All" &&
+		search.type === "All" &&
+		search.excludeNoAlbums &&
+		search.sort === DEFAULT_LIST_SORT
+	);
+}
+
 function RouteComponent() {
 	const navigate = useNavigate({ from: Route.fullPath });
-	const partyGridRef = useRef<HTMLDivElement>(null);
-	const searchInputRef = useRef<HTMLInputElement>(null);
+	const excludeNoAlbumsId = useId();
 	const filters = Route.useSearch();
 	const deferredFilters = useDeferredValue(filters);
 	const partyQuery: PartyQuery = {
@@ -132,7 +137,6 @@ function RouteComponent() {
 		Type: deferredFilters.type === "All" ? undefined : deferredFilters.type,
 		ExcludeNoAlbums: deferredFilters.excludeNoAlbums,
 	};
-
 	const {
 		data: parties,
 		isError,
@@ -149,203 +153,108 @@ function RouteComponent() {
 		});
 	}
 
-	function focusPartyCard(direction: "down" | "left" | "right" | "up") {
-		const grid = partyGridRef.current;
-		if (!grid) return;
-
-		const links = Array.from(grid.querySelectorAll<HTMLAnchorElement>("a"));
-		if (!links.length) return;
-
-		const firstRowTop = links[0]?.offsetTop;
-		const nextRowIndex = links.findIndex(
-			(link) => link.offsetTop !== firstRowTop,
-		);
-		const columnCount = nextRowIndex === -1 ? links.length : nextRowIndex;
-		const currentIndex = links.findIndex(
-			(link) => link === document.activeElement,
-		);
-		const nextIndex = {
-			down: currentIndex === -1 ? 0 : currentIndex + columnCount,
-			left: currentIndex === -1 ? 0 : currentIndex - 1,
-			right: currentIndex === -1 ? 0 : currentIndex + 1,
-			up: currentIndex === -1 ? 0 : currentIndex - columnCount,
-		}[direction];
-
-		links.at(Math.max(0, Math.min(links.length - 1, nextIndex)))?.focus();
-	}
-
-	useHotkey("Escape", () => {
-		if (document.activeElement instanceof HTMLElement) {
-			document.activeElement.blur();
-		}
-	});
-	useHotkey("W", () => focusPartyCard("up"));
-	useHotkey("A", () => focusPartyCard("left"));
-	useHotkey("S", () => focusPartyCard("down"));
-	useHotkey("D", () => focusPartyCard("right"));
-	useHotkey("Control+F", () => searchInputRef.current?.focus());
-	useHotkey("R", () => updateSearch(partySearchDefaults));
-	useHotkey("T", () => {
-		const currentIndex = LIST_SORT_OPTIONS.findIndex(
-			(option) => option.value === filters.sort,
-		);
-		updateSearch({
-			sort: LIST_SORT_OPTIONS[(currentIndex + 1) % LIST_SORT_OPTIONS.length]
-				.value,
-		});
-	});
-	useHotkey("E", () => {
-		const links =
-			partyGridRef.current?.querySelectorAll<HTMLAnchorElement>("a");
-		links?.[links.length - 1]?.focus();
-	});
-	useHotkey("Shift+E", () => {
-		partyGridRef.current?.querySelector<HTMLAnchorElement>("a")?.focus();
-	});
-
-	const filterControls = (className: string, excludeNoAlbumsId: string) => (
-		<div className={className}>
-			<InputGroup className="sm:w-64">
-				<InputGroupAddon>
-					<SearchIcon aria-hidden="true" />
-				</InputGroupAddon>
-				<InputGroupInput
-					aria-label="Search parties"
-					placeholder="Search parties..."
-					ref={searchInputRef}
-					type="search"
-					value={filters.search}
-					onChange={(event) => {
-						updateSearch({ search: event.target.value });
-					}}
-				/>
-			</InputGroup>
-			<div className="sm:w-44">
-				<EnumFieldSelect
-					label="Type"
-					onValueChange={(type) => updateSearch({ type })}
-					options={PARTY_TYPE_FILTER_OPTIONS}
-					value={filters.type}
-				/>
-			</div>
-			<div className="sm:w-44">
-				<EnumFieldSelect
-					label="Kind"
-					onValueChange={(kind) => updateSearch({ kind })}
-					options={PARTY_KIND_FILTER_OPTIONS}
-					value={filters.kind}
-				/>
-			</div>
-			<div className="sm:w-44">
-				<EnumFieldSelect
-					label="Gender"
-					onValueChange={(gender) => updateSearch({ gender })}
-					options={PARTY_GENDER_FILTER_OPTIONS}
-					value={filters.gender}
-				/>
-			</div>
-			<div className="flex min-h-9 items-center gap-2">
-				<Checkbox
-					checked={filters.excludeNoAlbums}
-					id={excludeNoAlbumsId}
-					onCheckedChange={(checked) => {
-						updateSearch({ excludeNoAlbums: checked === true });
-					}}
-				/>
-				<Label className="text-sm" htmlFor={excludeNoAlbumsId}>
-					Exclude parties without albums
-				</Label>
-			</div>
-			<div className="sm:ml-auto sm:w-56">
-				<EnumFieldSelect
-					label="Sort"
-					onValueChange={(sort) => updateSearch({ sort })}
-					options={LIST_SORT_OPTIONS}
-					value={filters.sort}
-				/>
-			</div>
-		</div>
-	);
-
 	return (
-		<main className="flex min-h-full w-full min-w-0 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
-			<header className="flex flex-col gap-4">
-				<div className="flex flex-col gap-2">
-					<p className="text-sm font-medium text-muted-foreground">Library</p>
-					<h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
-						Parties
-					</h1>
-				</div>
+		<main
+			className="flex min-h-full w-full min-w-0 flex-col gap-6 p-4 sm:p-6"
+			onContextMenu={suppressNativeContextMenu}
+		>
+			<PageHeader title="Parties" />
 
-				<Collapsible defaultOpen={false}>
-					<CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm font-medium sm:hidden">
-						Filters
-						<ChevronDownIcon aria-hidden="true" className="size-4" />
-					</CollapsibleTrigger>
-					<CollapsiblePanel className="sm:hidden">
-						{filterControls(
-							"flex flex-col gap-3 pt-3",
-							"exclude-no-albums-mobile",
-						)}
-					</CollapsiblePanel>
-				</Collapsible>
-				{filterControls(
-					"hidden flex-col gap-3 sm:flex sm:flex-row sm:flex-wrap sm:items-end",
-					"exclude-no-albums-desktop",
-				)}
-			</header>
+			<div
+				aria-label="Filter parties"
+				className="flex flex-col gap-4"
+				role="search"
+			>
+				<div className="flex flex-wrap items-end gap-x-5 gap-y-3">
+					<SearchField
+						label="Search parties"
+						onValueChange={(search) => updateSearch({ search })}
+						value={filters.search}
+					/>
+					<span className="flex h-8 items-center gap-2.5">
+						<Switch
+							checked={filters.excludeNoAlbums}
+							id={excludeNoAlbumsId}
+							onCheckedChange={(checked) =>
+								updateSearch({ excludeNoAlbums: checked })
+							}
+						/>
+						<Label htmlFor={excludeNoAlbumsId}>
+							Hide parties without albums
+						</Label>
+					</span>
+					<FilterSelect
+						className="sm:ms-auto sm:w-56"
+						label="Sort"
+						onValueChange={(sort) => updateSearch({ sort })}
+						options={LIST_SORT_OPTIONS}
+						value={filters.sort}
+					/>
+				</div>
+				<div className="flex flex-wrap items-center gap-x-7 gap-y-3">
+					<FilterChips
+						label="Type"
+						onValueChange={(type) => updateSearch({ type: fromChips(type) })}
+						options={PARTY_TYPE_OPTIONS}
+						value={toChips(filters.type)}
+					/>
+					<FilterChips
+						label="Kind"
+						onValueChange={(kind) => updateSearch({ kind: fromChips(kind) })}
+						options={PARTY_KIND_OPTIONS}
+						value={toChips(filters.kind)}
+					/>
+					<FilterChips
+						label="Gender"
+						onValueChange={(gender) =>
+							updateSearch({ gender: fromChips(gender) })
+						}
+						options={PARTY_GENDER_OPTIONS}
+						value={toChips(filters.gender)}
+					/>
+					<div className="ms-auto">
+						<ResetFiltersButton
+							disabled={isDefaultSearch(filters)}
+							onClick={() => updateSearch(partySearchDefaults)}
+						/>
+					</div>
+				</div>
+			</div>
 
 			{isPending ? (
-				<PartyGridSkeleton />
+				<TileGridSkeleton gridClassName={PARTY_GRID_CLASS} shape="round" />
 			) : isError ? (
 				<LibraryEmptyState
 					description="Try again in a moment."
 					icon={<UsersRoundIcon aria-hidden="true" />}
 					title="Unable to load parties"
 				/>
-			) : parties.length ? (
-				<div
-					className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
-					ref={partyGridRef}
-				>
-					{parties.map((party) => {
-						return <PartyCard key={party.partyId} party={party} />;
-					})}
-				</div>
-			) : (
+			) : parties.length === 0 ? (
 				<LibraryEmptyState
-					description="Parties will appear here after they are created."
+					description={
+						isDefaultSearch(filters)
+							? "Parties will appear here after they are created."
+							: "No parties match these filters."
+					}
 					icon={<UsersRoundIcon aria-hidden="true" />}
-					title="No parties yet"
+					title={isDefaultSearch(filters) ? "No parties yet" : "No matches"}
 				/>
+			) : (
+				<>
+					<ul aria-label="Parties" className={PARTY_GRID_CLASS}>
+						{parties.map((party) => (
+							<li className="min-w-0" key={party.partyId}>
+								<PartyTile party={party} variant="library" />
+							</li>
+						))}
+					</ul>
+					<LibraryFooter>
+						<p className="text-xs text-muted-foreground">
+							{parties.length} {parties.length === 1 ? "party" : "parties"}
+						</p>
+					</LibraryFooter>
+				</>
 			)}
 		</main>
-	);
-}
-
-function PartyGridSkeleton() {
-	return (
-		<div className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-			{Array.from({ length: 10 }, (_, index) => (
-				<Card className="@container min-w-0" key={index}>
-					<CardPanel className="flex flex-col" size="sm">
-						<div className="flex flex-col items-start gap-2 @min-[16rem]:flex-row @min-[16rem]:gap-4">
-							<Skeleton className="size-12 shrink-0 rounded-2xl @min-[16rem]:size-20" />
-							<div className="flex w-full min-w-0 flex-1 flex-col gap-2">
-								<div className="grid gap-2">
-									<Skeleton className="h-5 w-3/4" />
-									<Skeleton className="h-4 w-1/2" />
-								</div>
-								<div className="flex flex-wrap gap-1.5">
-									<Skeleton className="h-5 w-16 rounded-full" />
-									<Skeleton className="h-5 w-14 rounded-full" />
-								</div>
-							</div>
-						</div>
-						<Skeleton className="mt-auto h-4 w-3/4" />
-					</CardPanel>
-				</Card>
-			))}
-		</div>
 	);
 }

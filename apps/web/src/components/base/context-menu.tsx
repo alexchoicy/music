@@ -26,13 +26,14 @@ export function ContextMenuTrigger({
 	);
 }
 
+// Opens to the right of the pointer, top edge at the pointer, like a native menu.
 export function ContextMenuPopup({
 	children,
 	className,
-	sideOffset = 4,
-	align = "center",
+	sideOffset = 2,
+	align = "start",
 	alignOffset,
-	side = "bottom",
+	side = "right",
 	anchor,
 	portalProps,
 	...props

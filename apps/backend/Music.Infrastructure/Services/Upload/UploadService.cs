@@ -158,11 +158,11 @@ namespace Music.Infrastructure.Services.Upload
                 );
             }
 
-            // Non-image extras (bonus audio/video, documents) are served as uploaded
+            // Extra audio and documents are served as uploaded; images and videos get artwork variants
             bool isUnprocessedExtra =
                 storedFile
                     is { ExtraAssets.Count: > 0, TrackAudios.Count: 0, ConcertFiles.Count: 0 }
-                && storedFile.Type != FileType.Image;
+                && storedFile.Type is not (FileType.Image or FileType.Video);
 
             fileObject.ProcessingStatus = isUnprocessedExtra
                 ? FileProcessingStatus.Completed
@@ -186,6 +186,8 @@ namespace Music.Infrastructure.Services.Upload
                 {
                     FileObjectId = fileObject.Id,
                 },
+                { Type: FileType.Video, ExtraAssets.Count: > 0 } =>
+                    new ExtraVideoUploadProcessWorker { FileObjectId = fileObject.Id },
                 _ => null,
             };
 

@@ -17,18 +17,37 @@ public sealed class SearchService(
     )
     {
         string query = request.Query?.Trim() ?? string.Empty;
+        int limit = Math.Max(request.Limit, 0);
 
+        // The services share one DbContext, so these run one after another.
+        AlbumListRequest albumRequest = new() { Search = query, Limit = limit };
         IReadOnlyList<AlbumListItem> albums = await albumService.GetAllForListAsync(
-            new AlbumListRequest { Search = query },
+            albumRequest,
             cancellationToken
         );
+        int albumTotal = await CountAsync(
+            albums.Count,
+            limit,
+            () => albumService.CountForListAsync(albumRequest, cancellationToken)
+        );
+
+        ConcertListRequest concertRequest = new() { Search = query, Limit = limit };
         IReadOnlyList<ConcertListItem> concerts = await concertService.GetAllAsync(
-            new ConcertListRequest { Search = query },
+            concertRequest,
             cancellationToken
         );
-        IList<PartyItems> parties = await partyService.GetAllAsync(
-            new PartyListRequest { Search = query },
-            cancellationToken
+        int concertTotal = await CountAsync(
+            concerts.Count,
+            limit,
+            () => concertService.CountAsync(concertRequest, cancellationToken)
+        );
+
+        PartyListRequest partyRequest = new() { Search = query, Limit = limit };
+        IList<PartyItems> parties = await partyService.GetAllAsync(partyRequest, cancellationToken);
+        int partyTotal = await CountAsync(
+            parties.Count,
+            limit,
+            () => partyService.CountAsync(partyRequest, cancellationToken)
         );
 
         return new SearchResult
@@ -36,6 +55,14 @@ public sealed class SearchService(
             Albums = albums,
             Concerts = concerts,
             Parties = parties.ToList(),
+            AlbumTotal = albumTotal,
+            ConcertTotal = concertTotal,
+            PartyTotal = partyTotal,
         };
+    }
+
+    private static async Task<int> CountAsync(int loaded, int limit, Func<Task<int>> count)
+    {
+        return limit > 0 && loaded >= limit ? await count() : loaded;
     }
 }

@@ -7,8 +7,28 @@ import {
 	useSuspenseQuery,
 } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ListMusicIcon, ListPlusIcon, PlayIcon } from "lucide-react";
+import {
+	ArrowUpDownIcon,
+	CheckIcon,
+	ListMusicIcon,
+	ListPlusIcon,
+	PlayIcon,
+} from "lucide-react";
+import { useState } from "react";
 
+import { Alert, AlertDescription } from "#/components/base/alert";
+import { Button } from "#/components/base/button";
+import { toastManager } from "#/components/base/toast";
+import {
+	Tooltip,
+	TooltipPopup,
+	TooltipTrigger,
+} from "#/components/base/tooltip";
+import { LibraryEmptyState } from "#/components/library/LibraryStates";
+import { PlaylistActionsMenu } from "#/components/playlist/PlaylistActionsMenu";
+import { PlaylistArtwork } from "#/components/playlist/PlaylistArtwork";
+import { PlaylistTrackRow } from "#/components/playlist/PlaylistTrackRow";
+import { playlistEntryToTrack } from "#/components/playlist/playlistTracks";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { albumQueries } from "#/lib/queries/album.queries";
 import { authQueries } from "#/lib/queries/auth.queries";
@@ -17,20 +37,13 @@ import {
 	playlistQueries,
 } from "#/lib/queries/playlist.queries";
 import type { PlaylistDetails } from "#/lib/queries/playlist.queries";
-import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
+import { formatDurationInHoursMinutesSeconds } from "#/lib/utils/music";
 import {
 	playlistCoverEntries,
 	playlistEntryCoverUrl,
 } from "#/lib/utils/playlist";
-import { Alert, AlertDescription } from "#/old-components/coss/alert";
-import { Button } from "#/old-components/coss/button";
-import { toastManager } from "#/old-components/coss/toast";
-import { LibraryEmptyState } from "#/old-components/LibraryEmptyState";
-import { PlaylistActionsMenu } from "#/old-components/playlists/PlaylistActionsMenu";
-import { PlaylistArtwork } from "#/old-components/playlists/PlaylistArtwork";
-import { PlaylistTrackRow } from "#/old-components/playlists/PlaylistTrackRow";
-import { albumTrackDetailsToAudioPlayerTrack } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
+import type { AudioPlayerTrack } from "#/store/audioPlayer/audioPlayerType";
 
 export const Route = createFileRoute("/_authed/playlists/$id")({
 	loader: async ({ context, params }) => {
@@ -57,9 +70,30 @@ function PlaylistPage() {
 	const saveToastId = `playlist-${id}-save`;
 	const { data: playlist } = useSuspenseQuery(detailQuery);
 	const queryClient = useQueryClient();
+	const [editing, setEditing] = useState(false);
 	const navigate = useNavigate();
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
+
+	function queueTracks(tracks: AudioPlayerTrack[]) {
+		if (tracks.length === 0) return;
+		addToQueue(tracks);
+		const first = tracks.at(0);
+		toastManager.add({
+			type: "success",
+			title: "Added to queue",
+			description:
+				tracks.length === 1 && first
+					? first.title
+					: `${tracks.length} tracks from ${playlist.name}`,
+		});
+	}
+	const currentTrack = useAudioPlayerStore((state) =>
+		state.queue.at(state.index),
+	);
+	const isPlaying = useAudioPlayerStore(
+		(state) => state.status === "playing" || state.status === "loading",
+	);
 	const albumIds = [
 		...new Set(playlist.entries.map((entry) => String(entry.albumId))),
 	];
@@ -74,20 +108,8 @@ function PlaylistPage() {
 		playlistEntryCoverUrl(entry, albumForEntry(entry)),
 	);
 	const playableEntries = playlist.entries.flatMap((entry) => {
-		const album = albumForEntry(entry);
-		const disc = album?.discs.find(
-			(item) => String(item.albumDiscId) === String(entry.albumDiscId),
-		);
-		const track = disc?.tracks.find(
-			(item) => String(item.trackId) === String(entry.trackId),
-		);
-		if (!album || !disc || !track?.audios.length) return [];
-		return [
-			{
-				entryId: entry.entryId,
-				track: albumTrackDetailsToAudioPlayerTrack(album, disc, track),
-			},
-		];
+		const track = playlistEntryToTrack(entry, albumForEntry(entry));
+		return track ? [{ entryId: entry.entryId, track }] : [];
 	});
 	const audioTracks = playableEntries.map((entry) => entry.track);
 	const mutation = useMutation({
@@ -140,74 +162,113 @@ function PlaylistPage() {
 		onSettled: () =>
 			queryClient.invalidateQueries({ queryKey: ["playlists", user.id] }),
 	});
+	const trackCount = playlist.entries.length;
+	const durationLabel =
+		formatDurationInHoursMinutesSeconds(
+			playlist.entries.reduce(
+				(total, entry) => total + Number(entry.durationInMs),
+				0,
+			),
+		) ?? "0s";
+	const cannotPlay = loadingAudio || failedAudio || audioTracks.length === 0;
+	const canReorder = trackCount > 1;
+
 	return (
-		<main className="flex min-h-full flex-col gap-6 p-4 sm:p-6">
-			<Link
-				to="/playlists"
-				className="w-fit text-sm text-muted-foreground hover:text-foreground"
+		<main className="mx-auto flex min-h-full w-full max-w-[1120px] min-w-0 flex-col gap-10 px-4 py-6 sm:px-6 sm:py-8">
+			<nav
+				aria-label="Breadcrumb"
+				className="flex gap-1.5 text-xs text-muted-foreground"
 			>
-				← Playlists
-			</Link>
-			<header className="flex flex-col gap-5 sm:flex-row sm:items-end">
+				<Link
+					className="rounded-xs outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+					to="/playlists"
+				>
+					Playlists
+				</Link>
+				<span aria-hidden="true">/</span>
+				<span aria-current="page" className="truncate text-foreground">
+					{playlist.name}
+				</span>
+			</nav>
+
+			<header className="flex flex-wrap items-end gap-6 sm:gap-8">
 				<PlaylistArtwork
+					className="size-40 shrink-0 rounded-4xl shadow-pop sm:size-60"
 					coverUrls={coverUrls}
-					className="size-24 shrink-0 rounded-2xl sm:size-36"
 				/>
-				<div className="flex min-w-0 flex-1 flex-col gap-3">
-					<p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-						Personal playlist
-					</p>
-					<h1 className="text-3xl font-semibold wrap-anywhere sm:text-4xl">
-						{playlist.name}
-					</h1>
-					<p className="text-sm text-muted-foreground">
-						{playlist.entries.length} track
-						{playlist.entries.length === 1 ? "" : "s"} ·{" "}
-						{formatMsToMMSSOrHMMSS(
-							playlist.entries.reduce(
-								(total, entry) => total + Number(entry.durationInMs),
-								0,
-							),
-						)}
-					</p>
+				<div className="flex min-w-0 flex-[1_1_22rem] flex-col gap-4">
+					<div className="flex flex-col gap-2">
+						<p className="text-xs font-semibold tracking-[.06em] text-muted-foreground uppercase">
+							Playlist
+						</p>
+						<h1 className="text-3xl font-bold tracking-[-.03em] wrap-anywhere sm:text-5xl sm:leading-[52px]">
+							{playlist.name}
+						</h1>
+						<p className="text-xs text-muted-foreground">
+							{trackCount} {trackCount === 1 ? "track" : "tracks"} ·{" "}
+							{durationLabel}
+						</p>
+					</div>
 					<div className="flex flex-wrap items-center gap-2">
 						<Button
-							type="button"
-							disabled={loadingAudio || failedAudio || audioTracks.length === 0}
+							disabled={cannotPlay}
 							onClick={() => playAlbum(audioTracks)}
+							size="lg"
 						>
 							<PlayIcon aria-hidden="true" />
 							Play
 						</Button>
-						<Button
-							type="button"
-							variant="outline"
-							disabled={loadingAudio || failedAudio || audioTracks.length === 0}
-							onClick={() => addToQueue(audioTracks)}
-						>
-							<ListPlusIcon aria-hidden="true" />
-							Add to queue
-						</Button>
+						<Tooltip>
+							<TooltipTrigger
+								render={
+									<Button
+										aria-label="Add to queue"
+										disabled={cannotPlay}
+										onClick={() => queueTracks(audioTracks)}
+										size="icon-lg"
+										variant="secondary"
+									/>
+								}
+							>
+								<ListPlusIcon aria-hidden="true" />
+							</TooltipTrigger>
+							<TooltipPopup>Add all tracks to the queue</TooltipPopup>
+						</Tooltip>
+						{canReorder && (
+							<Button
+								aria-pressed={editing}
+								onClick={() => setEditing((value) => !value)}
+								size="lg"
+								variant={editing ? "secondary" : "outline"}
+							>
+								{editing ? (
+									<CheckIcon aria-hidden="true" />
+								) : (
+									<ArrowUpDownIcon aria-hidden="true" />
+								)}
+								{editing ? "Done" : "Edit order"}
+							</Button>
+						)}
 						<PlaylistActionsMenu
-							playlist={playlist}
 							disabled={mutation.isPending}
 							onDeleted={() => navigate({ to: "/playlists" })}
+							playlist={playlist}
 						/>
 					</div>
 				</div>
 			</header>
+
 			{failedAudio && (
 				<Alert variant="error">
 					<AlertDescription>
 						Some albums could not be loaded for playback.{" "}
 						<Button
-							type="button"
-							size="sm"
-							variant="ghost"
 							onClick={() => {
 								for (const album of albums)
 									if (album.isError) void album.refetch();
 							}}
+							size="sm"
+							variant="ghost"
 						>
 							Retry
 						</Button>
@@ -215,20 +276,20 @@ function PlaylistPage() {
 				</Alert>
 			)}
 			{loadingAudio && (
-				<p role="status" className="text-sm text-muted-foreground">
+				<p className="text-sm text-muted-foreground" role="status">
 					Loading playback sources…
 				</p>
 			)}
-			{playlist.entries.length === 0 ? (
+
+			{trackCount === 0 ? (
 				<LibraryEmptyState
-					icon={<ListMusicIcon />}
-					title="Your playlist is empty"
 					description="Open an album and use Add to playlist to choose tracks for this collection."
+					icon={<ListMusicIcon aria-hidden="true" />}
+					title="Your playlist is empty"
 				/>
 			) : (
-				<section className="grid gap-3" aria-label="Playlist tracks">
+				<section aria-label="Playlist tracks">
 					<DragDropProvider
-						sensors={playlistSensors}
 						onDragEnd={(event) => {
 							if (event.canceled || mutation.isPending) return;
 							const ids = playlist.entries.map((entry) =>
@@ -245,8 +306,9 @@ function PlaylistPage() {
 								entries: reordered.map((entryId) => entries.get(entryId)!),
 							});
 						}}
+						sensors={playlistSensors}
 					>
-						<ol className="divide-y rounded-2xl border bg-card">
+						<ol className="flex flex-col gap-0.5">
 							{playlist.entries.map((entry, index) => {
 								const album = albumForEntry(entry);
 								const track = album?.discs
@@ -262,21 +324,26 @@ function PlaylistPage() {
 								);
 								return (
 									<PlaylistTrackRow
-										key={entry.entryId}
+										audioDisabled={loadingAudio || failedAudio || !playable}
+										coverUrl={playlistEntryCoverUrl(entry, album)}
+										credits={track?.credits}
+										disabled={mutation.isPending}
+										editing={editing && canReorder}
 										entry={entry}
 										index={index}
-										playlistId={playlist.playlistId}
-										disabled={mutation.isPending}
-										audioDisabled={loadingAudio || failedAudio || !playable}
+										isCurrent={
+											currentTrack?.albumId === String(entry.albumId) &&
+											currentTrack.trackId === String(entry.trackId)
+										}
+										isPlaying={isPlaying}
+										key={entry.entryId}
 										noAudioSource={!loadingAudio && !failedAudio && !playable}
-										credits={track?.credits}
-										coverUrl={playlistEntryCoverUrl(entry, album)}
 										onPlay={() => {
 											if (playable)
 												playAlbum(audioTracks, playable.track.trackId);
 										}}
 										onQueue={() => {
-											if (playable) addToQueue([playable.track]);
+											if (playable) queueTracks([playable.track]);
 										}}
 										onRemove={() =>
 											mutation.mutate({
@@ -284,6 +351,7 @@ function PlaylistPage() {
 												entryId: entry.entryId,
 											})
 										}
+										playlistId={playlist.playlistId}
 									/>
 								);
 							})}

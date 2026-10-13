@@ -33,9 +33,11 @@ public sealed class ListeningHistoryService(AppDbContext dbContext) : IListening
                 PlayedAt = entry.PlayedAt,
                 AlbumId = entry.AlbumTrack!.AlbumDisc!.AlbumId,
                 AlbumTitle = entry.AlbumTrack.AlbumDisc.Album!.Title,
+                AlbumLanguageId = entry.AlbumTrack.AlbumDisc.Album.LanguageId,
                 AlbumDiscId = entry.AlbumTrack.AlbumDiscId,
                 TrackId = entry.AlbumTrack.TrackId,
                 Title = entry.AlbumTrack.Track!.Title,
+                LanguageId = entry.AlbumTrack.Track.LanguageId,
                 DurationInMs = entry.AlbumTrack.Track.DurationInMs,
             })
             .ToListAsync(cancellationToken);
@@ -205,9 +207,11 @@ public sealed class ListeningHistoryService(AppDbContext dbContext) : IListening
                 track.Id,
                 track.AlbumDisc!.AlbumId,
                 AlbumTitle = track.AlbumDisc.Album!.Title,
+                AlbumLanguageId = track.AlbumDisc.Album.LanguageId,
                 track.AlbumDiscId,
                 track.TrackId,
                 track.Track!.Title,
+                track.Track.LanguageId,
                 track.Track.DurationInMs,
             })
             .ToDictionaryAsync(track => track.Id, cancellationToken);
@@ -224,9 +228,11 @@ public sealed class ListeningHistoryService(AppDbContext dbContext) : IListening
                     {
                         AlbumId = track.AlbumId,
                         AlbumTitle = track.AlbumTitle,
+                        AlbumLanguageId = track.AlbumLanguageId,
                         AlbumDiscId = track.AlbumDiscId,
                         TrackId = track.TrackId,
                         Title = track.Title,
+                        LanguageId = track.LanguageId,
                         DurationInMs = track.DurationInMs,
                         PlayCount = item.PlayCount,
                         LastPlayedAt = item.LastPlayedAt,

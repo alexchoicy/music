@@ -84,6 +84,7 @@ public sealed class AlbumListItem
 
     public required AlbumType Type { get; init; }
     public DateTimeOffset? ReleaseDate { get; init; }
+    public int? LanguageId { get; init; }
 
     public required DateTimeOffset CreatedAt { get; init; }
     public required DateTimeOffset UpdatedAt { get; init; }
@@ -103,11 +104,13 @@ public sealed class AlbumDetails
     public required string Title { get; init; } = string.Empty;
     public required AlbumType Type { get; init; }
     public DateTimeOffset? ReleaseDate { get; init; }
+    public int? LanguageId { get; init; }
 
     public required int TotalTrackCount { get; init; }
     public required int TotalDurationInMs { get; init; }
 
     public required AlbumCoverDetails Cover { get; init; }
+    public required string ShareUrl { get; init; }
 
     public required IReadOnlyList<AlbumPartyCredit> Credits { get; init; } = [];
     public required IReadOnlyList<AlbumDiscDetails> Discs { get; init; } = [];
@@ -136,6 +139,7 @@ public sealed class AlbumTrackDetails
     public required int TrackNumber { get; init; }
     public required string Title { get; init; } = string.Empty;
     public required int DurationInMs { get; init; }
+    public int? LanguageId { get; init; }
 
     public required TrackContentType ContentType { get; init; }
     public required TrackVersionType VersionType { get; init; }

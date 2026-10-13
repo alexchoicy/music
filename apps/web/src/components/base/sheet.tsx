@@ -4,8 +4,8 @@ import { useRender } from "@base-ui/react/use-render";
 import { XIcon } from "lucide-react";
 import type React from "react";
 
-import { Button } from "@/old-components/coss/button";
-import { ScrollArea } from "@/old-components/coss/scroll-area";
+import { Button } from "@/components/base/button";
+import { ScrollArea } from "@/components/base/scroll-area";
 import { cn } from "@/lib/utils/styles";
 
 export const Sheet: typeof SheetPrimitive.Root = SheetPrimitive.Root;

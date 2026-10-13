@@ -4,7 +4,7 @@ import { cva } from 'class-variance-authority';
 import type { VariantProps } from 'class-variance-authority';
 import type * as React from "react";
 
-import { Spinner } from "@/old-components/coss/spinner";
+import { Spinner } from "@/components/base/spinner";
 import { cn } from "@/lib/utils/styles";
 
 export const buttonVariants = cva(
@@ -43,6 +43,13 @@ export const buttonVariants = cva(
 					"border-input bg-popover not-dark:bg-clip-padding text-foreground shadow-xs/5 not-disabled:not-active:not-data-pressed:before:shadow-[0_1px_--theme(--color-black/4%)] hover:bg-accent/50 data-pressed:bg-accent/50 *:data-[slot=button-loading-indicator]:text-foreground dark:bg-input/32 dark:data-pressed:bg-input/64 dark:hover:bg-input/64 dark:not-disabled:before:shadow-[0_-1px_--theme(--color-white/2%)] dark:not-disabled:not-active:not-data-pressed:before:shadow-[0_-1px_--theme(--color-white/6%)] [:disabled,:active,[data-pressed]]:shadow-none",
 				secondary:
 					"border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90 data-pressed:bg-secondary/90 *:data-[slot=button-loading-indicator]:text-secondary-foreground [:active,[data-pressed]]:bg-secondary/80",
+				play: "rounded-full border-primary bg-primary text-primary-foreground shadow-xs before:rounded-full hover:bg-primary/90 data-pressed:bg-primary/90 *:data-[slot=button-loading-indicator]:text-primary-foreground [&_svg]:fill-current [&_svg]:opacity-100",
+				player:
+					"rounded-full border-transparent text-foreground before:rounded-full hover:bg-white/12 data-pressed:bg-white/12 data-popup-open:bg-white/12 aria-pressed:text-primary *:data-[slot=button-loading-indicator]:text-foreground [&_svg]:opacity-100",
+				overlay:
+					"rounded-full border-transparent bg-background/80 text-foreground backdrop-blur-sm before:rounded-full hover:bg-background data-pressed:bg-background *:data-[slot=button-loading-indicator]:text-foreground [&_svg]:opacity-100",
+				round:
+					"rounded-full border-transparent bg-secondary text-secondary-foreground before:rounded-full hover:bg-primary hover:text-primary-foreground data-pressed:bg-primary data-pressed:text-primary-foreground *:data-[slot=button-loading-indicator]:text-current [&_svg]:opacity-100",
 			},
 		},
 	},

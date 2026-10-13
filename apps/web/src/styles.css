@@ -11,8 +11,8 @@
 
 @theme {
 	--font-sans:
-		"Geist Variable", "Noto Sans SC Variable", "Noto Sans TC Variable",
-		"Noto Sans JP Variable", "Noto Sans KR Variable", system-ui, sans-serif;
+		"Geist Variable", "Noto Sans JP Variable", "Noto Sans SC Variable",
+		"Noto Sans TC Variable", "Noto Sans KR Variable", system-ui, sans-serif;
 	--font-heading: var(--font-sans);
 	--font-mono:
 		"Geist Mono Variable", ui-monospace, "SFMono-Regular", "Menlo", "Consolas",
@@ -101,7 +101,7 @@
     background-position: -200% 0;
 		}
 	}
-	--animate-track-highlight: track-highlight 1.4s ease-in-out both;
+	--animate-track-highlight: track-highlight 1.4s ease-in-out backwards;
 	@keyframes track-highlight {
 		0%,
 		18% {
@@ -237,7 +237,7 @@
 	--ds-shadow-card: 0 1px 2px #1b19160d, 0 0 0 1px #1b19160f;
 	--ds-shadow-hover: 0 8px 24px #1b19161f, 0 0 0 1px #1b191614;
 	--ds-shadow-pop: 0 12px 32px #1b19162e, 0 0 0 1px #1b191614;
-	--ds-shadow-player: 0 -8px 32px #1b191614, 0 -1px 0 #1b19160f;
+	--ds-shadow-player: 0 12px 40px #1b19162e, 0 0 0 1px #1b191614;
 	--ds-glow-primary: 0 0 0 1px #aa224966, 0 0 16px #aa224926;
 	--sidebar-border: var(--border);
 	--sidebar-ring: var(--ring);
@@ -292,7 +292,7 @@
 	--ds-shadow-card: 0 1px 0 #ffffff0a inset, 0 0 0 1px #00000040;
 	--ds-shadow-hover: 0 8px 24px #00000066, 0 0 0 1px #ffffff14;
 	--ds-shadow-pop: 0 12px 32px #000000a6, 0 0 0 1px #ffffff14;
-	--ds-shadow-player: 0 -8px 32px #00000080, 0 -1px 0 #ffffff0d;
+	--ds-shadow-player: 0 12px 40px #000000b3, 0 0 0 1px #ffffff14;
 	--ds-glow-primary: 0 0 0 1px #e8758b66, 0 0 24px #e8758b33;
 	--sidebar-border: var(--border);
 	--sidebar-ring: var(--ring);
@@ -308,7 +308,7 @@
 		@apply border-border outline-ring/50;
 	}
 	body {
-		@apply font-sans bg-background text-foreground;
+		@apply font-sans bg-background text-foreground antialiased;
 		font-feature-settings:
 			"rlig" 1,
 			"calt" 1;
@@ -324,5 +324,25 @@
 	}
 	:focus-visible {
 		outline-color: var(--ring);
+	}
+	:lang(zh) {
+		--font-sans:
+			"Geist Variable", "Noto Sans SC Variable", "Noto Sans TC Variable",
+			"Noto Sans JP Variable", "Noto Sans KR Variable", system-ui, sans-serif;
+	}
+	:lang(zh-HK),
+	:lang(zh-TW),
+	:lang(zh-Hant) {
+		--font-sans:
+			"Geist Variable", "Noto Sans TC Variable", "Noto Sans SC Variable",
+			"Noto Sans JP Variable", "Noto Sans KR Variable", system-ui, sans-serif;
+	}
+	:lang(ko) {
+		--font-sans:
+			"Geist Variable", "Noto Sans KR Variable", "Noto Sans JP Variable",
+			"Noto Sans SC Variable", "Noto Sans TC Variable", system-ui, sans-serif;
+	}
+	[lang] {
+		font-family: var(--font-sans);
 	}
 }

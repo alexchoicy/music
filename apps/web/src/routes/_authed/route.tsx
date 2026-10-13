@@ -5,9 +5,15 @@ import {
 	redirect,
 	useNavigate,
 } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
+import { AppSidebar } from "#/components/app/AppSidebar";
+import { MobileHeader } from "#/components/app/MobileHeader";
+import { SearchCommand } from "#/components/app/SearchCommand";
+import { ScrollArea } from "#/components/base/scroll-area";
+import { SidebarInset, SidebarProvider } from "#/components/base/sidebar";
+import { PlayerBar } from "#/components/player/PlayerBar";
 import { UserInfoProvider } from "#/context/UserInfoContext";
 import { getResolvedApiEndpoint } from "#/lib/APIFetchClient";
 import { connectPlaybackDevice } from "#/lib/playbackDevices";
@@ -15,12 +21,6 @@ import { authQueries } from "#/lib/queries/auth.queries";
 import { playlistQueries } from "#/lib/queries/playlist.queries";
 import { checkBotHeader } from "#/lib/ServerFunction/checkBotHeader";
 import { getWebSocketEndpoint } from "#/lib/ServerFunction/getApiEndpoint";
-import { ScrollArea } from "#/old-components/coss/scroll-area";
-import { SidebarInset, SidebarProvider } from "#/old-components/coss/sidebar";
-import { AppSidebar } from "#/old-components/ui/appSidebar";
-import { AudioPlayer } from "#/old-components/ui/audioPlayer";
-import { Command } from "#/old-components/ui/command";
-import { MobileHeader } from "#/old-components/ui/mobileHeader";
 import { useUploadStore } from "#/store/uploadStore";
 
 const authedSearchSchema = z.object({
@@ -86,6 +86,20 @@ function RouteComponent() {
 	const { command } = Route.useSearch();
 	const [commandQuery, setCommandQuery] = useState<string>();
 	const [openCommand, setOpenCommand] = useState(false);
+	const playerRef = useRef<HTMLDivElement>(null);
+	const [playerHeight, setPlayerHeight] = useState(0);
+
+	// The player floats over the page; pad the page so its end can scroll clear.
+	useEffect(() => {
+		const player = playerRef.current;
+		if (!player) return;
+		const observer = new ResizeObserver(() => {
+			setPlayerHeight(player.offsetHeight);
+		});
+		observer.observe(player);
+		setPlayerHeight(player.offsetHeight);
+		return () => observer.disconnect();
+	}, []);
 	const isUploading = useUploadStore((state) => state.isRunning);
 	const navigator = useNavigate();
 	useHotkey("Control+K", () => {
@@ -143,17 +157,24 @@ function RouteComponent() {
 	return (
 		<UserInfoProvider>
 			<SidebarProvider>
-				<AppSidebar onOpenCommand={() => setOpenCommand(true)} />
+				<AppSidebar onOpenSearch={() => setOpenCommand(true)} />
 				<SidebarInset className="h-svh overflow-hidden">
-					<MobileHeader onOpenCommand={() => setOpenCommand(true)} />
+					<MobileHeader onOpenSearch={() => setOpenCommand(true)} />
 					<div className="relative flex min-h-0 flex-1 flex-col">
 						<ScrollArea className="min-h-0 flex-1" id="app-scroll-area">
-							<Outlet />
+							<div style={{ paddingBottom: playerHeight }}>
+								<Outlet />
+							</div>
 						</ScrollArea>
-						<AudioPlayer />
+						<div
+							className="pointer-events-none absolute inset-x-0 bottom-0 z-20 *:pointer-events-auto"
+							ref={playerRef}
+						>
+							<PlayerBar />
+						</div>
 					</div>
 				</SidebarInset>
-				<Command
+				<SearchCommand
 					initialQuery={commandQuery}
 					onOpenChange={setOpenCommand}
 					open={openCommand}

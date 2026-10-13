@@ -4,7 +4,7 @@ import type React from "react";
 
 import { cn } from "@/lib/utils/styles";
 
-export type TableVariant = "default" | "card";
+export type TableVariant = "default" | "card" | "plain";
 
 export type TableProps = React.ComponentProps<"table"> & {
 	variant?: TableVariant;
@@ -46,7 +46,10 @@ export function TableHeader({
 }: React.ComponentProps<"thead">): React.ReactElement {
 	return (
 		<thead
-			className={cn("[&_tr]:border-b", className)}
+			className={cn(
+				"[&_tr]:border-b in-data-[variant=plain]:[&_tr]:border-0",
+				className,
+			)}
 			data-slot="table-header"
 			{...props}
 		/>
@@ -92,7 +95,7 @@ export function TableRow({
 	return (
 		<tr
 			className={cn(
-				"relative border-b not-in-data-[variant=card]:hover:bg-[color-mix(in_srgb,var(--background),var(--color-black)_2%)] not-in-data-[variant=card]:data-[state=selected]:bg-[color-mix(in_srgb,var(--background),var(--color-black)_4%)] dark:not-in-data-[variant=card]:hover:bg-[color-mix(in_srgb,var(--background),var(--color-white)_2%)] dark:not-in-data-[variant=card]:data-[state=selected]:bg-[color-mix(in_srgb,var(--background),var(--color-white)_4%)]",
+				"relative border-b in-data-[variant=plain]:border-0 not-in-data-[variant=card]:hover:bg-[color-mix(in_srgb,var(--background),var(--color-black)_2%)] not-in-data-[variant=card]:data-[state=selected]:bg-[color-mix(in_srgb,var(--background),var(--color-black)_4%)] dark:not-in-data-[variant=card]:hover:bg-[color-mix(in_srgb,var(--background),var(--color-white)_2%)] dark:not-in-data-[variant=card]:data-[state=selected]:bg-[color-mix(in_srgb,var(--background),var(--color-white)_4%)]",
 				className,
 			)}
 			data-slot="table-row"

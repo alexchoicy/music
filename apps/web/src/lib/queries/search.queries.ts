@@ -5,11 +5,13 @@ import type { components } from "#/data/APIschema";
 import { $APIFetch } from "../APIFetchClient";
 
 export const searchQueries = {
-	getSearch: (query: string) =>
+	// limit caps each result group; 0 returns every match.
+	getSearch: (query: string, limit = 0) =>
 		queryOptions({
-			queryKey: ["search", query],
+			queryKey: ["search", query, limit],
 			queryFn: async ({ signal }) => {
 				const params = new URLSearchParams({ query });
+				if (limit > 0) params.set("limit", String(limit));
 				const result = await $APIFetch<components["schemas"]["SearchResult"]>(
 					`/search?${params.toString()}`,
 					{ signal },

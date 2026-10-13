@@ -1,6 +1,7 @@
 using Music.Core.Services.Concerts.Enums;
 using Music.Core.Services.Concerts.Requests;
 using Music.Core.Services.Concerts.Results;
+
 namespace Music.Core.Services.Concerts;
 
 public interface IConcertService
@@ -9,6 +10,8 @@ public interface IConcertService
         ConcertListRequest request,
         CancellationToken cancellationToken = default
     );
+
+    Task<int> CountAsync(ConcertListRequest request, CancellationToken cancellationToken = default);
 
     Task<ConcertDetails> GetByIdAsync(int concertId, CancellationToken cancellationToken = default);
 

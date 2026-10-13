@@ -73,6 +73,7 @@ public sealed class BackgroundWorker(
             TrackUploadProcessWorker job => job.FileObjectId,
             ConcertUploadProcessWorker job => job.FileObjectId,
             ImageUploadProcessWorker job => job.FileObjectId,
+            ExtraVideoUploadProcessWorker job => job.FileObjectId,
             _ => null,
         };
 
@@ -119,6 +120,11 @@ public sealed class BackgroundWorker(
             case ConcertUploadProcessWorker job:
                 await serviceProvider
                     .GetRequiredService<ConcertUploadWorkerProcessor>()
+                    .ProcessAsync(job, cancellationToken);
+                break;
+            case ExtraVideoUploadProcessWorker job:
+                await serviceProvider
+                    .GetRequiredService<ExtraVideoUploadWorkerProcessor>()
                     .ProcessAsync(job, cancellationToken);
                 break;
             case YouTubeCoverImportWorker job:

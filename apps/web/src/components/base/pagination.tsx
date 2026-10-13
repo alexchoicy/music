@@ -7,8 +7,8 @@ import {
 } from "lucide-react";
 import type * as React from "react";
 
-import { buttonVariants } from '@/old-components/coss/button';
-import type { Button } from '@/old-components/coss/button';
+import { buttonVariants } from '@/components/base/button';
+import type { Button } from '@/components/base/button';
 import { cn } from "@/lib/utils/styles";
 
 export function Pagination({

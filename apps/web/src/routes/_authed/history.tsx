@@ -5,38 +5,27 @@ import {
 	useSuspenseQuery,
 } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarDaysIcon, HistoryIcon } from "lucide-react";
+import { HistoryIcon } from "lucide-react";
 import { useEffect } from "react";
 import { z } from "zod";
 
+import { Alert, AlertDescription } from "#/components/base/alert";
+import { Button } from "#/components/base/button";
+import { Tabs, TabsList, TabsPanel, TabsTab } from "#/components/base/tabs";
+import { toastManager } from "#/components/base/toast";
+import { HistoryCountsTable } from "#/components/history/HistoryCountsTable";
+import { useHistoryTracks } from "#/components/history/useHistoryTracks";
+import type { HistoryTrack } from "#/components/history/useHistoryTracks";
+import { LibraryEmptyState } from "#/components/library/LibraryStates";
+import { PlaylistArtwork } from "#/components/playlist/PlaylistArtwork";
+import { TrackActionsMenu } from "#/components/track/TrackActionsMenu";
+import { TrackRow } from "#/components/track/TrackRow";
 import { useUserInfo } from "#/context/UserInfoContext";
+import { useTitleLang } from "#/hooks/use-title-lang";
 import { authQueries } from "#/lib/queries/auth.queries";
 import { historyActions, historyQueries } from "#/lib/queries/history.queries";
 import type { ListeningHistoryEntry } from "#/lib/queries/history.queries";
-import { Alert, AlertDescription } from "#/old-components/coss/alert";
-import { Badge } from "#/old-components/coss/badge";
-import { Button } from "#/old-components/coss/button";
-import { Card } from "#/old-components/coss/card";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "#/old-components/coss/table";
-import { Tabs, TabsList, TabsPanel, TabsTab } from "#/old-components/coss/tabs";
-import { toastManager } from "#/old-components/coss/toast";
-import { HistoryTrackMenu } from "#/old-components/history/HistoryTrackMenu";
-import {
-	HistoryTrackCover,
-	HistoryTrackRow,
-	HistoryTrackTitle,
-} from "#/old-components/history/HistoryTrackRow";
-import { useHistoryTracks } from "#/old-components/history/useHistoryTracks";
-import type { HistoryTrack } from "#/old-components/history/useHistoryTracks";
-import { LibraryEmptyState } from "#/old-components/LibraryEmptyState";
-import { PlaylistArtwork } from "#/old-components/playlists/PlaylistArtwork";
+import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 import type { AudioPlayerTrack } from "#/store/audioPlayer/audioPlayerType";
 import { onListeningHistoryRecorded } from "#/store/audioPlayer/listeningHistory";
@@ -69,12 +58,6 @@ const dayFormatter = new Intl.DateTimeFormat(undefined, {
 const timeFormatter = new Intl.DateTimeFormat(undefined, {
 	hour: "2-digit",
 	minute: "2-digit",
-});
-
-const lastPlayedFormatter = new Intl.DateTimeFormat(undefined, {
-	day: "numeric",
-	month: "short",
-	year: "numeric",
 });
 
 function dayKey(date: Date) {
@@ -123,6 +106,9 @@ function HistoryPage() {
 	const currentTrack = useAudioPlayerStore((state) =>
 		state.queue.at(state.index),
 	);
+	const isPlaying = useAudioPlayerStore(
+		(state) => state.status === "playing" || state.status === "loading",
+	);
 	const recentTracks = useHistoryTracks(
 		data.pages.flatMap((page) => page.entries),
 	);
@@ -131,7 +117,6 @@ function HistoryPage() {
 		...new Set(recentTracks.map((track) => track.coverUrl).filter(Boolean)),
 	].slice(0, 4);
 	const totalPlays = Number(counts.totalPlays);
-	const backgroundUrl = coverUrls.at(0);
 
 	useEffect(
 		() =>
@@ -167,260 +152,190 @@ function HistoryPage() {
 	};
 
 	return (
-		<main className="relative min-h-full w-full overflow-hidden bg-background">
-			<div className="pointer-events-none absolute inset-x-0 top-0 h-[30rem] overflow-hidden [mask-image:var(--album-bg-mask)] [--album-bg-mask:linear-gradient(to_bottom,black_0%,black_55%,transparent_100%)]">
-				{backgroundUrl && (
-					<img
-						alt=""
-						className="absolute -inset-16 h-[calc(100%+8rem)] w-[calc(100%+8rem)] scale-110 object-cover opacity-30 blur-3xl saturate-150"
-						src={backgroundUrl}
-					/>
-				)}
-				<div className="absolute inset-0 bg-linear-to-b from-background/20 via-background/85 to-background" />
-			</div>
+		<main className="flex min-h-full w-full min-w-0 flex-col gap-7 p-4 sm:p-6">
+			<header className="flex flex-wrap items-end gap-6">
+				<PlaylistArtwork
+					className="size-28 shrink-0 rounded-4xl sm:size-40"
+					coverUrls={coverUrls.length > 0 ? coverUrls : [null]}
+					fallbackIcon={<HistoryIcon className="size-1/3" />}
+				/>
+				<div className="flex min-w-0 flex-[1_1_22rem] flex-col gap-2">
+					<p className="text-xs text-muted-foreground">Library</p>
+					<h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+						Listening history
+					</h1>
+					<p className="max-w-140 text-sm text-muted-foreground">
+						A track counts after you listen to half of it, or four minutes of a
+						longer track.
+					</p>
+					<p className="text-sm text-sidebar-foreground">
+						<span className="tabular-nums">{totalPlays}</span>{" "}
+						{totalPlays === 1 ? "play" : "plays"} ·{" "}
+						<span className="tabular-nums">{Number(counts.trackCount)}</span>{" "}
+						{Number(counts.trackCount) === 1 ? "track" : "tracks"}
+					</p>
+				</div>
+			</header>
 
-			<div className="relative min-h-full w-full p-4 sm:p-6">
+			{totalPlays === 0 ? (
+				<LibraryEmptyState
+					description="Tracks appear here after you listen to half of them, or four minutes of longer tracks."
+					icon={<HistoryIcon aria-hidden="true" />}
+					title="No listening history yet"
+				/>
+			) : (
 				<Tabs
-					value={tab}
 					onValueChange={(value) =>
 						navigate({
 							search: { tab: value === "counts" ? "counts" : undefined },
 							replace: true,
 						})
 					}
+					value={tab}
 				>
-					<div className="flex flex-col gap-4 sm:gap-6">
-						<section className="grid grid-cols-[6rem_minmax(0,1fr)] items-start gap-3 sm:flex sm:flex-col sm:gap-5 md:flex-row md:items-end">
-							{coverUrls.length > 0 ? (
-								<PlaylistArtwork
-									coverUrls={coverUrls}
-									className="w-24 shrink-0 rounded-2xl border shadow-sm/5 sm:w-56 md:w-64"
-								/>
-							) : (
-								<div className="flex aspect-square w-24 shrink-0 items-center justify-center rounded-2xl border bg-muted text-muted-foreground shadow-sm/5 sm:w-56 md:w-64">
-									<HistoryIcon aria-hidden="true" className="size-14" />
-								</div>
+					<TabsList
+						aria-label="History view"
+						className="mb-5"
+						variant="underline"
+					>
+						<TabsTab value="recent">Recent</TabsTab>
+						<TabsTab value="counts">Play counts</TabsTab>
+					</TabsList>
+
+					<TabsPanel value="recent">
+						<div className="flex flex-col gap-6">
+							{groupByDay(recentTracks).map((group) => (
+								<section
+									aria-label={group.label}
+									className="flex flex-col gap-1"
+									key={group.key}
+								>
+									<div className="flex items-baseline justify-between gap-4 px-3 pb-1">
+										<h2 className="text-base font-semibold">{group.label}</h2>
+										<span className="text-xs text-muted-foreground">
+											{plural(group.tracks.length, "play")}
+										</span>
+									</div>
+									<ol>
+										{group.tracks.map((item) => (
+											<RecentRow
+												current={isCurrent(item.entry)}
+												isPlaying={isPlaying}
+												item={item}
+												key={item.entry.entryId}
+												onPlay={() => play(item.playable)}
+												onQueue={() => queue(item.playable)}
+												onRemove={() =>
+													removeMutation.mutate(item.entry.entryId)
+												}
+												removing={removeMutation.isPending}
+											/>
+										))}
+									</ol>
+								</section>
+							))}
+							{isFetchNextPageError && (
+								<Alert variant="error">
+									<AlertDescription>
+										Could not load older history.
+									</AlertDescription>
+								</Alert>
 							)}
+							{hasNextPage && (
+								<Button
+									className="self-center"
+									disabled={isFetchingNextPage}
+									onClick={() => void fetchNextPage()}
+									variant="outline"
+								>
+									{isFetchingNextPage ? "Loading…" : "Load more"}
+								</Button>
+							)}
+						</div>
+					</TabsPanel>
 
-							<div className="flex min-w-0 flex-1 flex-col gap-3 sm:gap-4">
-								<div className="flex min-w-0 flex-col gap-2">
-									<Badge className="w-fit" variant="secondary">
-										History
-									</Badge>
-									<h1 className="font-heading text-xl font-semibold tracking-tight break-words sm:text-4xl">
-										Listening history
-									</h1>
-									<p className="text-sm text-muted-foreground sm:text-base">
-										Tracks count after you listen to half of them, or four
-										minutes of longer tracks.
-									</p>
-									<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground sm:text-sm">
-										<span>{plural(totalPlays, "play")}</span>
-										<span aria-hidden="true">&middot;</span>
-										<span>{plural(Number(counts.trackCount), "track")}</span>
-									</div>
-								</div>
-								{totalPlays > 0 && (
-									<TabsList>
-										<TabsTab value="recent">Recent</TabsTab>
-										<TabsTab value="counts">Play counts</TabsTab>
-									</TabsList>
-								)}
-							</div>
-						</section>
-
-						{totalPlays === 0 ? (
-							<LibraryEmptyState
-								icon={<HistoryIcon />}
-								title="No listening history yet"
-								description="Tracks appear here after you listen to half of them, or four minutes of longer tracks."
-							/>
-						) : (
-							<>
-								<TabsPanel value="recent">
-									<div className="flex flex-col gap-4">
-										<Card className="overflow-hidden">
-											{groupByDay(recentTracks).map((group) => (
-												<section
-													key={group.key}
-													className="border-b last:border-b-0"
-													aria-label={group.label}
-												>
-													<div className="flex items-center justify-between gap-4 bg-muted/35 px-4 py-3 text-sm sm:px-6">
-														<div className="flex min-w-0 items-center gap-2 font-semibold tracking-wide text-muted-foreground uppercase">
-															<CalendarDaysIcon
-																aria-hidden="true"
-																className="size-4 shrink-0"
-															/>
-															<span className="truncate">{group.label}</span>
-														</div>
-														<span className="shrink-0 text-muted-foreground">
-															{plural(group.tracks.length, "play")}
-														</span>
-													</div>
-													<ol className="divide-y">
-														{group.tracks.map(
-															({
-																entry,
-																track,
-																playable,
-																noAudioSource,
-																coverUrl,
-															}) => (
-																<HistoryTrackRow
-																	key={entry.entryId}
-																	title={entry.title}
-																	albumTitle={entry.albumTitle}
-																	durationInMs={entry.durationInMs}
-																	coverUrl={coverUrl}
-																	track={track}
-																	noAudioSource={noAudioSource}
-																	isCurrent={isCurrent(entry)}
-																	onPlay={() => play(playable)}
-																	trailing={
-																		<time
-																			dateTime={entry.playedAt}
-																			className="w-12 text-right text-sm text-muted-foreground tabular-nums"
-																		>
-																			{timeFormatter.format(
-																				new Date(entry.playedAt),
-																			)}
-																		</time>
-																	}
-																	menu={
-																		<HistoryTrackMenu
-																			title={entry.title}
-																			albumId={entry.albumId}
-																			trackId={entry.trackId}
-																			audioDisabled={!playable}
-																			onPlay={() => play(playable)}
-																			onQueue={() => queue(playable)}
-																			removing={removeMutation.isPending}
-																			onRemove={() =>
-																				removeMutation.mutate(entry.entryId)
-																			}
-																		/>
-																	}
-																/>
-															),
-														)}
-													</ol>
-												</section>
-											))}
-										</Card>
-										{isFetchNextPageError && (
-											<Alert variant="error">
-												<AlertDescription>
-													Could not load older history.
-												</AlertDescription>
-											</Alert>
-										)}
-										{hasNextPage && (
-											<Button
-												type="button"
-												variant="outline"
-												className="self-center"
-												disabled={isFetchingNextPage}
-												onClick={() => void fetchNextPage()}
-											>
-												{isFetchingNextPage ? "Loading…" : "Load more"}
-											</Button>
-										)}
-									</div>
-								</TabsPanel>
-
-								<TabsPanel value="counts">
-									<Card className="overflow-hidden">
-										<Table>
-											<TableHeader>
-												<TableRow>
-													<TableHead className="w-12 text-center">#</TableHead>
-													<TableHead>Track</TableHead>
-													<TableHead className="hidden lg:table-cell">
-														Album
-													</TableHead>
-													<TableHead className="text-right">Plays</TableHead>
-													<TableHead className="hidden sm:table-cell">
-														Last played
-													</TableHead>
-													<TableHead>
-														<span className="sr-only">Actions</span>
-													</TableHead>
-												</TableRow>
-											</TableHeader>
-											<TableBody>
-												{countTracks.map(
-													(
-														{ entry, track, playable, noAudioSource, coverUrl },
-														index,
-													) => (
-														<TableRow
-															key={`${entry.albumDiscId}-${entry.trackId}`}
-															className="group/track cursor-pointer"
-															onClick={() => play(playable)}
-														>
-															<TableCell className="text-center">
-																<span className="text-muted-foreground tabular-nums">
-																	{index + 1}
-																</span>
-															</TableCell>
-															<TableCell className="w-full max-w-0">
-																<div className="flex min-w-0 items-center gap-3">
-																	<HistoryTrackCover
-																		coverUrl={coverUrl}
-																		isCurrent={isCurrent(entry)}
-																	/>
-																	<HistoryTrackTitle
-																		title={entry.title}
-																		track={track}
-																		albumTitle={entry.albumTitle}
-																		noAudioSource={noAudioSource}
-																		isCurrent={isCurrent(entry)}
-																	/>
-																</div>
-															</TableCell>
-															<TableCell className="hidden lg:table-cell">
-																<span className="block max-w-48 truncate text-muted-foreground">
-																	{entry.albumTitle}
-																</span>
-															</TableCell>
-															<TableCell className="text-right">
-																<span className="font-medium tabular-nums">
-																	{entry.playCount}
-																</span>
-															</TableCell>
-															<TableCell className="hidden sm:table-cell">
-																<time
-																	dateTime={entry.lastPlayedAt}
-																	className="text-muted-foreground tabular-nums"
-																>
-																	{lastPlayedFormatter.format(
-																		new Date(entry.lastPlayedAt),
-																	)}
-																</time>
-															</TableCell>
-															<TableCell>
-																<HistoryTrackMenu
-																	title={entry.title}
-																	albumId={entry.albumId}
-																	trackId={entry.trackId}
-																	audioDisabled={!playable}
-																	onPlay={() => play(playable)}
-																	onQueue={() => queue(playable)}
-																/>
-															</TableCell>
-														</TableRow>
-													),
-												)}
-											</TableBody>
-										</Table>
-									</Card>
-								</TabsPanel>
-							</>
-						)}
-					</div>
+					<TabsPanel value="counts">
+						<HistoryCountsTable
+							isCurrent={isCurrent}
+							isPlaying={isPlaying}
+							onPlay={play}
+							onQueue={queue}
+							tracks={countTracks}
+						/>
+					</TabsPanel>
 				</Tabs>
-			</div>
+			)}
 		</main>
+	);
+}
+
+function RecentRow({
+	item,
+	current,
+	isPlaying,
+	onPlay,
+	onQueue,
+	onRemove,
+	removing,
+}: {
+	item: HistoryTrack<ListeningHistoryEntry>;
+	current: boolean;
+	isPlaying: boolean;
+	onPlay: () => void;
+	onQueue: () => void;
+	onRemove: () => void;
+	removing: boolean;
+}) {
+	const { entry, track, playable, noAudioSource, coverUrl } = item;
+	const titleLang = useTitleLang();
+	const badges = [
+		...(track && track.versionType !== "Original"
+			? [{ label: track.versionType }]
+			: []),
+		...(noAudioSource ? [{ label: "No audio", outline: true }] : []),
+	];
+
+	return (
+		<TrackRow
+			badges={badges}
+			coverUrl={coverUrl}
+			isCurrent={current}
+			isPlaying={isPlaying}
+			menu={
+				<TrackActionsMenu
+					albumId={entry.albumId}
+					audioDisabled={!playable}
+					onPlay={onPlay}
+					onQueue={onQueue}
+					remove={{
+						label: "Remove from history",
+						onRemove,
+						disabled: removing,
+					}}
+					title={entry.title}
+					trackId={entry.trackId}
+				/>
+			}
+			onPlay={onPlay}
+			playDisabled={!playable}
+			subtitle={
+				<span lang={titleLang(entry.albumLanguageId)}>{entry.albumTitle}</span>
+			}
+			title={entry.title}
+			titleLang={titleLang(entry.languageId, entry.albumLanguageId)}
+			trailing={
+				<>
+					<span className="hidden w-14 shrink-0 text-right text-xs font-medium text-muted-foreground tabular-nums sm:block">
+						{formatMsToMMSSOrHMMSS(Number(entry.durationInMs))}
+					</span>
+					<time
+						className="min-w-12 shrink-0 text-right text-xs font-medium whitespace-nowrap text-muted-foreground tabular-nums"
+						dateTime={entry.playedAt}
+					>
+						{timeFormatter.format(new Date(entry.playedAt))}
+					</time>
+				</>
+			}
+		/>
 	);
 }

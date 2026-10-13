@@ -1,14 +1,14 @@
 using System.ComponentModel.DataAnnotations;
-using Music.Core.Options;
-using Music.Core.Services.Files.Enums;
-using Music.Core.Services.Parties.Results;
 using Microsoft.EntityFrameworkCore;
 using Music.Core.Common.Enums;
 using Music.Core.Common.Utils;
+using Music.Core.Options;
+using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Images.Enums;
 using Music.Core.Services.Parties;
 using Music.Core.Services.Parties.Enums;
 using Music.Core.Services.Parties.Requests;
+using Music.Core.Services.Parties.Results;
 using Music.Core.Storage;
 using Music.Core.Workers;
 using Music.Infrastructure.Data;
@@ -23,65 +23,107 @@ public class PartyService(
 ) : IPartyService
 {
     public async Task<UpdatePartyResult?> UpdatePartyAsync(
-        int partyId, UpdatePartyRequest request, string userId,
-        CancellationToken cancellationToken = default)
+        int partyId,
+        UpdatePartyRequest request,
+        string userId,
+        CancellationToken cancellationToken = default
+    )
     {
-        var party = await dbContext.Parties.FirstOrDefaultAsync(p => p.Id == partyId, cancellationToken);
-        if (party is null) return null;
+        var party = await dbContext.Parties.FirstOrDefaultAsync(
+            p => p.Id == partyId,
+            cancellationToken
+        );
+        if (party is null)
+            return null;
 
         bool musicBrainzChanged = false;
         if (request.Has(nameof(request.MusicBrainzId)))
         {
             string? value = string.IsNullOrWhiteSpace(request.MusicBrainzId)
-                ? null : Guid.Parse(request.MusicBrainzId).ToString();
-            musicBrainzChanged = !string.Equals(party.MusicBrainzId, value, StringComparison.OrdinalIgnoreCase);
+                ? null
+                : Guid.Parse(request.MusicBrainzId).ToString();
+            musicBrainzChanged = !string.Equals(
+                party.MusicBrainzId,
+                value,
+                StringComparison.OrdinalIgnoreCase
+            );
             party.MusicBrainzId = value;
         }
-        
-        if (request.Has(nameof(request.Name))) party.Name = request.Name!.Trim();
-        if (request.Has(nameof(request.Description))) party.Description = request.Description!;
-        if (request.Has(nameof(request.Country))) party.Country = request.Country!.Value;
-        if (request.Has(nameof(request.DebutDate))) party.DebutDate = request.DebutDate;
-        if (request.Has(nameof(request.Type))) party.Type = request.Type!.Value;
-        if (request.Has(nameof(request.Kind))) party.Kind = request.Kind!.Value;
-        if (request.Has(nameof(request.Gender))) party.Gender = request.Gender!.Value;
+
+        if (request.Has(nameof(request.Name)))
+            party.Name = request.Name!.Trim();
+        if (request.Has(nameof(request.Description)))
+            party.Description = request.Description!;
+        if (request.Has(nameof(request.Country)))
+            party.Country = request.Country!.Value;
+        if (request.Has(nameof(request.DebutDate)))
+            party.DebutDate = request.DebutDate;
+        if (request.Has(nameof(request.Type)))
+            party.Type = request.Type!.Value;
+        if (request.Has(nameof(request.Kind)))
+            party.Kind = request.Kind!.Value;
+        if (request.Has(nameof(request.Gender)))
+            party.Gender = request.Gender!.Value;
 
         Guid? jobId = musicBrainzChanged
-            ? backgroundTaskQueue.StageWorker(new PartyInfoEnrichmentWorker { PartyId = party.Id }, dbContext)
+            ? backgroundTaskQueue.StageWorker(
+                new PartyInfoEnrichmentWorker { PartyId = party.Id },
+                dbContext
+            )
             : null;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        if (jobId.HasValue) backgroundTaskQueue.NotifyWorker(jobId.Value);
-        
+        if (jobId.HasValue)
+            backgroundTaskQueue.NotifyWorker(jobId.Value);
+
         return new UpdatePartyResult { PartyId = party.Id };
     }
 
-    private static void ValidateBatch<T>(PartyBatchRequest<T> request, IEnumerable<int?> updateIds, IEnumerable<int> existingIds)
+    private static void ValidateBatch<T>(
+        PartyBatchRequest<T> request,
+        IEnumerable<int?> updateIds,
+        IEnumerable<int> existingIds
+    )
     {
         var ids = updateIds.Where(id => id.HasValue).Select(id => id!.Value).ToList();
 
         var existing = existingIds.ToHashSet();
 
-        if (ids.Any(id => id <= 0) || ids.Distinct().Count() != ids.Count || ids.Intersect(request.Delete).Any())
+        if (
+            ids.Any(id => id <= 0)
+            || ids.Distinct().Count() != ids.Count
+            || ids.Intersect(request.Delete).Any()
+        )
             throw new ValidationException("An ID must appear only once in the batch.");
 
         if (ids.Concat(request.Delete).Any(id => !existing.Contains(id)))
             throw new ValidationException("An item does not belong to this party.");
     }
 
-    public async Task<bool> UpdateAliasesAsync(int partyId, PartyAliasBatchRequest request, string userId, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAliasesAsync(
+        int partyId,
+        PartyAliasBatchRequest request,
+        string userId,
+        CancellationToken cancellationToken = default
+    )
     {
-        var party = await dbContext.Parties.Include(p => p.Aliases).FirstOrDefaultAsync(p => p.Id == partyId, cancellationToken);
-        if (party is null) return false;
+        var party = await dbContext
+            .Parties.Include(p => p.Aliases)
+            .FirstOrDefaultAsync(p => p.Id == partyId, cancellationToken);
+        if (party is null)
+            return false;
 
         ValidateBatch(request, request.Upsert.Select(x => x.Id), party.Aliases.Select(x => x.Id));
 
         dbContext.PartyAliases.RemoveRange(party.Aliases.Where(x => request.Delete.Contains(x.Id)));
         foreach (var item in request.Upsert)
         {
-            var alias = item.Id.HasValue ? party.Aliases.Single(x => x.Id == item.Id) : new Core.Entities.PartyAlias { PartyId = partyId, Name = item.Name.Trim() };
-            if (!item.Id.HasValue) dbContext.PartyAliases.Add(alias);
+            var alias = item.Id.HasValue
+                ? party.Aliases.Single(x => x.Id == item.Id)
+                : new Core.Entities.PartyAlias { PartyId = partyId, Name = item.Name.Trim() };
+            if (!item.Id.HasValue)
+                dbContext.PartyAliases.Add(alias);
             alias.Name = item.Name.Trim();
             alias.SourceType = AliasSourceType.UserCreated;
             alias.CreatedByUserId = userId;
@@ -92,25 +134,54 @@ public class PartyService(
         return true;
     }
 
-    public async Task<bool> UpdateExternalInfosAsync(int partyId, PartyExternalInfoBatchRequest request, string userId, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateExternalInfosAsync(
+        int partyId,
+        PartyExternalInfoBatchRequest request,
+        string userId,
+        CancellationToken cancellationToken = default
+    )
     {
-        var party = await dbContext.Parties.Include(p => p.PartyExternalInfos).FirstOrDefaultAsync(p => p.Id == partyId, cancellationToken);
-        if (party is null) return false;
+        var party = await dbContext
+            .Parties.Include(p => p.PartyExternalInfos)
+            .FirstOrDefaultAsync(p => p.Id == partyId, cancellationToken);
+        if (party is null)
+            return false;
 
-        ValidateBatch(request, request.Upsert.Select(x => x.Id), party.PartyExternalInfos.Select(x => x.Id));
+        ValidateBatch(
+            request,
+            request.Upsert.Select(x => x.Id),
+            party.PartyExternalInfos.Select(x => x.Id)
+        );
 
-        if (request.Upsert.Any(item => item.Id.HasValue && party.PartyExternalInfos.Single(x => x.Id == item.Id).Type != item.Type))
+        if (
+            request.Upsert.Any(item =>
+                item.Id.HasValue
+                && party.PartyExternalInfos.Single(x => x.Id == item.Id).Type != item.Type
+            )
+        )
             throw new ValidationException("An existing external info type cannot be changed.");
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-        dbContext.PartyExternalInfos.RemoveRange(party.PartyExternalInfos.Where(x => request.Delete.Contains(x.Id)));
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(
+            cancellationToken
+        );
+        dbContext.PartyExternalInfos.RemoveRange(
+            party.PartyExternalInfos.Where(x => request.Delete.Contains(x.Id))
+        );
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
         foreach (var item in request.Upsert)
         {
-            var info = item.Id.HasValue ? party.PartyExternalInfos.Single(x => x.Id == item.Id) : new Core.Entities.PartyExternalInfo { PartyId = partyId, Type = item.Type, ExternalId = item.ExternalId.Trim() };
-            if (!item.Id.HasValue) dbContext.PartyExternalInfos.Add(info);
+            var info = item.Id.HasValue
+                ? party.PartyExternalInfos.Single(x => x.Id == item.Id)
+                : new Core.Entities.PartyExternalInfo
+                {
+                    PartyId = partyId,
+                    Type = item.Type,
+                    ExternalId = item.ExternalId.Trim(),
+                };
+            if (!item.Id.HasValue)
+                dbContext.PartyExternalInfos.Add(info);
             info.ExternalId = item.ExternalId.Trim();
             info.AddedByUserId = userId;
             info.SourceType = PartyDataSource.UserCreated;
@@ -120,23 +191,43 @@ public class PartyService(
         return true;
     }
 
-    public async Task<UpdatePartyResult?> UpdateImagesAsync(int partyId, PartyImageBatchRequest request, string userId, CancellationToken cancellationToken = default)
+    public async Task<UpdatePartyResult?> UpdateImagesAsync(
+        int partyId,
+        PartyImageBatchRequest request,
+        string userId,
+        CancellationToken cancellationToken = default
+    )
     {
-        var party = await dbContext.Parties.Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == partyId, cancellationToken);
-        if (party is null) return null;
+        var party = await dbContext
+            .Parties.Include(p => p.Images)
+            .FirstOrDefaultAsync(p => p.Id == partyId, cancellationToken);
+        if (party is null)
+            return null;
 
         ValidateBatch(request, request.Upsert.Select(x => x.Id), party.Images.Select(x => x.Id));
 
-        var primaryRoles = party.Images.Where(x => x.IsPrimary && !request.Delete.Contains(x.Id) && !request.Upsert.Any(item => item.Id == x.Id))
-            .Select(x => x.ImageRole).Concat(request.Upsert.Where(x => x.IsPrimary).Select(x => x.ImageRole)).ToList();
+        var primaryRoles = party
+            .Images.Where(x =>
+                x.IsPrimary
+                && !request.Delete.Contains(x.Id)
+                && !request.Upsert.Any(item => item.Id == x.Id)
+            )
+            .Select(x => x.ImageRole)
+            .Concat(request.Upsert.Where(x => x.IsPrimary).Select(x => x.ImageRole))
+            .ToList();
 
         if (primaryRoles.Distinct().Count() != primaryRoles.Count)
-            throw new ValidationException("Only one primary image per role is allowed; explicitly demote or delete the previous primary image.");
+            throw new ValidationException(
+                "Only one primary image per role is allowed; explicitly demote or delete the previous primary image."
+            );
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(
+            cancellationToken
+        );
 
-        foreach (var image in party.Images.Where(x => request.Upsert.Any(item => item.Id == x.Id))) image.IsPrimary = false;
-        
+        foreach (var image in party.Images.Where(x => request.Upsert.Any(item => item.Id == x.Id)))
+            image.IsPrimary = false;
+
         dbContext.PartyImages.RemoveRange(party.Images.Where(x => request.Delete.Contains(x.Id)));
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -151,9 +242,19 @@ public class PartyService(
             else
             {
                 var file = imageRequest.File!;
-                string path = assetsService.GetStoragePath(MediaFolderOptions.PartyCover, file.Blake3Hash, file.MimeType);
+                string path = assetsService.GetStoragePath(
+                    MediaFolderOptions.PartyCover,
+                    file.Blake3Hash,
+                    file.MimeType
+                );
                 var (storedFile, fileObject) = assetsService.CreateStoredFileWithObject(
-                    file, FileType.Image, path, StorageArea.Assets, FileObjectVariant.Original, userId);
+                    file,
+                    FileType.Image,
+                    path,
+                    StorageArea.Assets,
+                    FileObjectVariant.Original,
+                    userId
+                );
                 dbContext.StoredFiles.Add(storedFile);
                 dbContext.FileObjects.Add(fileObject);
                 image = new Core.Entities.PartyImage
@@ -164,7 +265,13 @@ public class PartyService(
                     ImageRole = imageRequest.ImageRole,
                 };
                 dbContext.PartyImages.Add(image);
-                uploads.Add((image, fileObject.Id, assetsService.CreateUploadUrlAsync(path, file.MimeType, cancellationToken)));
+                uploads.Add(
+                    (
+                        image,
+                        fileObject.Id,
+                        assetsService.CreateUploadUrlAsync(path, file.MimeType, cancellationToken)
+                    )
+                );
             }
 
             image.ImageRole = imageRequest.ImageRole;
@@ -183,7 +290,14 @@ public class PartyService(
         return new UpdatePartyResult
         {
             PartyId = party.Id,
-            Images = uploads.Select(upload => new PartyImageUploadResult { ImageId = upload.Image.Id, FileObjectId = upload.FileObjectId, UploadUrl = upload.Url }).ToList(),
+            Images = uploads
+                .Select(upload => new PartyImageUploadResult
+                {
+                    ImageId = upload.Image.Id,
+                    FileObjectId = upload.FileObjectId,
+                    UploadUrl = upload.Url,
+                })
+                .ToList(),
         };
     }
 
@@ -204,12 +318,16 @@ public class PartyService(
             Description = "",
         };
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(
+            cancellationToken
+        );
         dbContext.Parties.Add(party);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         Guid jobId = backgroundTaskQueue.StageWorker(
-            new PartyInfoEnrichmentWorker { PartyId = party.Id }, dbContext);
+            new PartyInfoEnrichmentWorker { PartyId = party.Id },
+            dbContext
+        );
 
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
@@ -218,10 +336,15 @@ public class PartyService(
         return party.Id;
     }
 
-    public async Task<IList<PartyItems>> GetAllAsync(
+    public Task<int> CountAsync(
         PartyListRequest request,
         CancellationToken cancellationToken = default
     )
+    {
+        return FilterListQuery(request).CountAsync(cancellationToken);
+    }
+
+    private IQueryable<Core.Entities.Party> FilterListQuery(PartyListRequest request)
     {
         IQueryable<Core.Entities.Party> query = dbContext.Parties.AsNoTracking();
 
@@ -282,6 +405,18 @@ public class PartyService(
             );
         }
 
+        return query;
+    }
+
+    public async Task<IList<PartyItems>> GetAllAsync(
+        PartyListRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string normalizedSearch = StringUtils.NormalizeString(request.Search ?? string.Empty);
+        bool hasSearch = normalizedSearch.Length > 0;
+        IQueryable<Core.Entities.Party> query = FilterListQuery(request);
+
         var partyQuery = query.Select(party => new
         {
             PartyId = party.Id,
@@ -332,7 +467,7 @@ public class PartyService(
 
         if (request.Limit > 0)
         {
-            query = query.Take(request.Limit);
+            partyQuery = partyQuery.Take(request.Limit);
         }
 
         var parties = await partyQuery.ToListAsync(cancellationToken);
@@ -439,28 +574,39 @@ public class PartyService(
         {
             MusicBrainzId = party.MusicBrainzId,
             DebutDate = party.DebutDate,
-            ExternalInfos = party.PartyExternalInfos.Select(info => new UpdatePartyExternalInfoRequest
-            {
-                Id = info.Id,
-                Type = info.Type,
-                ExternalId = info.ExternalId,
-            }).ToList(),
-            Images = party.Images.Select(image => new PartyImageDetails
-            {
-                Id = image.Id,
-                ImageRole = image.ImageRole,
-                IsPrimary = image.IsPrimary,
-                CroppedArea = image.CropX.HasValue && image.CropY.HasValue && image.CropWidth.HasValue && image.CropHeight.HasValue
-                    ? new Music.Core.Services.Files.Requests.FileCroppedAreaRequest
-                    {
-                        X = image.CropX.Value,
-                        Y = image.CropY.Value,
-                        Width = image.CropWidth.Value,
-                        Height = image.CropHeight.Value,
-                    } : null,
-                Url = image.File?.FileObjects.OrderBy(x => x.FileObjectVariant).FirstOrDefault() is { } fileObject
-                    ? assetsService.GetUrl(fileObject.StoragePath) : null,
-            }).ToList(),
+            ExternalInfos = party
+                .PartyExternalInfos.Select(info => new UpdatePartyExternalInfoRequest
+                {
+                    Id = info.Id,
+                    Type = info.Type,
+                    ExternalId = info.ExternalId,
+                })
+                .ToList(),
+            Images = party
+                .Images.Select(image => new PartyImageDetails
+                {
+                    Id = image.Id,
+                    ImageRole = image.ImageRole,
+                    IsPrimary = image.IsPrimary,
+                    CroppedArea =
+                        image.CropX.HasValue
+                        && image.CropY.HasValue
+                        && image.CropWidth.HasValue
+                        && image.CropHeight.HasValue
+                            ? new Music.Core.Services.Files.Requests.FileCroppedAreaRequest
+                            {
+                                X = image.CropX.Value,
+                                Y = image.CropY.Value,
+                                Width = image.CropWidth.Value,
+                                Height = image.CropHeight.Value,
+                            }
+                            : null,
+                    Url = image.File?.FileObjects.OrderBy(x => x.FileObjectVariant).FirstOrDefault()
+                        is { } fileObject
+                        ? assetsService.GetUrl(fileObject.StoragePath)
+                        : null,
+                })
+                .ToList(),
             PartyId = party.Id,
             Name = party.Name,
             AvatarImages = party.ToPrimaryAvatarImages(assetsService),

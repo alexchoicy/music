@@ -10,6 +10,7 @@ public enum WorkerType
     ConcertUploadProcess,
     ImageUploadProcess,
     YouTubeCoverImport,
+    ExtraVideoUploadProcess,
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
@@ -18,6 +19,7 @@ public enum WorkerType
 [JsonDerivedType(typeof(ConcertUploadProcessWorker), (int)WorkerType.ConcertUploadProcess)]
 [JsonDerivedType(typeof(ImageUploadProcessWorker), (int)WorkerType.ImageUploadProcess)]
 [JsonDerivedType(typeof(YouTubeCoverImportWorker), (int)WorkerType.YouTubeCoverImport)]
+[JsonDerivedType(typeof(ExtraVideoUploadProcessWorker), (int)WorkerType.ExtraVideoUploadProcess)]
 public abstract class WorkerModel { }
 
 public sealed class TrackUploadProcessWorker : WorkerModel
@@ -36,6 +38,11 @@ public sealed class ConcertUploadProcessWorker : WorkerModel
 }
 
 public sealed class ImageUploadProcessWorker : WorkerModel
+{
+    public required Guid FileObjectId { get; init; }
+}
+
+public sealed class ExtraVideoUploadProcessWorker : WorkerModel
 {
     public required Guid FileObjectId { get; init; }
 }

@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import type React from "react";
 
-import { buttonVariants } from "@/old-components/coss/button";
+import { buttonVariants } from "@/components/base/button";
 import { cn } from "@/lib/utils/styles";
 
 const TOAST_ICONS = {

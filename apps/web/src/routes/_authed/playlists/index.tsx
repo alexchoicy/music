@@ -3,12 +3,14 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ListMusicIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 
+import { PageHeader } from "#/components/app/PageHeader";
+import { Button } from "#/components/base/button";
+import { LibraryEmptyState } from "#/components/library/LibraryStates";
+import { suppressNativeContextMenu } from "#/components/library/suppressNativeContextMenu";
+import { PlaylistNameDialog } from "#/components/playlist/PlaylistNameDialog";
+import { PlaylistTile } from "#/components/playlist/PlaylistTile";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { playlistQueries } from "#/lib/queries/playlist.queries";
-import { Button } from "#/old-components/coss/button";
-import { LibraryEmptyState } from "#/old-components/LibraryEmptyState";
-import { PlaylistCard } from "#/old-components/playlists/PlaylistCard";
-import { PlaylistNameDialog } from "#/old-components/playlists/PlaylistNameDialog";
 
 export const Route = createFileRoute("/_authed/playlists/")({
 	component: PlaylistsPage,
@@ -19,33 +21,39 @@ function PlaylistsPage() {
 	const { data: playlists } = useSuspenseQuery(playlistQueries.list(user.id));
 	const [creating, setCreating] = useState(false);
 	const navigate = useNavigate();
+
 	return (
-		<main className="flex min-h-full flex-col gap-6 p-4 sm:p-6">
-			<header className="flex flex-wrap items-center justify-between gap-4">
-				<div>
-					<h1 className="text-2xl font-semibold sm:text-3xl">Playlists</h1>
-					<p className="mt-1 text-sm text-muted-foreground">
-						Your personal collections of library tracks.
-					</p>
-				</div>
-				<Button type="button" onClick={() => setCreating(true)}>
+		<main
+			className="flex min-h-full w-full min-w-0 flex-col gap-6 p-4 sm:p-6"
+			onContextMenu={suppressNativeContextMenu}
+		>
+			<div className="flex flex-wrap items-end justify-between gap-4">
+				<PageHeader title="Playlists" />
+				<Button onClick={() => setCreating(true)}>
 					<PlusIcon aria-hidden="true" />
 					Create playlist
 				</Button>
-			</header>
+			</div>
+
 			{playlists.length === 0 ? (
 				<LibraryEmptyState
-					icon={<ListMusicIcon />}
-					title="No playlists yet"
 					description="Create a playlist, then add tracks from an album or a track’s menu."
+					icon={<ListMusicIcon aria-hidden="true" />}
+					title="No playlists yet"
 				/>
 			) : (
-				<div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+				<ul
+					aria-label="Playlists"
+					className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-[repeat(auto-fill,minmax(168px,1fr))]"
+				>
 					{playlists.map((playlist) => (
-						<PlaylistCard key={playlist.playlistId} playlist={playlist} />
+						<li className="min-w-0" key={playlist.playlistId}>
+							<PlaylistTile playlist={playlist} />
+						</li>
 					))}
-				</div>
+				</ul>
 			)}
+
 			{creating && (
 				<PlaylistNameDialog
 					onClose={() => setCreating(false)}

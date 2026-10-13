@@ -2,7 +2,7 @@ import { NumberField as NumberFieldPrimitive } from "@base-ui/react/number-field
 import { MinusIcon, PlusIcon } from "lucide-react";
 import * as React from "react";
 
-import { Label } from "@/old-components/coss/label";
+import { Label } from "@/components/base/label";
 import { cn } from "@/lib/utils/styles";
 
 export const NumberFieldContext: React.Context<{

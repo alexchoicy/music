@@ -1,13 +1,28 @@
-using Music.Core.Services.Parties.Results;
 using Music.Core.Services.Parties.Requests;
+using Music.Core.Services.Parties.Results;
 
 namespace Music.Core.Services.Parties;
 
 public interface IPartyService
 {
-    Task<bool> UpdateAliasesAsync(int partyId, PartyAliasBatchRequest request, string userId, CancellationToken cancellationToken = default);
-    Task<bool> UpdateExternalInfosAsync(int partyId, PartyExternalInfoBatchRequest request, string userId, CancellationToken cancellationToken = default);
-    Task<UpdatePartyResult?> UpdateImagesAsync(int partyId, PartyImageBatchRequest request, string userId, CancellationToken cancellationToken = default);
+    Task<bool> UpdateAliasesAsync(
+        int partyId,
+        PartyAliasBatchRequest request,
+        string userId,
+        CancellationToken cancellationToken = default
+    );
+    Task<bool> UpdateExternalInfosAsync(
+        int partyId,
+        PartyExternalInfoBatchRequest request,
+        string userId,
+        CancellationToken cancellationToken = default
+    );
+    Task<UpdatePartyResult?> UpdateImagesAsync(
+        int partyId,
+        PartyImageBatchRequest request,
+        string userId,
+        CancellationToken cancellationToken = default
+    );
 
     Task<UpdatePartyResult?> UpdatePartyAsync(
         int partyId,
@@ -26,6 +41,8 @@ public interface IPartyService
         PartyListRequest request,
         CancellationToken cancellationToken = default
     );
+
+    Task<int> CountAsync(PartyListRequest request, CancellationToken cancellationToken = default);
 
     Task<PartyDetails?> GetPartyByIdAsync(
         int partyId,

@@ -118,6 +118,8 @@ public static class DependencyInjection
         services.AddScoped<TrackUploadWorkerProcessor>();
         services.AddScoped<PartyInfoEnrichmentWorkerProcessor>();
         services.AddScoped<ConcertUploadWorkerProcessor>();
+        services.AddScoped<ExtraVideoUploadWorkerProcessor>();
+        services.AddScoped<VideoArtworkExtractor>();
         services.AddScoped<YouTubeCoverImportWorkerProcessor>();
 
         services.AddScoped<PartyAvatarService>();

@@ -7,11 +7,17 @@ import { cn } from "@/lib/utils/styles";
 export function Label({
 	className,
 	render,
+	variant = "default",
 	...props
-}: useRender.ComponentProps<"label">): React.ReactElement {
+}: useRender.ComponentProps<"label"> & {
+	variant?: "default" | "muted";
+}): React.ReactElement {
 	const defaultProps = {
 		className: cn(
-			"inline-flex items-center gap-2 text-base/4.5 font-medium text-foreground sm:text-sm/4",
+			"inline-flex items-center gap-2 font-medium",
+			variant === "muted"
+				? "text-xs text-muted-foreground"
+				: "text-base/4.5 text-foreground sm:text-sm/4",
 			className,
 		),
 		"data-slot": "label",

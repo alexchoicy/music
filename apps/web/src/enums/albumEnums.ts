@@ -17,7 +17,7 @@ const ALBUM_TYPE: Record<AlbumType, string> = {
 
 export const ALBUM_TYPE_OPTIONS = enumOptions(ALBUM_TYPE);
 
-const MEDIA_SOURCE: Record<MediaSource, string> = {
+export const MEDIA_SOURCE: Record<MediaSource, string> = {
 	Unknown: "Unknown",
 	UserUpload: "UserUpload",
 	MORA: "MORA",

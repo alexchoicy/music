@@ -3,9 +3,9 @@ import { ToggleGroup as ToggleGroupPrimitive } from "@base-ui/react/toggle-group
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
 
-import { Separator } from "@/old-components/coss/separator";
-import { Toggle as ToggleComponent } from '@/old-components/coss/toggle';
-import type { toggleVariants } from '@/old-components/coss/toggle';
+import { Separator } from "@/components/base/separator";
+import { Toggle as ToggleComponent } from '@/components/base/toggle';
+import type { toggleVariants } from '@/components/base/toggle';
 import { cn } from "@/lib/utils/styles";
 
 export const ToggleGroupContext: React.Context<

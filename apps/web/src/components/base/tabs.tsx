@@ -8,8 +8,11 @@ import { cn } from "@/lib/utils/styles";
 type TabsVariant = "default" | "underline";
 type TabsSize = SegmentedControlSize;
 
-const TabsListContext: React.Context<TabsSize> =
-	React.createContext<TabsSize>("default");
+const TabsListContext: React.Context<{ size: TabsSize; variant: TabsVariant }> =
+	React.createContext<{ size: TabsSize; variant: TabsVariant }>({
+		size: "default",
+		variant: "default",
+	});
 
 export function Tabs({
 	className,
@@ -44,14 +47,14 @@ export function TabsList({
 				"data-[orientation=vertical]:flex-col",
 				variant === "default"
 					? "rounded-lg bg-muted p-0.5 text-muted-foreground/72"
-					: "data-[orientation=horizontal]:py-1 data-[orientation=vertical]:px-1 *:data-[slot=tabs-tab]:hover:bg-accent",
+					: "gap-x-6 data-[orientation=horizontal]:w-full data-[orientation=horizontal]:justify-start data-[orientation=horizontal]:border-b data-[orientation=vertical]:px-1",
 				className,
 			)}
 			data-size={size}
 			data-slot="tabs-list"
 			{...props}
 		>
-			<TabsListContext.Provider value={size}>
+			<TabsListContext.Provider value={{ size, variant }}>
 				{children}
 			</TabsListContext.Provider>
 			<TabsPrimitive.Indicator
@@ -74,8 +77,9 @@ export function TabsTab({
 }: TabsPrimitive.Tab.Props & {
 	size?: TabsSize;
 }): React.ReactElement {
-	const contextSize: TabsSize = React.useContext(TabsListContext);
-	const resolvedSize: TabsSize = size ?? contextSize;
+	const context = React.useContext(TabsListContext);
+	const resolvedSize: TabsSize = size ?? context.size;
+	const underline = context.variant === "underline";
 
 	return (
 		<TabsPrimitive.Tab
@@ -83,6 +87,8 @@ export function TabsTab({
 				"relative flex shrink-0 grow cursor-pointer items-center justify-center rounded-md border border-transparent text-base font-medium whitespace-nowrap transition-[color,background-color,box-shadow] outline-none hover:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring data-active:text-foreground data-disabled:pointer-events-none data-disabled:opacity-64 data-[orientation=vertical]:w-full data-[orientation=vertical]:justify-start sm:text-sm",
 				segmentedControlItemLayoutClassName,
 				segmentedControlItemSizeClassNames[resolvedSize],
+				underline &&
+					"h-10 grow-0 gap-1.5 rounded-none px-0 hover:text-foreground sm:h-10",
 				className,
 			)}
 			data-size={resolvedSize}

@@ -1,7 +1,7 @@
 import { OTPField as OTPFieldPrimitive } from "@base-ui/react/otp-field";
 import type * as React from "react";
 
-import { Separator } from "@/old-components/coss/separator";
+import { Separator } from "@/components/base/separator";
 import { cn } from "@/lib/utils/styles";
 
 export function OTPField({

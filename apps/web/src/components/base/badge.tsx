@@ -19,6 +19,7 @@ export const badgeVariants = cva(
 					"h-5.5 min-w-5.5 px-[calc(--spacing(1)-1px)] text-sm sm:h-4.5 sm:min-w-4.5 sm:text-xs",
 				lg: "h-6.5 min-w-6.5 px-[calc(--spacing(1.5)-1px)] text-base sm:h-5.5 sm:min-w-5.5 sm:text-sm",
 				sm: "h-5 min-w-5 rounded-[.25rem] px-[calc(--spacing(1)-1px)] text-xs sm:h-4 sm:min-w-4 sm:text-[.625rem]",
+				tag: "h-6 min-w-6 gap-1 px-2 text-xs [&_svg:not([class*='size-'])]:size-3.5 sm:[&_svg:not([class*='size-'])]:size-3.5 @max-[140px]:px-0 @max-[140px]:[&_[data-slot=badge-label]]:sr-only",
 			},
 			variant: {
 				default:
@@ -32,6 +33,8 @@ export const badgeVariants = cva(
 					"border-input bg-background text-foreground dark:bg-input/32 [button&,a&]:hover:bg-accent/50 dark:[button&,a&]:hover:bg-input/48",
 				secondary:
 					"bg-secondary text-secondary-foreground [button&,a&]:hover:bg-secondary/90",
+				artwork:
+					"bg-background/80 text-foreground shadow-[inset_0_0_0_1px_--theme(--color-white/12%)] [&_svg]:opacity-100",
 				success: "bg-success/8 text-success-foreground dark:bg-success/16",
 				warning: "bg-warning/8 text-warning-foreground dark:bg-warning/16",
 			},

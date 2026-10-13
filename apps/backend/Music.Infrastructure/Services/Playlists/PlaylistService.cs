@@ -56,9 +56,11 @@ public sealed class PlaylistService(AppDbContext dbContext) : IPlaylistService
                         EntryId = entry.Id,
                         AlbumId = entry.AlbumTrack!.AlbumDisc!.AlbumId,
                         AlbumTitle = entry.AlbumTrack.AlbumDisc.Album!.Title,
+                        AlbumLanguageId = entry.AlbumTrack.AlbumDisc.Album.LanguageId,
                         AlbumDiscId = entry.AlbumTrack.AlbumDiscId,
                         TrackId = entry.AlbumTrack.TrackId,
                         Title = entry.AlbumTrack.Track!.Title,
+                        LanguageId = entry.AlbumTrack.Track.LanguageId,
                         DurationInMs = entry.AlbumTrack.Track.DurationInMs,
                     })
                     .ToList(),

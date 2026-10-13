@@ -1,15 +1,17 @@
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
-import type { ReactNode } from "react";
 
+import { AlbumTile } from "#/components/album/AlbumTile";
+import { PageHeader } from "#/components/app/PageHeader";
+import { ConcertTile } from "#/components/concert/ConcertTile";
+import { ContinueListening } from "#/components/home/ContinueListening";
+import { HomeSection, TileRow } from "#/components/home/HomeSection";
+import { LibraryCounts } from "#/components/home/LibraryCounts";
+import { suppressNativeContextMenu } from "#/components/library/suppressNativeContextMenu";
+import { PartyTile } from "#/components/party/PartyTile";
 import { homeQueries } from "#/lib/queries/home.queries";
 import { statsQueries } from "#/lib/queries/stats.queries";
-import { AlbumGrid } from "#/old-components/AlbumGrid";
-import { ConcertCard } from "#/old-components/concerts/ConcertCard";
-import { ContinueListening } from "#/old-components/home/ContinueListening";
-import { LibraryCounts } from "#/old-components/home/LibraryCounts";
-import { PartyCard } from "#/old-components/parties/PartyCard";
 import { onListeningHistoryRecorded } from "#/store/audioPlayer/listeningHistory";
 import { usePlaybackDeviceStore } from "#/store/playbackDeviceStore";
 
@@ -60,90 +62,71 @@ function RouteComponent() {
 	}, [queryClient, userInfo.id]);
 
 	return (
-		<main className="flex min-h-full w-full min-w-0 flex-col gap-5 p-4 sm:gap-8 sm:p-6">
-			<header className="flex flex-col gap-1">
-				<p className="text-sm font-medium text-muted-foreground">Library</p>
-				<h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-4xl">
-					Home
-				</h1>
-			</header>
+		<main
+			className="flex min-h-full w-full min-w-0 flex-col gap-8 p-4 sm:p-6"
+			onContextMenu={suppressNativeContextMenu}
+		>
+			<PageHeader title="Home" />
 
-			<LibraryCounts overview={stats} />
+			<LibraryCounts stats={stats} />
 
 			<ContinueListening items={feed.continueListening} />
 
 			{feed.recentlyPlayed.length > 0 && (
-				<RecentSection title="Recently played" to="/history">
-					<AlbumGrid albums={feed.recentlyPlayed} variant="preview" />
-				</RecentSection>
+				<HomeSection title="Recently played" viewAll="/history">
+					<TileRow items={feed.recentlyPlayed}>
+						{(album, className) => (
+							<AlbumTile
+								album={album}
+								className={className}
+								key={album.albumId}
+							/>
+						)}
+					</TileRow>
+				</HomeSection>
 			)}
 
-			<RecentSection title="Recently added albums" to="/albums">
-				<AlbumGrid albums={feed.recentAlbums} variant="preview" />
-			</RecentSection>
+			{feed.recentAlbums.length > 0 && (
+				<HomeSection title="Recently added albums" viewAll="/albums">
+					<TileRow items={feed.recentAlbums}>
+						{(album, className) => (
+							<AlbumTile
+								album={album}
+								className={className}
+								key={album.albumId}
+							/>
+						)}
+					</TileRow>
+				</HomeSection>
+			)}
 
-			<RecentSection title="Recently added parties" to="/parties">
-				<RecentGrid>
-					{feed.recentParties.map((party) => {
-						return (
-							<PartyCard
-								className="min-w-0"
+			{feed.recentParties.length > 0 && (
+				<HomeSection title="Recently added parties" viewAll="/parties">
+					<TileRow items={feed.recentParties}>
+						{(party, className) => (
+							<PartyTile
+								className={className}
 								key={party.partyId}
 								party={party}
 							/>
-						);
-					})}
-				</RecentGrid>
-			</RecentSection>
+						)}
+					</TileRow>
+				</HomeSection>
+			)}
 
-			<RecentSection title="Recently added concerts" to="/concerts">
-				<RecentGrid>
-					{feed.recentConcerts.map((concert) => {
-						return (
-							<ConcertCard
-								className="min-w-0"
+			{feed.recentConcerts.length > 0 && (
+				<HomeSection title="Recently added concerts" viewAll="/concerts">
+					<TileRow items={feed.recentConcerts} size="wide">
+						{(concert, className) => (
+							<ConcertTile
+								className={className}
 								concert={concert}
 								key={concert.concertId}
 							/>
-						);
-					})}
-				</RecentGrid>
-			</RecentSection>
+						)}
+					</TileRow>
+				</HomeSection>
+			)}
 		</main>
-	);
-}
-
-type RecentSectionProps = {
-	children: ReactNode;
-	title: string;
-	to: "/albums" | "/concerts" | "/parties" | "/history";
-};
-
-function RecentSection({ children, title, to }: RecentSectionProps) {
-	return (
-		<section className="flex flex-col gap-4">
-			<div className="flex items-end justify-between gap-4">
-				<h2 className="font-heading text-xl font-semibold tracking-tight">
-					{title}
-				</h2>
-				<Link
-					className="text-sm font-medium text-muted-foreground hover:text-foreground"
-					search={to === "/history" ? {} : { sort: "CreatedAtDesc" }}
-					to={to}
-				>
-					View all
-				</Link>
-			</div>
-
-			{children}
-		</section>
-	);
-}
-
-function RecentGrid({ children }: { children: ReactNode }) {
-	return (
-		<div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 [&>*:nth-child(n+3)]:hidden md:[&>*:nth-child(n+3)]:block md:[&>*:nth-child(n+4)]:hidden lg:[&>*:nth-child(n+4)]:block lg:[&>*:nth-child(n+5)]:hidden xl:[&>*:nth-child(n+5)]:block xl:[&>*:nth-child(n+6)]:hidden 2xl:[&>*:nth-child(n+6)]:block 2xl:[&>*:nth-child(n+7)]:hidden">
-			{children}
-		</div>
 	);
 }
