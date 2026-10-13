@@ -42,6 +42,7 @@ type AudioPlayerPersistedState = Pick<
 let waveSurfer: WaveSurfer | null = null;
 let loadRequestId = 0;
 let finishedRequestId = 0;
+let pausedLoadRequestId = 0;
 const seekListeners = new Set<() => void>();
 
 export const AUDIO_PLAYER_IDLE_PEAKS: WaveSurferOptions["peaks"] = [[0, 0]];
@@ -259,6 +260,10 @@ function getNextPlayback(state: AudioPlayerState, automatic: boolean) {
 	};
 }
 
+function isAutoplayPending(status: AudioPlayerState["status"]): boolean {
+	return status === "loading" && loadRequestId !== pausedLoadRequestId;
+}
+
 function clearPendingLoad(requestId: number): void {
 	if (finishedRequestId === requestId) finishedRequestId = 0;
 }
@@ -311,6 +316,7 @@ async function loadAndPlay(
 	const autoplay = options.autoplay ?? true;
 	const requestId = ++loadRequestId;
 	finishedRequestId = requestId;
+	if (!autoplay) pausedLoadRequestId = requestId;
 	const playbackSource = resolvePlaybackSource(playbackQuality, track);
 	if (options.startListening) startListeningSession(track);
 	console.log("[audio-player] loadAndPlay:start", {
@@ -503,7 +509,14 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					});
 					waveSurfer = instance;
 
-					if (!waveSurfer) return;
+					if (!waveSurfer) {
+						if (get().status === "loading") {
+							loadRequestId++;
+							finishedRequestId = 0;
+							set({ currentPlayingKey: null, status: "idle" });
+						}
+						return;
+					}
 
 					waveSurfer.setVolume(get().volume);
 					waveSurfer.setMuted(get().muted);
@@ -512,7 +525,20 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						for (const listener of seekListeners) listener();
 					});
 
-					if (get().status === "idle") resetWaveSurferToIdle();
+					const { index, playbackQuality, queue, status } = get();
+					if (status !== "idle") return;
+
+					const track = queue.at(index);
+					if (!track) {
+						resetWaveSurferToIdle();
+						return;
+					}
+
+					set({ status: "loading" });
+					void loadAndPlay(playbackQuality, track, {
+						autoplay: false,
+						startListening: true,
+					});
 				},
 				reloadAudio: async (options) => {
 					const { currentPlayingKey, index, playbackQuality, queue, status } =
@@ -661,6 +687,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						return;
 					}
 					const removedCurrent = removeIndex === index;
+					const autoplay = status === "playing" || isAutoplayPending(status);
 					if (removedCurrent) {
 						loadRequestId++;
 						finishedRequestId = 0;
@@ -685,7 +712,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					if (removedCurrent && status !== "idle") {
 						const state = get();
 						void loadAndPlay(state.playbackQuality, state.queue[state.index], {
-							autoplay: status === "playing" || status === "loading",
+							autoplay,
 							startListening: true,
 						});
 					}
@@ -989,7 +1016,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						queue: queue.map(({ queueEntryId: _, ...track }) => track),
 						index,
 						positionMs: getPlaybackPositionMs(),
-						playing: status === "playing" || status === "loading",
+						playing: status === "playing" || isAutoplayPending(status),
 					};
 				},
 				adoptTransfer: async (snapshot) => {
