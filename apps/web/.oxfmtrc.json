@@ -26,6 +26,7 @@
 		"**/src/styles.css",
 		"**/base/**/*",
 		"**/.vscode/**/*",
-		"**/data/APIschema.ts"
+		"**/data/APIschema.ts",
+		"**/src/old-components"
 	]
 }

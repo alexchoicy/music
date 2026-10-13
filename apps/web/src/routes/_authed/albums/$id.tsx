@@ -27,8 +27,13 @@ export const Route = createFileRoute("/_authed/albums/$id")({
 	loader: async ({ context, params }) => {
 		// Extras are optional: prefetching never throws, so a failed request only hides the section.
 		const [album] = await Promise.all([
-			context.queryClient.ensureQueryData(albumQueries.getAlbum(params.id)),
-			context.queryClient.prefetchQuery(extraQueries.getAlbumExtras(params.id)),
+			context.queryClient.query({
+				...albumQueries.getAlbum(params.id),
+				staleTime: "static",
+			}),
+			context.queryClient
+				.query(extraQueries.getAlbumExtras(params.id))
+				.catch(() => {}),
 		]);
 		return album;
 	},

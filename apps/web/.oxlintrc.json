@@ -25,12 +25,14 @@
 		"**/src/styles.css",
 		"**/base/**/*",
 		"**/.vscode/**/*",
-		"**/data/APIschema.ts"
+		"**/data/APIschema.ts",
+		"**/src/old-components"
 	],
 	"overrides": [
 		{
 			"files": ["**/*.{js,ts,tsx}"],
 			"rules": {
+				"typescript/no-deprecated": "error",
 				"for-direction": "error",
 				"no-async-promise-executor": "error",
 				"no-case-declarations": "error",

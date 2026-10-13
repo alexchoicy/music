@@ -15,9 +15,10 @@ import { cn } from "#/lib/utils/styles";
 
 export const Route = createFileRoute("/_authed/concerts/$id")({
 	loader: ({ context, params }) => {
-		return context.queryClient.ensureQueryData(
-			concertQueries.getConcert(params.id),
-		);
+		return context.queryClient.query({
+			...concertQueries.getConcert(params.id),
+			staleTime: "static",
+		});
 	},
 	component: RouteComponent,
 });

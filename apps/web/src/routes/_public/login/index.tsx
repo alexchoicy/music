@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_public/login/")({
 		redirect: (search.redirect as string) || "/",
 	}),
 	beforeLoad: async ({ context, search }) => {
-		const status = await context.queryClient.fetchQuery({
+		const status = await context.queryClient.query({
 			...authQueries.checkAuth(),
 			staleTime: 0,
 		});

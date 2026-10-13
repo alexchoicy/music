@@ -37,12 +37,19 @@ export const Route = createFileRoute("/_authed/history")({
 		tab: z.enum(["recent", "counts"]).optional(),
 	}),
 	loader: async ({ context }) => {
-		const user = await context.queryClient.ensureQueryData(
-			authQueries.userInfo(),
-		);
+		const user = await context.queryClient.query({
+			...authQueries.userInfo(),
+			staleTime: "static",
+		});
 		await Promise.all([
-			context.queryClient.ensureInfiniteQueryData(historyQueries.list(user.id)),
-			context.queryClient.ensureQueryData(historyQueries.counts(user.id)),
+			context.queryClient.infiniteQuery({
+				...historyQueries.list(user.id),
+				staleTime: "static",
+			}),
+			context.queryClient.query({
+				...historyQueries.counts(user.id),
+				staleTime: "static",
+			}),
 		]);
 	},
 	component: HistoryPage,

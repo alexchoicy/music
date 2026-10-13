@@ -32,9 +32,10 @@ export const Route = createFileRoute("/_authed/albums/$id_/edit")({
 		tab: z.enum(editTabs).optional(),
 	}),
 	loader: ({ context, params }) => {
-		return context.queryClient.ensureQueryData(
-			albumQueries.getAlbum(params.id),
-		);
+		return context.queryClient.query({
+			...albumQueries.getAlbum(params.id),
+			staleTime: "static",
+		});
 	},
 	component: RouteComponent,
 });

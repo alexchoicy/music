@@ -47,12 +47,14 @@ import type { AudioPlayerTrack } from "#/store/audioPlayer/audioPlayerType";
 
 export const Route = createFileRoute("/_authed/playlists/$id")({
 	loader: async ({ context, params }) => {
-		const user = await context.queryClient.ensureQueryData(
-			authQueries.userInfo(),
-		);
-		return context.queryClient.ensureQueryData(
-			playlistQueries.detail(user.id, params.id),
-		);
+		const user = await context.queryClient.query({
+			...authQueries.userInfo(),
+			staleTime: "static",
+		});
+		return context.queryClient.query({
+			...playlistQueries.detail(user.id, params.id),
+			staleTime: "static",
+		});
 	},
 	component: PlaylistPage,
 });

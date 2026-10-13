@@ -9,9 +9,10 @@ import { getPartyAvatarUrl } from "#/lib/utils/party";
 
 export const Route = createFileRoute("/_authed/parties/$id")({
 	loader: ({ context, params }) => {
-		return context.queryClient.ensureQueryData(
-			partyQueries.getParty(params.id),
-		);
+		return context.queryClient.query({
+			...partyQueries.getParty(params.id),
+			staleTime: "static",
+		});
 	},
 	component: RouteComponent,
 });

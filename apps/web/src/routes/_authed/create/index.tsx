@@ -45,9 +45,9 @@ export const Route = createFileRoute("/_authed/create/")({
 	}),
 	component: RouteComponent,
 	loader: ({ context }) => {
-		context.queryClient.prefetchQuery(albumQueries.getAlbums());
-		context.queryClient.prefetchQuery(languageQueries.getLanguages());
-		context.queryClient.prefetchQuery(partyQueries.getParties());
+		context.queryClient.query(albumQueries.getAlbums()).catch(() => {});
+		context.queryClient.query(languageQueries.getLanguages()).catch(() => {});
+		context.queryClient.query(partyQueries.getParties()).catch(() => {});
 	},
 });
 

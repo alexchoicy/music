@@ -45,7 +45,7 @@ export const Route = createFileRoute("/_authed")({
 			}
 		}
 
-		const isAuthenticated = await context.queryClient.fetchQuery(
+		const isAuthenticated = await context.queryClient.query(
 			authQueries.checkAuth(),
 		);
 
@@ -56,15 +56,17 @@ export const Route = createFileRoute("/_authed")({
 			});
 		}
 
-		const userInfo = await context.queryClient.ensureQueryData(
-			authQueries.userInfo(),
-		);
+		const userInfo = await context.queryClient.query({
+			...authQueries.userInfo(),
+			staleTime: "static",
+		});
 		return { userInfo };
 	},
 	loader: ({ context }) =>
-		context.queryClient.ensureQueryData(
-			playlistQueries.list(context.userInfo.id),
-		),
+		context.queryClient.query({
+			...playlistQueries.list(context.userInfo.id),
+			staleTime: "static",
+		}),
 	validateSearch: authedSearchSchema,
 	head: async () => {
 		const apiBaseUrl = await getResolvedApiEndpoint();

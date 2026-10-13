@@ -22,10 +22,14 @@ export const Route = createFileRoute("/_authed/")({
 	ssr: "data-only",
 	loader: ({ context }) => {
 		return Promise.all([
-			context.queryClient.ensureQueryData(statsQueries.getLibraryStats()),
-			context.queryClient.ensureQueryData(
-				homeQueries.getFeed(context.userInfo.id),
-			),
+			context.queryClient.query({
+				...statsQueries.getLibraryStats(),
+				staleTime: "static",
+			}),
+			context.queryClient.query({
+				...homeQueries.getFeed(context.userInfo.id),
+				staleTime: "static",
+			}),
 		]);
 	},
 	component: RouteComponent,
