@@ -15,7 +15,7 @@ export function SwitchRow({
 	onChange,
 }: SwitchRowProps) {
 	const primary = useCSSVariable("--color-primary");
-	const track = useCSSVariable("--color-surface-strong");
+	const track = useCSSVariable("--color-input");
 
 	return (
 		<View className="min-h-12 flex-row items-center gap-3">

@@ -112,10 +112,10 @@ export function toAlbumTile(album: AlbumListItem): AlbumTile {
 		title: album.title,
 		type: album.type,
 		artists: joinNames(album.artists),
-		// The first disc cover comes first, like the web library.
+		// The album's own cover; disc 1's only when it has none, like the web library.
 		cover:
-			getCover(album.discCovers?.at(0)?.variants) ??
-			getCover(album.coverVariants),
+			getCover(album.coverVariants) ??
+			getCover(album.discCovers?.at(0)?.variants),
 		addedAt: Date.parse(album.createdAt),
 	};
 }

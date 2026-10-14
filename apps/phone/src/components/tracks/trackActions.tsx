@@ -226,7 +226,7 @@ function PlaylistPicker({
 					<Loading />
 				</View>
 			) : playlists.isError ? (
-				<Text className="py-3 text-sm text-destructive">
+				<Text className="py-3 text-sm text-destructive-foreground">
 					Couldn't load playlists.
 				</Text>
 			) : (

@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { FlatList, View } from "react-native";
+import { FlatList } from "react-native";
 
 import { AlbumCard } from "@/components/albums/albumCard";
 import { gridGap, gridPadding, useGrid } from "@/lib/hooks";
@@ -30,7 +30,7 @@ export function AlbumGrid({
 			columnWrapperStyle={{ gap: gridGap }}
 			contentContainerStyle={{
 				flexGrow: 1,
-				gap: 20,
+				gap: 24,
 				paddingHorizontal: gridPadding,
 				paddingBottom: endPadding,
 			}}
@@ -45,11 +45,7 @@ export function AlbumGrid({
 			numColumns={columns}
 			onRefresh={onRefresh}
 			refreshing={refreshing}
-			renderItem={({ item }) => (
-				<View style={{ width: itemWidth }}>
-					<AlbumCard album={item} />
-				</View>
-			)}
+			renderItem={({ item }) => <AlbumCard album={item} width={itemWidth} />}
 		/>
 	);
 }

@@ -32,9 +32,11 @@ public sealed class ListeningHistoryEntryDetails
     public required DateTimeOffset PlayedAt { get; init; }
     public required int AlbumId { get; init; }
     public required string AlbumTitle { get; init; }
+    public int? AlbumLanguageId { get; init; }
     public required int AlbumDiscId { get; init; }
     public required int TrackId { get; init; }
     public required string Title { get; init; }
+    public int? LanguageId { get; init; }
     public required int DurationInMs { get; init; }
 }
 
@@ -49,9 +51,11 @@ public sealed class ListeningHistoryTrackCount
 {
     public required int AlbumId { get; init; }
     public required string AlbumTitle { get; init; }
+    public int? AlbumLanguageId { get; init; }
     public required int AlbumDiscId { get; init; }
     public required int TrackId { get; init; }
     public required string Title { get; init; }
+    public int? LanguageId { get; init; }
     public required int DurationInMs { get; init; }
     public required int PlayCount { get; init; }
     public required DateTimeOffset LastPlayedAt { get; init; }

@@ -20,8 +20,8 @@ export function EmptyState({
 	return (
 		<View className="flex-1 items-center justify-center gap-2 px-8 py-10">
 			{icon && (
-				<View className="mb-2 size-16 items-center justify-center rounded-full bg-surface">
-					<Icon className="accent-muted-foreground" name={icon} size={28} />
+				<View className="mb-2">
+					<Icon className="accent-muted-foreground" name={icon} size={32} />
 				</View>
 			)}
 			<Text className="text-center text-lg font-semibold text-foreground">

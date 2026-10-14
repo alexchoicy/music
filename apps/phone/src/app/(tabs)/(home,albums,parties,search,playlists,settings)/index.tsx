@@ -1,7 +1,15 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Href } from "expo-router";
+import { router } from "expo-router";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { RefreshControl, ScrollView, Text, View } from "react-native";
+import {
+	Pressable,
+	RefreshControl,
+	ScrollView,
+	Text,
+	View,
+} from "react-native";
 
 import { AlbumCard } from "@/components/albums/albumCard";
 import { ContinueListening } from "@/components/home/continueListening";
@@ -10,6 +18,7 @@ import { Artwork } from "@/components/ui/artwork";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/emptyState";
 import { PageHeader, SectionHeader } from "@/components/ui/header";
+import { Icon } from "@/components/ui/icon";
 import { Loading } from "@/components/ui/loading";
 import { Screen } from "@/components/ui/screen";
 import { formatReleaseDate } from "@/lib/format";
@@ -20,7 +29,12 @@ import { homeQueries } from "@/queries/home";
 import { useEndPadding } from "@/store/miniPlayerStore";
 import { usePlaybackDeviceStore } from "@/store/playbackDeviceStore";
 
-const cardWidth = 144;
+const cardWidth = 150;
+const concertWidth = 240;
+const numberFormatter = new Intl.NumberFormat();
+// Tabs are named, since every tab stack holds these routes.
+const albumsTab = "/(albums)/albums" as Href;
+const partiesTab = "/(parties)/parties" as Href;
 const feedRefreshDelayMs = 1000;
 
 export default function HomeScreen() {
@@ -72,7 +86,7 @@ export default function HomeScreen() {
 
 		return (
 			<ScrollView
-				contentContainerClassName="gap-8 pt-2"
+				contentContainerClassName="gap-8 pt-4"
 				contentContainerStyle={{ paddingBottom: endPadding }}
 				refreshControl={
 					<RefreshControl
@@ -94,7 +108,7 @@ export default function HomeScreen() {
 						/>
 					))}
 				</Row>
-				<Row title="Recently added albums">
+				<Row title="Recently added albums" viewAll={albumsTab}>
 					{recentAlbums.map((album) => (
 						<AlbumCard
 							album={toAlbumTile(album)}
@@ -103,9 +117,9 @@ export default function HomeScreen() {
 						/>
 					))}
 				</Row>
-				<Row title="Recently added parties">
+				<Row title="Recently added parties" viewAll={partiesTab}>
 					{recentParties.map((party) => (
-						<PartyCard key={party.partyId} party={party} width={112} />
+						<PartyCard key={party.partyId} party={party} width={120} />
 					))}
 				</Row>
 				<Row title="Recently added concerts">
@@ -126,53 +140,94 @@ export default function HomeScreen() {
 }
 
 function StatsRow({ stats }: { stats: LibraryStats }) {
+	// The phone has no concerts page, so that count does not open one.
 	const items = [
-		{ label: "Albums", count: stats.albumCount },
-		{ label: "Parties", count: stats.artistCount },
-		{ label: "Concerts", count: stats.concertCount },
+		{ label: "Albums", count: stats.albumCount, href: albumsTab },
+		{ label: "Parties", count: stats.artistCount, href: partiesTab },
+		{ label: "Concerts", count: stats.concertCount, href: null },
 	];
 
 	return (
-		<View className="flex-row gap-3 px-4">
-			{items.map(({ label, count }) => (
-				<View
-					accessibilityLabel={`${count} ${label.toLocaleLowerCase()}`}
-					accessible
-					className="flex-1 gap-1 rounded-2xl bg-surface p-3"
+		<View accessibilityLabel="Library counts" className="flex-row px-2">
+			{items.map(({ label, count, href }) => (
+				<Pressable
+					accessibilityLabel={`${numberFormatter.format(Number(count))} ${label.toLocaleLowerCase()}`}
+					accessibilityRole={href ? "link" : "text"}
+					className="flex-1 flex-row items-center gap-1 rounded-lg px-2 py-3 active:bg-accent"
+					disabled={!href}
 					key={label}
+					onPress={() => href && router.navigate(href)}
 				>
-					<Text className="text-xs text-muted-foreground" numberOfLines={1}>
-						{label}
-					</Text>
-					<Text
-						className="text-2xl font-bold text-foreground tabular-nums"
-						numberOfLines={1}
-					>
-						{count}
-					</Text>
-				</View>
+					<View className="flex-1 gap-0.5">
+						<Text className="text-xs text-muted-foreground" numberOfLines={1}>
+							{label}
+						</Text>
+						<Text
+							adjustsFontSizeToFit
+							className="text-[28px] leading-8 font-semibold tracking-tight text-foreground tabular-nums"
+							numberOfLines={1}
+						>
+							{numberFormatter.format(Number(count))}
+						</Text>
+					</View>
+					{href && (
+						<Icon
+							className="accent-muted-foreground"
+							name="chevronRight"
+							size={16}
+						/>
+					)}
+				</Pressable>
 			))}
 		</View>
 	);
 }
 
 /** A titled horizontal row; hidden when it has nothing to show. */
-function Row({ title, children }: { title: string; children: ReactNode[] }) {
+function Row({
+	title,
+	viewAll,
+	children,
+}: {
+	title: string;
+	/** The tab with the full list. */
+	viewAll?: Href;
+	children: ReactNode[];
+}) {
 	if (children.length === 0) return null;
 
 	return (
-		<View className="gap-2">
+		<View className="gap-3">
 			<View className="px-4">
-				<SectionHeader title={title} />
+				<SectionHeader
+					action={viewAll && <ViewAllLink href={viewAll} title={title} />}
+					title={title}
+				/>
 			</View>
 			<ScrollView
-				contentContainerClassName="gap-3.5 px-4"
+				contentContainerClassName="gap-4 px-4"
 				horizontal
 				showsHorizontalScrollIndicator={false}
 			>
 				{children}
 			</ScrollView>
 		</View>
+	);
+}
+
+function ViewAllLink({ href, title }: { href: Href; title: string }) {
+	return (
+		<Pressable
+			accessibilityLabel={`View all, ${title.toLocaleLowerCase()}`}
+			accessibilityRole="link"
+			className="h-11 justify-center active:opacity-60"
+			hitSlop={{ left: 8 }}
+			onPress={() => router.navigate(href)}
+		>
+			<Text className="text-sm font-medium text-muted-foreground">
+				View all
+			</Text>
+		</Pressable>
 	);
 }
 
@@ -186,10 +241,11 @@ function ConcertCard({ concert }: { concert: ConcertListItem }) {
 		<View
 			accessibilityLabel={`${concert.title}, ${detail}`}
 			accessible
-			className="gap-2"
-			style={{ width: cardWidth }}
+			className="gap-2.5"
+			style={{ width: concertWidth }}
 		>
 			<Artwork
+				className="aspect-video"
 				icon="parties"
 				recyclingKey={String(concert.concertId)}
 				uri={coverUri}

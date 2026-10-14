@@ -5,6 +5,7 @@ import { GestureDetector } from "react-native-gesture-handler";
 import { useLayerDragGesture } from "@/components/player/playerLayerView";
 import { Artwork } from "@/components/ui/artwork";
 import { IconButton } from "@/components/ui/iconButton";
+import { useShadow } from "@/lib/shadows";
 import { useArtworkUri } from "@/offline/offlineStore";
 import { audioPlayer } from "@/player/engine";
 import { nowPlaying } from "@/player/nowPlaying";
@@ -27,11 +28,12 @@ function Bar({ entry }: { entry: QueueEntry }) {
 		entry.artists.map((artist) => artist.name).join(", ") || "Unknown artist";
 	// Now Playing follows the finger up from the mini player.
 	const drag = useLayerDragGesture(nowPlaying, "open");
+	const playerShadow = useShadow("player");
 
 	return (
 		<GestureDetector gesture={drag}>
-			<View className="mx-2 mb-2 overflow-hidden rounded-2xl bg-surface-strong shadow-lg">
-				<View className="flex-row items-center gap-1 pr-1">
+			<View className="mx-2 mb-2 rounded-4xl bg-popover" style={playerShadow}>
+				<View className="flex-row items-center gap-1 pr-2">
 					<Pressable
 						accessibilityHint="Opens Now Playing"
 						accessibilityLabel={`${entry.title}, ${artists}`}
@@ -58,15 +60,17 @@ function Bar({ entry }: { entry: QueueEntry }) {
 						</View>
 					</Pressable>
 					{status === "loading" ? (
-						<View className="size-11 items-center justify-center">
-							<ActivityIndicator colorClassName="accent-foreground" />
+						<View className="size-10 items-center justify-center rounded-full bg-primary">
+							<ActivityIndicator colorClassName="accent-primary-foreground" />
 						</View>
 					) : (
 						<IconButton
 							icon={status === "playing" ? "pause" : "play"}
-							iconSize={26}
+							iconSize={20}
 							label={status === "playing" ? "Pause" : "Play"}
 							onPress={togglePlayback}
+							size={40}
+							variant="primary"
 						/>
 					)}
 					<IconButton
@@ -92,9 +96,9 @@ function Progress({ durationInMs }: { durationInMs: number }) {
 	const fraction = isLoaded && total > 0 ? Math.min(currentTime / total, 1) : 0;
 
 	return (
-		<View className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-surface-strong">
+		<View className="absolute inset-x-4 bottom-0 h-0.5 overflow-hidden rounded-full bg-border">
 			<View
-				className="h-full rounded-full bg-foreground"
+				className="h-full rounded-full bg-primary"
 				style={{ width: `${fraction * 100}%` }}
 			/>
 		</View>

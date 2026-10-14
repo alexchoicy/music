@@ -1,9 +1,9 @@
-import { toastManager } from "#/components/coss/toast";
 import { webSocketServerMessageSchema } from "#/data/webSocket";
 import type {
 	WebSocketClientMessage,
 	WebSocketServerMessage,
 } from "#/data/webSocket";
+import { toastManager } from "#/old-components/coss/toast";
 
 let musicSocket: WebSocket | null = null;
 

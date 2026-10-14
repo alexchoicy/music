@@ -115,7 +115,8 @@ function NowPlaying({ entry }: { entry: QueueEntry }) {
 					<View>
 						<Artwork
 							accessibilityLabel={`${entry.albumTitle} cover`}
-							className="rounded-3xl shadow-2xl"
+							elevation="player"
+							radiusClassName="rounded-4xl"
 							icon="musicNote"
 							recyclingKey={entry.entryId}
 							size={coverSize}
@@ -170,7 +171,7 @@ function NowPlaying({ entry }: { entry: QueueEntry }) {
 					{error && (
 						<Text
 							accessibilityLiveRegion="polite"
-							className="text-center text-sm text-destructive"
+							className="text-center text-sm text-destructive-foreground"
 						>
 							Couldn't play this track. Tap play to try again.
 						</Text>

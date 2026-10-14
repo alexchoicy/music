@@ -84,7 +84,7 @@ export default function AlbumsScreen() {
 			{!isOnline && (
 				<View
 					accessibilityLiveRegion="polite"
-					className="flex-row items-center gap-3 rounded-2xl bg-surface px-4 py-2.5"
+					className="flex-row items-center gap-3 rounded-lg bg-muted px-4 py-2.5"
 				>
 					<Icon className="accent-muted-foreground" name="offline" size={18} />
 					<Text className="flex-1 text-sm text-muted-foreground">

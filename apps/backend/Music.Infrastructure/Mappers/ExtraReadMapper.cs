@@ -77,8 +77,11 @@ internal static class ExtraReadMapper
                 : original.ToContentDetails(contentService),
             Preview = file.GetObject(FileObjectVariant.ImagePreview2048)
                 ?.ToAssetDetails(assetsService),
-            Thumbnail = file.GetObject(FileObjectVariant.ImageThumbnail512)
-                ?.ToAssetDetails(assetsService),
+            Thumbnail = (
+                file.GetObject(FileObjectVariant.ImageThumbnail512)
+                ?? file.GetObject(FileObjectVariant.AttachedPicture)
+                ?? file.GetObject(FileObjectVariant.Thumbnail640x360)
+            )?.ToAssetDetails(assetsService),
         };
     }
 

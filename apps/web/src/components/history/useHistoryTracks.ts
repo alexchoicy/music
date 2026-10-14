@@ -10,7 +10,6 @@ type HistoryTrackEntry = Pick<
 	"albumId" | "albumDiscId" | "trackId"
 >;
 
-// Resolves history entries against their albums for covers, credits, and playback.
 export function useHistoryTracks<T extends HistoryTrackEntry>(entries: T[]) {
 	const albumIds = [...new Set(entries.map((entry) => String(entry.albumId)))];
 	const albums = useQueries({

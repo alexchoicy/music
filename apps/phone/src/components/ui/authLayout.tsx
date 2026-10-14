@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { KeyboardAvoidingView, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Icon } from "@/components/ui/icon";
+import { AppMark } from "@/components/ui/appMark";
 
 type AuthLayoutProps = {
 	title: string;
@@ -28,13 +28,7 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
 			>
 				<View className="w-full max-w-sm gap-8 self-center">
 					<View className="gap-4">
-						<View className="size-14 items-center justify-center rounded-2xl bg-primary">
-							<Icon
-								className="accent-primary-foreground"
-								name="musicNote"
-								size={30}
-							/>
-						</View>
+						<AppMark size={48} />
 						<View className="gap-1.5">
 							<Text
 								accessibilityRole="header"

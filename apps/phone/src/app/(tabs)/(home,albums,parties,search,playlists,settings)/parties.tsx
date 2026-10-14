@@ -78,7 +78,7 @@ export default function PartiesScreen() {
 				columnWrapperStyle={{ gap: gridGap }}
 				contentContainerStyle={{
 					flexGrow: 1,
-					gap: 20,
+					gap: 24,
 					paddingHorizontal: gridPadding,
 					paddingBottom: endPadding,
 				}}
@@ -102,7 +102,9 @@ export default function PartiesScreen() {
 				numColumns={columns}
 				onRefresh={() => void parties.refetch()}
 				refreshing={parties.isRefetching && !parties.isPlaceholderData}
-				renderItem={({ item }) => <PartyCard party={item} width={itemWidth} />}
+				renderItem={({ item }) => (
+					<PartyCard party={item} variant="library" width={itemWidth} />
+				)}
 			/>
 		);
 	}

@@ -197,8 +197,8 @@ export function getDownloadedTiles({
 			type: album.type,
 			artists: joinNames(album.credits),
 			cover:
-				getCover(album.cover.discs.at(0)?.variants) ??
-				getCover(album.cover.album),
+				getCover(album.cover.album) ??
+				getCover(album.cover.discs.at(0)?.variants),
 			addedAt: album.downloadedAt,
 		}));
 }

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Music.Core.Common.Enums;
 using Music.Core.Common.Exceptions;
 using Music.Core.Common.Utils;
@@ -10,12 +11,15 @@ using Music.Core.Services.Albums;
 using Music.Core.Services.Albums.Enums;
 using Music.Core.Services.Albums.Requests;
 using Music.Core.Services.Albums.Results;
+using Music.Core.Services.Extras;
+using Music.Core.Services.Extras.Results;
 using Music.Core.Services.Files;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Files.Requests;
 using Music.Core.Storage;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Mappers;
+using Music.Infrastructure.Services.Sharing;
 
 namespace Music.Infrastructure.Services.Album;
 
@@ -23,6 +27,8 @@ public class AlbumService(
     AppDbContext dbContext,
     IContentService contentService,
     IAssetsService assetsService,
+    IExtraService extraService,
+    IOptions<BaseOptions> baseOptions,
     ILogger<AlbumService> logger
 ) : IAlbumService
 {
@@ -31,10 +37,15 @@ public class AlbumService(
     private readonly IAssetsService _assetsService = assetsService;
     private readonly ILogger<AlbumService> _logger = logger;
 
-    public async Task<IReadOnlyList<AlbumListItem>> GetAllForListAsync(
+    public Task<int> CountForListAsync(
         AlbumListRequest request,
         CancellationToken cancellationToken = default
     )
+    {
+        return FilterListQuery(request).CountAsync(cancellationToken);
+    }
+
+    private IQueryable<Core.Entities.Album> FilterListQuery(AlbumListRequest request)
     {
         IQueryable<Core.Entities.Album> query = _dbContext.Albums.AsNoTracking();
 
@@ -117,6 +128,19 @@ public class AlbumService(
                 )
             );
         }
+
+        return query;
+    }
+
+    public async Task<IReadOnlyList<AlbumListItem>> GetAllForListAsync(
+        AlbumListRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string normalizedSearch = StringUtils.NormalizeString(request.Search ?? string.Empty);
+        string searchPattern = $"%{normalizedSearch}%";
+        bool hasSearch = normalizedSearch.Length > 0;
+        IQueryable<Core.Entities.Album> query = FilterListQuery(request);
 
         query = request.Sort switch
         {
@@ -301,6 +325,7 @@ public class AlbumService(
                             TrackNumber = at.TrackNumber,
                             Title = track.Title,
                             DurationInMs = track.DurationInMs,
+                            LanguageId = track.LanguageId,
                             VersionType = track.VersionType,
                             ContentType = track.ContentType,
                             BasedOnTrackId = track.BasedOnTrackId,
@@ -323,6 +348,11 @@ public class AlbumService(
             })
             .ToList();
 
+        IReadOnlyList<ExtraDetails> extras = await extraService.GetByAlbumIdAsync(
+            albumId,
+            cancellationToken
+        );
+
         int totalTrackCount = discs.Sum(d => d.Tracks.Count);
         int totalDurationInMs = discs.SelectMany(d => d.Tracks).Sum(t => t.DurationInMs);
 
@@ -332,7 +362,9 @@ public class AlbumService(
             Title = album.Title,
             Type = album.Type,
             Cover = album.ToAlbumCoverDetails(_assetsService),
+            ShareUrl = ShareLinks.Album(baseOptions.Value, album.Id),
             ReleaseDate = album.ReleaseDate,
+            LanguageId = album.LanguageId,
             TotalTrackCount = totalTrackCount,
             TotalDurationInMs = totalDurationInMs,
             Credits = album
@@ -346,6 +378,7 @@ public class AlbumService(
                 })
                 .ToList(),
             Discs = discs,
+            Extras = extras,
         };
     }
 

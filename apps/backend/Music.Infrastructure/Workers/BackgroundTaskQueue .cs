@@ -24,6 +24,7 @@ public sealed class BackgroundTaskQueue : IBackgroundTaskQueue
             ConcertUploadProcessWorker => WorkerType.ConcertUploadProcess,
             ImageUploadProcessWorker => WorkerType.ImageUploadProcess,
             YouTubeCoverImportWorker => WorkerType.YouTubeCoverImport,
+            ExtraVideoUploadProcessWorker => WorkerType.ExtraVideoUploadProcess,
             _ => throw new ArgumentOutOfRangeException(nameof(workerModel)),
         };
     }
@@ -81,9 +82,10 @@ public sealed class BackgroundTaskQueue : IBackgroundTaskQueue
             AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             if (!_queue.Reader.TryRead(out Guid jobId))
             {
-                var pendingId = await dbContext.WorkerJobs
-                    .Where(job => job.Status == WorkerJobStatus.Pending)
-                    .OrderBy(job => job.CreatedAt).Select(job => (Guid?)job.Id)
+                var pendingId = await dbContext
+                    .WorkerJobs.Where(job => job.Status == WorkerJobStatus.Pending)
+                    .OrderBy(job => job.CreatedAt)
+                    .Select(job => (Guid?)job.Id)
                     .FirstOrDefaultAsync(cancellationToken);
                 if (pendingId is null)
                 {
@@ -109,14 +111,24 @@ public sealed class BackgroundTaskQueue : IBackgroundTaskQueue
                 continue;
             }
 
-            int claimed = await dbContext.WorkerJobs
-                .Where(candidate => candidate.Id == jobId && candidate.Status == WorkerJobStatus.Pending)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(candidate => candidate.Status, WorkerJobStatus.Processing)
-                    .SetProperty(candidate => candidate.AttemptCount, candidate => candidate.AttemptCount + 1)
-                    .SetProperty(candidate => candidate.StartedAt, DateTimeOffset.UtcNow)
-                    .SetProperty(candidate => candidate.ErrorMessage, (string?)null), cancellationToken);
-            if (claimed == 0) continue;
+            int claimed = await dbContext
+                .WorkerJobs.Where(candidate =>
+                    candidate.Id == jobId && candidate.Status == WorkerJobStatus.Pending
+                )
+                .ExecuteUpdateAsync(
+                    setters =>
+                        setters
+                            .SetProperty(candidate => candidate.Status, WorkerJobStatus.Processing)
+                            .SetProperty(
+                                candidate => candidate.AttemptCount,
+                                candidate => candidate.AttemptCount + 1
+                            )
+                            .SetProperty(candidate => candidate.StartedAt, DateTimeOffset.UtcNow)
+                            .SetProperty(candidate => candidate.ErrorMessage, (string?)null),
+                    cancellationToken
+                );
+            if (claimed == 0)
+                continue;
 
             return new QueuedWorker(job.Id, workerModel);
         }
@@ -126,9 +138,12 @@ public sealed class BackgroundTaskQueue : IBackgroundTaskQueue
     {
         using IServiceScope scope = _scopeFactory.CreateScope();
         AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        int count = await dbContext.WorkerJobs
-            .Where(job => job.Status == WorkerJobStatus.Processing)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(job => job.Status, WorkerJobStatus.Pending), cancellationToken);
+        int count = await dbContext
+            .WorkerJobs.Where(job => job.Status == WorkerJobStatus.Processing)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(job => job.Status, WorkerJobStatus.Pending),
+                cancellationToken
+            );
         _logger.LogInformation("Recovered {WorkerJobCount} interrupted worker jobs.", count);
     }
 

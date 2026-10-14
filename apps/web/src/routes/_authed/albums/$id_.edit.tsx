@@ -3,20 +3,20 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeftIcon, Disc3Icon, LockIcon } from "lucide-react";
 import { z } from "zod";
 
-import { AlbumCoverTab } from "#/components/albums/edit/AlbumCoverTab";
-import { AlbumDetailsTab } from "#/components/albums/edit/AlbumDetailsTab";
-import { AlbumTracksTab } from "#/components/albums/edit/AlbumTracksTab";
-import { AlbumExtrasTab } from "#/components/albums/extras/AlbumExtrasTab";
-import { Button } from "#/components/coss/button";
-import { Skeleton } from "#/components/coss/skeleton";
-import { Tabs, TabsList, TabsPanel, TabsTab } from "#/components/coss/tabs";
-import { LibraryEmptyState } from "#/components/LibraryEmptyState";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { albumQueries } from "#/lib/queries/album.queries";
 import { albumEditQueries } from "#/lib/queries/albumEdit.queries";
 import type { AlbumEditDetails } from "#/lib/queries/albumEdit.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { canEditContent } from "#/lib/utils/roles";
+import { AlbumCoverTab } from "#/old-components/albums/edit/AlbumCoverTab";
+import { AlbumDetailsTab } from "#/old-components/albums/edit/AlbumDetailsTab";
+import { AlbumTracksTab } from "#/old-components/albums/edit/AlbumTracksTab";
+import { AlbumExtrasTab } from "#/old-components/albums/extras/AlbumExtrasTab";
+import { Button } from "#/old-components/coss/button";
+import { Skeleton } from "#/old-components/coss/skeleton";
+import { Tabs, TabsList, TabsPanel, TabsTab } from "#/old-components/coss/tabs";
+import { LibraryEmptyState } from "#/old-components/LibraryEmptyState";
 
 const editTabs = ["details", "cover", "tracks", "extras"] as const;
 
@@ -32,9 +32,10 @@ export const Route = createFileRoute("/_authed/albums/$id_/edit")({
 		tab: z.enum(editTabs).optional(),
 	}),
 	loader: ({ context, params }) => {
-		return context.queryClient.ensureQueryData(
-			albumQueries.getAlbum(params.id),
-		);
+		return context.queryClient.query({
+			...albumQueries.getAlbum(params.id),
+			staleTime: "static",
+		});
 	},
 	component: RouteComponent,
 });

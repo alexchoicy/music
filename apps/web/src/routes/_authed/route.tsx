@@ -5,15 +5,16 @@ import {
 	redirect,
 	useNavigate,
 } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
-import { ScrollArea } from "#/components/coss/scroll-area";
-import { SidebarInset, SidebarProvider } from "#/components/coss/sidebar";
-import { AppSidebar } from "#/components/ui/appSidebar";
-import { AudioPlayer } from "#/components/ui/audioPlayer";
-import { Command } from "#/components/ui/command";
-import { MobileHeader } from "#/components/ui/mobileHeader";
+import { AppSidebar } from "#/components/app/AppSidebar";
+import { MobileHeader } from "#/components/app/MobileHeader";
+import { SearchCommand } from "#/components/app/SearchCommand";
+import { suppressNativeContextMenu } from "#/components/app/suppressNativeContextMenu";
+import { ScrollArea } from "#/components/base/scroll-area";
+import { SidebarInset, SidebarProvider } from "#/components/base/sidebar";
+import { PlayerBar } from "#/components/player/PlayerBar";
 import { UserInfoProvider } from "#/context/UserInfoContext";
 import { getResolvedApiEndpoint } from "#/lib/APIFetchClient";
 import { connectPlaybackDevice } from "#/lib/playbackDevices";
@@ -45,7 +46,7 @@ export const Route = createFileRoute("/_authed")({
 			}
 		}
 
-		const isAuthenticated = await context.queryClient.fetchQuery(
+		const isAuthenticated = await context.queryClient.query(
 			authQueries.checkAuth(),
 		);
 
@@ -56,15 +57,17 @@ export const Route = createFileRoute("/_authed")({
 			});
 		}
 
-		const userInfo = await context.queryClient.ensureQueryData(
-			authQueries.userInfo(),
-		);
+		const userInfo = await context.queryClient.query({
+			...authQueries.userInfo(),
+			staleTime: "static",
+		});
 		return { userInfo };
 	},
 	loader: ({ context }) =>
-		context.queryClient.ensureQueryData(
-			playlistQueries.list(context.userInfo.id),
-		),
+		context.queryClient.query({
+			...playlistQueries.list(context.userInfo.id),
+			staleTime: "static",
+		}),
 	validateSearch: authedSearchSchema,
 	head: async () => {
 		const apiBaseUrl = await getResolvedApiEndpoint();
@@ -86,6 +89,20 @@ function RouteComponent() {
 	const { command } = Route.useSearch();
 	const [commandQuery, setCommandQuery] = useState<string>();
 	const [openCommand, setOpenCommand] = useState(false);
+	const playerRef = useRef<HTMLDivElement>(null);
+	const [playerHeight, setPlayerHeight] = useState(0);
+
+	// The player floats over the page; pad the page so its end can scroll clear.
+	useEffect(() => {
+		const player = playerRef.current;
+		if (!player) return;
+		const observer = new ResizeObserver(() => {
+			setPlayerHeight(player.offsetHeight);
+		});
+		observer.observe(player);
+		setPlayerHeight(player.offsetHeight);
+		return () => observer.disconnect();
+	}, []);
 	const isUploading = useUploadStore((state) => state.isRunning);
 	const navigator = useNavigate();
 	useHotkey("Control+K", () => {
@@ -142,18 +159,25 @@ function RouteComponent() {
 
 	return (
 		<UserInfoProvider>
-			<SidebarProvider>
-				<AppSidebar onOpenCommand={() => setOpenCommand(true)} />
+			<SidebarProvider onContextMenu={suppressNativeContextMenu}>
+				<AppSidebar onOpenSearch={() => setOpenCommand(true)} />
 				<SidebarInset className="h-svh overflow-hidden">
-					<MobileHeader onOpenCommand={() => setOpenCommand(true)} />
+					<MobileHeader onOpenSearch={() => setOpenCommand(true)} />
 					<div className="relative flex min-h-0 flex-1 flex-col">
 						<ScrollArea className="min-h-0 flex-1" id="app-scroll-area">
-							<Outlet />
+							<div style={{ paddingBottom: playerHeight }}>
+								<Outlet />
+							</div>
 						</ScrollArea>
-						<AudioPlayer />
+						<div
+							className="pointer-events-none absolute inset-x-0 bottom-0 z-20 *:pointer-events-auto"
+							ref={playerRef}
+						>
+							<PlayerBar />
+						</div>
 					</div>
 				</SidebarInset>
-				<Command
+				<SearchCommand
 					initialQuery={commandQuery}
 					onOpenChange={setOpenCommand}
 					open={openCommand}

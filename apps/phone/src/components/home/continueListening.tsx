@@ -43,7 +43,7 @@ export function ContinueListening({
 	if (visible.length === 0) return null;
 
 	return (
-		<View className="gap-2 px-4">
+		<View className="gap-3 px-4">
 			<SectionHeader title="Continue listening" />
 			<View className="gap-3">
 				{visible.map((item) => (
@@ -76,8 +76,8 @@ function ContinueCard({ item }: { item: ContinueListeningItem }) {
 
 	const album = item.album;
 	const coverUri = useArtworkUri(
-		getCover(album.discCovers?.at(0)?.variants) ??
-			getCover(album.coverVariants),
+		getCover(album.coverVariants) ??
+			getCover(album.discCovers?.at(0)?.variants),
 	);
 	const durationMs = Number(item.durationInMs);
 	const positionMs = Math.min(Number(item.positionMs), durationMs);
@@ -121,7 +121,7 @@ function ContinueCard({ item }: { item: ContinueListeningItem }) {
 	}
 
 	return (
-		<View className="flex-row items-center gap-3 rounded-2xl bg-surface p-3">
+		<View className="flex-row items-center gap-4 py-1">
 			<Link
 				asChild
 				href={{
@@ -136,6 +136,7 @@ function ContinueCard({ item }: { item: ContinueListeningItem }) {
 					className="active:opacity-70"
 				>
 					<Artwork
+						radiusClassName="rounded-lg"
 						recyclingKey={String(album.albumId)}
 						size={64}
 						uri={coverUri}
@@ -177,7 +178,7 @@ function ContinueCard({ item }: { item: ContinueListeningItem }) {
 					accessible
 					className="flex-row items-center gap-2"
 				>
-					<View className="h-1 flex-1 overflow-hidden rounded-full bg-surface-strong">
+					<View className="h-1 flex-1 overflow-hidden rounded-full bg-border">
 						<View
 							className="h-full rounded-full bg-primary"
 							style={{ width: `${progress * 100}%` }}
@@ -204,7 +205,7 @@ function ContinueCard({ item }: { item: ContinueListeningItem }) {
 							: `Resume ${item.trackTitle} from ${item.deviceName}`
 					}
 					onPress={() => void resume()}
-					variant="primary"
+					variant="surface"
 				/>
 			)}
 		</View>

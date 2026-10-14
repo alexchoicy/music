@@ -80,6 +80,7 @@ public sealed class ConcertDetails
     public string Description { get; init; } = string.Empty;
     public DateTimeOffset? Date { get; init; }
     public required ImageFileVariants CoverVariants { get; init; }
+    public required string ShareUrl { get; init; }
     public required IReadOnlyList<ConcertPartySummary> LinkedParties { get; init; } = [];
     public required IReadOnlyList<AlbumListItem> LinkedAlbums { get; init; } = [];
     public required IReadOnlyList<ConcertFileDetails> Files { get; init; } = [];

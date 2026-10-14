@@ -27,6 +27,11 @@ public interface IAlbumService
         CancellationToken cancellationToken = default
     );
 
+    Task<int> CountForListAsync(
+        AlbumListRequest request,
+        CancellationToken cancellationToken = default
+    );
+
     Task<IReadOnlyList<AlbumListItem>> GetListItemsByIdsAsync(
         IReadOnlyCollection<int> albumIds,
         CancellationToken cancellationToken = default

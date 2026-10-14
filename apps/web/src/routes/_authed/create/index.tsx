@@ -1,38 +1,38 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AlbumIcon, MicVocalIcon, UsersIcon, YoutubeIcon } from "lucide-react";
+import { AlbumIcon, MicVocalIcon, UsersIcon, PlayIcon } from "lucide-react";
 import { lazy, Suspense } from "react";
 import { z } from "zod";
 
+import { albumQueries } from "#/lib/queries/album.queries";
+import { languageQueries } from "#/lib/queries/language.queries";
+import { partyQueries } from "#/lib/queries/party.queries";
 import {
 	Tabs,
 	TabsContent,
 	TabsList,
 	TabsTrigger,
-} from "#/components/coss/tabs";
-import { albumQueries } from "#/lib/queries/album.queries";
-import { languageQueries } from "#/lib/queries/language.queries";
-import { partyQueries } from "#/lib/queries/party.queries";
+} from "#/old-components/coss/tabs";
 
 const AlbumTabContent = lazy(() =>
-	import("#/components/create/albumTabContent").then((module) => ({
+	import("#/old-components/create/albumTabContent").then((module) => ({
 		default: module.AlbumTabContent,
 	})),
 );
 
 const ConcertTabContent = lazy(() =>
-	import("#/components/create/concertTabContent").then((module) => ({
+	import("#/old-components/create/concertTabContent").then((module) => ({
 		default: module.ConcertTabContent,
 	})),
 );
 
 const YouTubeCoverTabContent = lazy(() =>
-	import("#/components/create/youtubeCoverTabContent").then((module) => ({
+	import("#/old-components/create/youtubeCoverTabContent").then((module) => ({
 		default: module.YouTubeCoverTabContent,
 	})),
 );
 
 const PartyTabContent = lazy(() =>
-	import("#/components/create/partyTabContent").then((module) => ({
+	import("#/old-components/create/partyTabContent").then((module) => ({
 		default: module.PartyTabContent,
 	})),
 );
@@ -45,9 +45,9 @@ export const Route = createFileRoute("/_authed/create/")({
 	}),
 	component: RouteComponent,
 	loader: ({ context }) => {
-		context.queryClient.prefetchQuery(albumQueries.getAlbums());
-		context.queryClient.prefetchQuery(languageQueries.getLanguages());
-		context.queryClient.prefetchQuery(partyQueries.getParties());
+		context.queryClient.query(albumQueries.getAlbums()).catch(() => {});
+		context.queryClient.query(languageQueries.getLanguages()).catch(() => {});
+		context.queryClient.query(partyQueries.getParties()).catch(() => {});
 	},
 });
 
@@ -82,7 +82,7 @@ function RouteComponent() {
 						Concert
 					</TabsTrigger>
 					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="cover">
-						<YoutubeIcon />
+						<PlayIcon />
 						Cover
 					</TabsTrigger>
 					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="party">

@@ -21,7 +21,7 @@ type IconButtonProps = Omit<PressableProps, "children"> & {
 
 const variants = {
 	ghost: { container: "", tint: "accent-foreground" },
-	surface: { container: "bg-surface", tint: "accent-foreground" },
+	surface: { container: "bg-secondary", tint: "accent-foreground" },
 	primary: { container: "bg-primary", tint: "accent-primary-foreground" },
 };
 

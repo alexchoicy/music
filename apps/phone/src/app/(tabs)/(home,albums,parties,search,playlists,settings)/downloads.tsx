@@ -217,7 +217,7 @@ export default function DownloadsScreen() {
 			/>
 			{selecting && (
 				<View
-					className="flex-row gap-3 border-t border-border px-4 py-3"
+					className="flex-row gap-3 bg-background px-4 py-3"
 					// Sits above the floating mini player.
 					style={{ marginBottom: endPadding - 16 }}
 				>
@@ -323,9 +323,7 @@ function DownloadRow({
 						<View
 							className={cn(
 								"size-6 items-center justify-center rounded-full border-2",
-								selected
-									? "border-primary bg-primary"
-									: "border-surface-strong",
+								selected ? "border-primary bg-primary" : "border-input",
 							)}
 						>
 							{selected && (
@@ -347,7 +345,9 @@ function DownloadRow({
 				<Text
 					className={cn(
 						"text-xs",
-						stats.failed > 0 ? "text-destructive" : "text-muted-foreground",
+						stats.failed > 0
+							? "text-destructive-foreground"
+							: "text-muted-foreground",
 					)}
 					numberOfLines={1}
 				>

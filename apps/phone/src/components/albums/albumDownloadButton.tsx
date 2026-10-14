@@ -69,7 +69,7 @@ export function AlbumDownloadButton({ album }: { album: AlbumDetails }) {
 		<Pressable
 			accessibilityLabel={label}
 			accessibilityRole="button"
-			className="h-11 min-w-11 flex-row items-center justify-center gap-1.5 rounded-full px-1 active:opacity-60"
+			className="h-12 min-w-12 flex-row items-center justify-center gap-1.5 rounded-lg bg-secondary px-3 active:opacity-75"
 			onPress={() =>
 				!isDownloaded
 					? downloadAlbum(album)
@@ -84,13 +84,13 @@ export function AlbumDownloadButton({ album }: { album: AlbumDetails }) {
 				<Icon
 					className={
 						hasFailed
-							? "accent-destructive"
+							? "accent-destructive-foreground"
 							: isDownloaded
 								? "accent-primary"
 								: "accent-foreground"
 					}
 					name={hasFailed ? "error" : isDownloaded ? "downloaded" : "download"}
-					size={28}
+					size={22}
 				/>
 			)}
 			{status && (

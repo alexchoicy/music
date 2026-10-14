@@ -4,6 +4,8 @@ import { View } from "react-native";
 import type { IconName } from "@/components/ui/icon";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
+import type { ShadowName } from "@/lib/shadows";
+import { useShadow } from "@/lib/shadows";
 
 type ArtworkProps = {
 	uri: string | null;
@@ -14,6 +16,10 @@ type ArtworkProps = {
 	shape?: "rounded" | "circle";
 	recyclingKey?: string;
 	accessibilityLabel?: string;
+	/** A shadow around the artwork, e.g. `pop` for a hero cover. */
+	elevation?: ShadowName;
+	/** Overrides the corner radius, e.g. `rounded-4xl` for a hero cover. */
+	radiusClassName?: string;
 	className?: string;
 };
 
@@ -24,20 +30,27 @@ export function Artwork({
 	shape = "rounded",
 	recyclingKey,
 	accessibilityLabel,
+	elevation,
+	radiusClassName,
 	className,
 }: ArtworkProps) {
-	return (
+	const shadow = useShadow(elevation ?? "pop");
+	const radius =
+		radiusClassName ??
+		(shape === "circle"
+			? "rounded-full"
+			: size && size < 64
+				? "rounded-lg"
+				: "rounded-xl");
+
+	const artwork = (
 		<View
 			accessibilityLabel={accessibilityLabel}
 			accessibilityRole={accessibilityLabel ? "image" : undefined}
 			accessible={!!accessibilityLabel}
 			className={cn(
-				"bg-surface-strong overflow-hidden",
-				shape === "circle"
-					? "rounded-full"
-					: size && size < 64
-						? "rounded-md"
-						: "rounded-xl",
+				"overflow-hidden bg-muted",
+				radius,
 				!size && "aspect-square w-full",
 				className,
 			)}
@@ -62,6 +75,19 @@ export function Artwork({
 					/>
 				</View>
 			)}
+			{/* A faint edge keeps dark artwork apart from the dark canvas. */}
+			<View
+				className={cn("absolute inset-0 border border-white/8", radius)}
+				pointerEvents="none"
+			/>
+		</View>
+	);
+	if (!elevation) return artwork;
+
+	// The shadow sits on a wrapper, since the artwork clips its contents.
+	return (
+		<View className={cn("self-start", radius)} style={shadow}>
+			{artwork}
 		</View>
 	);
 }

@@ -8,8 +8,12 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
-import { AnchoredToastProvider, ToastProvider } from "#/components/coss/toast";
-import { TooltipProvider } from "#/components/coss/tooltip";
+import { ToastProvider as BaseToastProvider } from "#/components/base/toast";
+import {
+	AnchoredToastProvider,
+	ToastProvider,
+} from "#/old-components/coss/toast";
+import { TooltipProvider } from "#/old-components/coss/tooltip";
 
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 
@@ -54,18 +58,20 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="en">
+		<html className="dark" lang="en">
 			<head>
 				<HeadContent />
 			</head>
 			<body className="relative font-sans">
 				<TooltipProvider>
 					<ToastProvider position="top-right">
-						<AnchoredToastProvider>
-							<div className="relative isolate flex min-h-svh flex-col">
-								{children}
-							</div>
-						</AnchoredToastProvider>
+						<BaseToastProvider position="top-right">
+							<AnchoredToastProvider>
+								<div className="relative isolate flex min-h-svh flex-col">
+									{children}
+								</div>
+							</AnchoredToastProvider>
+						</BaseToastProvider>
 					</ToastProvider>
 				</TooltipProvider>
 				<TanStackDevtools

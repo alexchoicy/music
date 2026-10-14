@@ -66,7 +66,7 @@ export default function PlaylistsScreen() {
 				columnWrapperStyle={{ gap: gridGap }}
 				contentContainerStyle={{
 					flexGrow: 1,
-					gap: 20,
+					gap: 24,
 					paddingHorizontal: gridPadding,
 					paddingBottom: endPadding,
 				}}
@@ -103,12 +103,11 @@ export default function PlaylistsScreen() {
 				}
 				refreshing={playlists.isRefetching}
 				renderItem={({ item }) => (
-					<View style={{ width: itemWidth }}>
-						<PlaylistCard
-							onLongPress={() => setSelectedId(item.playlistId)}
-							playlist={item}
-						/>
-					</View>
+					<PlaylistCard
+						onLongPress={() => setSelectedId(item.playlistId)}
+						playlist={item}
+						width={itemWidth}
+					/>
 				)}
 			/>
 		);

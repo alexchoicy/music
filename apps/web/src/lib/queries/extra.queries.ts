@@ -1,4 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
+import type { QueryClient } from "@tanstack/react-query";
 
 import type { components } from "#/data/APIschema";
 
@@ -22,6 +23,19 @@ export const extraQueries = {
 			},
 		}),
 };
+
+// Extras are listed by their own query and embedded in the album details
+export function invalidateAlbumExtras(
+	queryClient: QueryClient,
+	albumId: number | string,
+) {
+	return queryClient.invalidateQueries({
+		predicate: ({ queryKey }) =>
+			queryKey[0] === "albums" &&
+			String(queryKey[1]) === String(albumId) &&
+			(queryKey.length === 2 || queryKey[2] === "extras"),
+	});
+}
 
 export const extraActions = {
 	createForAlbum: async (

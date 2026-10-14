@@ -29,12 +29,14 @@ internal static class ConcertReadMapper
     public static ConcertDetails ToDetails(
         this Concert concert,
         IContentService contentService,
-        IAssetsService assetsService
+        IAssetsService assetsService,
+        string shareUrl
     )
     {
         return new ConcertDetails
         {
             ConcertId = concert.Id,
+            ShareUrl = shareUrl,
             Title = concert.Title,
             Description = concert.Description,
             Date = concert.Date,
@@ -74,7 +76,8 @@ internal static class ConcertReadMapper
                 .Images?.OrderByDescending(image => image.IsPrimary)
                 .ThenBy(image => image.CreatedAt)
                 .FirstOrDefault()
-                ?.File.ToImageVariants(assetsService) ?? new ImageFileVariants();
+                ?.File.ToImageVariants(assetsService)
+            ?? new ImageFileVariants();
     }
 
     public static IReadOnlyList<ConcertPartySummary> ToConcertPartySummaries(
@@ -104,7 +107,8 @@ internal static class ConcertReadMapper
                 .File?.FileObjects.FirstOrDefault(fileObject =>
                     fileObject.FileObjectVariant == FileObjectVariant.Original
                 )
-                ?.DurationInMs ?? 0
+                ?.DurationInMs
+            ?? 0
         );
     }
 

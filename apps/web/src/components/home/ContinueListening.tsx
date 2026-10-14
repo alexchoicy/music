@@ -1,27 +1,23 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import {
-	Disc3Icon,
-	MonitorDownIcon,
-	MonitorSpeakerIcon,
-	PlayIcon,
-} from "lucide-react";
-import { useState } from "react";
+import { Disc3Icon, MonitorDownIcon, MonitorSpeakerIcon } from "lucide-react";
+import { useId, useState } from "react";
 
-import { Button } from "#/components/coss/button";
-import { Card, CardPanel } from "#/components/coss/card";
+import { Button } from "#/components/base/button";
 import {
 	Progress,
 	ProgressIndicator,
 	ProgressTrack,
-} from "#/components/coss/progress";
-import { Spinner } from "#/components/coss/spinner";
-import { toastManager } from "#/components/coss/toast";
+} from "#/components/base/progress";
+import { Spinner } from "#/components/base/spinner";
+import { toastManager } from "#/components/base/toast";
+import { useTitleLang } from "#/hooks/use-title-lang";
 import { getActiveSession, movePlaybackHere } from "#/lib/playbackDevices";
 import { albumQueries } from "#/lib/queries/album.queries";
 import type { ContinueListeningItem } from "#/lib/queries/home.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
+import { cn } from "#/lib/utils/styles";
 import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 import {
@@ -49,12 +45,12 @@ function formatRelativeTime(value: string): string {
 	return "just now";
 }
 
-// Resume points saved by the user's other player devices.
 export function ContinueListening({
 	items,
 }: {
 	items: ContinueListeningItem[];
 }) {
+	const headingId = useId();
 	const storeDeviceId = usePlaybackDeviceStore((state) => state.deviceId);
 	const [storedDeviceId] = useState(readStoredDeviceId);
 	const deviceId = storeDeviceId ?? storedDeviceId;
@@ -64,7 +60,7 @@ export function ContinueListening({
 			: null,
 	);
 
-	// Playback already running here needs no resume card.
+	// Playback already running here needs no resume row.
 	const visibleItems = items.filter(
 		(item) =>
 			item.deviceId !== deviceId && String(item.trackId) !== activeTrackId,
@@ -72,26 +68,20 @@ export function ContinueListening({
 	if (visibleItems.length === 0) return null;
 
 	return (
-		<section
-			aria-labelledby="continue-listening-heading"
-			className="flex flex-col gap-4"
-		>
-			<h2
-				className="font-heading text-xl font-semibold tracking-tight"
-				id="continue-listening-heading"
-			>
+		<section aria-labelledby={headingId} className="flex flex-col gap-3">
+			<h2 className="text-xl font-semibold tracking-tight" id={headingId}>
 				Continue listening
 			</h2>
-			<ul className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+			<ul className="grid grid-cols-[repeat(auto-fit,minmax(min(380px,100%),1fr))] gap-x-6">
 				{visibleItems.slice(0, 6).map((item) => (
-					<ContinueListeningCard item={item} key={item.deviceId} />
+					<ContinueListeningRow item={item} key={item.deviceId} />
 				))}
 			</ul>
 		</section>
 	);
 }
 
-function ContinueListeningCard({ item }: { item: ContinueListeningItem }) {
+function ContinueListeningRow({ item }: { item: ContinueListeningItem }) {
 	const queryClient = useQueryClient();
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const transfer = usePlaybackDeviceStore((state) => state.transfer);
@@ -117,6 +107,7 @@ function ContinueListeningCard({ item }: { item: ContinueListeningItem }) {
 	const busy = resuming || isMoving;
 
 	const album = item.album;
+	const titleLang = useTitleLang();
 	const coverUrl = getAlbumCoverUrl(album.coverVariants);
 	const durationMs = Number(item.durationInMs);
 	const positionMs = Math.min(Number(item.positionMs), durationMs);
@@ -137,9 +128,10 @@ function ContinueListeningCard({ item }: { item: ContinueListeningItem }) {
 
 		setResuming(true);
 		try {
-			const details = await queryClient.ensureQueryData(
-				albumQueries.getAlbum(album.albumId),
-			);
+			const details = await queryClient.query({
+				...albumQueries.getAlbum(album.albumId),
+				staleTime: "static",
+			});
 			const tracks = albumDetailsToAudioPlayerTracks(details);
 			if (!tracks.some((track) => track.trackId === String(item.trackId))) {
 				throw new Error("This track has no playable audio.");
@@ -158,53 +150,61 @@ function ContinueListeningCard({ item }: { item: ContinueListeningItem }) {
 
 	return (
 		<li className="min-w-0">
-			<Card className="h-full">
-				<CardPanel className="flex items-center" size="sm">
-					<Link
-						aria-label={`Open ${album.title}`}
-						className="size-16 shrink-0 overflow-hidden rounded-xl bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:size-20"
-						params={{ id: String(album.albumId) }}
-						to="/albums/$id"
-					>
-						{coverUrl ? (
-							<img
-								alt=""
-								className="h-full w-full object-cover"
-								loading="lazy"
-								src={coverUrl}
-							/>
-						) : (
-							<span className="flex h-full w-full items-center justify-center text-muted-foreground">
-								<Disc3Icon aria-hidden="true" className="size-8" />
-							</span>
-						)}
-					</Link>
+			<div className="flex items-center gap-4 rounded-lg p-3 transition-colors duration-100 hover:bg-accent motion-reduce:transition-none">
+				<Link
+					aria-label={`Open ${album.title}`}
+					className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+					params={{ id: String(album.albumId) }}
+					to="/albums/$id"
+				>
+					{coverUrl ? (
+						<img
+							alt=""
+							className="size-full object-cover"
+							loading="lazy"
+							src={coverUrl}
+						/>
+					) : (
+						<span className="flex size-full items-center justify-center text-muted-foreground">
+							<Disc3Icon aria-hidden="true" className="size-7" />
+						</span>
+					)}
+					<span className="pointer-events-none absolute inset-0 rounded-lg shadow-[inset_0_0_0_1px_--theme(--color-white/8%)]" />
+				</Link>
 
-					<div className="flex min-w-0 flex-1 flex-col gap-1.5">
-						<div className="flex min-w-0 flex-col">
-							<p className="truncate font-medium" title={item.trackTitle}>
-								{item.trackTitle}
-							</p>
-							<p
-								className="truncate text-sm text-muted-foreground"
-								title={`${album.title} · ${artistNames}`}
-							>
-								{album.title} · {artistNames}
-							</p>
-						</div>
-						<p className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
-							<MonitorSpeakerIcon
-								aria-hidden="true"
-								className={
-									isPlayingLive ? "size-3.5 text-primary" : "size-3.5 shrink-0"
-								}
-							/>
-							<span className="truncate">
-								{item.deviceName} · {status}
-							</span>
-						</p>
+				<div className="flex min-w-0 flex-1 flex-col gap-1.5">
+					<div className="flex min-w-0 flex-col">
+						<span
+							className="truncate text-sm font-semibold"
+							lang={titleLang(album.languageId)}
+							title={item.trackTitle}
+						>
+							{item.trackTitle}
+						</span>
+						<span
+							className="truncate text-xs text-muted-foreground"
+							title={`${album.title} · ${artistNames}`}
+						>
+							<span lang={titleLang(album.languageId)}>{album.title}</span> ·{" "}
+							{artistNames}
+						</span>
+					</div>
+					<span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+						<MonitorSpeakerIcon
+							aria-hidden="true"
+							className={cn(
+								"size-3.5 shrink-0",
+								isPlayingLive && "text-primary",
+							)}
+						/>
+						<span className="truncate">
+							{item.deviceName} · {status}
+						</span>
+					</span>
+					<div className="flex items-center gap-2.5">
 						<Progress
 							aria-label={`${item.trackTitle} progress`}
+							className="flex-1"
 							max={Math.max(durationMs, 1)}
 							value={positionMs}
 						>
@@ -212,36 +212,31 @@ function ContinueListeningCard({ item }: { item: ContinueListeningItem }) {
 								<ProgressIndicator />
 							</ProgressTrack>
 						</Progress>
-						<span className="text-xs text-muted-foreground tabular-nums">
+						<span className="text-xs font-medium whitespace-nowrap text-muted-foreground tabular-nums">
 							{formatMsToMMSSOrHMMSS(positionMs)} /{" "}
 							{formatMsToMMSSOrHMMSS(durationMs)}
 						</span>
 					</div>
+				</div>
 
-					<Button
-						aria-label={
-							liveSession
-								? `Move ${item.trackTitle} from ${item.deviceName} to this device`
-								: `Resume ${item.trackTitle} from ${item.deviceName}`
-						}
-						className="shrink-0"
-						disabled={busy || (transfer !== null && !isMoving)}
-						onClick={() => {
-							void resume();
-						}}
-						size="icon"
-						type="button"
-					>
-						{busy ? (
-							<Spinner aria-hidden="true" />
-						) : liveSession ? (
-							<MonitorDownIcon aria-hidden="true" />
-						) : (
-							<PlayIcon aria-hidden="true" />
-						)}
-					</Button>
-				</CardPanel>
-			</Card>
+				<Button
+					aria-label={
+						liveSession
+							? `Move ${item.trackTitle} from ${item.deviceName} to this device`
+							: `Resume ${item.trackTitle} from ${item.deviceName} on this device`
+					}
+					disabled={busy || (transfer !== null && !isMoving)}
+					onClick={() => void resume()}
+					size="icon-xl"
+					variant="round"
+				>
+					{busy ? (
+						<Spinner aria-hidden="true" />
+					) : (
+						<MonitorDownIcon aria-hidden="true" className="size-4" />
+					)}
+				</Button>
+			</div>
 		</li>
 	);
 }

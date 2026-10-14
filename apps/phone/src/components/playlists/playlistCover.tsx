@@ -34,9 +34,14 @@ export function PlaylistCover({ entries, size }: PlaylistCoverProps) {
 	return (
 		<View
 			className={cn(
-				"bg-surface-strong aspect-square flex-row flex-wrap overflow-hidden",
+				"aspect-square flex-row flex-wrap overflow-hidden bg-muted",
 				// Matches Artwork, which rounds small covers less.
-				size && size < 64 ? "rounded-md" : "rounded-xl",
+				!size
+					? "rounded-xl"
+					: size < 64
+						? "rounded-lg"
+						: // A hero cover, like the album page's.
+							"rounded-4xl",
 			)}
 			style={size ? { width: size } : { width: "100%" }}
 		>

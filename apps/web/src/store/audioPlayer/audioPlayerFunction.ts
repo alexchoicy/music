@@ -48,6 +48,8 @@ export function albumTrackDetailsToAudioPlayerTrack(
 		contentType: track.contentType,
 		versionType: track.versionType,
 		title: track.title,
+		languageId: track.languageId,
+		albumLanguageId: album.languageId,
 		party: track.credits.map((credit) => ({
 			partyId: String(credit.partyId),
 			name: credit.name,

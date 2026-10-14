@@ -1,71 +1,42 @@
 import { Link } from "@tanstack/react-router";
-import { Disc3Icon, MicVocalIcon, UsersRoundIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { ChevronRightIcon } from "lucide-react";
 
-import {
-	Card,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "#/components/coss/card";
 import type { components } from "#/data/APIschema";
 
-export function LibraryCounts({
-	overview,
-}: {
-	overview: components["schemas"]["LibraryStats"];
-}) {
+type LibraryStats = components["schemas"]["LibraryStats"];
+
+const numberFormatter = new Intl.NumberFormat();
+
+export function LibraryCounts({ stats }: { stats: LibraryStats }) {
+	const counts = [
+		{ label: "Albums", count: stats.albumCount, to: "/albums" },
+		{ label: "Parties", count: stats.artistCount, to: "/parties" },
+		{ label: "Concerts", count: stats.concertCount, to: "/concerts" },
+	] as const;
+
 	return (
 		<section
 			aria-label="Library counts"
-			className="grid grid-cols-3 gap-2 sm:gap-4"
+			className="grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))]"
 		>
-			<CounterCard
-				count={overview.albumCount}
-				icon={<Disc3Icon aria-hidden="true" />}
-				label="Albums"
-				to="/albums"
-			/>
-			<CounterCard
-				count={overview.artistCount}
-				icon={<UsersRoundIcon aria-hidden="true" />}
-				label="Parties"
-				to="/parties"
-			/>
-			<CounterCard
-				count={overview.concertCount}
-				icon={<MicVocalIcon aria-hidden="true" />}
-				label="Concerts"
-				to="/concerts"
-			/>
+			{counts.map((item) => (
+				<Link
+					className="flex items-center justify-between gap-4 rounded-lg px-5 py-4 transition-colors duration-100 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset motion-reduce:transition-none"
+					key={item.to}
+					to={item.to}
+				>
+					<span className="flex flex-col gap-0.5">
+						<span className="text-xs text-muted-foreground">{item.label}</span>
+						<span className="text-[28px] leading-8 font-semibold tracking-tight tabular-nums">
+							{numberFormatter.format(Number(item.count))}
+						</span>
+					</span>
+					<ChevronRightIcon
+						aria-hidden="true"
+						className="size-5 text-muted-foreground"
+					/>
+				</Link>
+			))}
 		</section>
-	);
-}
-
-type CounterCardProps = {
-	count: number | string;
-	icon: ReactNode;
-	label: string;
-	to: "/albums" | "/concerts" | "/parties";
-};
-
-function CounterCard({ count, icon, label, to }: CounterCardProps) {
-	return (
-		<Link
-			className="block rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-			to={to}
-		>
-			<Card className="h-full transition-shadow hover:shadow-md">
-				<CardHeader className="grid-cols-[1fr_auto]" size="sm">
-					<div className="flex flex-col gap-2">
-						<CardDescription>{label}</CardDescription>
-						<CardTitle size="metric">{count}</CardTitle>
-					</div>
-					<div className="hidden size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground sm:flex [&_svg]:size-6">
-						{icon}
-					</div>
-				</CardHeader>
-			</Card>
-		</Link>
 	);
 }

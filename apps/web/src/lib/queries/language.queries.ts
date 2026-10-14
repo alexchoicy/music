@@ -8,13 +8,15 @@ export const languageQueries = {
 	getLanguages: () =>
 		queryOptions({
 			queryKey: ["languages"],
-			queryFn: async () => {
+			staleTime: Infinity,
+			queryFn: async ({ signal }) => {
 				const result = await $APIFetch<
 					components["schemas"]["LanguageListItem"][]
 				>("/languages", {
 					method: "GET",
+					signal,
 				});
-				if (!result.ok) return [];
+				if (!result.ok) throw result.error;
 				return result.data;
 			},
 		}),

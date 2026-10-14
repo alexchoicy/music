@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Music.Core.Common.Enums;
 using Music.Core.Common.Exceptions;
 using Music.Core.Common.Utils;
@@ -15,6 +16,7 @@ using Music.Core.Services.Files.Requests;
 using Music.Core.Storage;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Mappers;
+using Music.Infrastructure.Services.Sharing;
 
 namespace Music.Infrastructure.Services.Concert;
 
@@ -22,6 +24,7 @@ public class ConcertService(
     AppDbContext dbContext,
     IContentService contentService,
     IAssetsService assetsService,
+    IOptions<BaseOptions> baseOptions,
     ILogger<ConcertService> logger
 ) : IConcertService
 {
@@ -249,10 +252,15 @@ public class ConcertService(
         throw new NotImplementedException();
     }
 
-    public async Task<IReadOnlyList<ConcertListItem>> GetAllAsync(
+    public Task<int> CountAsync(
         ConcertListRequest request,
         CancellationToken cancellationToken = default
     )
+    {
+        return FilterListQuery(request).CountAsync(cancellationToken);
+    }
+
+    private IQueryable<Core.Entities.Concert> FilterListQuery(ConcertListRequest request)
     {
         IQueryable<Core.Entities.Concert> query = dbContext.Concerts.AsNoTracking();
 
@@ -285,6 +293,16 @@ public class ConcertService(
                 )
             );
         }
+
+        return query;
+    }
+
+    public async Task<IReadOnlyList<ConcertListItem>> GetAllAsync(
+        ConcertListRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        IQueryable<Core.Entities.Concert> query = FilterListQuery(request);
 
         query = request.Sort switch
         {
@@ -353,6 +371,10 @@ public class ConcertService(
         if (concert is null)
             throw new EntityNotFoundException($"Concert {concertId} not found");
 
-        return concert.ToDetails(contentService, assetsService);
+        return concert.ToDetails(
+            contentService,
+            assetsService,
+            ShareLinks.Concert(baseOptions.Value, concert.Id)
+        );
     }
 }

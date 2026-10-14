@@ -3,23 +3,26 @@ using Microsoft.EntityFrameworkCore;
 using Music.Core.Common.Exceptions;
 using Music.Core.Entities;
 using Music.Core.Services.Playlists;
+using Music.Core.Storage;
 using Music.Infrastructure.Data;
+using Music.Infrastructure.Mappers;
 
 namespace Music.Infrastructure.Services.Playlists;
 
-public sealed class PlaylistService(AppDbContext dbContext) : IPlaylistService
+public sealed class PlaylistService(AppDbContext dbContext, IAssetsService assetsService)
+    : IPlaylistService
 {
     public async Task<IReadOnlyList<PlaylistListItem>> GetAllAsync(
         string userId,
         CancellationToken cancellationToken = default
     )
     {
-        return await dbContext
+        var playlists = await dbContext
             .Playlists.AsNoTracking()
             .Where(playlist => playlist.OwnerUserId == userId)
             .OrderByDescending(playlist => playlist.UpdatedAt)
             .ThenBy(playlist => playlist.Id)
-            .Select(playlist => new PlaylistListItem
+            .Select(playlist => new
             {
                 PlaylistId = playlist.Id,
                 Name = playlist.Name,
@@ -32,6 +35,88 @@ public sealed class PlaylistService(AppDbContext dbContext) : IPlaylistService
                 ),
             })
             .ToListAsync(cancellationToken);
+
+        if (playlists.Count == 0)
+            return [];
+
+        var coverEntries = await dbContext
+            .Playlists.AsNoTracking()
+            .Where(playlist => playlist.OwnerUserId == userId)
+            .SelectMany(playlist =>
+                playlist
+                    .Entries.Where(entry =>
+                        !playlist.Entries.Any(previous =>
+                            previous.AlbumTrack!.AlbumDiscId == entry.AlbumTrack!.AlbumDiscId
+                            && (
+                                previous.Position < entry.Position
+                                || (previous.Position == entry.Position && previous.Id < entry.Id)
+                            )
+                        )
+                    )
+                    .OrderBy(entry => entry.Position)
+                    .ThenBy(entry => entry.Id)
+                    .Take(4)
+                    .Select(entry => new
+                    {
+                        PlaylistId = playlist.Id,
+                        AlbumId = entry.AlbumTrack!.AlbumDisc!.AlbumId,
+                        AlbumDiscId = entry.AlbumTrack.AlbumDiscId,
+                        entry.Position,
+                        EntryId = entry.Id,
+                    })
+            )
+            .ToListAsync(cancellationToken);
+
+        var albumIds = coverEntries.Select(entry => entry.AlbumId).Distinct().ToArray();
+        var albums = await dbContext
+            .Albums.AsNoTracking()
+            .Where(album => albumIds.Contains(album.Id))
+            .Include(album => album.Discs)
+            .Include(album => album.Images)
+                .ThenInclude(image => image.File)
+                    .ThenInclude(file => file!.FileObjects)
+            .AsSplitQuery()
+            .ToListAsync(cancellationToken);
+        var covers = albums.ToDictionary(
+            album => album.Id,
+            album => album.ToAlbumCoverDetails(assetsService)
+        );
+        var playlistCovers = coverEntries
+            .OrderBy(entry => entry.Position)
+            .ThenBy(entry => entry.EntryId)
+            .ToLookup(
+                entry => entry.PlaylistId,
+                entry =>
+                {
+                    covers.TryGetValue(entry.AlbumId, out var cover);
+                    var disc = cover
+                        ?.Discs.FirstOrDefault(disc => disc.AlbumDiscId == entry.AlbumDiscId)
+                        ?.Variants;
+                    return new PlaylistCover
+                    {
+                        AlbumDiscId = entry.AlbumDiscId,
+                        File =
+                            disc?.ImageCover1024x1024
+                            ?? disc?.Original
+                            ?? cover?.Album.ImageCover1024x1024
+                            ?? cover?.Album.Original,
+                    };
+                }
+            );
+
+        return playlists
+            .Select(playlist => new PlaylistListItem
+            {
+                PlaylistId = playlist.PlaylistId,
+                Name = playlist.Name,
+                Version = playlist.Version,
+                CreatedAt = playlist.CreatedAt,
+                UpdatedAt = playlist.UpdatedAt,
+                TrackCount = playlist.TrackCount,
+                TotalDurationInMs = playlist.TotalDurationInMs,
+                Covers = playlistCovers[playlist.PlaylistId].ToArray(),
+            })
+            .ToList();
     }
 
     public async Task<PlaylistDetails> GetByIdAsync(
@@ -56,9 +141,11 @@ public sealed class PlaylistService(AppDbContext dbContext) : IPlaylistService
                         EntryId = entry.Id,
                         AlbumId = entry.AlbumTrack!.AlbumDisc!.AlbumId,
                         AlbumTitle = entry.AlbumTrack.AlbumDisc.Album!.Title,
+                        AlbumLanguageId = entry.AlbumTrack.AlbumDisc.Album.LanguageId,
                         AlbumDiscId = entry.AlbumTrack.AlbumDiscId,
                         TrackId = entry.AlbumTrack.TrackId,
                         Title = entry.AlbumTrack.Track!.Title,
+                        LanguageId = entry.AlbumTrack.Track.LanguageId,
                         DurationInMs = entry.AlbumTrack.Track.DurationInMs,
                     })
                     .ToList(),

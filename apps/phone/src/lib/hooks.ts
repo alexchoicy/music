@@ -13,7 +13,7 @@ export function useDebounced<T>(value: T, delayMs = 300) {
 }
 
 export const gridPadding = 16;
-export const gridGap = 14;
+export const gridGap = 16;
 
 /** Columns that fit items at least `minItemWidth` wide, and the resulting item width. */
 export function useGrid(minItemWidth: number, minColumns = 2) {

@@ -12,6 +12,7 @@ import {
 import type {
 	AudioPlayerAction,
 	AudioPlayerQueueEntry,
+	AudioPlayerQueuePlaylist,
 	AudioPlayerState,
 	AudioPlayerTrack,
 } from "./audioPlayerType";
@@ -42,6 +43,7 @@ type AudioPlayerPersistedState = Pick<
 let waveSurfer: WaveSurfer | null = null;
 let loadRequestId = 0;
 let finishedRequestId = 0;
+let pausedLoadRequestId = 0;
 const seekListeners = new Set<() => void>();
 
 export const AUDIO_PLAYER_IDLE_PEAKS: WaveSurferOptions["peaks"] = [[0, 0]];
@@ -69,10 +71,13 @@ const initialState: AudioPlayerState = {
 
 function createQueueEntries(
 	tracks: AudioPlayerTrack[],
+	playlist?: AudioPlayerQueuePlaylist,
 ): AudioPlayerQueueEntry[] {
 	return tracks.map((track) => ({
 		...track,
 		queueEntryId: crypto.randomUUID(),
+		// Replaces the source of entries added again, e.g. Play next from the queue.
+		playlist,
 	}));
 }
 
@@ -259,6 +264,10 @@ function getNextPlayback(state: AudioPlayerState, automatic: boolean) {
 	};
 }
 
+function isAutoplayPending(status: AudioPlayerState["status"]): boolean {
+	return status === "loading" && loadRequestId !== pausedLoadRequestId;
+}
+
 function clearPendingLoad(requestId: number): void {
 	if (finishedRequestId === requestId) finishedRequestId = 0;
 }
@@ -311,6 +320,7 @@ async function loadAndPlay(
 	const autoplay = options.autoplay ?? true;
 	const requestId = ++loadRequestId;
 	finishedRequestId = requestId;
+	if (!autoplay) pausedLoadRequestId = requestId;
 	const playbackSource = resolvePlaybackSource(playbackQuality, track);
 	if (options.startListening) startListeningSession(track);
 	console.log("[audio-player] loadAndPlay:start", {
@@ -503,7 +513,14 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					});
 					waveSurfer = instance;
 
-					if (!waveSurfer) return;
+					if (!waveSurfer) {
+						if (get().status === "loading") {
+							loadRequestId++;
+							finishedRequestId = 0;
+							set({ currentPlayingKey: null, status: "idle" });
+						}
+						return;
+					}
 
 					waveSurfer.setVolume(get().volume);
 					waveSurfer.setMuted(get().muted);
@@ -512,7 +529,20 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						for (const listener of seekListeners) listener();
 					});
 
-					if (get().status === "idle") resetWaveSurferToIdle();
+					const { index, playbackQuality, queue, status } = get();
+					if (status !== "idle") return;
+
+					const track = queue.at(index);
+					if (!track) {
+						resetWaveSurferToIdle();
+						return;
+					}
+
+					set({ status: "loading" });
+					void loadAndPlay(playbackQuality, track, {
+						autoplay: false,
+						startListening: true,
+					});
 				},
 				reloadAudio: async (options) => {
 					const { currentPlayingKey, index, playbackQuality, queue, status } =
@@ -566,6 +596,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					album: AudioPlayerTrack[],
 					trackId?: string,
 					positionMs?: number,
+					playlist?: AudioPlayerQueuePlaylist,
 				) => {
 					console.log("[audio-player] playAlbum", {
 						trackCount: album.length,
@@ -596,7 +627,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						title: track.title,
 					});
 					set({
-						queue: createQueueEntries(album),
+						queue: createQueueEntries(album, playlist),
 						index,
 						status: "loading",
 						...createShuffleState(album.length, index, get().shuffle),
@@ -657,10 +688,21 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					)
 						return;
 					if (queue.length === 1) {
-						get().clearQueue();
+						loadRequestId++;
+						finishedRequestId = 0;
+						set({
+							queue: [],
+							index: 0,
+							currentPlayingKey: null,
+							status: "idle",
+							stopAfterMusicCount: null,
+							...createShuffleState(0, 0, get().shuffle),
+						});
+						resetWaveSurferToIdle();
 						return;
 					}
 					const removedCurrent = removeIndex === index;
+					const autoplay = status === "playing" || isAutoplayPending(status);
 					if (removedCurrent) {
 						loadRequestId++;
 						finishedRequestId = 0;
@@ -685,7 +727,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					if (removedCurrent && status !== "idle") {
 						const state = get();
 						void loadAndPlay(state.playbackQuality, state.queue[state.index], {
-							autoplay: status === "playing" || status === "loading",
+							autoplay,
 							startListening: true,
 						});
 					}
@@ -717,18 +759,15 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						remapShuffleIndices(state, mapIndex);
 					});
 				},
+				// Keeps the current track loaded and playing; drops everything else.
 				clearQueue: () => {
-					loadRequestId++;
-					finishedRequestId = 0;
+					const { index, queue, shuffle } = get();
+					if (queue.length <= 1) return;
 					set({
-						queue: [],
+						queue: [queue[index]],
 						index: 0,
-						currentPlayingKey: null,
-						status: "idle",
-						stopAfterMusicCount: null,
-						...createShuffleState(0, 0, get().shuffle),
+						...createShuffleState(1, 0, shuffle),
 					});
-					resetWaveSurferToIdle();
 				},
 				playQueueTrack: (index) => {
 					const { playbackQuality, queue } = get();
@@ -989,7 +1028,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						queue: queue.map(({ queueEntryId: _, ...track }) => track),
 						index,
 						positionMs: getPlaybackPositionMs(),
-						playing: status === "playing" || status === "loading",
+						playing: status === "playing" || isAutoplayPending(status),
 					};
 				},
 				adoptTransfer: async (snapshot) => {
@@ -1059,7 +1098,11 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					};
 					return {
 						...state,
-						queue: createQueueEntries(state.queue),
+						// Keeps each entry's playlist across reloads.
+						queue: state.queue.map((entry) => ({
+							...entry,
+							queueEntryId: crypto.randomUUID(),
+						})),
 						...createShuffleState(
 							state.queue.length,
 							state.index,

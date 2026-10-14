@@ -2635,6 +2635,7 @@ export interface paths {
             parameters: {
                 query?: {
                     Query?: string;
+                    Limit?: number | string;
                 };
                 header?: never;
                 path?: never;
@@ -3475,12 +3476,16 @@ export interface components {
             /** Format: date-time */
             releaseDate?: null | string;
             /** Format: int32 */
+            languageId?: null | number | string;
+            /** Format: int32 */
             totalTrackCount: number | string;
             /** Format: int32 */
             totalDurationInMs: number | string;
             cover: components["schemas"]["AlbumCoverDetails"];
+            shareUrl: string;
             credits: components["schemas"]["AlbumPartyCredit"][];
             discs: components["schemas"]["AlbumDiscDetails"][];
+            extras: components["schemas"]["ExtraDetails"][];
         };
         AlbumDiscCoverDetails: {
             /** Format: int32 */
@@ -3571,6 +3576,8 @@ export interface components {
             type: components["schemas"]["AlbumType"];
             /** Format: date-time */
             releaseDate?: null | string;
+            /** Format: int32 */
+            languageId?: null | number | string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -3633,6 +3640,8 @@ export interface components {
             title: string;
             /** Format: int32 */
             durationInMs: number | string;
+            /** Format: int32 */
+            languageId?: null | number | string;
             contentType: components["schemas"]["TrackContentType"];
             versionType: components["schemas"]["TrackVersionType"];
             /** Format: int32 */
@@ -3693,6 +3702,7 @@ export interface components {
             /** Format: date-time */
             date?: null | string;
             coverVariants: components["schemas"]["ImageFileVariants"];
+            shareUrl: string;
             linkedParties: components["schemas"]["ConcertPartySummary"][];
             linkedAlbums: components["schemas"]["AlbumListItem"][];
             files: components["schemas"]["ConcertFileDetails"][];
@@ -4104,10 +4114,14 @@ export interface components {
             albumId: number | string;
             albumTitle: string;
             /** Format: int32 */
+            albumLanguageId?: null | number | string;
+            /** Format: int32 */
             albumDiscId: number | string;
             /** Format: int32 */
             trackId: number | string;
             title: string;
+            /** Format: int32 */
+            languageId?: null | number | string;
             /** Format: int32 */
             durationInMs: number | string;
         };
@@ -4121,10 +4135,14 @@ export interface components {
             albumId: number | string;
             albumTitle: string;
             /** Format: int32 */
+            albumLanguageId?: null | number | string;
+            /** Format: int32 */
             albumDiscId: number | string;
             /** Format: int32 */
             trackId: number | string;
             title: string;
+            /** Format: int32 */
+            languageId?: null | number | string;
             /** Format: int32 */
             durationInMs: number | string;
             /** Format: int32 */
@@ -4312,10 +4330,14 @@ export interface components {
             albumId: number | string;
             albumTitle: string;
             /** Format: int32 */
+            albumLanguageId?: null | number | string;
+            /** Format: int32 */
             albumDiscId: number | string;
             /** Format: int32 */
             trackId: number | string;
             title: string;
+            /** Format: int32 */
+            languageId?: null | number | string;
             /** Format: int32 */
             durationInMs: number | string;
         };
@@ -4412,6 +4434,12 @@ export interface components {
             albums: components["schemas"]["AlbumListItem"][];
             concerts: components["schemas"]["ConcertListItem"][];
             parties: components["schemas"]["PartyItems"][];
+            /** Format: int32 */
+            albumTotal: number | string;
+            /** Format: int32 */
+            concertTotal: number | string;
+            /** Format: int32 */
+            partyTotal: number | string;
         };
         StartUploadResult: {
             blake3Hash: string;

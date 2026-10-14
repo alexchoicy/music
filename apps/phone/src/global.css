@@ -1,34 +1,82 @@
 @import 'tailwindcss';
 @import 'uniwind';
 
+/* Shared design tokens; see DESIGN.md. Shadows live in src/lib/shadows.ts. */
+@theme {
+  --spacing-control-xs: 24px;
+  --spacing-control-sm: 28px;
+  --spacing-control-md: 32px;
+  --spacing-control-lg: 40px;
+  --spacing-control-xl: 48px;
+  --spacing-page-gutter: 24px;
+  --spacing-grid-gap: 16px;
+  --spacing-section-gap: 32px;
+  --spacing-card-pad: 16px;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 12px;
+  --radius-3xl: 12px;
+  --radius-4xl: 16px;
+}
+
 @layer theme {
   :root {
     @variant light {
-      --color-background: #ffffff;
-      --color-foreground: #121214;
-      --color-surface: #f3f3f5;
-      --color-surface-strong: #e6e6ea;
-      --color-muted-foreground: #6b6b76;
-      --color-primary: #d92d4a;
+      --color-background: #f5f3ee;
+      --color-foreground: #1b1916;
+      --color-card: #fffdf9;
+      --color-popover: #ffffff;
+      --color-sidebar: #efece5;
+      --color-sidebar-foreground: #4b473f;
+      --color-sidebar-accent: #e3dfd6;
+      --color-primary: #aa2249;
       --color-primary-foreground: #ffffff;
-      --color-destructive: #c81e1e;
-      --color-destructive-foreground: #ffffff;
-      --color-border: rgb(0 0 0 / 0.08);
-      --color-scrim: rgb(0 0 0 / 0.45);
+      --color-secondary: #e9e5dc;
+      --color-muted: #edeae2;
+      --color-muted-foreground: #5d5950;
+      --color-accent: #e6e2d8;
+      --color-border: #dcd7cb;
+      --color-input: #7a756b;
+      --color-destructive: #c92a2a;
+      --color-on-destructive: #ffffff;
+      --color-destructive-foreground: #841919;
+      --color-success: #0b7c7a;
+      --color-success-foreground: #084e4d;
+      --color-warning: #a35c00;
+      --color-warning-foreground: #683a00;
+      --color-scrim: #1b1916a6;
+      --color-art-fade: #f5f3eef0;
     }
 
     @variant dark {
-      --color-background: #0b0b0d;
-      --color-foreground: #f4f4f5;
-      --color-surface: #18181b;
-      --color-surface-strong: #26262b;
-      --color-muted-foreground: #9a9aa5;
-      --color-primary: #ff6b7a;
-      --color-primary-foreground: #1a0508;
-      --color-destructive: #f87171;
-      --color-destructive-foreground: #1f0606;
-      --color-border: rgb(255 255 255 / 0.08);
-      --color-scrim: rgb(0 0 0 / 0.6);
+      --color-background: #0d0c0b;
+      --color-foreground: #f3f0ea;
+      --color-card: #151413;
+      --color-popover: #1d1b19;
+      --color-sidebar: #100f0e;
+      --color-sidebar-foreground: #bdb9b1;
+      --color-sidebar-accent: #201e1c;
+      --color-primary: #e8758b;
+      --color-primary-foreground: #240811;
+      --color-secondary: #24221f;
+      --color-muted: #1a1918;
+      --color-muted-foreground: #a7a39b;
+      --color-accent: #26231f;
+      --color-border: #2b2925;
+      --color-input: #716d66;
+      --color-destructive: #d6303a;
+      --color-on-destructive: #ffffff;
+      --color-destructive-foreground: #ff9b9b;
+      --color-success: #2cc7b8;
+      --color-success-foreground: #4fdccf;
+      --color-warning: #e8a41c;
+      --color-warning-foreground: #f3b84a;
+      --color-scrim: #000000cc;
+      --color-art-fade: #0d0c0bf0;
     }
   }
 }

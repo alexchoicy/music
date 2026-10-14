@@ -1,19 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
-	CheckCircle,
-	Disc3,
-	Loader2,
-	Mic2,
-	RefreshCw,
-	XCircle,
+	CheckIcon,
+	Disc3Icon,
+	InfoIcon,
+	Mic2Icon,
+	RefreshCwIcon,
+	UploadIcon,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { Badge } from "#/components/coss/badge";
-import { Button } from "#/components/coss/button";
-import { Switch } from "#/components/coss/switch";
+import { Badge } from "#/components/base/badge";
+import { Button } from "#/components/base/button";
+import { Switch } from "#/components/base/switch";
 import {
 	Table,
 	TableBody,
@@ -21,13 +21,13 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from "#/components/coss/table";
+} from "#/components/base/table";
 import {
 	Tooltip,
 	TooltipPopup,
 	TooltipTrigger,
-} from "#/components/coss/tooltip";
-import { DropBox } from "#/components/dropBox";
+} from "#/components/base/tooltip";
+import { UploadDropZone } from "#/components/upload/UploadDropZone";
 import type { components } from "#/data/APIschema";
 import { startUpload } from "#/lib/api/uploads";
 import { uploadQueries } from "#/lib/queries/upload.queries";
@@ -118,18 +118,17 @@ function RouteComponent() {
 	};
 
 	return (
-		<main className="flex min-h-full w-full flex-col gap-6 p-4 sm:p-6">
-			<header className="flex flex-col gap-4">
-				<div className="flex flex-col gap-2">
-					<p className="text-sm font-medium text-muted-foreground">
-						Resume Upload
-					</p>
-					<h1 className="font-heading text-3xl font-semibold tracking-tight">
-						Drop file that upload was failed, it will auto upload file.
-					</h1>
-				</div>
+		<main className="flex min-h-full w-full flex-col gap-6 px-4 py-6 sm:px-6 lg:px-12">
+			<header className="flex flex-col gap-2">
+				<p className="text-sm font-medium text-muted-foreground">
+					Resume upload
+				</p>
+				<h1 className="max-w-190 text-3xl font-bold tracking-[-.025em] sm:text-[32px] sm:leading-10">
+					Drop a file whose upload failed and it will upload again.
+				</h1>
 			</header>
-			<div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+
+			<div className="flex flex-wrap items-center justify-between gap-4 py-4">
 				<div className="flex flex-col gap-0.5">
 					<span className="text-sm font-medium">Hashing profile</span>
 					<span className="text-xs text-muted-foreground">
@@ -137,57 +136,68 @@ function RouteComponent() {
 					</span>
 				</div>
 				<div className="flex items-center gap-3">
-					<ModeLabel active={mode === "album"} icon={Disc3} label="Album" />
+					<ModeLabel active={mode === "album"} icon={Disc3Icon} label="Album" />
 					<Switch
-						checked={mode === "concert"}
-						onCheckedChange={(v) => setMode(v ? "concert" : "album")}
 						aria-label="Toggle hashing profile between album and concert"
+						checked={mode === "concert"}
+						onCheckedChange={(checked) =>
+							setMode(checked ? "concert" : "album")
+						}
 					/>
-					<ModeLabel active={mode === "concert"} icon={Mic2} label="Concert" />
+					<ModeLabel
+						active={mode === "concert"}
+						icon={Mic2Icon}
+						label="Concert"
+					/>
 				</div>
 			</div>
 
-			<DropBox
+			<UploadDropZone
 				accept={{ "audio/*": [], "video/*": [] }}
-				activeHint="Drop files."
-				errorHint="Unsupported file type."
-				hint="Drop matching pending files here."
+				description="Audio and video. A file that matches an unfinished upload starts uploading right away."
 				isProcessing={loading}
 				onDrop={onDrop}
-				title="DropBox"
+				rejectDescription="Only audio and video files can be resumed."
+				title="Drop matching pending files here"
 			/>
-			<section className="flex flex-col gap-3">
-				<div className="flex items-center justify-between">
-					<h2 className="text-sm font-semibold">
+
+			<section aria-labelledby="pending-files" className="flex flex-col gap-3">
+				<div className="flex items-center gap-2">
+					<h2 className="text-base font-semibold" id="pending-files">
 						Files
-						{pendingFileItems.length > 0 ? (
-							<span className="ml-2 text-xs font-normal text-muted-foreground">
-								{pendingFileItems.length} total
-							</span>
-						) : null}
 					</h2>
+					<span className="text-xs text-muted-foreground tabular-nums">
+						{pendingFileItems.length} total
+					</span>
+					<span className="grow" />
 					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => refetch()}
 						disabled={isFetching}
 						loading={isFetching}
-						className="gap-2"
+						onClick={() => void refetch()}
+						size="sm"
+						variant="outline"
 					>
-						<RefreshCw />
+						<RefreshCwIcon aria-hidden="true" />
 						Refresh
 					</Button>
 				</div>
-				<div className="overflow-hidden rounded-xl border border-border">
-					<Table className="table-fixed">
+
+				{pendingFileItems.length === 0 ? (
+					<p className="py-6 text-sm text-muted-foreground">
+						No unfinished uploads.
+					</p>
+				) : (
+					<Table className="table-fixed" variant="plain">
 						<TableHeader>
-							<TableRow className="bg-muted/50 hover:bg-muted/50">
-								<TableHead className="w-auto">Original file name</TableHead>
-								<TableHead className="hidden w-48 sm:table-cell">
+							<TableRow>
+								<TableHead>Original file name</TableHead>
+								<TableHead className="hidden w-56 sm:table-cell">
 									BLAKE3 hash
 								</TableHead>
-								<TableHead className="w-24">Status</TableHead>
-								<TableHead className="w-10 text-right" aria-label="Actions" />
+								<TableHead className="w-32">Status</TableHead>
+								<TableHead className="w-12">
+									<span className="sr-only">Actions</span>
+								</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -211,30 +221,30 @@ function RouteComponent() {
 										<TableCell className="hidden min-w-0 sm:table-cell">
 											<Tooltip>
 												<TooltipTrigger
-													render={<span className="block truncate" />}
+													render={
+														<span className="block truncate text-xs text-muted-foreground" />
+													}
 												>
 													{item.blake3Hash}
 												</TooltipTrigger>
-												<TooltipPopup className="max-w-72">
-													<span className="block truncate">
-														{item.blake3Hash}
-													</span>
+												<TooltipPopup className="max-w-72 break-all">
+													{item.blake3Hash}
 												</TooltipPopup>
 											</Tooltip>
 										</TableCell>
 										<TableCell>
 											<UploadStatusBadge status={status} />
 										</TableCell>
-										<TableCell className="w-10 text-right" aria-label="Actions">
+										<TableCell className="text-right">
 											{status === "Failed" && (
 												<Button
-													variant="ghost"
-													size="icon-xs"
-													onClick={() => runUpload(item)}
-													disabled={loading}
 													aria-label={`Retry upload for ${item.fileName}`}
+													disabled={loading}
+													onClick={() => void runUpload(item)}
+													size="icon-sm"
+													variant="ghost"
 												>
-													<RefreshCw />
+													<RefreshCwIcon aria-hidden="true" />
 												</Button>
 											)}
 										</TableCell>
@@ -243,7 +253,7 @@ function RouteComponent() {
 							})}
 						</TableBody>
 					</Table>
-				</div>
+				)}
 			</section>
 		</main>
 	);
@@ -252,8 +262,8 @@ function RouteComponent() {
 function UploadStatusBadge({ status }: { status: string }) {
 	if (status === "Completed" || status === "Uploaded") {
 		return (
-			<Badge variant="success">
-				<CheckCircle />
+			<Badge size="tag" variant="outline">
+				<CheckIcon aria-hidden="true" />
 				{status}
 			</Badge>
 		);
@@ -261,8 +271,8 @@ function UploadStatusBadge({ status }: { status: string }) {
 
 	if (status === "Failed") {
 		return (
-			<Badge variant="error">
-				<XCircle />
+			<Badge size="tag" variant="error">
+				<InfoIcon aria-hidden="true" />
 				{status}
 			</Badge>
 		);
@@ -270,14 +280,18 @@ function UploadStatusBadge({ status }: { status: string }) {
 
 	if (status === "Uploading") {
 		return (
-			<Badge variant="warning">
-				<Loader2 className="animate-spin" />
+			<Badge size="tag" variant="secondary">
+				<UploadIcon aria-hidden="true" />
 				{status}
 			</Badge>
 		);
 	}
 
-	return <Badge variant="secondary">{status}</Badge>;
+	return (
+		<Badge size="tag" variant="outline">
+			{status}
+		</Badge>
+	);
 }
 
 function ModeLabel({
@@ -296,7 +310,7 @@ function ModeLabel({
 				active ? "text-foreground" : "text-muted-foreground",
 			)}
 		>
-			<Icon className="size-4" aria-hidden="true" />
+			<Icon aria-hidden="true" className="size-4" />
 			{label}
 		</span>
 	);

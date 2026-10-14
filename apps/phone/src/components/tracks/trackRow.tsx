@@ -4,6 +4,8 @@ import { Artwork } from "@/components/ui/artwork";
 import { Badge } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/iconButton";
+import { PlayingBars } from "@/components/ui/playingBars";
+import { PlayingGlow } from "@/components/ui/playingGlow";
 import { cn } from "@/lib/cn";
 import { formatTrackDuration } from "@/lib/format";
 import type { FileObject } from "@/lib/schema";
@@ -45,6 +47,9 @@ export function TrackRow({
 	const isCurrent = usePlayerStore(
 		(state) => state.queue.at(state.index)?.trackId === trackId,
 	);
+	const isPlaying = usePlayerStore(
+		(state) => isCurrent && state.status === "playing",
+	);
 	const download = useOfflineStore((state) => state.tracks[trackId]);
 	const progress = useOfflineStore((state) => state.progress[trackId]);
 	const isOnline = useIsOnline();
@@ -84,7 +89,7 @@ export function TrackRow({
 					.join(", ")}
 				accessibilityRole="button"
 				accessibilityState={{ disabled: !isPlayable, selected: isCurrent }}
-				className="min-h-15 flex-1 flex-row items-center gap-3 py-2 active:opacity-60"
+				className="-ml-2 min-h-15 flex-1 flex-row items-center gap-3 rounded-lg py-2 pl-2 active:bg-accent"
 				disabled={!isPlayable}
 				onAccessibilityAction={() => onMore?.()}
 				onLongPress={onMore}
@@ -98,18 +103,19 @@ export function TrackRow({
 							size={48}
 							uri={coverUri}
 						/>
-						{isCurrent && (
-							<View className="absolute inset-0 items-center justify-center rounded-md bg-scrim">
-								<Icon className="accent-white" name="nowPlaying" size={20} />
-							</View>
-						)}
+						{isCurrent && <PlayingGlow className="rounded-lg" />}
 					</View>
 				) : (
 					<View className="w-7 items-center">
-						{isCurrent ? (
-							<Icon className="accent-primary" name="nowPlaying" size={18} />
+						{isPlaying ? (
+							<PlayingBars />
 						) : (
-							<Text className="text-sm text-muted-foreground tabular-nums">
+							<Text
+								className={cn(
+									"text-[13px] font-medium tabular-nums",
+									isCurrent ? "text-primary" : "text-muted-foreground",
+								)}
+							>
 								{number}
 							</Text>
 						)}
@@ -117,10 +123,11 @@ export function TrackRow({
 				)}
 				<View className="flex-1 gap-0.5">
 					<View className="flex-row items-center gap-1.5">
+						{cover !== undefined && isPlaying && <PlayingBars />}
 						<Text
 							className={cn(
-								"shrink text-base",
-								isCurrent ? "font-semibold text-primary" : "text-foreground",
+								"shrink text-base font-medium",
+								isCurrent ? "text-primary" : "text-foreground",
 							)}
 							numberOfLines={1}
 						>
@@ -135,7 +142,11 @@ export function TrackRow({
 							<Icon className="accent-primary" name="downloaded" size={13} />
 						)}
 						{download?.status === "failed" && (
-							<Icon className="accent-destructive" name="error" size={13} />
+							<Icon
+								className="accent-destructive-foreground"
+								name="error"
+								size={13}
+							/>
 						)}
 						{download?.status === "downloading" && progress !== undefined && (
 							<Text className="text-xs font-medium text-primary tabular-nums">

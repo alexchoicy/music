@@ -24,6 +24,7 @@ internal static class AlbumReadMapper
             Description = album.Description,
             Type = album.Type,
             ReleaseDate = album.ReleaseDate,
+            LanguageId = album.LanguageId,
             CreatedAt = album.CreatedAt,
             UpdatedAt = album.UpdatedAt,
             CoverVariants = ToAlbumCoverVariants(album, assetsService),

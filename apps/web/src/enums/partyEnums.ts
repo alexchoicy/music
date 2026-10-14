@@ -16,6 +16,7 @@ export const COUNTRY_CODE: Record<CountryCode, string> = {
 	CN: "China",
 	TW: "Taiwan",
 	ID: "Indonesia",
+	UK: "United Kingdom",
 } as const;
 
 export const COUNTRY_CODE_OPTIONS = enumOptions(COUNTRY_CODE);
@@ -23,7 +24,8 @@ export const COUNTRY_CODE_OPTIONS = enumOptions(COUNTRY_CODE);
 export const PARTY_KIND: Record<PartyKind, string> = {
 	Human: "Human",
 	VTuber: "VTuber",
-	Vocaloid: "Vocaloid",
+	VocaloidCreator: "Vocaloid creator",
+	VoiceSynth: "Voice synth",
 } as const;
 
 export const PARTY_KIND_OPTIONS = enumOptions(PARTY_KIND);
