@@ -4,7 +4,7 @@ import { useState } from "react";
 import { FlatList, Text, useWindowDimensions, View } from "react-native";
 
 import { PlaylistActions } from "@/components/playlists/playlistActions";
-import { PlaylistCover } from "@/components/playlists/playlistCover";
+import { PlaylistEntriesCover } from "@/components/playlists/playlistCover";
 import { PlaylistDownloadButton } from "@/components/playlists/playlistDownloadButton";
 import { openTrackActions } from "@/components/tracks/trackActions";
 import { TrackRow } from "@/components/tracks/trackRow";
@@ -128,7 +128,7 @@ function Playlist({ playlist }: { playlist: PlaylistDetails }) {
 			ListHeaderComponent={
 				<View className="gap-6 pt-2 pb-6">
 					<View className="self-start rounded-4xl" style={popShadow}>
-						<PlaylistCover
+						<PlaylistEntriesCover
 							entries={playlist.entries}
 							size={Math.min(width * 0.55, 240)}
 						/>

@@ -4315,6 +4315,11 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        PlaylistCover: {
+            /** Format: int32 */
+            albumDiscId: number | string;
+            file?: null | components["schemas"]["FileObjectDetails"];
+        };
         PlaylistDetails: {
             /** Format: int32 */
             playlistId: number | string;
@@ -4355,6 +4360,7 @@ export interface components {
             trackCount: number | string;
             /** Format: int64 */
             totalDurationInMs: number | string;
+            covers: components["schemas"]["PlaylistCover"][];
         };
         PlaylistTrackRequest: {
             /** Format: int32 */
