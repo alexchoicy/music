@@ -20,6 +20,7 @@ import { create } from "zustand";
 import { Button } from "@/components/ui/button";
 import type { IconName } from "@/components/ui/icon";
 import { Icon } from "@/components/ui/icon";
+import { useShadow } from "@/lib/shadows";
 
 type ConfirmOptions = {
 	title: string;
@@ -50,6 +51,7 @@ const closeTiming = { duration: 150, easing: Easing.in(Easing.cubic) };
 export function ConfirmDialogHost() {
 	const request = useConfirmStore((state) => state.request);
 	const insets = useSafeAreaInsets();
+	const shadow = useShadow("pop");
 	// Keeps the content and Modal while the dialog fades out.
 	const [shown, setShown] = useState(request);
 	if (request && request !== shown) setShown(request);
@@ -102,17 +104,17 @@ export function ConfirmDialogHost() {
 				</Animated.View>
 				<Animated.View
 					accessibilityViewIsModal
-					className="max-h-full w-full max-w-sm gap-5 rounded-3xl bg-background p-6"
-					style={dialogStyle}
+					className="max-h-full w-full max-w-sm gap-5 rounded-4xl bg-popover p-6"
+					style={[shadow, dialogStyle]}
 				>
 					{/* Long text scrolls so the buttons stay reachable. */}
 					<ScrollView
 						contentContainerClassName="items-center gap-5"
 						style={{ flexGrow: 0 }}
 					>
-						<View className="size-14 items-center justify-center rounded-full bg-surface">
+						<View>
 							<Icon
-								className="accent-destructive"
+								className="accent-destructive-foreground"
 								name={shown.icon ?? "delete"}
 								size={26}
 							/>
@@ -120,7 +122,7 @@ export function ConfirmDialogHost() {
 						<View className="items-center gap-2">
 							<Text
 								accessibilityRole="header"
-								className="text-center text-xl font-bold text-foreground"
+								className="text-center text-xl font-semibold tracking-tight text-foreground"
 							>
 								{shown.title}
 							</Text>

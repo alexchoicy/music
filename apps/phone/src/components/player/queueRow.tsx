@@ -4,6 +4,8 @@ import { openTrackActions } from "@/components/tracks/trackActions";
 import { Artwork } from "@/components/ui/artwork";
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/iconButton";
+import { PlayingBars } from "@/components/ui/playingBars";
+import { PlayingGlow } from "@/components/ui/playingGlow";
 import { cn } from "@/lib/cn";
 import { formatTrackDuration } from "@/lib/format";
 import {
@@ -11,6 +13,7 @@ import {
 	useIsOnline,
 	useOfflineStore,
 } from "@/offline/offlineStore";
+import { usePlayerStore } from "@/player/playerStore";
 import type { QueueEntry } from "@/player/track";
 
 type QueueRowProps = {
@@ -40,6 +43,9 @@ export function QueueRow({
 		(state) => state.tracks[entry.trackId]?.status === "downloaded",
 	);
 	const isUnavailable = !isOnline && !isDownloaded;
+	const isPlaying = usePlayerStore(
+		(state) => isCurrent && state.status === "playing",
+	);
 	const artists =
 		entry.artists.map((artist) => artist.name).join(", ") || "Unknown artist";
 	const duration = formatTrackDuration(entry.durationInMs);
@@ -75,22 +81,28 @@ export function QueueRow({
 				}}
 				onPress={onPress}
 			>
-				<Artwork
-					icon="musicNote"
-					recyclingKey={entry.entryId}
-					size={48}
-					uri={coverUri}
-				/>
+				<View>
+					<Artwork
+						icon="musicNote"
+						recyclingKey={entry.entryId}
+						size={48}
+						uri={coverUri}
+					/>
+					{isCurrent && <PlayingGlow className="rounded-lg" />}
+				</View>
 				<View className="flex-1 gap-0.5">
-					<Text
-						className={cn(
-							"text-base",
-							isCurrent ? "font-semibold text-primary" : "text-foreground",
-						)}
-						numberOfLines={1}
-					>
-						{entry.title}
-					</Text>
+					<View className="flex-row items-center gap-1.5">
+						{isPlaying && <PlayingBars />}
+						<Text
+							className={cn(
+								"shrink text-base font-medium",
+								isCurrent ? "text-primary" : "text-foreground",
+							)}
+							numberOfLines={1}
+						>
+							{entry.title}
+						</Text>
+					</View>
 					<Text className="text-sm text-muted-foreground" numberOfLines={1}>
 						{artists} · {duration}
 					</Text>

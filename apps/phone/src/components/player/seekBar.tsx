@@ -21,8 +21,8 @@ export function SeekBar({ durationInMs }: SeekBarProps) {
 	const seekTo = usePlayerStore((state) => state.seekTo);
 	// The position while dragging, so playback updates do not fight the finger.
 	const [dragging, setDragging] = useState<number | null>(null);
-	const foreground = useCSSVariable("--color-foreground");
-	const track = useCSSVariable("--color-surface-strong");
+	const primary = useCSSVariable("--color-primary");
+	const track = useCSSVariable("--color-border");
 
 	const duration =
 		isLoaded && status.duration > 0 ? status.duration : durationInMs / 1000;
@@ -38,7 +38,7 @@ export function SeekBar({ durationInMs }: SeekBarProps) {
 				disabled={!isLoaded}
 				maximumTrackTintColor={String(track)}
 				maximumValue={Math.max(duration, 1)}
-				minimumTrackTintColor={String(foreground)}
+				minimumTrackTintColor={String(primary)}
 				minimumValue={0}
 				onSlidingComplete={(value) => {
 					seekTo(value);
@@ -50,7 +50,7 @@ export function SeekBar({ durationInMs }: SeekBarProps) {
 				}}
 				step={0}
 				style={{ height: 36, marginHorizontal: -12 }}
-				thumbTintColor={String(foreground)}
+				thumbTintColor={String(primary)}
 				value={Math.min(position, duration)}
 			/>
 			<View className="flex-row justify-between">

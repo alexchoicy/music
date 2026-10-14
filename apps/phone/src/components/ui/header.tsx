@@ -86,7 +86,7 @@ export function SectionHeader({ title, detail, action }: SectionHeaderProps) {
 			<View className="flex-1 flex-row items-baseline gap-2">
 				<Text
 					accessibilityRole="header"
-					className="text-lg font-bold text-foreground"
+					className="text-xl font-semibold tracking-tight text-foreground"
 				>
 					{title}
 				</Text>

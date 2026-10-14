@@ -29,6 +29,7 @@ import { Icon } from "@/components/ui/icon";
 import { ToastHost } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
 import { useKeyboardVisible } from "@/lib/hooks";
+import { useShadow } from "@/lib/shadows";
 
 type SheetProps = {
 	open: boolean;
@@ -56,6 +57,7 @@ export function Sheet({
 }: SheetProps) {
 	const insets = useSafeAreaInsets();
 	const keyboardVisible = useKeyboardVisible();
+	const shadow = useShadow("pop");
 	// The Modal stays mounted until the close animation finishes.
 	const [mounted, setMounted] = useState(open);
 	const progress = useSharedValue(0);
@@ -127,22 +129,25 @@ export function Sheet({
 						style={[{ maxHeight: "85%" }, sheetStyle]}
 					>
 						<View
-							className="shrink rounded-t-3xl bg-background"
-							style={{
-								// The keyboard covers the navigation bar.
-								paddingBottom: keyboardVisible ? 12 : insets.bottom + 12,
-								paddingLeft: insets.left,
-								paddingRight: insets.right,
-							}}
+							className="shrink rounded-t-4xl bg-popover"
+							style={[
+								shadow,
+								{
+									// The keyboard covers the navigation bar.
+									paddingBottom: keyboardVisible ? 12 : insets.bottom + 12,
+									paddingLeft: insets.left,
+									paddingRight: insets.right,
+								},
+							]}
 						>
 							<GestureDetector gesture={pan}>
 								<View className="px-5 pb-3">
 									<View className="items-center py-2.5">
-										<View className="h-1 w-9 rounded-full bg-surface-strong" />
+										<View className="h-1 w-9 rounded-full bg-border" />
 									</View>
 									<Text
 										accessibilityRole="header"
-										className="text-lg font-bold text-foreground"
+										className="text-xl font-semibold tracking-tight text-foreground"
 										numberOfLines={2}
 									>
 										{title}
@@ -204,14 +209,16 @@ export function SheetAction({
 			onPress={onPress}
 		>
 			<Icon
-				className={destructive ? "accent-destructive" : "accent-foreground"}
+				className={
+					destructive ? "accent-destructive-foreground" : "accent-foreground"
+				}
 				name={icon}
 				size={22}
 			/>
 			<Text
 				className={cn(
 					"flex-1 text-base",
-					destructive ? "text-destructive" : "text-foreground",
+					destructive ? "text-destructive-foreground" : "text-foreground",
 				)}
 			>
 				{label}
@@ -246,7 +253,7 @@ export function RadioRow({ label, selected, onPress }: RadioRowProps) {
 			<View
 				className={cn(
 					"size-5.5 items-center justify-center rounded-full border-2",
-					selected ? "border-primary" : "border-surface-strong",
+					selected ? "border-primary" : "border-input",
 				)}
 			>
 				{selected && <View className="size-2.5 rounded-full bg-primary" />}
@@ -265,9 +272,7 @@ export function SheetSection({
 }) {
 	return (
 		<View className="gap-2.5">
-			<Text className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-				{label}
-			</Text>
+			<Text className="text-xs font-medium text-muted-foreground">{label}</Text>
 			{children}
 		</View>
 	);

@@ -50,7 +50,7 @@ export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
 					</View>
 					<View
 						accessibilityRole="tablist"
-						className="flex-row border-t border-border bg-background pt-1"
+						className="flex-row bg-sidebar pt-1"
 						style={{ paddingBottom: insets.bottom }}
 					>
 						{state.routes.map((route, index) => {
@@ -61,7 +61,7 @@ export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
 									accessibilityLabel={tab.label}
 									accessibilityRole="tab"
 									accessibilityState={{ selected: focused }}
-									className="h-14 flex-1 items-center justify-center gap-1 active:opacity-60"
+									className="h-16 flex-1 items-center justify-center gap-1 active:opacity-60"
 									key={route.key}
 									onPress={() => {
 										const event = navigation.emit({
@@ -74,19 +74,28 @@ export function TabBar({ state, navigation, insets }: BottomTabBarProps) {
 										}
 									}}
 								>
-									<Icon
-										className={
-											focused ? "accent-primary" : "accent-muted-foreground"
-										}
-										name={tab.icon}
-										size={24}
-									/>
+									<View className="h-8 w-14 items-center justify-center">
+										{/* Always mounted: Android drew the pill square when its background was toggled. */}
+										<View
+											className={cn(
+												"absolute inset-0 rounded-full bg-sidebar-accent",
+												!focused && "opacity-0",
+											)}
+										/>
+										<Icon
+											className={
+												focused ? "accent-primary" : "accent-sidebar-foreground"
+											}
+											name={tab.icon}
+											size={22}
+										/>
+									</View>
 									<Text
 										className={cn(
 											"text-[11px]",
 											focused
-												? "font-semibold text-primary"
-												: "font-medium text-muted-foreground",
+												? "font-semibold text-foreground"
+												: "font-medium text-sidebar-foreground",
 										)}
 										numberOfLines={1}
 									>

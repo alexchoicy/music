@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Text, View } from "react-native";
 import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
 
+import { useShadow } from "@/lib/shadows";
 import { useToastStore } from "@/store/toastStore";
 
 const visibleMs = 4000;
@@ -19,6 +20,7 @@ type ToastHostProps = {
  */
 export function ToastHost({ bottomOffset = 8, aboveParent }: ToastHostProps) {
 	const toast = useToastStore((state) => state.toast);
+	const shadow = useShadow("pop");
 
 	useEffect(() => {
 		if (!toast) return;
@@ -43,12 +45,13 @@ export function ToastHost({ bottomOffset = 8, aboveParent }: ToastHostProps) {
 		>
 			{toast && (
 				<Animated.View
-					className="max-w-md rounded-2xl bg-foreground px-4 py-3"
+					className="max-w-md rounded-lg bg-popover px-4 py-3"
 					entering={FadeInDown.duration(200)}
 					exiting={FadeOutDown.duration(150)}
 					key={toast.id}
+					style={shadow}
 				>
-					<Text className="text-sm font-medium text-background">
+					<Text className="text-sm font-medium text-foreground">
 						{toast.message}
 					</Text>
 				</Animated.View>

@@ -13,6 +13,7 @@ type ButtonProps = Omit<PressableProps, "children"> & {
 	variant?:
 		| "primary"
 		| "secondary"
+		| "outline"
 		| "ghost"
 		| "destructive"
 		| "destructiveFilled";
@@ -25,7 +26,12 @@ const variants = {
 		tint: "accent-primary-foreground",
 	},
 	secondary: {
-		container: "bg-surface",
+		container: "bg-secondary",
+		text: "text-foreground",
+		tint: "accent-foreground",
+	},
+	outline: {
+		container: "border border-input bg-card",
 		text: "text-foreground",
 		tint: "accent-foreground",
 	},
@@ -35,14 +41,14 @@ const variants = {
 		tint: "accent-foreground",
 	},
 	destructive: {
-		container: "bg-surface",
-		text: "text-destructive",
-		tint: "accent-destructive",
+		container: "border border-input bg-card",
+		text: "text-destructive-foreground",
+		tint: "accent-destructive-foreground",
 	},
 	destructiveFilled: {
 		container: "bg-destructive",
-		text: "text-destructive-foreground",
-		tint: "accent-destructive-foreground",
+		text: "text-on-destructive",
+		tint: "accent-on-destructive",
 	},
 };
 
@@ -62,7 +68,7 @@ export function Button({
 			accessibilityRole="button"
 			accessibilityState={{ busy: loading, disabled: !!disabled }}
 			className={cn(
-				"h-12 flex-row items-center justify-center gap-2 rounded-full px-5 active:opacity-75 disabled:opacity-45",
+				"h-12 flex-row items-center justify-center gap-2 rounded-lg px-5 active:opacity-75 disabled:opacity-45",
 				styles.container,
 				className,
 			)}
@@ -74,7 +80,7 @@ export function Button({
 			) : (
 				icon && <Icon className={styles.tint} name={icon} size={18} />
 			)}
-			<Text className={cn("text-base font-semibold", styles.text)}>
+			<Text className={cn("text-base font-medium", styles.text)}>
 				{children}
 			</Text>
 		</Pressable>

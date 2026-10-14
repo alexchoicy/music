@@ -3,18 +3,38 @@ import { Link } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { PlaylistCover } from "@/components/playlists/playlistCover";
+import { usePlayPlaylist } from "@/components/playlists/usePlayPlaylist";
+import { ArtworkPlayButton } from "@/components/ui/artworkPlayButton";
+import { PlayingBars } from "@/components/ui/playingBars";
+import { PlayingGlow } from "@/components/ui/playingGlow";
+import { cn } from "@/lib/cn";
 import { formatTotalDuration, plural } from "@/lib/format";
 import type { PlaylistListItem } from "@/lib/schema";
+import { usePlayerStore } from "@/player/playerStore";
 import { playlistQueries } from "@/queries/playlists";
 
 type PlaylistCardProps = {
 	playlist: PlaylistListItem;
+	width: number;
 	/** Opens the playlist's actions, e.g. Rename and Delete. */
 	onLongPress: () => void;
 };
 
-export function PlaylistCard({ playlist, onLongPress }: PlaylistCardProps) {
+const playButtonInset = 8;
+const playButtonSize = 40;
+
+export function PlaylistCard({
+	playlist,
+	width,
+	onLongPress,
+}: PlaylistCardProps) {
+	const playPlaylist = usePlayPlaylist();
 	const trackCount = Number(playlist.trackCount);
+	const isPlaying = usePlayerStore(
+		(state) =>
+			state.status === "playing" &&
+			state.queue.at(state.index)?.playlist?.id === String(playlist.playlistId),
+	);
 	// List items have no artwork, so covers come from the playlist's entries.
 	const details = useQuery({
 		...playlistQueries.detail(playlist.playlistId),
@@ -25,42 +45,74 @@ export function PlaylistCard({ playlist, onLongPress }: PlaylistCardProps) {
 			? "Empty"
 			: `${plural(trackCount, "track")} · ${formatTotalDuration(playlist.totalDurationInMs)}`;
 
+	const play = () => playPlaylist(playlist.playlistId);
+
 	return (
-		<Link
-			asChild
-			href={{
-				pathname: "/playlist/[id]",
-				params: { id: String(playlist.playlistId) },
-			}}
-			push
-		>
-			<Pressable
-				accessibilityLabel={`${playlist.name}, ${summary}`}
-				accessibilityActions={[
-					{ name: "longpress", label: "Playlist actions" },
-				]}
-				accessibilityRole="link"
-				className="gap-2 active:opacity-70"
-				onAccessibilityAction={(event) => {
-					if (event.nativeEvent.actionName === "longpress") onLongPress();
+		<View style={{ width }}>
+			<Link
+				asChild
+				href={{
+					pathname: "/playlist/[id]",
+					params: { id: String(playlist.playlistId) },
 				}}
-				onLongPress={onLongPress}
+				push
 			>
-				<PlaylistCover
-					entries={trackCount > 0 ? (details.data?.entries ?? []) : []}
+				<Pressable
+					accessibilityLabel={[
+						isPlaying ? "Now playing" : null,
+						playlist.name,
+						summary,
+					]
+						.filter(Boolean)
+						.join(", ")}
+					accessibilityActions={[
+						{ name: "longpress", label: "Playlist actions" },
+						...(trackCount > 0 ? [{ name: "play", label: "Play" }] : []),
+					]}
+					accessibilityRole="link"
+					className="gap-2.5 active:opacity-70"
+					onAccessibilityAction={(event) => {
+						if (event.nativeEvent.actionName === "longpress") onLongPress();
+						if (event.nativeEvent.actionName === "play") void play();
+					}}
+					onLongPress={onLongPress}
+				>
+					<View>
+						<PlaylistCover
+							entries={trackCount > 0 ? (details.data?.entries ?? []) : []}
+						/>
+						{isPlaying && <PlayingGlow className="rounded-xl" />}
+					</View>
+					<View className="gap-0.5">
+						<View className="flex-row items-center gap-1.5">
+							{isPlaying && <PlayingBars />}
+							<Text
+								className={cn(
+									"shrink text-sm font-semibold",
+									isPlaying ? "text-primary" : "text-foreground",
+								)}
+								numberOfLines={1}
+							>
+								{playlist.name}
+							</Text>
+						</View>
+						<Text className="text-xs text-muted-foreground" numberOfLines={1}>
+							{summary}
+						</Text>
+					</View>
+				</Pressable>
+			</Link>
+			{trackCount > 0 && (
+				<ArtworkPlayButton
+					className="absolute"
+					label={`Play ${playlist.name}`}
+					onPlay={play}
+					style={{
+						top: width - playButtonSize - playButtonInset,
+						right: playButtonInset,
+					}}
 				/>
-				<View>
-					<Text
-						className="text-sm font-semibold text-foreground"
-						numberOfLines={1}
-					>
-						{playlist.name}
-					</Text>
-					<Text className="text-xs text-muted-foreground" numberOfLines={1}>
-						{summary}
-					</Text>
-				</View>
-			</Pressable>
-		</Link>
+			)}
+		</View>
 	);
 }

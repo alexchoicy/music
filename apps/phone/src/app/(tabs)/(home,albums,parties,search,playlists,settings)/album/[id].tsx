@@ -16,7 +16,7 @@ import { IconButton } from "@/components/ui/iconButton";
 import { ListRow } from "@/components/ui/listRow";
 import { Loading } from "@/components/ui/loading";
 import { Screen } from "@/components/ui/screen";
-import { formatReleaseYear, formatTotalDuration, plural } from "@/lib/format";
+import { formatReleaseDate, formatTotalDuration, plural } from "@/lib/format";
 import {
 	getAvatar,
 	getCover,
@@ -105,7 +105,7 @@ type AlbumTracksProps = {
 
 function Hero({ album, tracks }: AlbumTracksProps) {
 	const { width } = useWindowDimensions();
-	const coverSize = Math.min(width * 0.7, 300);
+	const coverSize = Math.min(width * 0.55, 240);
 	const coverUri = useArtworkUri(getCover(album.cover.album));
 	const albumId = String(album.albumId);
 	const isCurrentAlbum = usePlayerStore(
@@ -118,34 +118,37 @@ function Hero({ album, tracks }: AlbumTracksProps) {
 	const togglePlayback = usePlayerStore((state) => state.togglePlayback);
 	const isPlayingAlbum = isCurrentAlbum && isPlaying;
 	const meta = [
-		album.type,
-		formatReleaseYear(album.releaseDate),
+		formatReleaseDate(album.releaseDate),
 		plural(album.totalTrackCount, "track"),
 		formatTotalDuration(album.totalDurationInMs),
 	].filter(Boolean);
 
 	return (
-		<View className="items-center gap-5">
+		<View className="gap-6 pt-2">
 			<Artwork
 				accessibilityLabel={`${album.title} cover`}
-				className="shadow-xl"
+				elevation="pop"
+				radiusClassName="rounded-4xl"
 				size={coverSize}
 				uri={coverUri}
 			/>
-			<View className="w-full items-center gap-1.5">
+			<View className="gap-2">
+				<Text className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+					{album.type}
+				</Text>
 				<Text
 					accessibilityRole="header"
-					className="text-center text-2xl font-bold tracking-tight text-foreground"
+					className="text-3xl font-bold tracking-tight text-foreground"
 				>
 					{album.title}
 				</Text>
-				<Text className="text-center text-base text-muted-foreground">
+				<Text className="text-base text-muted-foreground">
 					{album.credits.length > 0
 						? album.credits.map((credit, index) => (
 								<Fragment key={`${credit.partyId}-${credit.creditType}`}>
 									{index > 0 && ", "}
 									<Link
-										className="font-semibold text-foreground"
+										className="font-medium text-foreground"
 										href={{
 											pathname: "/party/[id]",
 											params: { id: String(credit.partyId) },
@@ -159,14 +162,24 @@ function Hero({ album, tracks }: AlbumTracksProps) {
 							))
 						: "Unknown artist"}
 				</Text>
-				<Text className="text-center text-sm text-muted-foreground">
+				<Text className="text-xs text-muted-foreground">
 					{meta.join(" · ")}
 				</Text>
 			</View>
-			<View className="w-full flex-row items-center gap-2">
-				<AlbumDownloadButton album={album} />
-				<View className="flex-1" />
+			<View className="flex-row flex-wrap items-center gap-2">
+				<Button
+					disabled={tracks.length === 0}
+					icon={isPlayingAlbum ? "pause" : "play"}
+					onPress={() =>
+						isCurrentAlbum
+							? togglePlayback()
+							: playTracks(tracks, 0, { shuffle: false })
+					}
+				>
+					{isPlayingAlbum ? "Pause" : "Play album"}
+				</Button>
 				<IconButton
+					className="rounded-lg"
 					disabled={tracks.length === 0}
 					icon="shuffle"
 					label="Shuffle album"
@@ -174,19 +187,7 @@ function Hero({ album, tracks }: AlbumTracksProps) {
 					size={48}
 					variant="surface"
 				/>
-				<IconButton
-					disabled={tracks.length === 0}
-					icon={isPlayingAlbum ? "pause" : "play"}
-					iconSize={30}
-					label={isPlayingAlbum ? "Pause" : "Play album"}
-					onPress={() =>
-						isCurrentAlbum
-							? togglePlayback()
-							: playTracks(tracks, 0, { shuffle: false })
-					}
-					size={60}
-					variant="primary"
-				/>
+				<AlbumDownloadButton album={album} />
 			</View>
 		</View>
 	);

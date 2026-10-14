@@ -11,6 +11,7 @@ import {
 } from "react-native";
 
 import { AlbumCard } from "@/components/albums/albumCard";
+import { usePlayParty } from "@/components/parties/usePlayParty";
 import { Artwork } from "@/components/ui/artwork";
 import { Backdrop } from "@/components/ui/backdrop";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +38,7 @@ import { partyQueries } from "@/queries/parties";
 import { useEndPadding } from "@/store/miniPlayerStore";
 
 const descriptionLines = 4;
-// Longer rows end with a See all link.
+// Longer rows offer a View all link.
 const previewCount = 10;
 
 export default function PartyScreen() {
@@ -97,16 +98,30 @@ function PartyBackdrop({ party }: { party: PartyDetails }) {
 function Hero({ party }: { party: PartyDetails }) {
 	const [expanded, setExpanded] = useState(false);
 	const [truncated, setTruncated] = useState(false);
+	const playParty = usePlayParty();
+	const [loading, setLoading] = useState<"play" | "shuffle" | null>(null);
 	const avatarUri = useArtworkUri(getAvatar(party.avatarImages));
 	const description = party.description.trim();
-	const badges = [
-		partyTypes.find((type) => type.value === party.type)?.label,
+	const typeLabel = partyTypes.find((type) => type.value === party.type)?.label;
+	// Unknowns are left out rather than spelled out.
+	const detailBadges = [
 		partyKinds.find((kind) => kind.value === party.kind)?.label,
 		party.gender && party.gender !== "Unknown" ? party.gender : undefined,
+		party.country !== "XX" ? countryNames[party.country] : undefined,
 	].filter((label) => label !== undefined);
-	const meta = [
-		party.country !== "XX" ? countryNames[party.country] : null,
-		plural(party.albums.length, "album"),
+	const albumCount = party.albums.length;
+	const appearsOnCount = party.appearsOnAlbums.length;
+
+	async function play(shuffle: boolean) {
+		setLoading(shuffle ? "shuffle" : "play");
+		await playParty(party, { shuffle });
+		setLoading(null);
+	}
+	const stats = [
+		albumCount > 0
+			? `${plural(albumCount, "album")} in library`
+			: "No albums in library",
+		appearsOnCount > 0 ? `Appears on ${plural(appearsOnCount, "album")}` : null,
 	].filter(Boolean);
 	const aliases = party.aliases
 		.map((alias) => alias.name)
@@ -114,37 +129,60 @@ function Hero({ party }: { party: PartyDetails }) {
 
 	return (
 		<View className="gap-5">
-			<View className="items-center gap-4 px-4">
+			<View className="gap-6 px-4 pt-2">
 				<Artwork
 					accessibilityLabel={`${party.name} avatar`}
+					elevation="pop"
 					icon="person"
 					shape="circle"
-					size={152}
+					size={144}
 					uri={avatarUri}
 				/>
-				<View className="w-full items-center gap-2">
-					<Text
-						accessibilityRole="header"
-						className="text-center text-2xl font-bold tracking-tight text-foreground"
-					>
-						{party.name}
-					</Text>
-					{badges.length > 0 && (
-						<View className="flex-row flex-wrap justify-center gap-1.5">
-							{badges.map((badge) => (
-								<Badge key={badge} label={badge} />
+				<View className="gap-3">
+					{(typeLabel || detailBadges.length > 0) && (
+						<View className="flex-row flex-wrap gap-1.5">
+							{typeLabel && <Badge label={typeLabel} size="tag" />}
+							{detailBadges.map((badge) => (
+								<Badge key={badge} label={badge} size="tag" variant="outline" />
 							))}
 						</View>
 					)}
-					<Text className="text-center text-sm text-muted-foreground">
-						{meta.join(" · ")}
+					<Text
+						accessibilityRole="header"
+						className="text-3xl font-bold tracking-tight text-foreground"
+					>
+						{party.name}
+					</Text>
+					<Text className="text-sm text-sidebar-foreground">
+						{stats.join(" · ")}
 					</Text>
 					{aliases.length > 0 && (
-						<Text className="text-center text-sm text-muted-foreground">
+						<Text className="text-[13px] text-muted-foreground">
 							Also known as {aliases.join(", ")}
 						</Text>
 					)}
 				</View>
+				{albumCount > 0 && (
+					<View className="flex-row flex-wrap items-center gap-2">
+						<Button
+							disabled={loading !== null}
+							icon="play"
+							loading={loading === "play"}
+							onPress={() => void play(false)}
+						>
+							Play
+						</Button>
+						<Button
+							disabled={loading !== null}
+							icon="shuffle"
+							loading={loading === "shuffle"}
+							onPress={() => void play(true)}
+							variant="outline"
+						>
+							Shuffle
+						</Button>
+					</View>
+				)}
 			</View>
 
 			{!!description && (
@@ -195,7 +233,7 @@ function Hero({ party }: { party: PartyDetails }) {
 								accessibilityLabel={label}
 								accessibilityRole="link"
 								hitSlop={{ top: 6, bottom: 6 }}
-								className="h-9 flex-row items-center gap-1.5 rounded-full bg-surface px-4 active:opacity-60"
+								className="h-9 flex-row items-center gap-1.5 rounded-lg border border-input bg-card px-3 active:opacity-75"
 								key={`${link.type}-${link.url}`}
 								onPress={() => void Linking.openURL(link.url)}
 							>
@@ -228,7 +266,7 @@ function AlbumRow({
 	if (albums.length === 0) return null;
 
 	return (
-		<View className="gap-2">
+		<View className="gap-3">
 			<View className="px-4">
 				<SectionHeader
 					action={
@@ -242,19 +280,14 @@ function AlbumRow({
 								push
 							>
 								<Pressable
-									accessibilityLabel={`See all ${albums.length} ${title.toLocaleLowerCase()}`}
+									accessibilityLabel={`View all ${albums.length} ${title.toLocaleLowerCase()}`}
 									accessibilityRole="link"
-									className="h-11 flex-row items-center gap-0.5 active:opacity-60"
+									className="h-11 justify-center active:opacity-60"
 									hitSlop={{ left: 8 }}
 								>
-									<Text className="text-sm font-semibold text-primary">
-										See all
+									<Text className="text-sm font-medium text-muted-foreground">
+										View all
 									</Text>
-									<Icon
-										className="accent-primary"
-										name="chevronRight"
-										size={16}
-									/>
 								</Pressable>
 							</Link>
 						)
@@ -264,7 +297,7 @@ function AlbumRow({
 				/>
 			</View>
 			<ScrollView
-				contentContainerClassName="gap-3.5 px-4"
+				contentContainerClassName="gap-4 px-4"
 				horizontal
 				showsHorizontalScrollIndicator={false}
 			>
@@ -272,7 +305,7 @@ function AlbumRow({
 					<AlbumCard
 						album={toAlbumTile(album)}
 						key={album.albumId}
-						width={144}
+						width={150}
 					/>
 				))}
 			</ScrollView>

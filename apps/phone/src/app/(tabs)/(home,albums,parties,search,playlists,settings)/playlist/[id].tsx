@@ -17,6 +17,7 @@ import { Screen } from "@/components/ui/screen";
 import { formatTotalDuration, plural } from "@/lib/format";
 import { getEntryCover, usePlaylistAlbums } from "@/lib/playlist";
 import type { PlaylistDetails } from "@/lib/schema";
+import { useShadow } from "@/lib/shadows";
 import { useIsOnline, useOfflineStore } from "@/offline/offlineStore";
 import { usePlayerStore } from "@/player/playerStore";
 import { findPlayerTrack } from "@/player/track";
@@ -77,6 +78,17 @@ function Playlist({ playlist }: { playlist: PlaylistDetails }) {
 	const isOnline = useIsOnline();
 	const downloads = useOfflineStore((state) => state.tracks);
 	const playTracks = usePlayerStore((state) => state.playTracks);
+	const togglePlayback = usePlayerStore((state) => state.togglePlayback);
+	const popShadow = useShadow("pop");
+	const playlistId = String(playlist.playlistId);
+	const isCurrentPlaylist = usePlayerStore(
+		(state) => state.queue.at(state.index)?.playlist?.id === playlistId,
+	);
+	const isPlaying = usePlayerStore(
+		(state) => state.status === "playing" || state.status === "loading",
+	);
+	const isPlayingPlaylist = isCurrentPlaylist && isPlaying;
+	const source = { playlist: { id: playlistId } };
 	const endPadding = useEndPadding(32);
 
 	// Entries become playable once their album's details have loaded.
@@ -114,43 +126,52 @@ function Playlist({ playlist }: { playlist: PlaylistDetails }) {
 				/>
 			}
 			ListHeaderComponent={
-				<View className="items-center gap-4 pb-6">
-					<PlaylistCover
-						entries={playlist.entries}
-						size={Math.min(width * 0.6, 260)}
-					/>
-					<View className="items-center gap-1">
+				<View className="gap-6 pt-2 pb-6">
+					<View className="self-start rounded-4xl" style={popShadow}>
+						<PlaylistCover
+							entries={playlist.entries}
+							size={Math.min(width * 0.55, 240)}
+						/>
+					</View>
+					<View className="gap-2">
+						<Text className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+							Playlist
+						</Text>
 						<Text
 							accessibilityRole="header"
-							className="text-center text-2xl font-bold tracking-tight text-foreground"
+							className="text-3xl font-bold tracking-tight text-foreground"
 						>
 							{playlist.name}
 						</Text>
-						<Text className="text-sm text-muted-foreground">
+						<Text className="text-xs text-muted-foreground">
 							{plural(playlist.entries.length, "track")} ·{" "}
 							{formatTotalDuration(durationInMs)}
 						</Text>
 					</View>
-					<View className="w-full flex-row items-center gap-2">
-						<PlaylistDownloadButton playlist={playlist} />
-						<View className="flex-1" />
+					<View className="flex-row flex-wrap items-center gap-2">
+						<Button
+							disabled={playableTracks.length === 0}
+							icon={isPlayingPlaylist ? "pause" : "play"}
+							onPress={() =>
+								isCurrentPlaylist
+									? togglePlayback()
+									: playTracks(playableTracks, 0, { ...source, shuffle: false })
+							}
+						>
+							{isPlayingPlaylist ? "Pause" : "Play"}
+						</Button>
 						<IconButton
+							className="rounded-lg"
 							disabled={playableTracks.length === 0}
 							icon="shuffle"
 							label="Shuffle playlist"
-							onPress={() => playTracks(playableTracks, 0, { shuffle: true })}
+							onPress={() =>
+								playTracks(playableTracks, 0, { ...source, shuffle: true })
+							}
 							size={48}
 							variant="surface"
 						/>
-						<IconButton
-							disabled={playableTracks.length === 0}
-							icon="play"
-							iconSize={30}
-							label="Play playlist"
-							onPress={() => playTracks(playableTracks, 0, { shuffle: false })}
-							size={60}
-							variant="primary"
-						/>
+						<PlaylistDownloadButton playlist={playlist} />
 					</View>
 				</View>
 			}
@@ -170,7 +191,9 @@ function Playlist({ playlist }: { playlist: PlaylistDetails }) {
 										})
 								: undefined
 						}
-						onPlay={() => index >= 0 && playTracks(playableTracks, index)}
+						onPlay={() =>
+							index >= 0 && playTracks(playableTracks, index, source)
+						}
 						subtitle={entry.albumTitle}
 						title={entry.title}
 						trackId={String(entry.trackId)}

@@ -101,7 +101,7 @@ export default function LoginScreen() {
 				)}
 			</form.Subscribe>
 
-			<View className="items-center gap-1 rounded-2xl bg-surface p-4">
+			<View className="items-center gap-1 p-4">
 				<Text className="text-xs text-muted-foreground">Server</Text>
 				<Text className="text-sm font-medium text-foreground" numberOfLines={1}>
 					{serverUrl}

@@ -88,7 +88,7 @@ export function AlbumFilterSheet({
 					{languages.isPending ? (
 						<Text className="text-sm text-muted-foreground">Loading…</Text>
 					) : languages.isError ? (
-						<Text className="text-sm text-destructive">
+						<Text className="text-sm text-destructive-foreground">
 							Couldn't load languages.
 						</Text>
 					) : (

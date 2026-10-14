@@ -20,8 +20,8 @@ export function Chip({
 			accessibilityRole={role}
 			accessibilityState={{ checked: selected }}
 			className={cn(
-				"h-9 justify-center rounded-full px-4 active:opacity-70",
-				selected ? "bg-foreground" : "bg-surface",
+				"h-9 justify-center rounded-full border px-4 active:opacity-70",
+				selected ? "border-primary/60 bg-secondary" : "border-border",
 			)}
 			hitSlop={{ top: 4, bottom: 4 }}
 			onPress={onPress}
@@ -29,7 +29,7 @@ export function Chip({
 			<Text
 				className={cn(
 					"text-sm font-medium",
-					selected ? "text-background" : "text-foreground",
+					selected ? "text-foreground" : "text-sidebar-foreground",
 				)}
 			>
 				{label}

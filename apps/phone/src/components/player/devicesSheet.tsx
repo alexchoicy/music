@@ -186,7 +186,7 @@ function DeviceRow({
 				accessibilityLabel={`Move playback from ${entry.name} to this phone`}
 				accessibilityRole="button"
 				accessibilityState={{ busy: isMoving, disabled: moveDisabled }}
-				className="h-10 flex-row items-center gap-1.5 rounded-full bg-surface px-3.5 active:opacity-75 disabled:opacity-45"
+				className="h-10 flex-row items-center gap-1.5 rounded-lg bg-secondary px-3.5 active:opacity-75 disabled:opacity-45"
 				disabled={moveDisabled || isMoving}
 				onPress={() => movePlaybackHere(entry.deviceId, entry.sessionId)}
 			>

@@ -31,7 +31,7 @@ import {
 	remapShuffleState,
 	shuffleIndices,
 } from "@/player/queue";
-import type { PlayerTrack, QueueEntry } from "@/player/track";
+import type { PlayerTrack, QueueEntry, QueuePlaylist } from "@/player/track";
 import {
 	createQueueEntries,
 	findPlayerTrack,
@@ -65,8 +65,13 @@ type PlayerState = SavedPlayer & {
 	playTracks: (
 		tracks: PlayerTrack[],
 		startIndex?: number,
-		/** `position` in seconds starts the first track partway, e.g. to resume. */
-		options?: { shuffle?: boolean; position?: number },
+		options?: {
+			shuffle?: boolean;
+			/** In seconds; starts the first track partway, e.g. to resume. */
+			position?: number;
+			/** The playlist the tracks come from. */
+			playlist?: QueuePlaylist;
+		},
 	) => void;
 	addToQueue: (tracks: PlayerTrack[]) => void;
 	playNext: (tracks: PlayerTrack[]) => void;
@@ -122,7 +127,7 @@ export const usePlayerStore = create<PlayerState>()((set, get) => ({
 	playTracks: (tracks, startIndex = 0, options) => {
 		if (tracks.length === 0) return;
 		const shuffle = options?.shuffle ?? get().shuffle;
-		const queue = createQueueEntries(tracks);
+		const queue = createQueueEntries(tracks, options?.playlist);
 		const index = options?.shuffle
 			? Math.floor(Math.random() * queue.length)
 			: startIndex;

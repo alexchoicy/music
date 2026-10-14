@@ -22,17 +22,27 @@ export type PlayerTrack = {
 	audio: TrackAudio;
 };
 
+/** The playlist a queue entry was played from. */
+export type QueuePlaylist = { id: string };
+
 export type QueueEntry = PlayerTrack & {
 	/** Tells repeated tracks in the queue apart. */
 	entryId: string;
+	/** Set when played from a playlist, so its tile can show it is playing. */
+	playlist?: QueuePlaylist;
 };
 
 let nextEntryId = 0;
 
-export function createQueueEntries(tracks: PlayerTrack[]): QueueEntry[] {
+export function createQueueEntries(
+	tracks: PlayerTrack[],
+	playlist?: QueuePlaylist,
+): QueueEntry[] {
 	return tracks.map((track) => ({
 		...track,
 		entryId: `${Date.now()}-${nextEntryId++}`,
+		// Replaces the source of entries added again, e.g. Play next from the queue.
+		playlist,
 	}));
 }
 

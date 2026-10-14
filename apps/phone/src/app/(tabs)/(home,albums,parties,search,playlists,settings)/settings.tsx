@@ -32,14 +32,14 @@ import {
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
 	return (
-		<View className="gap-2">
+		<View className="gap-3">
 			<Text
 				accessibilityRole="header"
-				className="px-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+				className="text-xl font-semibold tracking-tight text-foreground"
 			>
 				{title}
 			</Text>
-			<View className="gap-4 rounded-3xl bg-surface p-4">{children}</View>
+			<View className="gap-4">{children}</View>
 		</View>
 	);
 }
@@ -50,7 +50,7 @@ export default function SettingsScreen() {
 		<Screen>
 			<PageHeader title="Settings" />
 			<ScrollView
-				contentContainerClassName="gap-6 px-4 pt-3"
+				contentContainerClassName="gap-8 px-4 pt-3"
 				contentContainerStyle={{ paddingBottom: endPadding }}
 			>
 				<Account />
@@ -100,7 +100,11 @@ function Account() {
 				accessibilityRole="button"
 				className="min-h-12"
 				leading={
-					<Icon className="accent-destructive" name="signOut" size={22} />
+					<Icon
+						className="accent-destructive-foreground"
+						name="signOut"
+						size={22}
+					/>
 				}
 				onPress={confirmSignOut}
 				title="Sign out"
