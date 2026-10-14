@@ -12,6 +12,7 @@ import {
 import type {
 	AudioPlayerAction,
 	AudioPlayerQueueEntry,
+	AudioPlayerQueuePlaylist,
 	AudioPlayerState,
 	AudioPlayerTrack,
 } from "./audioPlayerType";
@@ -70,10 +71,13 @@ const initialState: AudioPlayerState = {
 
 function createQueueEntries(
 	tracks: AudioPlayerTrack[],
+	playlist?: AudioPlayerQueuePlaylist,
 ): AudioPlayerQueueEntry[] {
 	return tracks.map((track) => ({
 		...track,
 		queueEntryId: crypto.randomUUID(),
+		// Replaces the source of entries added again, e.g. Play next from the queue.
+		playlist,
 	}));
 }
 
@@ -592,6 +596,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					album: AudioPlayerTrack[],
 					trackId?: string,
 					positionMs?: number,
+					playlist?: AudioPlayerQueuePlaylist,
 				) => {
 					console.log("[audio-player] playAlbum", {
 						trackCount: album.length,
@@ -622,7 +627,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						title: track.title,
 					});
 					set({
-						queue: createQueueEntries(album),
+						queue: createQueueEntries(album, playlist),
 						index,
 						status: "loading",
 						...createShuffleState(album.length, index, get().shuffle),
@@ -1093,7 +1098,11 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					};
 					return {
 						...state,
-						queue: createQueueEntries(state.queue),
+						// Keeps each entry's playlist across reloads.
+						queue: state.queue.map((entry) => ({
+							...entry,
+							queueEntryId: crypto.randomUUID(),
+						})),
 						...createShuffleState(
 							state.queue.length,
 							state.index,

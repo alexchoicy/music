@@ -20,12 +20,16 @@ export function usePlayParty() {
 		{ shuffle = false, queue = false, next = false }: PlayPartyOptions = {},
 	) {
 		try {
-			const details = await queryClient.ensureQueryData(
-				partyQueries.getParty(String(party.partyId)),
-			);
+			const details = await queryClient.query({
+				...partyQueries.getParty(String(party.partyId)),
+				staleTime: "static",
+			});
 			const albums = await Promise.all(
 				details.albums.map((album) =>
-					queryClient.ensureQueryData(albumQueries.getAlbum(album.albumId)),
+					queryClient.query({
+						...albumQueries.getAlbum(album.albumId),
+						staleTime: "static",
+					}),
 				),
 			);
 			const tracks = albums.flatMap(albumDetailsToAudioPlayerTracks);

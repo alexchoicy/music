@@ -1,6 +1,7 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 
+import { PlayingBars } from "#/components/album/AlbumTile";
 import { ArtworkPlayButton } from "#/components/app/ArtworkPlayButton";
 import { PlaylistActionsMenu } from "#/components/playlist/PlaylistActionsMenu";
 import { PlaylistArtwork } from "#/components/playlist/PlaylistArtwork";
@@ -15,11 +16,18 @@ import {
 	playlistCoverEntries,
 	playlistEntryCoverUrl,
 } from "#/lib/utils/playlist";
+import { cn } from "#/lib/utils/styles";
+import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
 export function PlaylistTile({ playlist }: { playlist: PlaylistListItem }) {
 	const user = useUserInfo();
 	const playPlaylist = usePlayPlaylist();
 	const trackCount = Number(playlist.trackCount);
+	const isPlaying = useAudioPlayerStore(
+		(state) =>
+			state.status === "playing" &&
+			state.queue.at(state.index)?.playlist?.id === String(playlist.playlistId),
+	);
 	const { data: details } = useQuery({
 		...playlistQueries.detail(user.id, playlist.playlistId),
 		enabled: trackCount > 0,
@@ -56,6 +64,9 @@ export function PlaylistTile({ playlist }: { playlist: PlaylistListItem }) {
 		>
 			<div className="pointer-events-none relative z-10 transition-transform duration-150 ease-out group-hover/tile:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover/tile:translate-y-0">
 				<PlaylistArtwork className="w-full" coverUrls={coverUrls} />
+				{isPlaying && (
+					<span className="pointer-events-none absolute inset-0 rounded-xl shadow-glow-primary" />
+				)}
 				{trackCount > 0 && (
 					<ArtworkPlayButton
 						label={`Play ${playlist.name}`}
@@ -65,14 +76,21 @@ export function PlaylistTile({ playlist }: { playlist: PlaylistListItem }) {
 			</div>
 			<div className="flex min-w-0 items-start gap-2">
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-					<Link
-						className="truncate text-sm font-semibold outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:outline-2 focus-visible:after:outline-offset-6 focus-visible:after:outline-ring"
-						params={{ id: String(playlist.playlistId) }}
-						title={playlist.name}
-						to="/playlists/$id"
-					>
-						{playlist.name}
-					</Link>
+					<div className="flex min-w-0 items-center gap-1.5">
+						{isPlaying && <PlayingBars />}
+						<Link
+							className={cn(
+								"truncate text-sm font-semibold outline-none",
+								"after:absolute after:inset-0 after:rounded-xl focus-visible:after:outline-2 focus-visible:after:outline-offset-6 focus-visible:after:outline-ring",
+								isPlaying && "text-primary",
+							)}
+							params={{ id: String(playlist.playlistId) }}
+							title={playlist.name}
+							to="/playlists/$id"
+						>
+							{playlist.name}
+						</Link>
+					</div>
 					<span className="truncate text-xs text-muted-foreground">{meta}</span>
 				</div>
 				<div className="relative z-10 -me-1 opacity-100 transition-opacity group-focus-within/tile:opacity-100 group-hover/tile:opacity-100 md:opacity-0">

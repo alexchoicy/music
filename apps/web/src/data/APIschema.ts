@@ -2635,6 +2635,7 @@ export interface paths {
             parameters: {
                 query?: {
                     Query?: string;
+                    Limit?: number | string;
                 };
                 header?: never;
                 path?: never;
@@ -3484,6 +3485,7 @@ export interface components {
             shareUrl: string;
             credits: components["schemas"]["AlbumPartyCredit"][];
             discs: components["schemas"]["AlbumDiscDetails"][];
+            extras: components["schemas"]["ExtraDetails"][];
         };
         AlbumDiscCoverDetails: {
             /** Format: int32 */
@@ -4432,6 +4434,12 @@ export interface components {
             albums: components["schemas"]["AlbumListItem"][];
             concerts: components["schemas"]["ConcertListItem"][];
             parties: components["schemas"]["PartyItems"][];
+            /** Format: int32 */
+            albumTotal: number | string;
+            /** Format: int32 */
+            concertTotal: number | string;
+            /** Format: int32 */
+            partyTotal: number | string;
         };
         StartUploadResult: {
             blake3Hash: string;

@@ -309,7 +309,7 @@ export function PlayerBar() {
 
 		let shareLink: string;
 		try {
-			const album = await queryClient.fetchQuery(
+			const album = await queryClient.query(
 				albumQueries.getAlbum(currentTrack.albumId),
 			);
 			shareLink = album.shareUrl;

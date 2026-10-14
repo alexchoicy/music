@@ -55,9 +55,10 @@ export function AlbumContextMenu({
 		action: (details: AlbumDetails) => void | Promise<void>,
 	) {
 		try {
-			const details = await queryClient.ensureQueryData(
-				albumQueries.getAlbum(album.albumId),
-			);
+			const details = await queryClient.query({
+				...albumQueries.getAlbum(album.albumId),
+				staleTime: "static",
+			});
 			await action(details);
 		} catch (error) {
 			toastManager.add({

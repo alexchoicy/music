@@ -37,7 +37,9 @@ export function usePlayPlaylist() {
 			const playable = tracks.filter((track) => track !== null);
 			if (playable.length === 0) throw new Error("No playable tracks.");
 			if (!queue) {
-				playAlbum(playable);
+				playAlbum(playable, undefined, undefined, {
+					id: String(playlist.playlistId),
+				});
 				return;
 			}
 			addToQueue(playable);

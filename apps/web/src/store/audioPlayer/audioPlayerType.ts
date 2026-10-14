@@ -28,8 +28,13 @@ export type AudioPlayerTrack = {
 	durationInMs: number;
 };
 
+/** The playlist a queue entry was played from. */
+export type AudioPlayerQueuePlaylist = { id: string };
+
 export type AudioPlayerQueueEntry = AudioPlayerTrack & {
 	queueEntryId: string;
+	/** Set when played from a playlist, so its tile can show it is playing. */
+	playlist?: AudioPlayerQueuePlaylist;
 };
 
 export type AudioPlayerState = {
@@ -64,6 +69,8 @@ export type AudioPlayerAction = {
 		album: AudioPlayerTrack[],
 		trackId?: string,
 		positionMs?: number,
+		/** The playlist the tracks come from. */
+		playlist?: AudioPlayerQueuePlaylist,
 	) => void;
 	addToQueue: (track: AudioPlayerTrack[]) => void;
 	addNextToQueue: (track: AudioPlayerTrack[]) => void;

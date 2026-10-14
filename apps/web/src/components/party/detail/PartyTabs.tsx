@@ -159,9 +159,10 @@ export function PartyTabs({ party }: { party: PartyDetails }) {
 		}
 		const match = active.pathname.match(/^\/albums\/(\d+)$/);
 		if (!match) return;
-		const details = await queryClient.ensureQueryData(
-			albumQueries.getAlbum(Number(match[1])),
-		);
+		const details = await queryClient.query({
+			...albumQueries.getAlbum(Number(match[1])),
+			staleTime: "static",
+		});
 		return albumDetailsToAudioPlayerTracks(details);
 	}
 

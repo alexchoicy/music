@@ -128,9 +128,10 @@ function ContinueListeningRow({ item }: { item: ContinueListeningItem }) {
 
 		setResuming(true);
 		try {
-			const details = await queryClient.ensureQueryData(
-				albumQueries.getAlbum(album.albumId),
-			);
+			const details = await queryClient.query({
+				...albumQueries.getAlbum(album.albumId),
+				staleTime: "static",
+			});
 			const tracks = albumDetailsToAudioPlayerTracks(details);
 			if (!tracks.some((track) => track.trackId === String(item.trackId))) {
 				throw new Error("This track has no playable audio.");

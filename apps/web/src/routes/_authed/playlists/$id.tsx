@@ -12,6 +12,7 @@ import {
 	CheckIcon,
 	ListMusicIcon,
 	ListPlusIcon,
+	PauseIcon,
 	PlayIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -75,6 +76,7 @@ function PlaylistPage() {
 	const [editing, setEditing] = useState(false);
 	const navigate = useNavigate();
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
+	const togglePlay = useAudioPlayerStore((state) => state.togglePlay);
 	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
 
 	function queueTracks(tracks: AudioPlayerTrack[]) {
@@ -96,6 +98,10 @@ function PlaylistPage() {
 	const isPlaying = useAudioPlayerStore(
 		(state) => state.status === "playing" || state.status === "loading",
 	);
+	const source = { id: String(playlist.playlistId) };
+	const isCurrentPlaylist = currentTrack?.playlist?.id === source.id;
+	const isPlayingPlaylist = isCurrentPlaylist && isPlaying;
+	const isLoading = useAudioPlayerStore((state) => state.status === "loading");
 	const albumIds = [
 		...new Set(playlist.entries.map((entry) => String(entry.albumId))),
 	];
@@ -213,12 +219,21 @@ function PlaylistPage() {
 					</div>
 					<div className="flex flex-wrap items-center gap-2">
 						<Button
-							disabled={cannotPlay}
-							onClick={() => playAlbum(audioTracks)}
+							// The current playlist's queue already has its tracks; it can't pause while loading.
+							disabled={isCurrentPlaylist ? isLoading : cannotPlay}
+							onClick={() =>
+								isCurrentPlaylist
+									? void togglePlay()
+									: playAlbum(audioTracks, undefined, undefined, source)
+							}
 							size="lg"
 						>
-							<PlayIcon aria-hidden="true" />
-							Play
+							{isPlayingPlaylist ? (
+								<PauseIcon aria-hidden="true" />
+							) : (
+								<PlayIcon aria-hidden="true" />
+							)}
+							{isPlayingPlaylist ? "Pause" : "Play"}
 						</Button>
 						<Tooltip>
 							<TooltipTrigger
@@ -342,7 +357,12 @@ function PlaylistPage() {
 										noAudioSource={!loadingAudio && !failedAudio && !playable}
 										onPlay={() => {
 											if (playable)
-												playAlbum(audioTracks, playable.track.trackId);
+												playAlbum(
+													audioTracks,
+													playable.track.trackId,
+													undefined,
+													source,
+												);
 										}}
 										onQueue={() => {
 											if (playable) queueTracks([playable.track]);
