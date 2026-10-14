@@ -9,7 +9,10 @@ import { useDropzone } from "react-dropzone";
 import type { components } from "#/data/APIschema";
 import { MEDIA_SOURCE_OPTIONS } from "#/enums/albumEnums";
 import { EXTRA_CATEGORY_OPTIONS } from "#/enums/extraEnums";
-import { extraActions, extraQueries } from "#/lib/queries/extra.queries";
+import {
+	extraActions,
+	invalidateAlbumExtras,
+} from "#/lib/queries/extra.queries";
 import type {
 	ExtraDetails,
 	SaveExtraRequest,
@@ -186,9 +189,7 @@ export function ExtraEditDialog({
 		},
 		onSettled: () => {
 			setUploadProgress(null);
-			void queryClient.invalidateQueries({
-				queryKey: extraQueries.getAlbumExtras(albumId).queryKey,
-			});
+			void invalidateAlbumExtras(queryClient, albumId);
 		},
 	});
 
@@ -201,10 +202,7 @@ export function ExtraEditDialog({
 			});
 			onClose();
 		},
-		onSettled: () =>
-			queryClient.invalidateQueries({
-				queryKey: extraQueries.getAlbumExtras(albumId).queryKey,
-			}),
+		onSettled: () => invalidateAlbumExtras(queryClient, albumId),
 	});
 
 	const isBusy =

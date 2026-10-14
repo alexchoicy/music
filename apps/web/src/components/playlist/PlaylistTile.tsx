@@ -1,9 +1,11 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 
+import { ArtworkPlayButton } from "#/components/app/ArtworkPlayButton";
 import { PlaylistActionsMenu } from "#/components/playlist/PlaylistActionsMenu";
 import { PlaylistArtwork } from "#/components/playlist/PlaylistArtwork";
 import { PlaylistContextMenu } from "#/components/playlist/PlaylistContextMenu";
+import { usePlayPlaylist } from "#/components/playlist/usePlayPlaylist";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { albumQueries } from "#/lib/queries/album.queries";
 import { playlistQueries } from "#/lib/queries/playlist.queries";
@@ -16,6 +18,7 @@ import {
 
 export function PlaylistTile({ playlist }: { playlist: PlaylistListItem }) {
 	const user = useUserInfo();
+	const playPlaylist = usePlayPlaylist();
 	const trackCount = Number(playlist.trackCount);
 	const { data: details } = useQuery({
 		...playlistQueries.detail(user.id, playlist.playlistId),
@@ -51,8 +54,14 @@ export function PlaylistTile({ playlist }: { playlist: PlaylistListItem }) {
 				<div className="group/tile relative flex min-w-0 flex-col gap-3" />
 			}
 		>
-			<div className="transition-transform duration-150 ease-out group-hover/tile:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover/tile:translate-y-0">
+			<div className="pointer-events-none relative z-10 transition-transform duration-150 ease-out group-hover/tile:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover/tile:translate-y-0">
 				<PlaylistArtwork className="w-full" coverUrls={coverUrls} />
+				{trackCount > 0 && (
+					<ArtworkPlayButton
+						label={`Play ${playlist.name}`}
+						onPlay={() => void playPlaylist(playlist)}
+					/>
+				)}
 			</div>
 			<div className="flex min-w-0 items-start gap-2">
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">

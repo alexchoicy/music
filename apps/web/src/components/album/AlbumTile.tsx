@@ -1,17 +1,15 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Disc3Icon, PlayIcon } from "lucide-react";
+import { Disc3Icon } from "lucide-react";
 
 import { AlbumContextMenu } from "#/components/album/AlbumContextMenu";
 import { AlbumTypeBadge } from "#/components/album/AlbumTypeBadge";
-import { Button } from "#/components/base/button";
+import { usePlayAlbum } from "#/components/album/usePlayAlbum";
+import { ArtworkPlayButton } from "#/components/app/ArtworkPlayButton";
 import type { components } from "#/data/APIschema";
 import { useTitleLang } from "#/hooks/use-title-lang";
-import { albumQueries } from "#/lib/queries/album.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { formatDurationInHoursAndMinutes } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
-import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
 type Album = components["schemas"]["AlbumListItem"];
@@ -27,9 +25,8 @@ export function AlbumTile({
 	className,
 	showMeta = true,
 }: AlbumTileProps) {
-	const queryClient = useQueryClient();
 	const titleLang = useTitleLang();
-	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
+	const playAlbum = usePlayAlbum();
 	const isPlaying = useAudioPlayerStore(
 		(state) =>
 			state.status === "playing" &&
@@ -49,13 +46,6 @@ export function AlbumTile({
 	]
 		.filter(Boolean)
 		.join(" · ");
-
-	async function play() {
-		const details = await queryClient.ensureQueryData(
-			albumQueries.getAlbum(album.albumId),
-		);
-		playAlbum(albumDetailsToAudioPlayerTracks(details));
-	}
 
 	return (
 		<AlbumContextMenu
@@ -91,16 +81,10 @@ export function AlbumTile({
 						type={album.type}
 					/>
 				)}
-				<span className="pointer-events-auto absolute right-2 bottom-2 z-10 opacity-0 transition-[opacity,translate] duration-150 group-hover/tile:opacity-100 focus-within:opacity-100 motion-safe:translate-y-1 motion-safe:group-hover/tile:translate-y-0 motion-safe:focus-within:translate-y-0">
-					<Button
-						aria-label={`Play ${album.title}`}
-						onClick={() => void play()}
-						size="icon-xl"
-						variant="play"
-					>
-						<PlayIcon aria-hidden="true" className="size-4" />
-					</Button>
-				</span>
+				<ArtworkPlayButton
+					label={`Play ${album.title}`}
+					onPlay={() => void playAlbum(album)}
+				/>
 			</div>
 
 			<div className="flex min-w-0 flex-col gap-0.5">

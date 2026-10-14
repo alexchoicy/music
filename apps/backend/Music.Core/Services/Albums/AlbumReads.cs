@@ -2,6 +2,7 @@ using Music.Core.Common.Enums;
 using Music.Core.Services.Albums.Enums;
 using Music.Core.Services.Albums.Requests;
 using Music.Core.Services.Albums.Results;
+using Music.Core.Services.Extras.Results;
 using Music.Core.Services.Files;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Files.Requests;
@@ -114,6 +115,7 @@ public sealed class AlbumDetails
 
     public required IReadOnlyList<AlbumPartyCredit> Credits { get; init; } = [];
     public required IReadOnlyList<AlbumDiscDetails> Discs { get; init; } = [];
+    public required IReadOnlyList<ExtraDetails> Extras { get; init; } = [];
 }
 
 public sealed class AlbumPartyCredit

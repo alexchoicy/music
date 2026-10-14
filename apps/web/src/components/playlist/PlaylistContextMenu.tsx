@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
 	CopyIcon,
@@ -19,14 +18,9 @@ import {
 	ContextMenuSeparator,
 	ContextMenuTrigger,
 } from "#/components/base/context-menu";
-import { toastManager } from "#/components/base/toast";
 import { usePlaylistManagement } from "#/components/playlist/PlaylistActionsMenu";
-import { playlistEntryToTrack } from "#/components/playlist/playlistTracks";
-import { useUserInfo } from "#/context/UserInfoContext";
-import { albumQueries } from "#/lib/queries/album.queries";
-import { playlistQueries } from "#/lib/queries/playlist.queries";
+import { usePlayPlaylist } from "#/components/playlist/usePlayPlaylist";
 import type { PlaylistListItem } from "#/lib/queries/playlist.queries";
-import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
 type PlaylistContextMenuProps = {
 	playlist: PlaylistListItem;
@@ -39,48 +33,9 @@ export function PlaylistContextMenu({
 	render,
 	children,
 }: PlaylistContextMenuProps) {
-	const user = useUserInfo();
-	const queryClient = useQueryClient();
-	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
-	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
+	const playPlaylist = usePlayPlaylist();
 	const manage = usePlaylistManagement(playlist);
 	const isEmpty = Number(playlist.trackCount) === 0;
-
-	async function playOrQueue(queue: boolean) {
-		try {
-			const playlistDetails = await queryClient.ensureQueryData(
-				playlistQueries.detail(user.id, playlist.playlistId),
-			);
-			const tracks = await Promise.all(
-				playlistDetails.entries.map(async (entry) =>
-					playlistEntryToTrack(
-						entry,
-						await queryClient.ensureQueryData(
-							albumQueries.getAlbum(String(entry.albumId)),
-						),
-					),
-				),
-			);
-			const playable = tracks.filter((track) => track !== null);
-			if (playable.length === 0) throw new Error("No playable tracks.");
-			if (!queue) {
-				playAlbum(playable);
-				return;
-			}
-			addToQueue(playable);
-			toastManager.add({
-				type: "success",
-				title: "Added to queue",
-				description: `${playable.length} tracks from ${playlist.name}`,
-			});
-		} catch (error) {
-			toastManager.add({
-				title: `Could not play ${playlist.name}`,
-				description: error instanceof Error ? error.message : undefined,
-				type: "error",
-			});
-		}
-	}
 
 	return (
 		<>
@@ -94,14 +49,14 @@ export function PlaylistContextMenu({
 					<ContextMenuSeparator />
 					<ContextMenuItem
 						disabled={isEmpty}
-						onClick={() => void playOrQueue(false)}
+						onClick={() => void playPlaylist(playlist)}
 					>
 						<PlayIcon aria-hidden="true" />
 						Play
 					</ContextMenuItem>
 					<ContextMenuItem
 						disabled={isEmpty}
-						onClick={() => void playOrQueue(true)}
+						onClick={() => void playPlaylist(playlist, { queue: true })}
 					>
 						<ListEndIcon aria-hidden="true" />
 						Add to queue

@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import {
 	CircleAlertIcon,
 	ClockIcon,
@@ -13,7 +12,6 @@ import { Badge } from "#/components/base/badge";
 import { FilterChips } from "#/components/library/FilterChips";
 import type { components } from "#/data/APIschema";
 import { EXTRA_CATEGORY } from "#/enums/extraEnums";
-import { extraQueries } from "#/lib/queries/extra.queries";
 import type { ExtraDetails } from "#/lib/queries/extra.queries";
 
 import { formatFileCount, getExtraStatusLabel } from "./extraAssets";
@@ -24,12 +22,11 @@ type ExtraCategory = components["schemas"]["ExtraCategory"];
 
 const CATEGORY_ORDER = Object.keys(EXTRA_CATEGORY) as ExtraCategory[];
 
-export function AlbumExtras({ albumId }: { albumId: number | string }) {
-	const { data: extras } = useQuery(extraQueries.getAlbumExtras(albumId));
+export function AlbumExtras({ extras }: { extras: ExtraDetails[] }) {
 	const [categories, setCategories] = useState<ExtraCategory[]>([]);
 	const [viewingId, setViewingId] = useState<string | null>(null);
 
-	if (!extras || extras.length === 0) return null;
+	if (extras.length === 0) return null;
 
 	const counts = new Map<ExtraCategory, number>();
 	for (const extra of extras)

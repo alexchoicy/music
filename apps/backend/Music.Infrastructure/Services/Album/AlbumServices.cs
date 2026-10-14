@@ -11,6 +11,8 @@ using Music.Core.Services.Albums;
 using Music.Core.Services.Albums.Enums;
 using Music.Core.Services.Albums.Requests;
 using Music.Core.Services.Albums.Results;
+using Music.Core.Services.Extras;
+using Music.Core.Services.Extras.Results;
 using Music.Core.Services.Files;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Files.Requests;
@@ -25,6 +27,7 @@ public class AlbumService(
     AppDbContext dbContext,
     IContentService contentService,
     IAssetsService assetsService,
+    IExtraService extraService,
     IOptions<BaseOptions> baseOptions,
     ILogger<AlbumService> logger
 ) : IAlbumService
@@ -345,6 +348,11 @@ public class AlbumService(
             })
             .ToList();
 
+        IReadOnlyList<ExtraDetails> extras = await extraService.GetByAlbumIdAsync(
+            albumId,
+            cancellationToken
+        );
+
         int totalTrackCount = discs.Sum(d => d.Tracks.Count);
         int totalDurationInMs = discs.SelectMany(d => d.Tracks).Sum(t => t.DurationInMs);
 
@@ -370,6 +378,7 @@ public class AlbumService(
                 })
                 .ToList(),
             Discs = discs,
+            Extras = extras,
         };
     }
 

@@ -12,7 +12,6 @@ import { showQueueToast } from "#/components/player/queueToast";
 import { AddToPlaylistDialog } from "#/components/playlist/AddToPlaylistDialog";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { albumQueries } from "#/lib/queries/album.queries";
-import { extraQueries } from "#/lib/queries/extra.queries";
 import type { PlaylistTrackRequest } from "#/lib/queries/playlist.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { canEditContent } from "#/lib/utils/roles";
@@ -24,17 +23,10 @@ export const Route = createFileRoute("/_authed/albums/$id")({
 		track: z.coerce.number().optional(),
 	}),
 	loader: async ({ context, params }) => {
-		// Extras are optional: prefetching never throws, so a failed request only hides the section.
-		const [album] = await Promise.all([
-			context.queryClient.query({
-				...albumQueries.getAlbum(params.id),
-				staleTime: "static",
-			}),
-			context.queryClient
-				.query(extraQueries.getAlbumExtras(params.id))
-				.catch(() => {}),
-		]);
-		return album;
+		return context.queryClient.query({
+			...albumQueries.getAlbum(params.id),
+			staleTime: "static",
+		});
 	},
 	component: RouteComponent,
 });
@@ -60,9 +52,7 @@ function RouteComponent() {
 	useHotkey("Control+Q", queueAlbum);
 
 	return (
-		<main
-			className="relative min-h-full w-full overflow-hidden"
-		>
+		<main className="relative min-h-full w-full overflow-hidden">
 			<div
 				aria-hidden="true"
 				className="pointer-events-none absolute inset-x-0 top-0 h-[460px] overflow-hidden"
@@ -113,7 +103,7 @@ function RouteComponent() {
 					</aside>
 				</div>
 
-				<AlbumExtras albumId={album.albumId} />
+				<AlbumExtras extras={album.extras} />
 			</div>
 
 			{playlistTracks && (
