@@ -26,6 +26,8 @@ AppState.addEventListener("change", (status) => {
 	focusManager.setFocused(status === "active");
 });
 
+export const queryCacheVersion = 2;
+
 /** How long browsed data stays available offline. */
 export const queryCacheMaxAge = 1000 * 60 * 60 * 24 * 7;
 

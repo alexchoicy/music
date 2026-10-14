@@ -15,6 +15,7 @@ import { connectPlaybackDevice } from "@/lib/playbackDevices";
 import {
 	queryCacheMaxAge,
 	queryClient,
+	queryCacheVersion,
 	queryPersister,
 } from "@/lib/queryClient";
 import { startDownloads } from "@/offline/downloads";
@@ -61,8 +62,8 @@ function RootLayout() {
 			persistOptions={{
 				persister: queryPersister,
 				maxAge: queryCacheMaxAge,
-				// Data from another server must not be restored.
-				buster: serverUrl ?? "",
+				// Data from another server or an older response shape must not be restored.
+				buster: `${queryCacheVersion}:${serverUrl ?? ""}`,
 				// Keeps data whose last refetch failed, e.g. while offline.
 				dehydrateOptions: {
 					shouldDehydrateQuery: (query) => query.state.data !== undefined,
