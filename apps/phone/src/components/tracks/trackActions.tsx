@@ -252,16 +252,14 @@ function PlaylistOption({
 	playlist: PlaylistListItem;
 	onPress: () => void;
 }) {
-	const details = useQuery({
-		...playlistQueries.detail(playlist.playlistId),
-		enabled: Number(playlist.trackCount) > 0,
-	});
-
 	return (
 		<ListRow
 			accessibilityRole="button"
 			leading={
-				<PlaylistCover entries={details.data?.entries ?? []} size={48} />
+				<PlaylistCover
+					files={playlist.covers.map((cover) => cover.file)}
+					size={48}
+				/>
 			}
 			onPress={onPress}
 			subtitle={plural(playlist.trackCount, "track")}

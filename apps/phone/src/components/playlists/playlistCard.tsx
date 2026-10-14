@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
@@ -11,7 +10,6 @@ import { cn } from "@/lib/cn";
 import { formatTotalDuration, plural } from "@/lib/format";
 import type { PlaylistListItem } from "@/lib/schema";
 import { usePlayerStore } from "@/player/playerStore";
-import { playlistQueries } from "@/queries/playlists";
 
 type PlaylistCardProps = {
 	playlist: PlaylistListItem;
@@ -35,11 +33,6 @@ export function PlaylistCard({
 			state.status === "playing" &&
 			state.queue.at(state.index)?.playlist?.id === String(playlist.playlistId),
 	);
-	// List items have no artwork, so covers come from the playlist's entries.
-	const details = useQuery({
-		...playlistQueries.detail(playlist.playlistId),
-		enabled: trackCount > 0,
-	});
 	const summary =
 		trackCount === 0
 			? "Empty"
@@ -78,9 +71,7 @@ export function PlaylistCard({
 					onLongPress={onLongPress}
 				>
 					<View>
-						<PlaylistCover
-							entries={trackCount > 0 ? (details.data?.entries ?? []) : []}
-						/>
+						<PlaylistCover files={playlist.covers.map((cover) => cover.file)} />
 						{isPlaying && <PlayingGlow className="rounded-xl" />}
 					</View>
 					<View className="gap-0.5">

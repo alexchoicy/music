@@ -26,6 +26,12 @@ AppState.addEventListener("change", (status) => {
 	focusManager.setFocused(status === "active");
 });
 
+/**
+ * Bump when cached responses change shape, so older persisted data isn't restored.
+ * 2: playlist list items gained `covers`.
+ */
+export const queryCacheVersion = 2;
+
 /** How long browsed data stays available offline. */
 export const queryCacheMaxAge = 1000 * 60 * 60 * 24 * 7;
 

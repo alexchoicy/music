@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import { SectionList, Text, View } from "react-native";
 
-import { PlaylistCover } from "@/components/playlists/playlistCover";
+import { PlaylistEntriesCover } from "@/components/playlists/playlistCover";
 import { Artwork } from "@/components/ui/artwork";
 import { Button } from "@/components/ui/button";
 import { confirm } from "@/components/ui/confirmDialog";
@@ -286,7 +286,7 @@ function PlaylistDownloadRow({
 	return (
 		<DownloadRow
 			{...props}
-			artwork={<PlaylistCover entries={playlist.entries} size={52} />}
+			artwork={<PlaylistEntriesCover entries={playlist.entries} size={52} />}
 			status={getStatus(props.stats, "track")}
 			subtitle="Playlist"
 			title={playlist.name}

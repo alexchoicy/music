@@ -8,23 +8,21 @@ import {
 	getEntryCover,
 	usePlaylistAlbums,
 } from "@/lib/playlist";
-import type { PlaylistEntry } from "@/lib/schema";
+import type { FileObject, PlaylistEntry } from "@/lib/schema";
 import { useOfflineStore } from "@/offline/offlineStore";
 
 type PlaylistCoverProps = {
-	entries: PlaylistEntry[];
+	/** Up to four disc covers, e.g. a playlist list item's `covers`. */
+	files: (FileObject | null | undefined)[];
 	size?: number;
 };
 
-/** Up to four disc covers from the playlist, or a placeholder. */
-export function PlaylistCover({ entries, size }: PlaylistCoverProps) {
-	const coverEntries = getCoverEntries(entries);
-	const albums = usePlaylistAlbums(coverEntries);
+/** A mosaic of up to four disc covers, or a placeholder. */
+export function PlaylistCover({ files, size }: PlaylistCoverProps) {
 	const artwork = useOfflineStore((state) => state.artwork);
-	const uris = coverEntries.flatMap((entry) => {
-		const file = getEntryCover(entry, albums);
-		return file ? [artwork[file.id] ?? file.url] : [];
-	});
+	const uris = files.flatMap((file) =>
+		file ? [artwork[file.id] ?? file.url] : [],
+	);
 	// A mosaic needs four tiles, so fewer covers repeat.
 	const tiles =
 		uris.length > 1
@@ -70,5 +68,24 @@ export function PlaylistCover({ entries, size }: PlaylistCoverProps) {
 				))
 			)}
 		</View>
+	);
+}
+
+/** The cover built from entries already loaded, e.g. a playlist page or a download. */
+export function PlaylistEntriesCover({
+	entries,
+	size,
+}: {
+	entries: PlaylistEntry[];
+	size?: number;
+}) {
+	const coverEntries = getCoverEntries(entries);
+	const albums = usePlaylistAlbums(coverEntries);
+
+	return (
+		<PlaylistCover
+			files={coverEntries.map((entry) => getEntryCover(entry, albums))}
+			size={size}
+		/>
 	);
 }

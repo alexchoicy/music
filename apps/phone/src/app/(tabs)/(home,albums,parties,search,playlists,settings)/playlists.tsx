@@ -97,7 +97,6 @@ export default function PlaylistsScreen() {
 					)
 				}
 				numColumns={columns}
-				// Details refresh too, since covers come from each playlist's entries.
 				onRefresh={() =>
 					void queryClient.invalidateQueries({ queryKey: ["playlists"] })
 				}
