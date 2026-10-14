@@ -45,7 +45,6 @@ export function TrackRow({
 		<li
 			className={cn(
 				"group/track relative flex min-h-14 items-center gap-4 rounded-lg px-3 py-2 transition-colors duration-100 hover:bg-accent motion-reduce:transition-none",
-				hasNumber && isCurrent && "shadow-glow-primary",
 				className,
 			)}
 			{...props}

@@ -101,6 +101,16 @@
     background-position: -200% 0;
 		}
 	}
+	--animate-playing-bar: playing-bar 0.9s ease-in-out infinite;
+	@keyframes playing-bar {
+		0%,
+		100% {
+			transform: scaleY(1);
+		}
+		50% {
+			transform: scaleY(0.35);
+		}
+	}
 	--animate-track-highlight: track-highlight 1.4s ease-in-out backwards;
 	@keyframes track-highlight {
 		0%,

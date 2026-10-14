@@ -286,7 +286,6 @@ function TrackRow({
 		<div
 			className={cn(
 				"group/track relative grid min-h-14 grid-cols-[2rem_minmax(0,1fr)_auto_2rem] items-center gap-x-4 rounded-lg px-3 py-2 transition-colors duration-100 hover:bg-accent has-[[data-popup-open]]:bg-accent motion-reduce:transition-none",
-				isCurrent && "shadow-glow-primary",
 				isHighlighted && "animate-track-highlight",
 			)}
 			id={`track-${track.trackId}`}

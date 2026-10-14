@@ -122,10 +122,24 @@ export function AlbumTile({
 
 export function PlayingBars() {
 	return (
-		<span aria-hidden="true" className="flex h-3 shrink-0 items-end gap-0.5">
-			<span className="h-[7px] w-0.5 rounded-[1px] bg-primary" />
-			<span className="h-3 w-0.5 rounded-[1px] bg-primary" />
-			<span className="h-[9px] w-0.5 rounded-[1px] bg-primary" />
-		</span>
+		<svg
+			aria-hidden="true"
+			focusable="false"
+			viewBox="0 0 10 12"
+			className="h-3 w-2.5 shrink-0 fill-current text-primary"
+		>
+			{[7, 12, 9].map((height, index) => (
+				<rect
+					key={index}
+					x={index * 4}
+					y={12 - height}
+					width="2"
+					height={height}
+					rx="1"
+					className="origin-bottom motion-safe:animate-playing-bar"
+					style={{ animationDelay: `${index * -0.3}s` }}
+				/>
+			))}
+		</svg>
 	);
 }

@@ -134,7 +134,6 @@ function ConcertFileRow({
 		<div
 			className={cn(
 				"group/file relative flex flex-col rounded-lg p-2 transition-colors duration-100 hover:bg-accent motion-reduce:transition-none",
-				isCurrent && "shadow-glow-primary",
 			)}
 		>
 			<button
