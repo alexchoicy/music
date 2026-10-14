@@ -5,7 +5,7 @@ import {
 	useNavigate,
 } from "@tanstack/react-router";
 import { UsersRoundIcon } from "lucide-react";
-import { useDeferredValue, useId, useRef } from "react";
+import { useId, useRef } from "react";
 import { z } from "zod";
 
 import { PageHeader } from "#/components/app/PageHeader";
@@ -36,6 +36,7 @@ import {
 	PARTY_KIND_OPTIONS,
 	PARTY_TYPE_OPTIONS,
 } from "#/enums/partyEnums";
+import { useDebouncedValue } from "#/hooks/use-debounced-value";
 import { partyQueries } from "#/lib/queries/party.queries";
 import type { PartyQuery } from "#/lib/queries/party.queries";
 
@@ -130,15 +131,14 @@ function RouteComponent() {
 	const playParty = usePlayParty();
 	const excludeNoAlbumsId = useId();
 	const filters = Route.useSearch();
-	const deferredFilters = useDeferredValue(filters);
+	const debouncedSearch = useDebouncedValue(filters.search, 250);
 	const partyQuery: PartyQuery = {
-		Gender:
-			deferredFilters.gender === "All" ? undefined : deferredFilters.gender,
-		Kind: deferredFilters.kind === "All" ? undefined : deferredFilters.kind,
-		Search: deferredFilters.search || undefined,
-		Sort: deferredFilters.sort,
-		Type: deferredFilters.type === "All" ? undefined : deferredFilters.type,
-		ExcludeNoAlbums: deferredFilters.excludeNoAlbums,
+		Gender: filters.gender === "All" ? undefined : filters.gender,
+		Kind: filters.kind === "All" ? undefined : filters.kind,
+		Search: debouncedSearch || undefined,
+		Sort: filters.sort,
+		Type: filters.type === "All" ? undefined : filters.type,
+		ExcludeNoAlbums: filters.excludeNoAlbums,
 	};
 	const {
 		data: parties,

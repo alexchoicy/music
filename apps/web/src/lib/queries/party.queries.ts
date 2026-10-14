@@ -10,7 +10,8 @@ export const partyQueries = {
 	getParties: (query?: PartyQuery) =>
 		queryOptions({
 			queryKey: ["parties", query],
-			queryFn: async () => {
+			staleTime: 30_000,
+			queryFn: async ({ signal }) => {
 				const params = new URLSearchParams();
 
 				if (query?.Search) params.set("Search", query.Search);
@@ -24,8 +25,10 @@ export const partyQueries = {
 
 				const url = params.size ? `/parties?${params}` : "/parties";
 
-				const result =
-					await $APIFetch<components["schemas"]["PartyItems"][]>(url);
+				const result = await $APIFetch<components["schemas"]["PartyItems"][]>(
+					url,
+					{ signal },
+				);
 
 				if (!result.ok) {
 					throw new Error("Unable to load parties");
@@ -35,12 +38,14 @@ export const partyQueries = {
 		}),
 	getParty: (id: number | string) =>
 		queryOptions({
-			queryKey: ["parties", id],
-			queryFn: async () => {
+			queryKey: ["parties", String(id)],
+			staleTime: 30_000,
+			queryFn: async ({ signal }) => {
 				const result = await $APIFetch<components["schemas"]["PartyDetails"]>(
 					`/parties/${id}`,
 					{
 						method: "GET",
+						signal,
 					},
 				);
 

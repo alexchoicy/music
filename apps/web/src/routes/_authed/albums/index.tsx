@@ -5,7 +5,7 @@ import {
 	useNavigate,
 } from "@tanstack/react-router";
 import { Disc3Icon } from "lucide-react";
-import { useDeferredValue, useRef } from "react";
+import { useRef } from "react";
 import { z } from "zod";
 
 import { AlbumTile } from "#/components/album/AlbumTile";
@@ -32,6 +32,7 @@ import {
 	LIST_SORT_OPTIONS,
 } from "#/enums/listSortEnums";
 import type { ListSortOption } from "#/enums/listSortEnums";
+import { useDebouncedValue } from "#/hooks/use-debounced-value";
 import { albumQueries } from "#/lib/queries/album.queries";
 import type { AlbumQuery } from "#/lib/queries/album.queries";
 import { languageQueries } from "#/lib/queries/language.queries";
@@ -117,21 +118,15 @@ function RouteComponent() {
 	const albumGridRef = useRef<HTMLUListElement>(null);
 	const playAlbum = usePlayAlbum();
 	const filters = Route.useSearch();
-	const deferredFilters = useDeferredValue(filters);
+	const debouncedSearch = useDebouncedValue(filters.search, 250);
 	const albumQuery: AlbumQuery = {
 		IsIncludeInTrackCredit:
-			deferredFilters.partyIds.length && deferredFilters.includeTrackCredit
-				? true
-				: undefined,
-		LanguageIds: deferredFilters.languageIds.length
-			? deferredFilters.languageIds
-			: undefined,
-		PartyIds: deferredFilters.partyIds.length
-			? deferredFilters.partyIds
-			: undefined,
-		Search: deferredFilters.search || undefined,
-		Sort: deferredFilters.sort,
-		Types: deferredFilters.types.length ? deferredFilters.types : undefined,
+			filters.partyIds.length && filters.includeTrackCredit ? true : undefined,
+		LanguageIds: filters.languageIds.length ? filters.languageIds : undefined,
+		PartyIds: filters.partyIds.length ? filters.partyIds : undefined,
+		Search: debouncedSearch || undefined,
+		Sort: filters.sort,
+		Types: filters.types.length ? filters.types : undefined,
 	};
 	const {
 		data: albums,

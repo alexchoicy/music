@@ -5,7 +5,7 @@ import {
 	useNavigate,
 } from "@tanstack/react-router";
 import { MicVocalIcon } from "lucide-react";
-import { useDeferredValue, useRef } from "react";
+import { useRef } from "react";
 import { z } from "zod";
 
 import { PageHeader } from "#/components/app/PageHeader";
@@ -28,6 +28,7 @@ import {
 	LIST_SORT_OPTIONS,
 } from "#/enums/listSortEnums";
 import type { ListSortOption } from "#/enums/listSortEnums";
+import { useDebouncedValue } from "#/hooks/use-debounced-value";
 import { concertQueries } from "#/lib/queries/concert.queries";
 import type { ConcertQuery } from "#/lib/queries/concert.queries";
 
@@ -84,17 +85,13 @@ function RouteComponent() {
 	const concertGridRef = useRef<HTMLUListElement>(null);
 	useGridFocusHotkeys(concertGridRef);
 	const filters = Route.useSearch();
-	const deferredFilters = useDeferredValue(filters);
+	const debouncedSearch = useDebouncedValue(filters.search, 250);
 	const concertQuery: ConcertQuery = {
 		IsIncludeInGuestCredit:
-			deferredFilters.partyIds.length && deferredFilters.includeGuestCredit
-				? true
-				: undefined,
-		PartyIds: deferredFilters.partyIds.length
-			? deferredFilters.partyIds
-			: undefined,
-		Search: deferredFilters.search || undefined,
-		Sort: deferredFilters.sort,
+			filters.partyIds.length && filters.includeGuestCredit ? true : undefined,
+		PartyIds: filters.partyIds.length ? filters.partyIds : undefined,
+		Search: debouncedSearch || undefined,
+		Sort: filters.sort,
 	};
 	const {
 		data: concerts,

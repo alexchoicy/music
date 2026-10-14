@@ -1,4 +1,3 @@
-import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 
 import { PlayingBars } from "#/components/album/AlbumTile";
@@ -7,45 +6,18 @@ import { PlaylistActionsMenu } from "#/components/playlist/PlaylistActionsMenu";
 import { PlaylistArtwork } from "#/components/playlist/PlaylistArtwork";
 import { PlaylistContextMenu } from "#/components/playlist/PlaylistContextMenu";
 import { usePlayPlaylist } from "#/components/playlist/usePlayPlaylist";
-import { useUserInfo } from "#/context/UserInfoContext";
-import { albumQueries } from "#/lib/queries/album.queries";
-import { playlistQueries } from "#/lib/queries/playlist.queries";
 import type { PlaylistListItem } from "#/lib/queries/playlist.queries";
 import { formatDurationInHoursAndMinutes } from "#/lib/utils/music";
-import {
-	playlistCoverEntries,
-	playlistEntryCoverUrl,
-} from "#/lib/utils/playlist";
 import { cn } from "#/lib/utils/styles";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
 export function PlaylistTile({ playlist }: { playlist: PlaylistListItem }) {
-	const user = useUserInfo();
 	const playPlaylist = usePlayPlaylist();
 	const trackCount = Number(playlist.trackCount);
 	const isPlaying = useAudioPlayerStore(
 		(state) =>
 			state.status === "playing" &&
 			state.queue.at(state.index)?.playlist?.id === String(playlist.playlistId),
-	);
-	const { data: details } = useQuery({
-		...playlistQueries.detail(user.id, playlist.playlistId),
-		enabled: trackCount > 0,
-	});
-	const coverEntries = playlistCoverEntries(
-		trackCount > 0 ? (details?.entries ?? []) : [],
-	);
-	const albumIds = [
-		...new Set(coverEntries.map((entry) => String(entry.albumId))),
-	];
-	const albums = useQueries({
-		queries: albumIds.map((id) => albumQueries.getAlbum(id)),
-	});
-	const coverUrls = coverEntries.map((entry) =>
-		playlistEntryCoverUrl(
-			entry,
-			albums[albumIds.indexOf(String(entry.albumId))]?.data,
-		),
 	);
 	const meta =
 		trackCount === 0
@@ -63,7 +35,10 @@ export function PlaylistTile({ playlist }: { playlist: PlaylistListItem }) {
 			}
 		>
 			<div className="pointer-events-none relative z-10 transition-transform duration-150 ease-out group-hover/tile:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover/tile:translate-y-0">
-				<PlaylistArtwork className="w-full" coverUrls={coverUrls} />
+				<PlaylistArtwork
+					className="w-full"
+					coverUrls={playlist.covers.map((cover) => cover.file?.url ?? null)}
+				/>
 				{isPlaying && (
 					<span className="pointer-events-none absolute inset-0 rounded-xl shadow-glow-primary" />
 				)}

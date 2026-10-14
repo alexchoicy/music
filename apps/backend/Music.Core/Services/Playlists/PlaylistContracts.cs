@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Music.Core.Services.Files;
 
 namespace Music.Core.Services.Playlists;
 
@@ -49,6 +50,7 @@ public sealed class PlaylistListItem
     public required DateTimeOffset UpdatedAt { get; init; }
     public required int TrackCount { get; init; }
     public required long TotalDurationInMs { get; init; }
+    public required IReadOnlyList<PlaylistCover> Covers { get; init; }
 }
 
 public sealed class PlaylistDetails
@@ -70,4 +72,10 @@ public sealed class PlaylistEntryDetails
     public required string Title { get; init; }
     public int? LanguageId { get; init; }
     public required int DurationInMs { get; init; }
+}
+
+public sealed class PlaylistCover
+{
+    public required int AlbumDiscId { get; init; }
+    public FileObjectDetails? File { get; init; }
 }

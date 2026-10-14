@@ -10,7 +10,8 @@ export const concertQueries = {
 	getConcerts: (query?: ConcertQuery) =>
 		queryOptions({
 			queryKey: ["concerts", query],
-			queryFn: async () => {
+			staleTime: 30_000,
+			queryFn: async ({ signal }) => {
 				const params = new URLSearchParams();
 
 				if (query?.Search) params.append("Search", query.Search);
@@ -25,20 +26,23 @@ export const concertQueries = {
 					? `/concerts?${params.toString()}`
 					: "/concerts";
 
-				const result =
-					await $APIFetch<components["schemas"]["ConcertListItem"][]>(url);
+				const result = await $APIFetch<
+					components["schemas"]["ConcertListItem"][]
+				>(url, { signal });
 				if (!result.ok) throw new Error("Unable to load concerts");
 				return result.data;
 			},
 		}),
 	getConcert: (id: number | string) =>
 		queryOptions({
-			queryKey: ["concerts", id],
-			queryFn: async () => {
+			queryKey: ["concerts", String(id)],
+			staleTime: 30_000,
+			queryFn: async ({ signal }) => {
 				const result = await $APIFetch<components["schemas"]["ConcertDetails"]>(
 					`/concerts/${id}`,
 					{
 						method: "GET",
+						signal,
 					},
 				);
 

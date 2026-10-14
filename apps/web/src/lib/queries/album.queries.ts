@@ -10,7 +10,8 @@ export const albumQueries = {
 	getAlbums: (query?: AlbumQuery) =>
 		queryOptions({
 			queryKey: ["albums", query],
-			queryFn: async () => {
+			staleTime: 30_000,
+			queryFn: async ({ signal }) => {
 				const params = new URLSearchParams();
 
 				if (query?.Search) params.append("Search", query.Search);
@@ -29,20 +30,23 @@ export const albumQueries = {
 
 				const url = params.size ? `/albums?${params.toString()}` : "/albums";
 
-				const result =
-					await $APIFetch<components["schemas"]["AlbumListItem"][]>(url);
+				const result = await $APIFetch<
+					components["schemas"]["AlbumListItem"][]
+				>(url, { signal });
 				if (!result.ok) throw new Error("Unable to load albums");
 				return result.data;
 			},
 		}),
 	getAlbum: (id: number | string) =>
 		queryOptions({
-			queryKey: ["albums", id],
-			queryFn: async () => {
+			queryKey: ["albums", String(id)],
+			staleTime: 30_000,
+			queryFn: async ({ signal }) => {
 				const result = await $APIFetch<components["schemas"]["AlbumDetails"]>(
 					`/albums/${id}`,
 					{
 						method: "GET",
+						signal,
 					},
 				);
 

@@ -16,10 +16,7 @@ const LANG_BY_NAME: Record<string, string> = {
 type LanguageId = number | string | null | undefined;
 
 export function useTitleLang() {
-	const { data: languages } = useQuery({
-		...languageQueries.getLanguages(),
-		staleTime: Infinity,
-	});
+	const { data: languages } = useQuery(languageQueries.getLanguages());
 
 	return useCallback(
 		(...languageIds: LanguageId[]) => {

@@ -1,15 +1,7 @@
-import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 
-import { useUserInfo } from "#/context/UserInfoContext";
-import { albumQueries } from "#/lib/queries/album.queries";
-import { playlistQueries } from "#/lib/queries/playlist.queries";
 import type { PlaylistListItem } from "#/lib/queries/playlist.queries";
 import { formatDurationInHoursAndMinutes } from "#/lib/utils/music";
-import {
-	playlistCoverEntries,
-	playlistEntryCoverUrl,
-} from "#/lib/utils/playlist";
 import {
 	Card,
 	CardDescription,
@@ -20,26 +12,6 @@ import { PlaylistActionsMenu } from "#/old-components/playlists/PlaylistActionsM
 import { PlaylistArtwork } from "#/old-components/playlists/PlaylistArtwork";
 
 export function PlaylistCard({ playlist }: { playlist: PlaylistListItem }) {
-	const user = useUserInfo();
-	const { data: details } = useQuery({
-		...playlistQueries.detail(user.id, playlist.playlistId),
-		enabled: Number(playlist.trackCount) > 0,
-	});
-	const coverEntries = playlistCoverEntries(
-		Number(playlist.trackCount) > 0 ? (details?.entries ?? []) : [],
-	);
-	const albumIds = [
-		...new Set(coverEntries.map((entry) => String(entry.albumId))),
-	];
-	const albums = useQueries({
-		queries: albumIds.map((id) => albumQueries.getAlbum(id)),
-	});
-	const coverUrls = coverEntries.map((entry) =>
-		playlistEntryCoverUrl(
-			entry,
-			albums[albumIds.indexOf(String(entry.albumId))]?.data,
-		),
-	);
 	return (
 		<div className="group relative min-w-0 transition-transform hover:-translate-y-0.5">
 			<Link
@@ -48,7 +20,7 @@ export function PlaylistCard({ playlist }: { playlist: PlaylistListItem }) {
 				className="block h-full rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 			>
 				<Card className="h-full overflow-hidden">
-					<PlaylistArtwork coverUrls={coverUrls} />
+					<PlaylistArtwork coverUrls={playlist.covers.map((cover) => cover.file?.url ?? null)} />
 					<CardPanel size="sm">
 						<div className="grid gap-1 pr-8">
 							<CardTitle render={<h2 />} size="sm">
