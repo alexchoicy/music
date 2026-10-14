@@ -39,7 +39,11 @@ export const userMutation = {
 					body: JSON.stringify(info),
 				},
 			);
-			if (!result.ok) throw new Error("Failed to add user");
+			if (!result.ok) {
+				throw result.status === 403
+					? new Error("You can't create a user with that role.")
+					: result.error;
+			}
 			return result.data;
 		},
 	}),
@@ -55,7 +59,11 @@ export const userMutation = {
 					body: JSON.stringify(info),
 				},
 			);
-			if (!result.ok) throw new Error("Failed to update user");
+			if (!result.ok) {
+				throw result.status === 403
+					? new Error("You don't have permission to make this change.")
+					: result.error;
+			}
 			return result.data;
 		},
 	}),

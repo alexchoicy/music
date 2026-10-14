@@ -30,7 +30,6 @@ public sealed class ExtraController(IExtraService extraService) : ControllerBase
     }
 
     [HttpPost("albums/{albumId:int}/extras")]
-    [Authorize(AuthorizationPolicies.UploadAllowed)]
     [Authorize(AuthorizationPolicies.RequireUploaderRole)]
     [ProducesResponseType(typeof(SaveExtraResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -50,7 +49,6 @@ public sealed class ExtraController(IExtraService extraService) : ControllerBase
     }
 
     [HttpPut("extras/{extraId:guid}")]
-    [Authorize(AuthorizationPolicies.UploadAllowed)]
     [Authorize(AuthorizationPolicies.RequireUploaderRole)]
     [ProducesResponseType(typeof(SaveExtraResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -71,7 +69,6 @@ public sealed class ExtraController(IExtraService extraService) : ControllerBase
     }
 
     [HttpDelete("extras/{extraId:guid}")]
-    [Authorize(AuthorizationPolicies.UploadAllowed)]
     [Authorize(AuthorizationPolicies.RequireUploaderRole)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

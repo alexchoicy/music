@@ -83,7 +83,10 @@ export function getSessionId(): string {
 }
 
 export function getDefaultDeviceName(): string {
-	const userAgent = navigator.userAgent;
+	return describeUserAgent(navigator.userAgent);
+}
+
+export function describeUserAgent(userAgent: string): string {
 	const browser = /Edg\//.test(userAgent)
 		? "Edge"
 		: /OPR\//.test(userAgent)

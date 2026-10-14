@@ -16,6 +16,7 @@ import { getActiveSession, movePlaybackHere } from "#/lib/playbackDevices";
 import { albumQueries } from "#/lib/queries/album.queries";
 import type { ContinueListeningItem } from "#/lib/queries/home.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
+import { formatRelativeTime } from "#/lib/utils/date";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
@@ -24,26 +25,6 @@ import {
 	readStoredDeviceId,
 	usePlaybackDeviceStore,
 } from "#/store/playbackDeviceStore";
-
-const relativeTimeFormatter = new Intl.RelativeTimeFormat(undefined, {
-	numeric: "auto",
-});
-
-const RELATIVE_TIME_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
-	["day", 86_400_000],
-	["hour", 3_600_000],
-	["minute", 60_000],
-];
-
-function formatRelativeTime(value: string): string {
-	const elapsedMs = new Date(value).getTime() - Date.now();
-	for (const [unit, unitMs] of RELATIVE_TIME_UNITS) {
-		if (Math.abs(elapsedMs) >= unitMs) {
-			return relativeTimeFormatter.format(Math.round(elapsedMs / unitMs), unit);
-		}
-	}
-	return "just now";
-}
 
 export function ContinueListening({
 	items,

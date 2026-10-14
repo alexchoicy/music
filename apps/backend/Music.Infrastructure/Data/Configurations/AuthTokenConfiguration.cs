@@ -18,7 +18,9 @@ public class AuthTokenConfiguration : IEntityTypeConfiguration<AuthToken>
 
         builder.HasKey(token => token.Id);
 
-        builder.HasIndex(token => token.Jti).IsUnique();
+        builder.Property(token => token.Name).HasMaxLength(128);
+
+        builder.HasIndex(token => token.TokenHash).IsUnique();
 
         builder.HasIndex(token => token.CreatedByUserId);
     }

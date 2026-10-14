@@ -17,7 +17,7 @@ import { formatFileSize, plural } from "@/lib/format";
 import { queryClient } from "@/lib/queryClient";
 import { getDownloadStats, useOfflineStore } from "@/offline/offlineStore";
 import { usePlayerStore } from "@/player/playerStore";
-import { authQueries } from "@/queries/auth";
+import { authQueries, logout } from "@/queries/auth";
 import { useEndPadding } from "@/store/miniPlayerStore";
 import {
 	getDefaultDeviceName,
@@ -75,6 +75,7 @@ function Account() {
 			icon: "signOut",
 			onConfirm: () => {
 				usePlayerStore.getState().clearQueue();
+				void logout().catch(() => {});
 				void setToken(null).then(() => queryClient.clear());
 			},
 		});

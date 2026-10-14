@@ -1,17 +1,45 @@
 import { queryOptions } from "@tanstack/react-query";
 
+import { getDefaultDeviceName } from "#/store/playbackDeviceStore";
 import type { components } from "@/data/APIschema";
 
 import { $APIFetch } from "../APIFetchClient";
 
+export type AuthSession = components["schemas"]["AuthSessionDto"];
+export type ApiKey = components["schemas"]["ApiKeyDto"];
+export type CreatedApiKey = components["schemas"]["CreatedApiKey"];
+
+/** The server rejected the session (401), as opposed to being unreachable or failing. */
+export class UnauthorizedError extends Error {
+	constructor() {
+		super("Not signed in");
+	}
+}
+
+async function deleteOrThrow(endpoint: string, failure: string) {
+	const result = await $APIFetch(endpoint, { method: "DELETE" });
+	if (!result.ok) throw new Error(failure);
+}
+
 export const authMutations = {
 	login: () => ({
-		mutationFn: async (data: components["schemas"]["LoginRequest"]) => {
+		mutationFn: async (
+			data: Pick<
+				components["schemas"]["LoginRequest"],
+				"username" | "password"
+			>,
+		) => {
+			// Web sessions live in the HttpOnly cookie; the response carries no token.
+			const body: components["schemas"]["LoginRequest"] = {
+				...data,
+				client: "Web",
+				deviceName: getDefaultDeviceName(),
+			};
 			const result = await $APIFetch<components["schemas"]["LoginResult"]>(
 				"/auth/login",
 				{
 					method: "POST",
-					body: JSON.stringify(data),
+					body: JSON.stringify(body),
 				},
 			);
 			if (!result.ok) {
@@ -25,21 +53,27 @@ export const authMutations = {
 			await $APIFetch("/auth/logout", { method: "POST" });
 		},
 	}),
+	revokeSession: () => ({
+		mutationFn: (id: AuthSession["id"]) =>
+			deleteOrThrow(`/auth/sessions/${id}`, "Could not sign out the session"),
+	}),
+	createApiKey: () => ({
+		mutationFn: async (name: string) => {
+			const result = await $APIFetch<CreatedApiKey>("/auth/api-keys", {
+				method: "POST",
+				body: JSON.stringify({ name }),
+			});
+			if (!result.ok) throw new Error("Could not create the API key");
+			return result.data;
+		},
+	}),
+	revokeApiKey: () => ({
+		mutationFn: (id: ApiKey["id"]) =>
+			deleteOrThrow(`/auth/api-keys/${id}`, "Could not revoke the API key"),
+	}),
 };
 
 export const authQueries = {
-	checkAuth: () =>
-		queryOptions({
-			queryKey: ["auth", "check"],
-			queryFn: async () => {
-				const result = await $APIFetch("/auth", {
-					method: "GET",
-				});
-				return result.ok;
-			},
-			staleTime: 1000,
-			retry: false,
-		}),
 	userInfo: () =>
 		queryOptions({
 			queryKey: ["auth", "me"],
@@ -52,7 +86,9 @@ export const authQueries = {
 				);
 
 				if (!result.ok) {
-					throw new Error("Unable to load user info");
+					throw result.status === 401
+						? new UnauthorizedError()
+						: new Error("Unable to load user info");
 				}
 
 				return result.data;
@@ -64,14 +100,25 @@ export const authQueries = {
 		queryOptions({
 			queryKey: ["auth", "sessions"],
 			queryFn: async () => {
-				const result = await $APIFetch<
-					components["schemas"]["AuthSessionDto"][]
-				>("/auth/sessions", { method: "GET" });
+				const result = await $APIFetch<AuthSession[]>("/auth/sessions", {
+					method: "GET",
+				});
 
 				if (!result.ok) {
-					throw new Error("Unable to load token sessions");
+					throw new Error("Unable to load sessions");
 				}
 
+				return result.data;
+			},
+			staleTime: 60 * 1000,
+			retry: false,
+		}),
+	apiKeys: () =>
+		queryOptions({
+			queryKey: ["auth", "api-keys"],
+			queryFn: async () => {
+				const result = await $APIFetch<ApiKey[]>("/auth/api-keys");
+				if (!result.ok) throw new Error("Unable to load API keys");
 				return result.data;
 			},
 			staleTime: 60 * 1000,

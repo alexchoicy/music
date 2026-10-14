@@ -6,6 +6,7 @@ import type {
 } from "@simplewebauthn/browser";
 
 import type { components } from "#/data/APIschema";
+import { getDefaultDeviceName } from "#/store/playbackDeviceStore";
 
 import { $APIFetch } from "../APIFetchClient";
 
@@ -38,7 +39,11 @@ export async function signInWithPasskey(assertion: AuthenticationResponseJSON) {
 		"/auth/passkey-signin",
 		{
 			method: "POST",
-			body: JSON.stringify(assertion),
+			body: JSON.stringify({
+				credential: assertion,
+				client: "Web",
+				deviceName: getDefaultDeviceName(),
+			} satisfies components["schemas"]["PasskeySignInRequest"]),
 		},
 	);
 

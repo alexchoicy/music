@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Music.Core.Common.Constants;
 using Music.Core.Services.YouTube;
 
 namespace Music.Api.Controllers;
@@ -29,7 +28,6 @@ public class YouTubeController(IYouTubeService youTubeService) : ControllerBase
 
     [HttpPost("covers")]
     [Produces("application/json")]
-    [Authorize(AuthorizationPolicies.UploadAllowed)]
     [ProducesResponseType(typeof(CreateYouTubeCoverResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -69,7 +67,6 @@ public class YouTubeController(IYouTubeService youTubeService) : ControllerBase
     }
 
     [HttpPost("jobs/{jobId:guid}/retry")]
-    [Authorize(AuthorizationPolicies.UploadAllowed)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RetryJob(

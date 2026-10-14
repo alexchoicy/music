@@ -5,7 +5,10 @@ namespace Music.Core.Services.Auth;
 public interface IAuthService
 {
     Task<List<UserInfo>> GetUsersAsync();
-    Task<LoginResult?> LoginAsync(string emailOrUserName, string password);
+    Task<UserInfo?> GetUserAsync(string id);
+
+    Task<UserInfo?> PasswordSignInAsync(string userName, string password);
+    Task<UserInfo?> PasskeySignInAsync(string credentialJson);
     Task<UserInfo> CreateUserAsync(
         CreateUserRequest request,
         CancellationToken cancellationToken = default

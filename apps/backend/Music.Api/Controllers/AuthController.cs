@@ -1,16 +1,14 @@
 using System.ComponentModel.DataAnnotations;
-using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Music.Api.Authentication;
 using Music.Core.Common.Constants;
-using Music.Core.Entities;
 using Music.Core.Services.Auth;
 using Music.Core.Services.Auth.Enums;
-using Music.Infrastructure.Data;
 using Music.Infrastructure.Entities;
 
 namespace Music.Api.Controllers;
@@ -19,55 +17,37 @@ namespace Music.Api.Controllers;
 [Route("auth")]
 public class AuthController(
     IAuthService authService,
-    ITokenService tokenService,
+    ISessionService sessionService,
+    SessionCookie sessionCookie,
     UserManager<User> userManager,
-    SignInManager<User> signInManager,
-    AppDbContext dbContext,
-    IConfiguration configuration
+    SignInManager<User> signInManager
 ) : ControllerBase
 {
     private readonly IAuthService _authService = authService;
-    private readonly ITokenService _tokenService = tokenService;
+    private readonly ISessionService _sessionService = sessionService;
+    private readonly SessionCookie _sessionCookie = sessionCookie;
     private readonly UserManager<User> _userManager = userManager;
     private readonly SignInManager<User> _signInManager = signInManager;
-    private readonly AppDbContext _dbContext = dbContext;
-    private readonly string AuthCookieName =
-        configuration.GetValue<string>("Cookies:Name") ?? "AlexCoolMusicAppToken";
-    private readonly string AuthCookieDomain =
-        configuration.GetValue<string>("Cookies:Domain") ?? "localhost";
 
     [HttpPost("login")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(LoginResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<LoginResult>> Login([FromBody] LoginRequest request)
+    public async Task<ActionResult<LoginResult>> Login(
+        [FromBody] LoginRequest request,
+        CancellationToken cancellationToken
+    )
     {
-        LoginResult? result = await _authService.LoginAsync(request.Username, request.Password);
+        UserInfo? user = await _authService.PasswordSignInAsync(request.Username, request.Password);
 
-        if (result is null)
+        if (user is null)
         {
-            return Problem(
-                title: "InvalidCredentials",
-                detail: "Invalid username or password.",
-                statusCode: StatusCodes.Status401Unauthorized
-            );
+            return InvalidCredentials("Invalid username or password.");
         }
 
-        Response.Cookies.Append(
-            AuthCookieName,
-            result.Token,
-            new CookieOptions
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
-                Secure = true,
-                IsEssential = true,
-                Expires = DateTimeOffset.UtcNow.AddDays(7),
-                Domain = AuthCookieDomain,
-            }
+        return Ok(
+            await StartSessionAsync(user, request.Client, request.DeviceName, cancellationToken)
         );
-
-        return Ok(result);
     }
 
     [HttpGet]
@@ -77,36 +57,23 @@ public class AuthController(
         return Ok();
     }
 
-    [HttpPost("bot-token")]
-    [Authorize(Policy = AuthorizationPolicies.RequireAdminRole)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<string>> CreateBotToken()
-    {
-        string userId =
-            User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new ValidationException("Missing user identifier claim.");
-
-        string token = await _tokenService.GenerateBotToken(userId);
-        return Ok(token);
-    }
-
     [HttpPost("logout")]
-    [Authorize]
-    public IActionResult Logout()
+    [AllowAnonymous]
+    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
-        Response.Cookies.Delete(
-            AuthCookieName,
-            new CookieOptions
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
-                Secure = true,
-                IsEssential = true,
-                Domain = AuthCookieDomain,
-            }
-        );
+        if (
+            User.FindFirstValue(ClaimTypes.NameIdentifier) is { } userId
+            && GetSessionId() is { } sessionId
+            && Enum.TryParse(
+                User.FindFirstValue(AuthClaimNames.AccessType),
+                out TokenUseType tokenType
+            )
+        )
+        {
+            await _sessionService.RevokeAsync(userId, sessionId, tokenType, cancellationToken);
+        }
+
+        _sessionCookie.Delete(Response);
         return Ok();
     }
 
@@ -117,40 +84,83 @@ public class AuthController(
         CancellationToken cancellationToken
     )
     {
-        string userId =
-            User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new ValidationException("Missing user identifier claim.");
-        string? currentJti =
-            User.FindFirstValue(JwtRegisteredClaimNames.Jti) ?? User.FindFirstValue("jti");
-        DateTimeOffset now = DateTimeOffset.UtcNow;
-
-        List<AuthToken> tokens = await _dbContext
-            .AuthTokens.Where(token =>
-                token.CreatedByUserId == userId
-                && token.TokenType == TokenUseType.UserAccess
-                && token.RevokedAt == null
-            )
-            .OrderByDescending(token => token.CreatedAt)
-            .ToListAsync(cancellationToken);
-
         return Ok(
-            tokens
-                .Select(token =>
-                {
-                    DateTimeOffset? expiresAt = token.ExpiresAt ?? token.CreatedAt.AddDays(7);
-                    return new AuthSessionDto
-                    {
-                        Id = token.Id,
-                        Last5Digit = token.Last5Digit,
-                        CreatedAt = token.CreatedAt,
-                        ExpiresAt = expiresAt,
-                        LastUsedAt = token.LastUsedAt,
-                        IsCurrent = token.Jti == currentJti,
-                    };
-                })
-                .Where(session => session.ExpiresAt is null || session.ExpiresAt > now)
-                .ToList()
+            await _sessionService.GetUserSessionsAsync(
+                GetUserId(),
+                GetSessionId(),
+                cancellationToken
+            )
         );
+    }
+
+    [HttpDelete("sessions/{id:guid}")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RevokeSession(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken
+    )
+    {
+        if (
+            !await _sessionService.RevokeAsync(
+                GetUserId(),
+                id,
+                TokenUseType.UserAccess,
+                cancellationToken
+            )
+        )
+        {
+            return NotFound();
+        }
+
+        if (id == GetSessionId())
+        {
+            _sessionCookie.Delete(Response);
+        }
+
+        return NoContent();
+    }
+
+    [HttpGet("api-keys")]
+    [Authorize(Policy = AuthorizationPolicies.RequireAdminRole)]
+    [ProducesResponseType(typeof(List<ApiKeyDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<ApiKeyDto>>> ApiKeys(CancellationToken cancellationToken)
+    {
+        return Ok(await _sessionService.GetApiKeysAsync(GetUserId(), cancellationToken));
+    }
+
+    [HttpPost("api-keys")]
+    [Authorize(Policy = AuthorizationPolicies.RequireAdminRole)]
+    [ProducesResponseType(typeof(CreatedApiKey), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<CreatedApiKey>> CreateApiKey(
+        [FromBody] CreateApiKeyRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        return Ok(
+            await _sessionService.CreateApiKeyAsync(GetUserId(), request.Name, cancellationToken)
+        );
+    }
+
+    [HttpDelete("api-keys/{id:guid}")]
+    [Authorize(Policy = AuthorizationPolicies.RequireAdminRole)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RevokeApiKey(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken
+    )
+    {
+        return await _sessionService.RevokeAsync(
+            GetUserId(),
+            id,
+            TokenUseType.Machine,
+            cancellationToken
+        )
+            ? NoContent()
+            : NotFound();
     }
 
     [HttpPost("passkey-request-options")]
@@ -170,55 +180,20 @@ public class AuthController(
     [AllowAnonymous]
     [ProducesResponseType(typeof(LoginResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> PassKeySignIn([FromBody] JsonElement credential)
+    public async Task<ActionResult<LoginResult>> PassKeySignIn(
+        [FromBody] PasskeySignInRequest request,
+        CancellationToken cancellationToken
+    )
     {
-        PasskeyAssertionResult<User> assertion;
-        try
+        UserInfo? user = await _authService.PasskeySignInAsync(request.Credential.GetRawText());
+        if (user is null)
         {
-            assertion = await _signInManager.PerformPasskeyAssertionAsync(credential.GetRawText());
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
+            return InvalidCredentials("Passkey sign-in failed.");
         }
 
-        if (!assertion.Succeeded)
-            return Unauthorized();
-
-        IdentityResult stored = await _userManager.AddOrUpdatePasskeyAsync(
-            assertion.User,
-            assertion.Passkey
+        return Ok(
+            await StartSessionAsync(user, request.Client, request.DeviceName, cancellationToken)
         );
-
-        if (!stored.Succeeded)
-            return Unauthorized();
-
-        IList<string> roles = await _userManager.GetRolesAsync(assertion.User);
-
-        UserInfo userInfo = new()
-        {
-            Id = assertion.User.Id,
-            UserName = assertion.User.UserName ?? string.Empty,
-            Roles = roles.ToList(),
-        };
-
-        string token = await _tokenService.GenerateUserToken(userInfo);
-
-        Response.Cookies.Append(
-            AuthCookieName,
-            token,
-            new CookieOptions
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
-                Secure = true,
-                IsEssential = true,
-                Expires = DateTimeOffset.UtcNow.AddDays(7),
-                Domain = AuthCookieDomain,
-            }
-        );
-
-        return Ok(new LoginResult { Token = token, User = userInfo });
     }
 
     [HttpPost("passkey-creation-options")]
@@ -359,6 +334,60 @@ public class AuthController(
         IdentityResult result = await _userManager.RemovePasskeyAsync(user, credentialId);
         return result.Succeeded ? Ok() : BadRequest(result.Errors);
     }
+
+    private async Task<LoginResult> StartSessionAsync(
+        UserInfo user,
+        AuthClient client,
+        string? deviceName,
+        CancellationToken cancellationToken
+    )
+    {
+        string name = string.IsNullOrWhiteSpace(deviceName)
+            ? Request.Headers.UserAgent.ToString()
+            : deviceName;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            name = client.ToString();
+        }
+
+        IssuedSession session = await _sessionService.CreateUserSessionAsync(
+            user.Id,
+            client,
+            name,
+            GetClientIpAddress(),
+            cancellationToken
+        );
+
+        if (client == AuthClient.App)
+        {
+            return new LoginResult { Token = session.Token, User = user };
+        }
+
+        _sessionCookie.Append(Response, session.Token);
+        return new LoginResult { User = user };
+    }
+
+    private ObjectResult InvalidCredentials(string detail) =>
+        Problem(
+            title: "InvalidCredentials",
+            detail: detail,
+            statusCode: StatusCodes.Status401Unauthorized
+        );
+
+    private string? GetClientIpAddress()
+    {
+        IPAddress? address = HttpContext.Connection.RemoteIpAddress;
+        return address is { IsIPv4MappedToIPv6: true }
+            ? address.MapToIPv4().ToString()
+            : address?.ToString();
+    }
+
+    private string GetUserId() =>
+        User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? throw new ValidationException("Missing user identifier claim.");
+
+    private Guid? GetSessionId() =>
+        Guid.TryParse(User.FindFirstValue(AuthClaimNames.SessionId), out Guid id) ? id : null;
 }
 
 public sealed class PasskeyDto
@@ -368,16 +397,6 @@ public sealed class PasskeyDto
     public required DateTimeOffset CreatedAt { get; init; }
     public required List<string> Transports { get; init; }
     public required string DeviceType { get; init; }
-}
-
-public sealed class AuthSessionDto
-{
-    public required Guid Id { get; init; }
-    public required string Last5Digit { get; init; }
-    public required DateTimeOffset CreatedAt { get; init; }
-    public required DateTimeOffset? ExpiresAt { get; init; }
-    public required DateTimeOffset? LastUsedAt { get; init; }
-    public required bool IsCurrent { get; init; }
 }
 
 public class PasskeyEditRequest

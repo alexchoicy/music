@@ -7,6 +7,16 @@
 		}
 	},
 	"AllowedHosts": "*", // .net hostname filiter
+	"ReverseProxy": {
+		// One hop for Traefik -> API; two for Cloudflare -> Traefik -> API.
+		"ForwardLimit": 1,
+		// Add the actual proxy IPs, or dedicated proxy network CIDRs below.
+		// With two hops, include Cloudflare's current published IP ranges too.
+		// Traefik must also trust Cloudflare via forwardedHeaders.trustedIPs.
+		// Keep the API reachable only through your trusted ingress; never trust 0.0.0.0/0 or ::/0.
+		"KnownProxies": [],
+		"KnownNetworks": []
+	},
 	"Base": {
 		//Checked
 		// used to generate links
@@ -27,13 +37,6 @@
 	"Cookies": {
 		// Checked
 		"Name": "AlexCoolMusicAppToken"
-	},
-	"JWT": {
-		// Checked
-		// You should set in .env / User Secret
-		"SecretKey": "",
-		"Issuer": "Music.Api",
-		"Audience": "Music.Api.Users"
 	},
 	"DefaultAccount": {
 		// Checked by db init

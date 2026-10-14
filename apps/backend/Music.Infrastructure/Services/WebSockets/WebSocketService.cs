@@ -1,10 +1,10 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Net.WebSockets;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Music.Core.Common.Constants;
 using Music.Core.Services.Auth;
 using Music.Core.Services.ListeningHistory;
 using Music.Core.Services.Tracks;
@@ -217,26 +217,26 @@ public sealed class WebSocketService(
     )
     {
         long now = Now();
-        if (
-            long.TryParse(
-                connection.Principal.FindFirstValue(JwtRegisteredClaimNames.Exp),
-                out long expiresAtSeconds
-            )
-            && expiresAtSeconds * 1000 <= now
-        )
-        {
-            return false;
-        }
-
         if (!force && now - connection.AuthorizedAt < AuthRevalidationInterval.TotalMilliseconds)
         {
             return true;
         }
 
+        if (
+            !Guid.TryParse(
+                connection.Principal.FindFirstValue(AuthClaimNames.SessionId),
+                out Guid sessionId
+            )
+        )
+        {
+            return false;
+        }
+
         // A fresh scope so revocations made by other requests are not hidden by a long-lived DbContext.
         await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
-        ITokenService tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
-        if (!await tokenService.ValidateTokenAsync(connection.Principal, cancellationToken))
+        ISessionService sessionService =
+            scope.ServiceProvider.GetRequiredService<ISessionService>();
+        if (!await sessionService.IsActiveAsync(sessionId, cancellationToken))
         {
             return false;
         }

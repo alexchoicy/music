@@ -455,21 +455,20 @@ namespace Music.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int?>("Client")
+                        .HasColumnType("integer");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedByUserId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Jti")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Last5Digit")
-                        .IsRequired()
+                    b.Property<string>("IpAddress")
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("LastUsedAt")
@@ -477,10 +476,15 @@ namespace Music.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<DateTimeOffset?>("RevokedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("bytea");
 
                     b.Property<int>("TokenType")
                         .HasColumnType("integer");
@@ -489,7 +493,7 @@ namespace Music.Infrastructure.Migrations
 
                     b.HasIndex("CreatedByUserId");
 
-                    b.HasIndex("Jti")
+                    b.HasIndex("TokenHash")
                         .IsUnique();
 
                     b.ToTable("AuthTokens", (string)null);
@@ -1845,7 +1849,9 @@ namespace Music.Infrastructure.Migrations
                 {
                     b.HasOne("Music.Infrastructure.Entities.User", null)
                         .WithMany("AuthTokens")
-                        .HasForeignKey("CreatedByUserId");
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Music.Core.Entities.Concert", b =>

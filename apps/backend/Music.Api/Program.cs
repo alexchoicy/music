@@ -1,15 +1,12 @@
-using System.Text;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
+using Music.Api.Authentication;
 using Music.Api.Handlers;
 using Music.Api.Startup;
 using Music.Core.Common.Constants;
 using Music.Core.Options;
-using Music.Core.Services.Auth;
 using Music.Core.Services.Auth.Enums;
 using Music.Infrastructure;
 using Music.Infrastructure.Data;
@@ -65,9 +62,8 @@ builder.Services.Configure<BaseOptions>(builder.Configuration.GetSection("Base")
 builder.Services.Configure<ExternalOptions>(builder.Configuration.GetSection("External"));
 
 ConfigValidation.Validation(builder.Configuration);
+ProxyConfiguration.Configure(builder.Services, builder.Configuration);
 
-// Checked in Validation
-string cookieName = builder.Configuration.GetValue<string>("Cookies:Name")!;
 string ServerDomain = builder.Configuration.GetValue<string>("Cookies:Domain")!;
 
 builder.Services.Configure<IdentityPasskeyOptions>(options =>
@@ -79,88 +75,13 @@ builder.Services.Configure<IdentityPasskeyOptions>(options =>
     options.ResidentKeyRequirement = "preferred";
 });
 
+builder.Services.AddSingleton<SessionCookie>();
+
 builder
-    .Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme =
-            options.DefaultAuthenticateScheme =
-            options.DefaultChallengeScheme =
-                JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(
-        JwtBearerDefaults.AuthenticationScheme,
-        options =>
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = builder.Configuration["JWT:Issuer"],
-                ValidAudience = builder.Configuration["JWT:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]!)
-                ),
-                RequireExpirationTime = false,
-                LifetimeValidator = (notBefore, expires, token, parameters) =>
-                {
-                    if (token is not JsonWebToken jwt)
-                    {
-                        Console.WriteLine("Invalid token format");
-                        return false;
-                    }
-
-                    string? accessType = jwt
-                        .Claims.FirstOrDefault(c => c.Type == AuthClaimNames.AccessType)
-                        ?.Value;
-
-                    if (string.IsNullOrEmpty(accessType))
-                    {
-                        Console.WriteLine($"Missing {AuthClaimNames.AccessType} claim");
-                        return false;
-                    }
-
-                    if (accessType == TokenUseType.Machine.ToString())
-                    {
-                        return true;
-                    }
-
-                    //TODO add app token check here
-                    if (!expires.HasValue)
-                    {
-                        return false;
-                    }
-
-                    return expires.Value > DateTime.UtcNow;
-                },
-            };
-
-            options.Events = new JwtBearerEvents
-            {
-                OnMessageReceived = context =>
-                {
-                    if (context.Request.Cookies.TryGetValue(cookieName, out string? authToken))
-                    {
-                        context.Token = authToken;
-                    }
-
-                    return Task.CompletedTask;
-                },
-                OnTokenValidated = async context =>
-                {
-                    ITokenService tokenService =
-                        context.HttpContext.RequestServices.GetRequiredService<ITokenService>();
-                    bool isValid = await tokenService.ValidateTokenAsync(
-                        context.Principal!,
-                        context.HttpContext.RequestAborted
-                    );
-                    if (!isValid)
-                    {
-                        context.Fail("Token session is invalid or revoked.");
-                    }
-                },
-            };
-        }
+    .Services.AddAuthentication(SessionAuthenticationHandler.SchemeName)
+    .AddScheme<AuthenticationSchemeOptions, SessionAuthenticationHandler>(
+        SessionAuthenticationHandler.SchemeName,
+        null
     )
     .AddCookie(IdentityConstants.TwoFactorUserIdScheme);
 
@@ -193,16 +114,6 @@ builder.Services.AddAuthorization(options =>
                 AuthClaimNames.AccessType,
                 TokenUseType.Machine.ToString(),
                 TokenUseType.UserAccess.ToString()
-            )
-    );
-
-    options.AddPolicy(
-        AuthorizationPolicies.UploadAllowed,
-        policy =>
-            policy.RequireClaim(
-                AuthClaimNames.AccessType,
-                TokenUseType.UserAccess.ToString(),
-                TokenUseType.Upload.ToString()
             )
     );
 
@@ -248,6 +159,8 @@ using (IServiceScope scope = app.Services.CreateScope())
 }
 
 app.UseExceptionHandler();
+
+app.UseForwardedHeaders();
 
 app.UseCors();
 

@@ -11,6 +11,10 @@ import { KeyRoundIcon } from "lucide-react";
 import { useEffect, useEffectEvent, useState } from "react";
 import { z } from "zod";
 
+import { AppMark } from "#/components/app/AppMark";
+import { Button } from "#/components/base/button";
+import { Field, FieldError, FieldLabel } from "#/components/base/field";
+import { Input } from "#/components/base/input";
 import {
 	passkeyAuthenticationOptions,
 	passkeyRegistrationOptions,
@@ -18,32 +22,16 @@ import {
 	signInWithPasskey,
 } from "#/lib/api/auth";
 import { authMutations, authQueries } from "#/lib/queries/auth.queries";
-import { Button } from "#/old-components/coss/button";
-import {
-	Card,
-	CardDescription,
-	CardHeader,
-	CardPanel,
-	CardTitle,
-} from "#/old-components/coss/card";
-import {
-	Field,
-	FieldDescription,
-	FieldError,
-	FieldLabel,
-} from "#/old-components/coss/field";
-import { Input } from "#/old-components/coss/input";
 
 export const Route = createFileRoute("/_public/login/")({
 	validateSearch: (search) => ({
 		redirect: (search.redirect as string) || "/",
 	}),
 	beforeLoad: async ({ context, search }) => {
-		const status = await context.queryClient.query({
-			...authQueries.checkAuth(),
-			staleTime: 0,
-		});
-		if (status) throw redirect({ to: search.redirect });
+		const userInfo = await context.queryClient
+			.query({ ...authQueries.userInfo(), staleTime: 0 })
+			.catch(() => null);
+		if (userInfo) throw redirect({ to: search.redirect });
 	},
 	component: RouteComponent,
 });
@@ -177,17 +165,23 @@ function RouteComponent() {
 	}, []);
 
 	return (
-		<main className="flex min-h-svh items-center justify-center p-6">
-			<Card className="w-full max-w-sm">
-				<CardHeader>
-					<CardTitle>Sign in</CardTitle>
-					<CardDescription>
-						Enter your credentials to continue to your music library.
-					</CardDescription>
-				</CardHeader>
-				<CardPanel>
+		<main className="flex min-h-svh flex-col bg-background px-6 py-8 sm:px-12 sm:py-12">
+			<header className="mx-auto flex w-full max-w-5xl items-center gap-3">
+				<AppMark className="size-8" />
+				<span className="text-lg font-semibold tracking-tight">Music</span>
+			</header>
+			<div className="mx-auto grid w-full max-w-sm flex-1 content-center py-12">
+				<section
+					className="mx-auto w-full max-w-sm"
+					aria-labelledby="login-title"
+				>
+					<div className="mb-8">
+						<h1 id="login-title" className="text-3xl font-bold tracking-tight">
+							Sign in
+						</h1>
+					</div>
 					<form
-						className="grid gap-4"
+						className="grid gap-6"
 						onSubmit={(event) => {
 							event.preventDefault();
 							void form.handleSubmit();
@@ -206,7 +200,10 @@ function RouteComponent() {
 									>
 										<FieldLabel htmlFor={usernameInputId}>Username</FieldLabel>
 										<Input
+											size="xl"
 											autoComplete="username webauthn"
+											autoCapitalize="none"
+											spellCheck={false}
 											id={usernameInputId}
 											name={field.name}
 											onBlur={field.handleBlur}
@@ -236,6 +233,7 @@ function RouteComponent() {
 									>
 										<FieldLabel htmlFor={passwordInputId}>Password</FieldLabel>
 										<Input
+											size="xl"
 											autoComplete="current-password"
 											id={passwordInputId}
 											name={field.name}
@@ -247,9 +245,7 @@ function RouteComponent() {
 											type="password"
 											value={field.state.value}
 										/>
-										<FieldDescription>
-											Use the password for your account.
-										</FieldDescription>
+
 										<FieldError match={Boolean(error)}>{error}</FieldError>
 									</Field>
 								);
@@ -261,7 +257,8 @@ function RouteComponent() {
 						>
 							{([canSubmit, isSubmitting]) => (
 								<Button
-									className="w-full"
+									className="h-11 w-full sm:h-11"
+									size="xl"
 									disabled={!canSubmit || isPasskeyPending}
 									loading={isSubmitting || isPending}
 									type="submit"
@@ -278,7 +275,8 @@ function RouteComponent() {
 						</div>
 
 						<Button
-							className="w-full"
+							className="h-11 w-full sm:h-11"
+							size="xl"
 							disabled={isPending || isPasskeyPending}
 							loading={isPasskeyPending}
 							onClick={() => void handlePasskeyLogin()}
@@ -294,8 +292,8 @@ function RouteComponent() {
 							</p>
 						)}
 					</form>
-				</CardPanel>
-			</Card>
+				</section>
+			</div>
 		</main>
 	);
 }

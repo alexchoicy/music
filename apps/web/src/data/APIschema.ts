@@ -514,65 +514,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/bot-token": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": string;
-                        "application/json": string;
-                        "text/json": string;
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/auth/logout": {
         parameters: {
             query?: never;
@@ -643,6 +584,173 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/sessions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/api-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiKeyDto"][];
+                        "application/json": components["schemas"]["ApiKeyDto"][];
+                        "text/json": components["schemas"]["ApiKeyDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateApiKeyRequest"];
+                    "text/json": components["schemas"]["CreateApiKeyRequest"];
+                    "application/*+json": components["schemas"]["CreateApiKeyRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CreatedApiKey"];
+                        "application/json": components["schemas"]["CreatedApiKey"];
+                        "text/json": components["schemas"]["CreatedApiKey"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/api-keys/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/passkey-request-options": {
         parameters: {
             query?: never;
@@ -700,9 +808,9 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["JsonElement"];
-                    "text/json": components["schemas"]["JsonElement"];
-                    "application/*+json": components["schemas"]["JsonElement"];
+                    "application/json": components["schemas"]["PasskeySignInRequest"];
+                    "text/json": components["schemas"]["PasskeySignInRequest"];
+                    "application/*+json": components["schemas"]["PasskeySignInRequest"];
                 };
             };
             responses: {
@@ -3039,6 +3147,17 @@ export interface paths {
                         "text/json": components["schemas"]["ProblemDetails"];
                     };
                 };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -3668,10 +3787,23 @@ export interface components {
         };
         /** @enum {unknown} */
         AlbumType: "Album" | "Single" | "Compilation" | "Live" | "Soundtrack" | "Remix" | "Other";
+        ApiKeyDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            lastUsedAt: null | string;
+        };
+        /** @enum {unknown} */
+        AuthClient: "Web" | "App";
         AuthSessionDto: {
             /** Format: uuid */
             id: string;
-            last5Digit: string;
+            name: string;
+            client: null | components["schemas"]["AuthClient"];
+            ipAddress: null | string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -3849,6 +3981,9 @@ export interface components {
             images?: components["schemas"]["CreateAlbumImageUploadItemResult"][];
             tracks?: components["schemas"]["CreateAlbumTrackUploadItemResult"][];
         };
+        CreateApiKeyRequest: {
+            name: string;
+        };
         CreateConcertRequest: {
             title: string;
             description?: string;
@@ -3886,6 +4021,10 @@ export interface components {
             concertImage?: null | components["schemas"]["CreateConcertUploadImageResult"];
             concertTitle: string;
             files?: components["schemas"]["CreateConcertWithoutUploadItemResult"][];
+        };
+        CreatedApiKey: {
+            key: components["schemas"]["ApiKeyDto"];
+            token: string;
         };
         CreatePartyRelationshipRequest: {
             /** Format: int32 */
@@ -4155,9 +4294,11 @@ export interface components {
         LoginRequest: {
             username: string;
             password: string;
+            client: components["schemas"]["AuthClient"];
+            deviceName?: null | string;
         };
         LoginResult: {
-            token: string;
+            token?: null | string;
             user: components["schemas"]["UserInfo"];
         };
         /** @enum {unknown} */
@@ -4303,6 +4444,11 @@ export interface components {
         PasskeyEditRequest: {
             id?: string;
             name?: string;
+        };
+        PasskeySignInRequest: {
+            credential: components["schemas"]["JsonElement"];
+            client: components["schemas"]["AuthClient"];
+            deviceName?: null | string;
         };
         PendingOriginalFileResult: {
             /** Format: int32 */

@@ -25,10 +25,11 @@ export default function LoginScreen() {
 		defaultValues: { username: "", password: "" },
 		validators: { onSubmit: loginSchema },
 		onSubmit: async ({ value }) => {
-			let token: string;
+			let token: string | null | undefined;
 			try {
 				({ token } = await login(value));
-			} catch {
+			} catch {}
+			if (!token) {
 				form.setFieldMeta("password", (prev) => ({
 					...prev,
 					errorMap: {

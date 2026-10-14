@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Music.Core.Common.Constants;
 using Music.Core.Services.Uploads;
 using Music.Core.Services.Uploads.Requests;
 using Music.Core.Services.Uploads.Results;
@@ -18,7 +17,6 @@ public class UploadController(IUploadService uploadService) : ControllerBase
 
     [HttpPost("Init")]
     [Produces("application/json")]
-    [Authorize(AuthorizationPolicies.UploadAllowed)]
     [ProducesResponseType(typeof(MultipartUploadResults), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Init(
@@ -32,7 +30,10 @@ public class UploadController(IUploadService uploadService) : ControllerBase
 
     [HttpGet]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(IReadOnlyList<PendingOriginalFileResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        typeof(IReadOnlyList<PendingOriginalFileResult>),
+        StatusCodes.Status200OK
+    )]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetPendingOriginalFiles(CancellationToken cancellationToken)
     {
@@ -48,7 +49,6 @@ public class UploadController(IUploadService uploadService) : ControllerBase
 
     [HttpPost("{fileObjectId:guid}/start")]
     [Produces("application/json")]
-    [Authorize(AuthorizationPolicies.UploadAllowed)]
     [ProducesResponseType(typeof(StartUploadResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Start(
@@ -70,7 +70,6 @@ public class UploadController(IUploadService uploadService) : ControllerBase
     }
 
     [HttpPost("complete")]
-    [Authorize(AuthorizationPolicies.UploadAllowed)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Complete(

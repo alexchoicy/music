@@ -93,7 +93,7 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
 
         services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IAlbumService, AlbumService>();
         services.AddScoped<IHomeService, HomeService>();
         services.AddScoped<IStatsService, StatsService>();

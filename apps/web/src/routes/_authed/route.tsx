@@ -18,7 +18,7 @@ import { PlayerBar } from "#/components/player/PlayerBar";
 import { UserInfoProvider } from "#/context/UserInfoContext";
 import { getResolvedApiEndpoint } from "#/lib/APIFetchClient";
 import { connectPlaybackDevice } from "#/lib/playbackDevices";
-import { authQueries } from "#/lib/queries/auth.queries";
+import { UnauthorizedError, authQueries } from "#/lib/queries/auth.queries";
 import { playlistQueries } from "#/lib/queries/playlist.queries";
 import { checkBotHeader } from "#/lib/ServerFunction/checkBotHeader";
 import { getWebSocketEndpoint } from "#/lib/ServerFunction/getApiEndpoint";
@@ -46,21 +46,20 @@ export const Route = createFileRoute("/_authed")({
 			}
 		}
 
-		const isAuthenticated = await context.queryClient.query(
-			authQueries.checkAuth(),
-		);
+		const userInfo = await context.queryClient
+			.query({ ...authQueries.userInfo(), staleTime: 1000 })
+			.catch((error: unknown) => {
+				if (error instanceof UnauthorizedError) return null;
+				throw error;
+			});
 
-		if (!isAuthenticated) {
+		if (!userInfo) {
 			throw redirect({
 				to: "/login",
 				search: { redirect: location.href },
 			});
 		}
 
-		const userInfo = await context.queryClient.query({
-			...authQueries.userInfo(),
-			staleTime: "static",
-		});
 		return { userInfo };
 	},
 	loader: ({ context }) =>

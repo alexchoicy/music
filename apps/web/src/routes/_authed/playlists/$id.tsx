@@ -6,7 +6,7 @@ import {
 	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	ArrowUpDownIcon,
 	CheckIcon,
@@ -182,23 +182,7 @@ function PlaylistPage() {
 	const canReorder = trackCount > 1;
 
 	return (
-		<main className="mx-auto flex min-h-full w-full max-w-[1120px] min-w-0 flex-col gap-10 px-4 py-6 sm:px-6 sm:py-8">
-			<nav
-				aria-label="Breadcrumb"
-				className="flex gap-1.5 text-xs text-muted-foreground"
-			>
-				<Link
-					className="rounded-xs outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-					to="/playlists"
-				>
-					Playlists
-				</Link>
-				<span aria-hidden="true">/</span>
-				<span aria-current="page" className="truncate text-foreground">
-					{playlist.name}
-				</span>
-			</nav>
-
+		<main className="flex min-h-full w-full min-w-0 flex-col gap-10 p-4 sm:p-6">
 			<header className="flex flex-wrap items-end gap-6 sm:gap-8">
 				<PlaylistArtwork
 					className="size-40 shrink-0 rounded-4xl shadow-pop sm:size-60"
