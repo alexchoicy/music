@@ -4,10 +4,6 @@ on:
     issue_comment:
         types: [created]
 
-concurrency:
-    group: build-dev-${{ github.event.issue.number }}-${{ startsWith(github.event.comment.body, '/build backend') && 'backend' || startsWith(github.event.comment.body, '/build web') && 'web' || 'all' }}
-    cancel-in-progress: true
-
 env:
     REGISTRY: ghcr.io
     ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -20,8 +16,11 @@ permissions:
 
 jobs:
     web:
-        if: github.event.issue.pull_request && github.actor == 'alexchoicy' && (contains(github.event.comment.body, '/build web') || (contains(github.event.comment.body, '/build') && !contains(github.event.comment.body, '/build backend')))
+        if: github.event.issue.pull_request && github.actor == 'alexchoicy' && (github.event.comment.body == '/build' || github.event.comment.body == '/build web')
         runs-on: ubuntu-latest
+        concurrency:
+            group: build-dev-${{ github.event.issue.number }}-web
+            cancel-in-progress: true
 
         steps:
             - name: Checkout
@@ -42,12 +41,11 @@ jobs:
             - name: Build and push web dev image
               uses: docker/build-push-action@v7
               with:
-                  context: apps/web
+                  context: .
                   file: apps/web/Dockerfile
                   push: true
                   tags: ${{ env.REGISTRY }}/${{ github.repository }}-web:pr-${{ env.ISSUE_NUMBER }}
                   cache-from: type=gha,scope=web
-                  cache-to: type=gha,mode=max,scope=web
 
             - name: Comment success (web)
               if: success()
@@ -63,8 +61,11 @@ jobs:
                       });
 
     backend:
-        if: github.event.issue.pull_request && github.actor == 'alexchoicy' && (contains(github.event.comment.body, '/build backend') || (contains(github.event.comment.body, '/build') && !contains(github.event.comment.body, '/build web')))
+        if: github.event.issue.pull_request && github.actor == 'alexchoicy' && (github.event.comment.body == '/build' || github.event.comment.body == '/build backend')
         runs-on: ubuntu-latest
+        concurrency:
+            group: build-dev-${{ github.event.issue.number }}-backend
+            cancel-in-progress: true
 
         steps:
             - name: Checkout
@@ -90,7 +91,6 @@ jobs:
                   push: true
                   tags: ${{ env.REGISTRY }}/${{ github.repository }}-backend:pr-${{ env.ISSUE_NUMBER }}
                   cache-from: type=gha,scope=backend
-                  cache-to: type=gha,mode=max,scope=backend
 
             - name: Comment success (backend)
               if: success()

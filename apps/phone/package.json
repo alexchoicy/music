@@ -10,9 +10,9 @@
 		"android:release": "mkdir -p dist && npx eas-cli@latest build --platform android --profile production --local --output dist/music.apk",
 		"eas:login": "npx eas-cli@latest login",
 		"ios": "APP_VARIANT=development expo run:ios",
-		"lint": "oxlint --tsconfig tsconfig.json",
-		"format": "oxfmt && oxlint --fix --tsconfig tsconfig.json",
-		"check": "oxfmt --check",
+		"lint": "vp lint --tsconfig tsconfig.json",
+		"format": "vp fmt && vp lint --fix --tsconfig tsconfig.json",
+		"check": "vp fmt --check",
 		"web": "expo start --web",
 		"api": "openapi-typescript http://localhost:5287/openapi/v1.json -o ./src/data/APIschema.ts"
 	},
@@ -58,10 +58,9 @@
 	"devDependencies": {
 		"@types/react": "~19.2.2",
 		"openapi-typescript": "^7.13.0",
-		"oxfmt": "^0.71.0",
-		"oxlint": "^1.86.0",
-		"oxlint-tsgolint": "^7.0.2003",
-		"typescript": "~6.0.3"
+		"typescript": "~6.0.3",
+		"vite": "catalog:",
+		"vite-plus": "catalog:"
 	},
 	"expo": {
 		"autolinking": {

@@ -1,0 +1,18 @@
+packages:
+  - apps/web
+  - apps/phone
+allowBuilds:
+  "@sentry/cli": true
+  lightningcss: true
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.3.0
+  vite-plus: 1.3.0
+overrides:
+  vite@*: "catalog:"
+patchedDependencies:
+  expo-audio@57.0.5: apps/phone/patches/expo-audio@57.0.5.patch
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: "*"

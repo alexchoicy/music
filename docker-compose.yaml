@@ -23,8 +23,8 @@ services:
 
   web:
     build:
-      context: apps/web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/web/Dockerfile
     env_file:
       - ./docker/.env.web
     ports:

@@ -9,7 +9,7 @@ type HistoryTrackEntry = Pick<
 >;
 
 export function useHistoryTracks<T extends HistoryTrackEntry>(entries: T[]) {
-    // LOL STUPID AI, I WILL FUCK THIS LATER
+	// LOL STUPID AI, I WILL FUCK THIS LATER
 	const albums = useAlbumDetails(entries.map((entry) => entry.albumId));
 
 	return entries.map((entry) => {

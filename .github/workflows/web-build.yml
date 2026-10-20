@@ -4,7 +4,14 @@ on:
     push:
         branches: ["master"]
         paths:
-            - "apps/web/**"
+            - ".github/workflows/web-build.yml"
+            - "apps/web/package.json"
+            - "apps/web/vite.config.ts"
+            - "apps/web/tsconfig.json"
+            - "apps/web/Dockerfile"
+            - "apps/web/Dockerfile.dockerignore"
+            - "apps/web/public/**"
+            - "apps/web/src/**"
         tags:
             - "v*.*.*"
             - "web@v*.*.*"
@@ -56,7 +63,7 @@ jobs:
               id: build
               uses: docker/build-push-action@v7
               with:
-                  context: apps/web
+                  context: .
                   file: apps/web/Dockerfile
                   push: true
                   tags: ${{ steps.meta.outputs.tags }}

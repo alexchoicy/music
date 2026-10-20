@@ -6,13 +6,12 @@
 		"#/*": "./src/*"
 	},
 	"scripts": {
-		"dev": "vite dev --port 3000",
-		"build": "vite build",
-		"preview": "vite preview",
-		"test": "vitest run",
-		"lint": "oxlint --tsconfig tsconfig.json",
-		"format": "oxfmt && oxlint --fix --tsconfig tsconfig.json",
-		"check": "oxfmt --check",
+		"dev": "vp dev --port 3000",
+		"build": "vp build",
+		"preview": "vp preview",
+		"lint": "vp lint --tsconfig tsconfig.json",
+		"format": "vp fmt && vp lint --fix --tsconfig tsconfig.json",
+		"check": "vp fmt --check",
 		"api": "openapi-typescript http://localhost:5287/openapi/v1.json -o ./src/data/APIschema.ts"
 	},
 	"dependencies": {
@@ -62,29 +61,22 @@
 	},
 	"devDependencies": {
 		"@rolldown/plugin-babel": "^0.2.4",
-		"@shadcn/lint": "^0.2.1",
 		"@tailwindcss/typography": "^0.5.20",
 		"@tanstack/devtools-vite": "latest",
 		"@tanstack/intent": "^0.5.5",
-		"@testing-library/dom": "^10.4.2",
-		"@testing-library/react": "^16.3.3",
 		"@types/node": "^26.6.5",
 		"@types/react": "^19.3.0",
 		"@types/react-dom": "^19.3.0",
 		"@types/wicg-file-system-access": "^2023.10.7",
 		"@vitejs/plugin-react": "^6.1.2",
 		"babel-plugin-react-compiler": "^1.0.0",
-		"jsdom": "^30.1.2",
 		"openapi-typescript": "^7.13.0",
-		"oxfmt": "^0.72.0",
-		"oxlint": "^1.87.0",
-		"oxlint-tsgolint": "^7.0.2004",
 		"tw-animate-css": "^1.4.0",
 		"typescript": "^7.0.2",
-		"vite": "^8.3.4",
-		"vitest": "^5.0.4"
+		"vite": "catalog:",
+		"vite-plus": "catalog:"
 	},
-	"packageManager": "pnpm@11.5.0+sha512.dbfcc4f81cf48597afd4bc391ffdf12c11f1a9fb83a395bfa6b0a2d9cc2fd8ffebafdb1ccbd529632153f793904c2615b7f09fe1a345473fd1c35845172a8eb1",
+	"packageManager": "pnpm@12.14.0+sha512.c18ba6d87993d3d164cb5e8948f32b2c06ee854487e06cd8d86781342fb3e5bb4634367034711e86802baa9c37bea906ce1929ad08d70884c97d801df13389a6",
 	"intent": {
 		"skills": [
 			"@tanstack/*"

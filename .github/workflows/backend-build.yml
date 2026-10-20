@@ -4,6 +4,7 @@ on:
     push:
         branches: ["master"]
         paths:
+            - ".github/workflows/backend-build.yml"
             - "apps/backend/**"
         tags:
             - "v*.*.*"

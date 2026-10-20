@@ -3,14 +3,14 @@
 		"oxfmt": {
 			"initialization_options": {
 				"settings": {
-					"fmt.configPath": "./apps/web/.oxfmtrc.json"
+					"fmt.configPath": "./vite.config.ts"
 				}
 			}
 		},
 		"oxlint": {
 			"initialization_options": {
 				"settings": {
-					"configPath": "./apps/web/.oxlintrc.json",
+					"configPath": "./vite.config.ts",
 					"disableNestedConfig": false,
 					"fixKind": "safe_fix",
 					"run": "onType",
