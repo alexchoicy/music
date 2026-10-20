@@ -15,6 +15,7 @@ import { albumQueries } from "#/lib/queries/album.queries";
 import type { PlaylistTrackRequest } from "#/lib/queries/playlist.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { canEditContent } from "#/lib/utils/roles";
+import { rethrowNotFound } from "#/lib/utils/routing";
 import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
@@ -23,10 +24,12 @@ export const Route = createFileRoute("/_authed/albums/$id")({
 		track: z.coerce.number().optional(),
 	}),
 	loader: async ({ context, params }) => {
-		return context.queryClient.query({
-			...albumQueries.getAlbum(params.id),
-			staleTime: "static",
-		});
+		return context.queryClient
+			.query({
+				...albumQueries.getAlbum(params.id),
+				staleTime: "static",
+			})
+			.catch(rethrowNotFound);
 	},
 	component: RouteComponent,
 });

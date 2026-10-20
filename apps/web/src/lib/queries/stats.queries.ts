@@ -8,7 +8,6 @@ export const statsQueries = {
 	getLibraryStats: () =>
 		queryOptions({
 			queryKey: ["stats"],
-			staleTime: 30_000,
 			queryFn: async ({ signal }) => {
 				const result = await $APIFetch<components["schemas"]["LibraryStats"]>(
 					"/stats",

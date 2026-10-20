@@ -5,7 +5,16 @@ import { getApiEndpoint } from "@/lib/ServerFunction/getApiEndpoint";
 
 export type APIFetchResult<T> =
 	| { ok: true; status: number; data: T }
-	| { ok: false; status: number; data: null; error: Error };
+	| { ok: false; status: number; data: null; error: ApiError };
+
+export class ApiError extends Error {
+	status: number;
+
+	constructor(message: string, status: number, options?: ErrorOptions) {
+		super(message, options);
+		this.status = status;
+	}
+}
 
 const getServerHeaders = createServerFn().handler(async () => {
 	return getRequestHeader("cookie");
@@ -32,10 +41,12 @@ function joinUrl(baseUrl: string, endpoint: string) {
 	return `${baseUrl.replace(/\/+$/, "")}/${endpoint.replace(/^\/+/, "")}`;
 }
 
-function toApiError(error: unknown, status: number): Error {
-	if (error instanceof Error) return error;
+function toApiError(error: unknown, status: number): ApiError {
+	if (error instanceof Error) {
+		return new ApiError(error.message, status, { cause: error });
+	}
 	if (typeof error === "string" && error.length > 0) {
-		return new Error(error, { cause: error });
+		return new ApiError(error, status, { cause: error });
 	}
 	if (
 		error &&
@@ -43,9 +54,9 @@ function toApiError(error: unknown, status: number): Error {
 		"detail" in error &&
 		typeof error.detail === "string"
 	) {
-		return new Error(error.detail, { cause: error });
+		return new ApiError(error.detail, status, { cause: error });
 	}
-	return new Error(`Request failed (${status})`, { cause: error });
+	return new ApiError(`Request failed (${status})`, status, { cause: error });
 }
 
 export async function $APIFetch<T>(
@@ -76,7 +87,7 @@ export async function $APIFetch<T>(
 			ok: false,
 			status: response.status,
 			data: null,
-			error: new Error("Unauthorized"),
+			error: new ApiError("Unauthorized", response.status),
 		};
 	}
 

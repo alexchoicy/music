@@ -89,11 +89,32 @@ const albumSearchDefaults: AlbumSearch = {
 
 export const Route = createFileRoute("/_authed/albums/")({
 	validateSearch: albumSearchSchema,
+	loaderDeps: ({ search }) => search,
 	search: {
 		middlewares: [stripSearchParams(albumSearchDefaults)],
 	},
+	loader: async ({ cause, context, deps }) => {
+		if (cause === "stay") return;
+		const list = context.queryClient.query(
+			albumQueries.getAlbums(toAlbumQuery(deps)),
+		);
+		if (import.meta.env.SSR) await list;
+		else list.catch(() => {});
+	},
 	component: RouteComponent,
 });
+
+function toAlbumQuery(filters: AlbumSearch, search = filters.search) {
+	return {
+		IsIncludeInTrackCredit:
+			filters.partyIds.length && filters.includeTrackCredit ? true : undefined,
+		LanguageIds: filters.languageIds.length ? filters.languageIds : undefined,
+		PartyIds: filters.partyIds.length ? filters.partyIds : undefined,
+		Search: search || undefined,
+		Sort: filters.sort,
+		Types: filters.types.length ? filters.types : undefined,
+	} satisfies AlbumQuery;
+}
 
 const ALBUM_GRID_CLASS =
 	"grid min-w-0 grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-[repeat(auto-fill,minmax(168px,1fr))]";
@@ -119,21 +140,12 @@ function RouteComponent() {
 	const playAlbum = usePlayAlbum();
 	const filters = Route.useSearch();
 	const debouncedSearch = useDebouncedValue(filters.search, 250);
-	const albumQuery: AlbumQuery = {
-		IsIncludeInTrackCredit:
-			filters.partyIds.length && filters.includeTrackCredit ? true : undefined,
-		LanguageIds: filters.languageIds.length ? filters.languageIds : undefined,
-		PartyIds: filters.partyIds.length ? filters.partyIds : undefined,
-		Search: debouncedSearch || undefined,
-		Sort: filters.sort,
-		Types: filters.types.length ? filters.types : undefined,
-	};
 	const {
 		data: albums,
 		isError,
 		isPending,
 	} = useQuery({
-		...albumQueries.getAlbums(albumQuery),
+		...albumQueries.getAlbums(toAlbumQuery(filters, debouncedSearch)),
 		placeholderData: keepPreviousData,
 	});
 	function playFocusedAlbum(

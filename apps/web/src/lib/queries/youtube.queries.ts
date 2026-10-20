@@ -2,7 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 
 import type { components } from "#/data/APIschema";
 
-import { $APIFetch } from "../APIFetchClient";
+import { $APIFetch, ApiError } from "../APIFetchClient";
 
 type YouTubeImportJobStatus = components["schemas"]["YouTubeImportJobStatus"];
 
@@ -33,7 +33,8 @@ export const youtubeQueries = {
 					`/youtube/jobs/${jobId}`,
 				);
 
-				if (!result.ok) throw new Error("Unable to load import status");
+				if (!result.ok)
+					throw new ApiError("Unable to load import status", result.status);
 				return result.data;
 			},
 			enabled: Boolean(jobId),

@@ -12,7 +12,6 @@ export const playlistQueries = {
 	list: (userId: string) =>
 		queryOptions({
 			queryKey: ["playlists", userId, "list"],
-			staleTime: 30_000,
 			queryFn: async ({ signal }) => {
 				const result = await $APIFetch<PlaylistListItem[]>("/playlists", {
 					signal,
@@ -24,7 +23,6 @@ export const playlistQueries = {
 	detail: (userId: string, id: string | number) =>
 		queryOptions({
 			queryKey: ["playlists", userId, "detail", String(id)],
-			staleTime: 30_000,
 			queryFn: async ({ signal }) => {
 				const result = await $APIFetch<PlaylistDetails>(`/playlists/${id}`, {
 					signal,

@@ -96,11 +96,31 @@ const partySearchDefaults: PartySearch = {
 
 export const Route = createFileRoute("/_authed/parties/")({
 	validateSearch: partySearchSchema,
+	loaderDeps: ({ search }) => search,
 	search: {
 		middlewares: [stripSearchParams(partySearchDefaults)],
 	},
+	loader: async ({ cause, context, deps }) => {
+		if (cause === "stay") return;
+		const list = context.queryClient.query(
+			partyQueries.getParties(toPartyQuery(deps)),
+		);
+		if (import.meta.env.SSR) await list;
+		else list.catch(() => {});
+	},
 	component: RouteComponent,
 });
+
+function toPartyQuery(filters: PartySearch, search = filters.search) {
+	return {
+		Gender: filters.gender === "All" ? undefined : filters.gender,
+		Kind: filters.kind === "All" ? undefined : filters.kind,
+		Search: search || undefined,
+		Sort: filters.sort,
+		Type: filters.type === "All" ? undefined : filters.type,
+		ExcludeNoAlbums: filters.excludeNoAlbums,
+	} satisfies PartyQuery;
+}
 
 const PARTY_GRID_CLASS =
 	"grid min-w-0 grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-[repeat(auto-fill,minmax(148px,1fr))]";
@@ -132,20 +152,12 @@ function RouteComponent() {
 	const excludeNoAlbumsId = useId();
 	const filters = Route.useSearch();
 	const debouncedSearch = useDebouncedValue(filters.search, 250);
-	const partyQuery: PartyQuery = {
-		Gender: filters.gender === "All" ? undefined : filters.gender,
-		Kind: filters.kind === "All" ? undefined : filters.kind,
-		Search: debouncedSearch || undefined,
-		Sort: filters.sort,
-		Type: filters.type === "All" ? undefined : filters.type,
-		ExcludeNoAlbums: filters.excludeNoAlbums,
-	};
 	const {
 		data: parties,
 		isError,
 		isPending,
 	} = useQuery({
-		...partyQueries.getParties(partyQuery),
+		...partyQueries.getParties(toPartyQuery(filters, debouncedSearch)),
 		placeholderData: keepPreviousData,
 	});
 

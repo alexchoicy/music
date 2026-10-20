@@ -2,15 +2,14 @@ import { queryOptions } from "@tanstack/react-query";
 
 import type { components, paths } from "#/data/APIschema";
 
-import { $APIFetch } from "../APIFetchClient";
+import { $APIFetch, ApiError } from "../APIFetchClient";
 
 export type PartyQuery = paths["/parties"]["get"]["parameters"]["query"];
 
 export const partyQueries = {
 	getParties: (query?: PartyQuery) =>
 		queryOptions({
-			queryKey: ["parties", query],
-			staleTime: 30_000,
+			queryKey: ["parties", "list", query],
 			queryFn: async ({ signal }) => {
 				const params = new URLSearchParams();
 
@@ -31,7 +30,7 @@ export const partyQueries = {
 				);
 
 				if (!result.ok) {
-					throw new Error("Unable to load parties");
+					throw new ApiError("Unable to load parties", result.status);
 				}
 				return result.data;
 			},
@@ -39,7 +38,6 @@ export const partyQueries = {
 	getParty: (id: number | string) =>
 		queryOptions({
 			queryKey: ["parties", String(id)],
-			staleTime: 30_000,
 			queryFn: async ({ signal }) => {
 				const result = await $APIFetch<components["schemas"]["PartyDetails"]>(
 					`/parties/${id}`,
@@ -50,7 +48,7 @@ export const partyQueries = {
 				);
 
 				if (!result.ok) {
-					throw new Error("Unable to load party");
+					throw new ApiError("Unable to load party", result.status);
 				}
 
 				return result.data;

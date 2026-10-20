@@ -21,6 +21,8 @@ export const getSimpleAlbum = createServerFn({ method: "GET" })
 			},
 		);
 
+		if (res.status === 404) return null;
+
 		if (!res.ok) {
 			throw new Error("Failed to fetch album");
 		}

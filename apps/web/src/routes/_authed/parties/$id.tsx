@@ -5,13 +5,16 @@ import { PartyHero } from "#/components/party/detail/PartyHero";
 import { PartyTabs } from "#/components/party/detail/PartyTabs";
 import { partyQueries } from "#/lib/queries/party.queries";
 import { getPartyAvatarUrl } from "#/lib/utils/party";
+import { rethrowNotFound } from "#/lib/utils/routing";
 
 export const Route = createFileRoute("/_authed/parties/$id")({
 	loader: ({ context, params }) => {
-		return context.queryClient.query({
-			...partyQueries.getParty(params.id),
-			staleTime: "static",
-		});
+		return context.queryClient
+			.query({
+				...partyQueries.getParty(params.id),
+				staleTime: "static",
+			})
+			.catch(rethrowNotFound);
 	},
 	component: RouteComponent,
 });
@@ -22,9 +25,7 @@ function RouteComponent() {
 	const avatarUrl = getPartyAvatarUrl(party.avatarImages);
 
 	return (
-		<main
-			className="relative min-h-full w-full overflow-hidden"
-		>
+		<main className="relative min-h-full w-full overflow-hidden">
 			<div
 				aria-hidden="true"
 				className="pointer-events-none absolute inset-x-0 top-0 h-[28rem] overflow-hidden"

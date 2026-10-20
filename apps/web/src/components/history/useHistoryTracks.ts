@@ -1,7 +1,5 @@
-import { useQueries } from "@tanstack/react-query";
-
+import { useAlbumDetails } from "#/components/album/useAlbumDetails";
 import type { components } from "#/data/APIschema";
-import { albumQueries } from "#/lib/queries/album.queries";
 import { playlistEntryCoverUrl } from "#/lib/utils/playlist";
 import { albumTrackDetailsToAudioPlayerTrack } from "#/store/audioPlayer/audioPlayerFunction";
 
@@ -11,29 +9,27 @@ type HistoryTrackEntry = Pick<
 >;
 
 export function useHistoryTracks<T extends HistoryTrackEntry>(entries: T[]) {
-	const albumIds = [...new Set(entries.map((entry) => String(entry.albumId)))];
-	const albums = useQueries({
-		queries: albumIds.map((albumId) => albumQueries.getAlbum(albumId)),
-	});
+    // LOL STUPID AI, I WILL FUCK THIS LATER
+	const albums = useAlbumDetails(entries.map((entry) => entry.albumId));
 
 	return entries.map((entry) => {
-		const album = albums[albumIds.indexOf(String(entry.albumId))];
-		const disc = album.data?.discs.find(
+		const album = albums.byId.get(String(entry.albumId));
+		const disc = album?.discs.find(
 			(item) => String(item.albumDiscId) === String(entry.albumDiscId),
 		);
 		const track = disc?.tracks.find(
 			(item) => String(item.trackId) === String(entry.trackId),
 		);
 		const playable =
-			album.data && disc && track?.audios.length
-				? albumTrackDetailsToAudioPlayerTrack(album.data, disc, track)
+			album && disc && track?.audios.length
+				? albumTrackDetailsToAudioPlayerTrack(album, disc, track)
 				: null;
 		return {
 			entry,
 			track,
 			playable,
-			noAudioSource: album.isSuccess && !playable,
-			coverUrl: playlistEntryCoverUrl(entry, album.data),
+			noAudioSource: album !== undefined && !playable,
+			coverUrl: playlistEntryCoverUrl(entry, album),
 		};
 	});
 }

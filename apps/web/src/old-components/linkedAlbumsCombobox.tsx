@@ -48,7 +48,7 @@ export function LinkedAlbumsCombobox({
 	const trimmedQuery = query.trim();
 	const trimmedSearchQuery = debouncedQuery.trim();
 	const cachedAlbums =
-		queryClient.getQueryData<AlbumItem[]>(["albums", undefined]) ?? [];
+		queryClient.getQueryData<AlbumItem[]>(albumQueries.getAlbums().queryKey) ?? [];
 	const {
 		data: searchAlbums = [],
 		isFetching: isSearching,

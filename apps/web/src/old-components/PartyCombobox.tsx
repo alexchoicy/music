@@ -131,7 +131,7 @@ export function PartyCombobox({
 	const trimmedSearchQuery = debouncedQuery.trim();
 	const normalizedTrimmedQuery = normalizeString(trimmedQuery);
 	const cachedParties =
-		queryClient.getQueryData<PartyItem[]>(["parties", undefined]) ?? [];
+		queryClient.getQueryData<PartyItem[]>(partyQueries.getParties().queryKey) ?? [];
 	const {
 		data: searchParties = [],
 		isFetching: isSearching,

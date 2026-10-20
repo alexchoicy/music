@@ -63,11 +63,30 @@ const concertSearchDefaults: ConcertSearch = {
 
 export const Route = createFileRoute("/_authed/concerts/")({
 	validateSearch: concertSearchSchema,
+	loaderDeps: ({ search }) => search,
 	search: {
 		middlewares: [stripSearchParams(concertSearchDefaults)],
 	},
+	loader: async ({ cause, context, deps }) => {
+		if (cause === "stay") return;
+		const list = context.queryClient.query(
+			concertQueries.getConcerts(toConcertQuery(deps)),
+		);
+		if (import.meta.env.SSR) await list;
+		else list.catch(() => {});
+	},
 	component: RouteComponent,
 });
+
+function toConcertQuery(filters: ConcertSearch, search = filters.search) {
+	return {
+		IsIncludeInGuestCredit:
+			filters.partyIds.length && filters.includeGuestCredit ? true : undefined,
+		PartyIds: filters.partyIds.length ? filters.partyIds : undefined,
+		Search: search || undefined,
+		Sort: filters.sort,
+	} satisfies ConcertQuery;
+}
 
 const CONCERT_GRID_CLASS =
 	"grid min-w-0 grid-cols-[repeat(auto-fill,minmax(min(240px,100%),1fr))] gap-x-4 gap-y-7";
@@ -86,19 +105,12 @@ function RouteComponent() {
 	useGridFocusHotkeys(concertGridRef);
 	const filters = Route.useSearch();
 	const debouncedSearch = useDebouncedValue(filters.search, 250);
-	const concertQuery: ConcertQuery = {
-		IsIncludeInGuestCredit:
-			filters.partyIds.length && filters.includeGuestCredit ? true : undefined,
-		PartyIds: filters.partyIds.length ? filters.partyIds : undefined,
-		Search: debouncedSearch || undefined,
-		Sort: filters.sort,
-	};
 	const {
 		data: concerts,
 		isError,
 		isPending,
 	} = useQuery({
-		...concertQueries.getConcerts(concertQuery),
+		...concertQueries.getConcerts(toConcertQuery(filters, debouncedSearch)),
 		placeholderData: keepPreviousData,
 	});
 

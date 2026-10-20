@@ -11,14 +11,17 @@ import {
 import { ConcertVideoPlayer } from "#/components/concert/detail/ConcertVideoPlayer";
 import { concertQueries } from "#/lib/queries/concert.queries";
 import { getConcertCoverUrl } from "#/lib/utils/concert";
+import { rethrowNotFound } from "#/lib/utils/routing";
 import { cn } from "#/lib/utils/styles";
 
 export const Route = createFileRoute("/_authed/concerts/$id")({
 	loader: ({ context, params }) => {
-		return context.queryClient.query({
-			...concertQueries.getConcert(params.id),
-			staleTime: "static",
-		});
+		return context.queryClient
+			.query({
+				...concertQueries.getConcert(params.id),
+				staleTime: "static",
+			})
+			.catch(rethrowNotFound);
 	},
 	component: RouteComponent,
 });

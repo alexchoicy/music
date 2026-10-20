@@ -3,16 +3,16 @@ import { queryOptions } from "@tanstack/react-query";
 import { getDefaultDeviceName } from "#/store/playbackDeviceStore";
 import type { components } from "@/data/APIschema";
 
-import { $APIFetch } from "../APIFetchClient";
+import { $APIFetch, ApiError } from "../APIFetchClient";
 
 export type AuthSession = components["schemas"]["AuthSessionDto"];
 export type ApiKey = components["schemas"]["ApiKeyDto"];
 export type CreatedApiKey = components["schemas"]["CreatedApiKey"];
 
 /** The server rejected the session (401), as opposed to being unreachable or failing. */
-export class UnauthorizedError extends Error {
+export class UnauthorizedError extends ApiError {
 	constructor() {
-		super("Not signed in");
+		super("Not signed in", 401);
 	}
 }
 
@@ -88,7 +88,7 @@ export const authQueries = {
 				if (!result.ok) {
 					throw result.status === 401
 						? new UnauthorizedError()
-						: new Error("Unable to load user info");
+						: new ApiError("Unable to load user info", result.status);
 				}
 
 				return result.data;
@@ -105,7 +105,7 @@ export const authQueries = {
 				});
 
 				if (!result.ok) {
-					throw new Error("Unable to load sessions");
+					throw new ApiError("Unable to load sessions", result.status);
 				}
 
 				return result.data;
@@ -118,7 +118,8 @@ export const authQueries = {
 			queryKey: ["auth", "api-keys"],
 			queryFn: async () => {
 				const result = await $APIFetch<ApiKey[]>("/auth/api-keys");
-				if (!result.ok) throw new Error("Unable to load API keys");
+				if (!result.ok)
+					throw new ApiError("Unable to load API keys", result.status);
 				return result.data;
 			},
 			staleTime: 60 * 1000,

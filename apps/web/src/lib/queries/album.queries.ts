@@ -1,16 +1,16 @@
 import { queryOptions } from "@tanstack/react-query";
+import type { QueryClient } from "@tanstack/react-query";
 
 import type { components, paths } from "#/data/APIschema";
 
-import { $APIFetch } from "../APIFetchClient";
+import { $APIFetch, ApiError } from "../APIFetchClient";
 
 export type AlbumQuery = paths["/albums"]["get"]["parameters"]["query"];
 
 export const albumQueries = {
 	getAlbums: (query?: AlbumQuery) =>
 		queryOptions({
-			queryKey: ["albums", query],
-			staleTime: 30_000,
+			queryKey: ["albums", "list", query],
 			queryFn: async ({ signal }) => {
 				const params = new URLSearchParams();
 
@@ -33,14 +33,14 @@ export const albumQueries = {
 				const result = await $APIFetch<
 					components["schemas"]["AlbumListItem"][]
 				>(url, { signal });
-				if (!result.ok) throw new Error("Unable to load albums");
+				if (!result.ok)
+					throw new ApiError("Unable to load albums", result.status);
 				return result.data;
 			},
 		}),
 	getAlbum: (id: number | string) =>
 		queryOptions({
 			queryKey: ["albums", String(id)],
-			staleTime: 30_000,
 			queryFn: async ({ signal }) => {
 				const result = await $APIFetch<components["schemas"]["AlbumDetails"]>(
 					`/albums/${id}`,
@@ -51,10 +51,18 @@ export const albumQueries = {
 				);
 
 				if (!result.ok) {
-					throw new Error("Unable to load album");
+					throw new ApiError("Unable to load album", result.status);
 				}
 
 				return result.data;
 			},
 		}),
 };
+
+export function prefetchAlbums(
+	queryClient: QueryClient,
+	albumIds: (number | string)[],
+) {
+	for (const albumId of new Set(albumIds.map(String)))
+		queryClient.query(albumQueries.getAlbum(albumId)).catch(() => {});
+}

@@ -29,6 +29,7 @@ const authedSearchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_authed")({
+	validateSearch: authedSearchSchema,
 	beforeLoad: async ({ context, location }) => {
 		const albumMatch = location.pathname.match(/^\/albums\/([^/]+)\/?$/);
 		const track = Number((location.search as Record<string, unknown>).track);
@@ -47,7 +48,7 @@ export const Route = createFileRoute("/_authed")({
 		}
 
 		const userInfo = await context.queryClient
-			.query({ ...authQueries.userInfo(), staleTime: 1000 })
+			.query(authQueries.userInfo())
 			.catch((error: unknown) => {
 				if (error instanceof UnauthorizedError) return null;
 				throw error;
@@ -67,7 +68,6 @@ export const Route = createFileRoute("/_authed")({
 			...playlistQueries.list(context.userInfo.id),
 			staleTime: "static",
 		}),
-	validateSearch: authedSearchSchema,
 	head: async () => {
 		const apiBaseUrl = await getResolvedApiEndpoint();
 		return {

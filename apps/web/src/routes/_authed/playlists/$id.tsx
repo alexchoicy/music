@@ -2,7 +2,6 @@ import { move } from "@dnd-kit/helpers";
 import { DragDropProvider, PointerSensor } from "@dnd-kit/react";
 import {
 	useMutation,
-	useQueries,
 	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
@@ -17,6 +16,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { useAlbumDetails } from "#/components/album/useAlbumDetails";
 import { Alert, AlertDescription } from "#/components/base/alert";
 import { Button } from "#/components/base/button";
 import { toastManager } from "#/components/base/toast";
@@ -31,8 +31,7 @@ import { PlaylistArtwork } from "#/components/playlist/PlaylistArtwork";
 import { PlaylistTrackRow } from "#/components/playlist/PlaylistTrackRow";
 import { playlistEntryToTrack } from "#/components/playlist/playlistTracks";
 import { useUserInfo } from "#/context/UserInfoContext";
-import { albumQueries } from "#/lib/queries/album.queries";
-import { authQueries } from "#/lib/queries/auth.queries";
+import { prefetchAlbums } from "#/lib/queries/album.queries";
 import {
 	playlistActions,
 	playlistQueries,
@@ -43,19 +42,24 @@ import {
 	playlistCoverEntries,
 	playlistEntryCoverUrl,
 } from "#/lib/utils/playlist";
+import { rethrowNotFound } from "#/lib/utils/routing";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 import type { AudioPlayerTrack } from "#/store/audioPlayer/audioPlayerType";
 
 export const Route = createFileRoute("/_authed/playlists/$id")({
 	loader: async ({ context, params }) => {
-		const user = await context.queryClient.query({
-			...authQueries.userInfo(),
-			staleTime: "static",
-		});
-		return context.queryClient.query({
-			...playlistQueries.detail(user.id, params.id),
-			staleTime: "static",
-		});
+		const playlist = await context.queryClient
+			.query({
+				...playlistQueries.detail(context.userInfo.id, params.id),
+				staleTime: "static",
+			})
+			.catch(rethrowNotFound);
+		if (!import.meta.env.SSR)
+			prefetchAlbums(
+				context.queryClient,
+				playlist.entries.map((entry) => entry.albumId),
+			);
+		return playlist;
 	},
 	component: PlaylistPage,
 });
@@ -102,16 +106,13 @@ function PlaylistPage() {
 	const isCurrentPlaylist = currentTrack?.playlist?.id === source.id;
 	const isPlayingPlaylist = isCurrentPlaylist && isPlaying;
 	const isLoading = useAudioPlayerStore((state) => state.status === "loading");
-	const albumIds = [
-		...new Set(playlist.entries.map((entry) => String(entry.albumId))),
-	];
-	const albums = useQueries({
-		queries: albumIds.map((albumId) => albumQueries.getAlbum(albumId)),
-	});
-	const loadingAudio = albums.some((album) => album.isPending);
-	const failedAudio = albums.some((album) => album.isError);
+	const albums = useAlbumDetails(
+		playlist.entries.map((entry) => entry.albumId),
+	);
+	const loadingAudio = albums.isPending;
+	const failedAudio = albums.isError;
 	const albumForEntry = (entry: PlaylistDetails["entries"][number]) =>
-		albums[albumIds.indexOf(String(entry.albumId))]?.data;
+		albums.byId.get(String(entry.albumId));
 	const coverUrls = playlistCoverEntries(playlist.entries).map((entry) =>
 		playlistEntryCoverUrl(entry, albumForEntry(entry)),
 	);
@@ -263,14 +264,7 @@ function PlaylistPage() {
 				<Alert variant="error">
 					<AlertDescription>
 						Some albums could not be loaded for playback.{" "}
-						<Button
-							onClick={() => {
-								for (const album of albums)
-									if (album.isError) void album.refetch();
-							}}
-							size="sm"
-							variant="ghost"
-						>
+						<Button onClick={albums.refetchFailed} size="sm" variant="ghost">
 							Retry
 						</Button>
 					</AlertDescription>

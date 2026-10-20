@@ -225,8 +225,8 @@ function AccountMenu({ onNavigate }: { onNavigate: () => void }) {
 	async function handleLogout() {
 		onNavigate();
 		await logout();
-		queryClient.removeQueries({ queryKey: ["auth"] });
 		await navigate({ to: "/login", search: { redirect: "" } });
+		queryClient.clear();
 	}
 
 	return (

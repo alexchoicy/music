@@ -3,7 +3,7 @@ import type { QueryClient } from "@tanstack/react-query";
 
 import type { components } from "#/data/APIschema";
 
-import { $APIFetch } from "../APIFetchClient";
+import { $APIFetch, ApiError } from "../APIFetchClient";
 
 export type ExtraDetails = components["schemas"]["ExtraDetails"];
 export type ExtraAssetDetails = components["schemas"]["ExtraAssetDetails"];
@@ -18,7 +18,8 @@ export const extraQueries = {
 				const result = await $APIFetch<ExtraDetails[]>(
 					`/albums/${albumId}/extras`,
 				);
-				if (!result.ok) throw new Error("Unable to load extras");
+				if (!result.ok)
+					throw new ApiError("Unable to load extras", result.status);
 				return result.data;
 			},
 		}),

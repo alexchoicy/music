@@ -22,7 +22,7 @@ import { TrackActionsMenu } from "#/components/track/TrackActionsMenu";
 import { TrackRow } from "#/components/track/TrackRow";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { useTitleLang } from "#/hooks/use-title-lang";
-import { authQueries } from "#/lib/queries/auth.queries";
+import { prefetchAlbums } from "#/lib/queries/album.queries";
 import { historyActions, historyQueries } from "#/lib/queries/history.queries";
 import type { ListeningHistoryEntry } from "#/lib/queries/history.queries";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
@@ -36,21 +36,27 @@ export const Route = createFileRoute("/_authed/history")({
 	validateSearch: z.object({
 		tab: z.enum(["recent", "counts"]).optional(),
 	}),
-	loader: async ({ context }) => {
-		const user = await context.queryClient.query({
-			...authQueries.userInfo(),
-			staleTime: "static",
-		});
-		await Promise.all([
+	loaderDeps: ({ search }) => ({ tab: search.tab }),
+	loader: async ({ context, deps }) => {
+		const userId = context.userInfo.id;
+		const [list, counts] = await Promise.all([
 			context.queryClient.infiniteQuery({
-				...historyQueries.list(user.id),
+				...historyQueries.list(userId),
 				staleTime: "static",
 			}),
 			context.queryClient.query({
-				...historyQueries.counts(user.id),
+				...historyQueries.counts(userId),
 				staleTime: "static",
 			}),
 		]);
+		const entries =
+			deps.tab === "counts"
+				? counts.tracks
+				: list.pages.flatMap((page) => page.entries);
+		prefetchAlbums(
+			context.queryClient,
+			entries.map((entry) => entry.albumId),
+		);
 	},
 	component: HistoryPage,
 });

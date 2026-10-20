@@ -9,6 +9,7 @@ import { albumEditQueries } from "#/lib/queries/albumEdit.queries";
 import type { AlbumEditDetails } from "#/lib/queries/albumEdit.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { canEditContent } from "#/lib/utils/roles";
+import { rethrowNotFound } from "#/lib/utils/routing";
 import { AlbumCoverTab } from "#/old-components/albums/edit/AlbumCoverTab";
 import { AlbumDetailsTab } from "#/old-components/albums/edit/AlbumDetailsTab";
 import { AlbumTracksTab } from "#/old-components/albums/edit/AlbumTracksTab";
@@ -32,10 +33,12 @@ export const Route = createFileRoute("/_authed/albums/$id_/edit")({
 		tab: z.enum(editTabs).optional(),
 	}),
 	loader: ({ context, params }) => {
-		return context.queryClient.query({
-			...albumQueries.getAlbum(params.id),
-			staleTime: "static",
-		});
+		return context.queryClient
+			.query({
+				...albumQueries.getAlbum(params.id),
+				staleTime: "static",
+			})
+			.catch(rethrowNotFound);
 	},
 	component: RouteComponent,
 });

@@ -3,7 +3,7 @@ import type { QueryClient } from "@tanstack/react-query";
 
 import type { components } from "#/data/APIschema";
 
-import { $APIFetch } from "../APIFetchClient";
+import { $APIFetch, ApiError } from "../APIFetchClient";
 
 export type AlbumEditDetails = components["schemas"]["AlbumEditDetails"];
 export type AlbumEditDisc = components["schemas"]["AlbumEditDisc"];
@@ -35,7 +35,8 @@ export const albumEditQueries = {
 				const result = await $APIFetch<AlbumEditDetails>(
 					`/albums/${albumId}/edit`,
 				);
-				if (!result.ok) throw new Error("Unable to load album for editing");
+				if (!result.ok)
+					throw new ApiError("Unable to load album for editing", result.status);
 				return result.data;
 			},
 		}),

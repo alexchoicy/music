@@ -9,6 +9,7 @@ export const languageQueries = {
 		queryOptions({
 			queryKey: ["languages"],
 			staleTime: Infinity,
+			gcTime: Infinity,
 			queryFn: async ({ signal }) => {
 				const result = await $APIFetch<
 					components["schemas"]["LanguageListItem"][]
