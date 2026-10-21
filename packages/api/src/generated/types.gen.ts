@@ -609,6 +609,11 @@ export type ListeningHistoryEntryDetails = {
     title: string;
     languageId?: null | number | string;
     durationInMs: number | string;
+    contentType: TrackContentType;
+    versionType: TrackVersionType;
+    cover: ImageFileVariants;
+    credits: Array<TrackPartyCredit>;
+    audios: Array<TrackAudioDetails>;
 };
 
 export type ListeningHistoryPage = {
@@ -625,6 +630,11 @@ export type ListeningHistoryTrackCount = {
     title: string;
     languageId?: null | number | string;
     durationInMs: number | string;
+    contentType: TrackContentType;
+    versionType: TrackVersionType;
+    cover: ImageFileVariants;
+    credits: Array<TrackPartyCredit>;
+    audios: Array<TrackAudioDetails>;
     playCount: number | string;
     lastPlayedAt: string;
 };
@@ -825,6 +835,11 @@ export type PlaylistEntryDetails = {
     title: string;
     languageId?: null | number | string;
     durationInMs: number | string;
+    contentType: TrackContentType;
+    versionType: TrackVersionType;
+    cover: ImageFileVariants;
+    credits: Array<TrackPartyCredit>;
+    audios: Array<TrackAudioDetails>;
 };
 
 export type PlaylistListItem = {

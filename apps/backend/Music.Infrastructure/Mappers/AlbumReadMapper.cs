@@ -34,12 +34,7 @@ internal static class AlbumReadMapper
                 {
                     AlbumDiscId = disc.Id,
                     DiscNumber = disc.DiscNumber,
-                    Variants = album
-                        .Images.Where(image => image.AlbumDiscId == disc.Id)
-                        .OrderByDescending(image => image.IsPrimary)
-                        .ThenBy(image => image.CreatedAt)
-                        .FirstOrDefault()
-                        .ToImageVariants(assetsService),
+                    Variants = album.ToDiscImageVariants(disc.Id, assetsService),
                 })
                 .Where(discCover => discCover.Variants.Original is not null)
                 .ToList(),
@@ -106,12 +101,7 @@ internal static class AlbumReadMapper
             {
                 AlbumDiscId = disc.Id,
                 DiscNumber = disc.DiscNumber,
-                Variants = album
-                    .Images.Where(image => image.AlbumDiscId == disc.Id)
-                    .OrderByDescending(image => image.IsPrimary)
-                    .ThenBy(image => image.CreatedAt)
-                    .FirstOrDefault()
-                    .ToImageVariants(assetsService),
+                Variants = album.ToDiscImageVariants(disc.Id, assetsService),
             })
             .Where(discCover => discCover.Variants.Original is not null)
             .ToList();
@@ -122,6 +112,28 @@ internal static class AlbumReadMapper
             Discs = discCovers,
         };
     }
+
+    public static ImageFileVariants ToDiscCoverVariants(
+        this Album album,
+        int albumDiscId,
+        IAssetsService assetsService
+    )
+    {
+        ImageFileVariants disc = album.ToDiscImageVariants(albumDiscId, assetsService);
+        return disc.Original is not null ? disc : album.ToAlbumCoverVariants(assetsService);
+    }
+
+    private static ImageFileVariants ToDiscImageVariants(
+        this Album album,
+        int albumDiscId,
+        IAssetsService assetsService
+    ) =>
+        album
+            .Images.Where(image => image.AlbumDiscId == albumDiscId)
+            .OrderByDescending(image => image.IsPrimary)
+            .ThenBy(image => image.CreatedAt)
+            .FirstOrDefault()
+            .ToImageVariants(assetsService);
 
     private static ImageFileVariants ToImageVariants(
         this AlbumImage? image,
