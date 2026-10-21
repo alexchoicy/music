@@ -12,6 +12,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { PageHeader } from "#/components/app/PageHeader";
 import { Badge } from "#/components/base/badge";
 import { Button } from "#/components/base/button";
 import { Switch } from "#/components/base/switch";
@@ -116,14 +117,10 @@ function RouteComponent() {
 
 	return (
 		<main className="flex min-h-full w-full flex-col gap-6 px-4 py-6 sm:px-6 lg:px-12">
-			<header className="flex flex-col gap-2">
-				<p className="text-sm font-medium text-muted-foreground">
-					Resume upload
-				</p>
-				<h1 className="max-w-190 text-3xl font-bold tracking-[-.025em] sm:text-[32px] sm:leading-10">
-					Drop a file whose upload failed and it will upload again.
-				</h1>
-			</header>
+			<PageHeader
+				eyebrow="Resume upload"
+				title="Drop a file whose upload failed and it will upload again."
+			/>
 
 			<div className="flex flex-wrap items-center justify-between gap-4 py-4">
 				<div className="flex flex-col gap-0.5">
@@ -160,7 +157,10 @@ function RouteComponent() {
 
 			<section aria-labelledby="pending-files" className="flex flex-col gap-3">
 				<div className="flex items-center gap-2">
-					<h2 className="text-base font-semibold" id="pending-files">
+					<h2
+						className="text-xl font-semibold tracking-tight"
+						id="pending-files"
+					>
 						Files
 					</h2>
 					<span className="text-xs text-muted-foreground tabular-nums">

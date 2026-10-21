@@ -43,7 +43,7 @@ export function PartyTile({
 			render={
 				<Link
 					className={cn(
-						"group/tile flex min-w-0 flex-col items-center gap-3 rounded-xl pb-1 outline-none focus-visible:outline-2 focus-visible:outline-offset-6 focus-visible:outline-ring focus-visible:outline-solid",
+						"group/tile flex min-w-0 flex-col items-center gap-3 rounded-xl pb-1 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid",
 						className,
 					)}
 					params={{ id: String(party.partyId) }}
@@ -58,7 +58,6 @@ export function PartyTile({
 					)}
 					<AvatarFallback>{getInitials(party.name)}</AvatarFallback>
 				</Avatar>
-				<span className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_0_0_0_1px_--theme(--color-white/8%)]" />
 				{showKind && (
 					<Badge
 						className="absolute -bottom-3 left-1/2 -translate-x-1/2"

@@ -24,7 +24,7 @@ export function PlaylistArtwork({
 		<div
 			aria-hidden="true"
 			className={cn(
-				"relative grid aspect-square overflow-hidden rounded-xl bg-muted",
+				"artwork-edge relative grid aspect-square overflow-hidden rounded-xl bg-muted shadow-card",
 				tiles.length > 1 && "grid-cols-2 grid-rows-2",
 				className,
 			)}
@@ -48,7 +48,6 @@ export function PlaylistArtwork({
 					)}
 				</div>
 			))}
-			<span className="pointer-events-none absolute inset-0 rounded-[inherit] shadow-[inset_0_0_0_1px_--theme(--color-white/8%)]" />
 		</div>
 	);
 }

@@ -56,7 +56,7 @@ export function PlaylistTile({ playlist }: { playlist: PlaylistListItem }) {
 						<Link
 							className={cn(
 								"truncate text-sm font-semibold outline-none",
-								"after:absolute after:inset-0 after:rounded-xl focus-visible:after:outline-2 focus-visible:after:outline-offset-6 focus-visible:after:outline-ring",
+								"after:absolute after:inset-0 after:rounded-xl focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-ring",
 								isPlaying && "text-primary",
 							)}
 							params={{ id: String(playlist.playlistId) }}
@@ -68,7 +68,7 @@ export function PlaylistTile({ playlist }: { playlist: PlaylistListItem }) {
 					</div>
 					<span className="truncate text-xs text-muted-foreground">{meta}</span>
 				</div>
-				<div className="relative z-10 -me-1 opacity-100 transition-opacity group-focus-within/tile:opacity-100 group-hover/tile:opacity-100 md:opacity-0">
+				<div className="relative z-10 -me-1 opacity-100 transition-opacity group-focus-within/tile:opacity-100 group-hover/tile:opacity-100 md:pointer-fine:opacity-0">
 					<PlaylistActionsMenu playlist={playlist} />
 				</div>
 			</div>

@@ -17,7 +17,7 @@ export function AlbumCredits({ album }: { album: AlbumDetails }) {
 
 	return (
 		<section aria-labelledby="album-credits" className="flex flex-col gap-3">
-			<h2 className="text-base font-semibold" id="album-credits">
+			<h2 className="text-xl font-semibold tracking-tight" id="album-credits">
 				Credits
 			</h2>
 			{album.credits.length > 0 ? (
@@ -89,7 +89,7 @@ export function AlbumAbout({ album }: { album: AlbumDetails }) {
 
 	return (
 		<section aria-labelledby="album-about" className="flex flex-col gap-3">
-			<h2 className="text-base font-semibold" id="album-about">
+			<h2 className="text-xl font-semibold tracking-tight" id="album-about">
 				About this album
 			</h2>
 			<dl className="grid grid-cols-[auto_1fr] gap-x-6 text-sm">

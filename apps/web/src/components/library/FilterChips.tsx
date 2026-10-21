@@ -92,5 +92,7 @@ export function FilterChips<Value extends string>({
 
 function ChipCount({ count }: { count?: number }) {
 	if (count === undefined) return null;
-	return <span className="text-xs tabular-nums opacity-70">{count}</span>;
+	return (
+		<span className="text-xs text-muted-foreground tabular-nums">{count}</span>
+	);
 }

@@ -164,7 +164,7 @@ function HistoryPage() {
 				/>
 				<div className="flex min-w-0 flex-[1_1_22rem] flex-col gap-2">
 					<p className="text-xs text-muted-foreground">Library</p>
-					<h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+					<h1 className="text-3xl font-bold tracking-tight lg:text-4xl">
 						Listening history
 					</h1>
 					<p className="max-w-140 text-sm text-muted-foreground">
@@ -214,7 +214,9 @@ function HistoryPage() {
 									key={group.key}
 								>
 									<div className="flex items-baseline justify-between gap-4 px-3 pb-1">
-										<h2 className="text-base font-semibold">{group.label}</h2>
+										<h2 className="text-xl font-semibold tracking-tight">
+											{group.label}
+										</h2>
 										<span className="text-xs text-muted-foreground">
 											{plural(group.tracks.length, "play")}
 										</span>

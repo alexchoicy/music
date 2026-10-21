@@ -20,6 +20,7 @@ export function ConcertAmbientLight({
 		const video = videoRef.current;
 		const canvases = [firstRef.current, secondRef.current];
 		if (!video || !canvases[0] || !canvases[1]) return;
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 		const layers = canvases as [HTMLCanvasElement, HTMLCanvasElement];
 		let active = 0;
 
@@ -57,7 +58,7 @@ export function ConcertAmbientLight({
 	return (
 		<div
 			aria-hidden="true"
-			className="pointer-events-none absolute inset-0 -z-10 scale-110 opacity-70 blur-[56px] saturate-[1.4]"
+			className="pointer-events-none absolute inset-0 -z-10 scale-110 opacity-70 blur-[56px] saturate-[1.4] motion-reduce:hidden"
 		>
 			{[firstRef, secondRef].map((ref, index) => (
 				<canvas

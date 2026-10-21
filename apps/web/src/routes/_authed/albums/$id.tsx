@@ -63,7 +63,7 @@ function RouteComponent() {
 				{coverUrl && (
 					<img
 						alt=""
-						className="absolute -inset-20 size-[calc(100%+10rem)] object-cover opacity-50 blur-[64px] saturate-[1.3]"
+						className="absolute -inset-20 size-[calc(100%+10rem)] object-cover opacity-50 blur-[64px] saturate-[1.3] motion-reduce:hidden"
 						src={coverUrl}
 					/>
 				)}

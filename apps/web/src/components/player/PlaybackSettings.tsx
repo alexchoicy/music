@@ -115,12 +115,9 @@ export function PlaybackQualitySettings({
 				<SettingsIcon aria-hidden="true" />
 			</PopoverTrigger>
 			<PopoverPopup align="end" className="w-64" side="top" sideOffset={8}>
-				<div className="flex flex-col gap-3">
+				<div className="flex flex-col gap-4">
 					{nowPlaying && (
-						<section
-							aria-label="Now playing"
-							className="flex flex-col gap-2 border-b pb-3"
-						>
+						<section aria-label="Now playing" className="flex flex-col gap-2">
 							<div className="flex items-center justify-between gap-2">
 								<p className="text-sm font-medium">Now playing</p>
 								<QualityBadge tier={nowPlaying.tier} />
@@ -184,35 +181,31 @@ export function PlaybackQualitySettings({
 							</span>
 						</Label>
 					</RadioGroup>
-					<div className="border-t pt-3">
-						<Label className="flex items-center justify-between">
-							<span className="flex flex-col gap-1">
-								<span>Play Talk track</span>
-								<span className="text-xs font-normal text-muted-foreground">
-									Include Talk tracks during playback.
-								</span>
+					<Label className="flex items-center justify-between">
+						<span className="flex flex-col gap-1">
+							<span>Play Talk track</span>
+							<span className="text-xs font-normal text-muted-foreground">
+								Include Talk tracks during playback.
 							</span>
-							<Switch
-								checked={playTalkTrack}
-								onCheckedChange={setPlayTalkTrack}
-							/>
-						</Label>
-					</div>
-					<div className="border-t pt-3">
-						<Label className="flex items-center justify-between">
-							<span className="flex flex-col gap-1">
-								<span>Play Instrumental track</span>
-								<span className="text-xs font-normal text-muted-foreground">
-									Include Instrumental tracks during playback.
-								</span>
+						</span>
+						<Switch
+							checked={playTalkTrack}
+							onCheckedChange={setPlayTalkTrack}
+						/>
+					</Label>
+					<Label className="flex items-center justify-between">
+						<span className="flex flex-col gap-1">
+							<span>Play Instrumental track</span>
+							<span className="text-xs font-normal text-muted-foreground">
+								Include Instrumental tracks during playback.
 							</span>
-							<Switch
-								checked={playInstrumental}
-								onCheckedChange={setPlayInstrumental}
-							/>
-						</Label>
-					</div>
-					<div className="flex flex-col gap-2 border-t pt-3">
+						</span>
+						<Switch
+							checked={playInstrumental}
+							onCheckedChange={setPlayInstrumental}
+						/>
+					</Label>
+					<div className="flex flex-col gap-2">
 						<Label htmlFor="audio-player-stop-after-music">
 							Stop after music
 						</Label>

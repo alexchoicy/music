@@ -30,7 +30,7 @@ type PartyDetails = API.PartyDetails;
 type Album = API.AlbumListItem;
 
 const ALBUM_GRID_CLASS =
-	"grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))]";
+	"grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))]";
 
 function Count({ value }: { value: number }) {
 	return (

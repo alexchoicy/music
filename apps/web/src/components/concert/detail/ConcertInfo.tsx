@@ -41,7 +41,7 @@ export function ConcertHeading({ concert }: { concert: Concert }) {
 				<p className="text-xs font-semibold tracking-[.06em] text-muted-foreground uppercase">
 					Concert
 				</p>
-				<h1 className="text-3xl font-bold tracking-[-.03em] break-words sm:text-5xl sm:leading-[52px]">
+				<h1 className="text-3xl font-bold tracking-[-.03em] break-words lg:text-5xl lg:leading-[52px]">
 					{concert.title}
 				</h1>
 				<p className="text-xs text-muted-foreground">{meta}</p>
@@ -60,13 +60,10 @@ export function ConcertAlbums({ concert }: { concert: Concert }) {
 
 	return (
 		<section aria-labelledby="concert-albums" className="flex flex-col gap-4">
-			<h2
-				className="text-xl font-semibold tracking-[-.01em]"
-				id="concert-albums"
-			>
+			<h2 className="text-xl font-semibold tracking-tight" id="concert-albums">
 				Linked albums
 			</h2>
-			<div className="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(150px,176px))]">
+			<div className="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))]">
 				{concert.linkedAlbums.map((album) => (
 					<AlbumTile album={album} key={album.albumId} />
 				))}
@@ -83,7 +80,10 @@ export function ConcertPerformers({ concert }: { concert: Concert }) {
 			aria-labelledby="concert-performers"
 			className="flex flex-col gap-3"
 		>
-			<h2 className="text-base font-semibold" id="concert-performers">
+			<h2
+				className="text-xl font-semibold tracking-tight"
+				id="concert-performers"
+			>
 				Performers
 			</h2>
 			<ul className="flex flex-col gap-0.5">
@@ -105,7 +105,7 @@ function PerformerLink({ party }: { party: ConcertParty }) {
 			party={party}
 			render={
 				<Link
-					className="-mx-2 flex items-center gap-3 rounded-lg p-2 transition-colors duration-100 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring data-popup-open:bg-accent motion-reduce:transition-none"
+					className="-mx-2 flex items-center gap-3 rounded-lg p-2 transition-colors duration-150 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background data-popup-open:bg-accent motion-reduce:transition-none"
 					params={{ id: String(party.partyId) }}
 					to="/parties/$id"
 				/>

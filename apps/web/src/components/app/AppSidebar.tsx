@@ -95,7 +95,7 @@ export function AppSidebar({ onOpenSearch }: { onOpenSearch: () => void }) {
 			<SidebarHeader>
 				<div className="flex items-center justify-between gap-2 px-1">
 					<Link
-						className="flex items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
+						className="flex items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
 						onClick={closeMobileSidebar}
 						to="/"
 					>

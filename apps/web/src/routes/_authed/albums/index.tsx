@@ -117,7 +117,7 @@ function toAlbumQuery(filters: AlbumSearch, search = filters.search) {
 }
 
 const ALBUM_GRID_CLASS =
-	"grid min-w-0 grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-[repeat(auto-fill,minmax(168px,1fr))]";
+	"grid min-w-0 grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))]";
 
 const ALBUM_TYPE_CHIPS = ALBUM_TYPE_OPTIONS.map((option) => {
 	const Icon = ALBUM_TYPE_ICON[option.value];

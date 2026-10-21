@@ -58,7 +58,7 @@ export function MenuPopup({
 			>
 				<MenuPrimitive.Popup
 					className={cn(
-						"relative flex origin-(--transform-origin) rounded-lg border bg-popover shadow-lg/5 outline-none not-dark:bg-clip-padding not-[class*='w-']:min-w-32 before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] focus:outline-none dark:before:shadow-[0_-1px_--theme(--color-white/6%)]",
+						"relative flex origin-(--transform-origin) rounded-lg border bg-popover shadow-pop outline-none not-dark:bg-clip-padding not-[class*='w-']:min-w-32 before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] focus:outline-none dark:before:shadow-[0_-1px_--theme(--color-white/6%)]",
 						className,
 					)}
 					data-slot="menu-popup"
@@ -265,7 +265,7 @@ export function MenuShortcut({
 	return (
 		<kbd
 			className={cn(
-				"ms-auto font-sans text-xs font-medium tracking-widest text-muted-foreground/72",
+				"ms-auto font-sans text-xs font-medium tracking-widest text-muted-foreground",
 				className,
 			)}
 			data-slot="menu-shortcut"

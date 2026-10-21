@@ -274,7 +274,7 @@ function DiscordDeviceSelect() {
 	);
 
 	return (
-		<div className="flex flex-col gap-2 border-t pt-3">
+		<div className="flex flex-col gap-2">
 			<Label htmlFor="playback-discord-device">Discord presence</Label>
 			<Select
 				items={options}
@@ -338,7 +338,7 @@ export function PlaybackDevices({ className }: { className?: string }) {
 				side="top"
 				sideOffset={8}
 			>
-				<div className="flex flex-col gap-3">
+				<div className="flex flex-col gap-4">
 					<div className="flex flex-col gap-1">
 						<p className="text-sm font-medium">Devices</p>
 						<p className="text-xs text-muted-foreground">
@@ -346,27 +346,25 @@ export function PlaybackDevices({ className }: { className?: string }) {
 						</p>
 					</div>
 					<DeviceNameField key={openCount} />
-					<div className="border-t pt-1">
-						{!connected ? (
-							<p className="py-2 text-sm text-muted-foreground">
-								Not connected. Devices appear once the live connection is back.
-							</p>
-						) : entries.length === 0 ? (
-							<p className="py-2 text-sm text-muted-foreground">
-								No other devices are connected.
-							</p>
-						) : (
-							<ul className="flex flex-col divide-y">
-								{entries.map((entry) => (
-									<DeviceRow
-										entry={entry}
-										isDiscordSource={entry.deviceId === discordDeviceId}
-										key={entry.sessionId}
-									/>
-								))}
-							</ul>
-						)}
-					</div>
+					{!connected ? (
+						<p className="py-2 text-sm text-muted-foreground">
+							Not connected. Devices appear once the live connection is back.
+						</p>
+					) : entries.length === 0 ? (
+						<p className="py-2 text-sm text-muted-foreground">
+							No other devices are connected.
+						</p>
+					) : (
+						<ul className="flex flex-col gap-1">
+							{entries.map((entry) => (
+								<DeviceRow
+									entry={entry}
+									isDiscordSource={entry.deviceId === discordDeviceId}
+									key={entry.sessionId}
+								/>
+							))}
+						</ul>
+					)}
 					{connected && <DiscordDeviceSelect />}
 				</div>
 			</PopoverPopup>

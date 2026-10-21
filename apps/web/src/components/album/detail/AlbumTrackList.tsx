@@ -199,7 +199,7 @@ function DiscBand({
 		.join(" · ");
 
 	return (
-		<div className="flex items-center gap-3 border-b px-3 pb-2">
+		<div className="flex items-center gap-3 px-3 pb-2">
 			<span className="text-xs font-semibold tracking-[.06em] whitespace-nowrap text-muted-foreground uppercase">
 				Disc {disc.discNumber}
 			</span>
@@ -285,7 +285,7 @@ function TrackRow({
 	return (
 		<div
 			className={cn(
-				"group/track relative grid min-h-14 grid-cols-[2rem_minmax(0,1fr)_auto_2rem] items-center gap-x-4 rounded-lg px-3 py-2 transition-colors duration-100 hover:bg-accent has-[[data-popup-open]]:bg-accent motion-reduce:transition-none",
+				"group/track relative grid min-h-14 grid-cols-[2rem_minmax(0,1fr)_auto_2rem] items-center gap-x-4 rounded-lg px-3 py-2 transition-colors duration-150 hover:bg-accent has-[[data-popup-open]]:bg-accent motion-reduce:transition-none",
 				isHighlighted && "animate-track-highlight",
 			)}
 			id={`track-${track.trackId}`}
@@ -340,7 +340,7 @@ function TrackRow({
 						</span>
 					</button>
 
-					<span className="text-[13px] font-medium text-muted-foreground tabular-nums">
+					<span className="text-xs font-medium text-muted-foreground tabular-nums">
 						{formatMsToMMSSOrHMMSS(Number(track.durationInMs))}
 					</span>
 				</ContextMenuTrigger>
@@ -349,7 +349,7 @@ function TrackRow({
 				</ContextMenuPopup>
 			</ContextMenu>
 
-			<div className="relative z-10 opacity-100 transition-opacity group-focus-within/track:opacity-100 group-hover/track:opacity-100 md:opacity-0">
+			<div className="relative z-10 opacity-100 transition-opacity group-focus-within/track:opacity-100 group-hover/track:opacity-100 md:pointer-fine:opacity-0">
 				<Menu onOpenChange={setMenuOpen} open={menuOpen}>
 					<MenuTrigger
 						onContextMenu={(event) => {

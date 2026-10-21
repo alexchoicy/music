@@ -69,7 +69,7 @@ export function AlbumHero({
 			>
 				{coverUrl ? (
 					hoverCoverUrl ? (
-						<div className="relative size-full transition-transform duration-500 [transform-style:preserve-3d] group-hover/cover:[transform:rotateY(180deg)] motion-reduce:transition-none">
+						<div className="relative size-full transition-transform duration-300 ease-out [transform-style:preserve-3d] group-hover/cover:[transform:rotateY(180deg)] motion-reduce:transition-none">
 							<img
 								alt={`${album.title} album cover`}
 								className="absolute inset-0 size-full object-cover [backface-visibility:hidden]"
@@ -101,7 +101,7 @@ export function AlbumHero({
 						{album.type}
 					</p>
 					<h1
-						className="text-3xl font-bold tracking-[-.03em] break-words sm:text-5xl sm:leading-[52px]"
+						className="text-3xl font-bold tracking-[-.03em] break-words lg:text-5xl lg:leading-[52px]"
 						lang={titleLang(album.languageId)}
 					>
 						{album.title}
@@ -115,7 +115,7 @@ export function AlbumHero({
 											party={credit}
 											render={
 												<Link
-													className="rounded-xs outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+													className="rounded-xs outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 													params={{ id: String(credit.partyId) }}
 													to="/parties/$id"
 												/>

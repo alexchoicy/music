@@ -16,7 +16,7 @@ export function TrackNumberCell({
 		<div className="relative flex h-5 w-8 shrink-0 items-center">
 			<span
 				className={cn(
-					"text-[13px] font-medium text-muted-foreground tabular-nums",
+					"text-xs font-medium text-muted-foreground tabular-nums",
 					!isCurrent && "group-hover/track:opacity-0",
 				)}
 			>

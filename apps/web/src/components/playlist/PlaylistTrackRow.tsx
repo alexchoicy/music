@@ -107,7 +107,7 @@ export function PlaylistTrackRow({
 							<span key={`${credit.partyId}-${credit.creditType}`}>
 								{creditIndex > 0 && ", "}
 								<Link
-									className="rounded-xs outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+									className="rounded-xs outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 									params={{ id: String(credit.partyId) }}
 									to="/parties/$id"
 								>
@@ -119,7 +119,7 @@ export function PlaylistTrackRow({
 			title={entry.title}
 			titleLang={titleLang(entry.languageId, entry.albumLanguageId)}
 			trailing={
-				<span className="hidden text-[13px] font-medium text-muted-foreground tabular-nums sm:block">
+				<span className="hidden text-xs font-medium text-muted-foreground tabular-nums sm:block">
 					{formatMsToMMSSOrHMMSS(Number(entry.durationInMs))}
 				</span>
 			}

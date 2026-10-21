@@ -46,7 +46,7 @@ export function TabsList({
 				"relative z-0 flex w-fit items-center justify-center gap-x-0.5 text-muted-foreground",
 				"data-[orientation=vertical]:flex-col",
 				variant === "default"
-					? "rounded-lg bg-muted p-0.5 text-muted-foreground/72"
+					? "rounded-lg bg-muted p-0.5 text-muted-foreground"
 					: "gap-x-6 data-[orientation=horizontal]:w-full data-[orientation=horizontal]:justify-start data-[orientation=horizontal]:border-b data-[orientation=vertical]:px-1",
 				className,
 			)}
@@ -84,7 +84,7 @@ export function TabsTab({
 	return (
 		<TabsPrimitive.Tab
 			className={cn(
-				"relative flex shrink-0 grow cursor-pointer items-center justify-center rounded-md border border-transparent text-base font-medium whitespace-nowrap transition-[color,background-color,box-shadow] outline-none hover:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring data-active:text-foreground data-disabled:pointer-events-none data-disabled:opacity-64 data-[orientation=vertical]:w-full data-[orientation=vertical]:justify-start sm:text-sm",
+				"relative flex shrink-0 grow cursor-pointer items-center justify-center rounded-md border border-transparent text-base font-medium whitespace-nowrap transition-[color,background-color,box-shadow] outline-none hover:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background data-active:text-foreground data-disabled:pointer-events-none data-disabled:opacity-64 data-[orientation=vertical]:w-full data-[orientation=vertical]:justify-start sm:text-sm",
 				segmentedControlItemLayoutClassName,
 				segmentedControlItemSizeClassNames[resolvedSize],
 				underline &&

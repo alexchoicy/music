@@ -56,7 +56,7 @@ export function AlbumTile({
 			)}
 		>
 			<div className="pointer-events-none relative z-10 aspect-square w-full transition-transform duration-150 ease-out group-hover/tile:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover/tile:translate-y-0">
-				<div className="absolute inset-0 overflow-hidden rounded-xl bg-muted">
+				<div className="artwork-edge absolute inset-0 overflow-hidden rounded-xl bg-muted shadow-card">
 					{coverUrl ? (
 						<img
 							alt=""
@@ -69,7 +69,6 @@ export function AlbumTile({
 							<Disc3Icon aria-hidden="true" className="size-10" />
 						</span>
 					)}
-					<span className="pointer-events-none absolute inset-0 rounded-xl shadow-[inset_0_0_0_1px_--theme(--color-white/8%)]" />
 				</div>
 				{isPlaying && (
 					<span className="pointer-events-none absolute inset-0 rounded-xl shadow-glow-primary" />
@@ -93,7 +92,7 @@ export function AlbumTile({
 					<Link
 						className={cn(
 							"truncate text-sm font-semibold outline-none",
-							"after:absolute after:inset-0 after:rounded-xl focus-visible:after:outline-2 focus-visible:after:outline-offset-6 focus-visible:after:outline-ring",
+							"after:absolute after:inset-0 after:rounded-xl focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-ring",
 							isPlaying && "text-primary",
 						)}
 						lang={titleLang(album.languageId)}

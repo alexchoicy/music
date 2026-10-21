@@ -36,7 +36,7 @@ export function ConcertTile({
 				className,
 			)}
 		>
-			<div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted transition-transform duration-150 ease-out group-hover/tile:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover/tile:translate-y-0">
+			<div className="artwork-edge relative aspect-video w-full overflow-hidden rounded-xl bg-muted shadow-card transition-transform duration-150 ease-out group-hover/tile:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover/tile:translate-y-0">
 				{coverUrl ? (
 					<img
 						alt=""
@@ -49,11 +49,10 @@ export function ConcertTile({
 						<MicVocalIcon aria-hidden="true" className="size-10" />
 					</span>
 				)}
-				<span className="pointer-events-none absolute inset-0 rounded-xl shadow-[inset_0_0_0_1px_--theme(--color-white/8%)]" />
 			</div>
 			<div className="flex min-w-0 flex-col gap-0.5">
 				<Link
-					className="truncate text-sm font-semibold outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:outline-2 focus-visible:after:outline-offset-6 focus-visible:after:outline-ring"
+					className="truncate text-sm font-semibold outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-ring"
 					params={{ id: String(concert.concertId) }}
 					title={concert.title}
 					to="/concerts/$id"
