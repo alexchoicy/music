@@ -69,6 +69,7 @@ docker/.env.backend
 docker/.env.web
 
 # Backend thingy
+sixlabors.lic
 [Bb]in/
 [Oo]bj/
 

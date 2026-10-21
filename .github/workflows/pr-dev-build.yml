@@ -88,6 +88,8 @@ jobs:
               with:
                   context: apps/backend
                   file: apps/backend/Dockerfile
+                  secrets: |
+                      sixlabors_license=${{ secrets.SIXLABORS_LICENSE_KEY }}
                   push: true
                   tags: ${{ env.REGISTRY }}/${{ github.repository }}-backend:pr-${{ env.ISSUE_NUMBER }}
                   cache-from: type=gha,scope=backend

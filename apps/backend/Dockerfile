@@ -52,7 +52,9 @@ COPY Music.Api/. ./Music.Api/
 COPY Music.Core/. ./Music.Core/
 COPY Music.Infrastructure/. ./Music.Infrastructure/
 
-RUN dotnet publish ./Music.Api/Music.Api.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false
+RUN --mount=type=secret,id=sixlabors_license,required=true \
+    dotnet publish ./Music.Api/Music.Api.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false \
+    /p:SixLaborsLicenseFile=/run/secrets/sixlabors_license
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS runtime
 WORKDIR /app

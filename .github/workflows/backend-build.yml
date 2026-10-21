@@ -59,6 +59,8 @@ jobs:
               with:
                   context: apps/backend
                   file: apps/backend/Dockerfile
+                  secrets: |
+                      sixlabors_license=${{ secrets.SIXLABORS_LICENSE_KEY }}
                   push: true
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}

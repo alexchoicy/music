@@ -3,6 +3,8 @@ services:
     build:
       context: apps/backend
       dockerfile: Dockerfile
+      secrets:
+        - sixlabors_license
     env_file:
       - ./docker/.env.backend
     environment:
@@ -29,6 +31,10 @@ services:
       - ./docker/.env.web
     ports:
       - "3000:3000"
+
+secrets:
+  sixlabors_license:
+    file: ./apps/backend/sixlabors.lic
 
 volumes:
   backend-temp:
