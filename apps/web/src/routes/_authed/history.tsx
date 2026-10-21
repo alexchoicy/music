@@ -14,15 +14,14 @@ import { Button } from "#/components/base/button";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "#/components/base/tabs";
 import { toastManager } from "#/components/base/toast";
 import { HistoryCountsTable } from "#/components/history/HistoryCountsTable";
-import { useHistoryTracks } from "#/components/history/useHistoryTracks";
-import type { HistoryTrack } from "#/components/history/useHistoryTracks";
+import { toHistoryTrack } from "#/components/history/historyTracks";
+import type { HistoryTrack } from "#/components/history/historyTracks";
 import { LibraryEmptyState } from "#/components/library/LibraryStates";
 import { PlaylistArtwork } from "#/components/playlist/PlaylistArtwork";
 import { TrackActionsMenu } from "#/components/track/TrackActionsMenu";
 import { TrackRow } from "#/components/track/TrackRow";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { useTitleLang } from "#/hooks/use-title-lang";
-import { prefetchAlbums } from "#/lib/queries/album.queries";
 import { historyActions, historyQueries } from "#/lib/queries/history.queries";
 import type { ListeningHistoryEntry } from "#/lib/queries/history.queries";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
@@ -36,10 +35,9 @@ export const Route = createFileRoute("/_authed/history")({
 	validateSearch: z.object({
 		tab: z.enum(["recent", "counts"]).optional(),
 	}),
-	loaderDeps: ({ search }) => ({ tab: search.tab }),
-	loader: async ({ context, deps }) => {
+	loader: async ({ context }) => {
 		const userId = context.userInfo.id;
-		const [list, counts] = await Promise.all([
+		await Promise.all([
 			context.queryClient.infiniteQuery({
 				...historyQueries.list(userId),
 				staleTime: "static",
@@ -49,14 +47,6 @@ export const Route = createFileRoute("/_authed/history")({
 				staleTime: "static",
 			}),
 		]);
-		const entries =
-			deps.tab === "counts"
-				? counts.tracks
-				: list.pages.flatMap((page) => page.entries);
-		prefetchAlbums(
-			context.queryClient,
-			entries.map((entry) => entry.albumId),
-		);
 	},
 	component: HistoryPage,
 });
@@ -122,10 +112,10 @@ function HistoryPage() {
 	const isPlaying = useAudioPlayerStore(
 		(state) => state.status === "playing" || state.status === "loading",
 	);
-	const recentTracks = useHistoryTracks(
-		data.pages.flatMap((page) => page.entries),
-	);
-	const countTracks = useHistoryTracks(tab === "counts" ? counts.tracks : []);
+	const recentTracks = data.pages
+		.flatMap((page) => page.entries)
+		.map(toHistoryTrack);
+	const countTracks = counts.tracks.map(toHistoryTrack);
 	const coverUrls = [
 		...new Set(recentTracks.map((track) => track.coverUrl).filter(Boolean)),
 	].slice(0, 4);
@@ -299,12 +289,10 @@ function RecentRow({
 	onRemove: () => void;
 	removing: boolean;
 }) {
-	const { entry, track, playable, noAudioSource, coverUrl } = item;
+	const { entry, playable, noAudioSource, coverUrl } = item;
 	const titleLang = useTitleLang();
 	const badges = [
-		...(track && track.versionType !== "Original"
-			? [{ label: track.versionType }]
-			: []),
+		...(entry.versionType !== "Original" ? [{ label: entry.versionType }] : []),
 		...(noAudioSource ? [{ label: "No audio", outline: true }] : []),
 	];
 

@@ -9,8 +9,11 @@ using Music.Infrastructure.Mappers;
 
 namespace Music.Infrastructure.Services.Playlists;
 
-public sealed class PlaylistService(AppDbContext dbContext, IAssetsService assetsService)
-    : IPlaylistService
+public sealed class PlaylistService(
+    AppDbContext dbContext,
+    IAssetsService assetsService,
+    IContentService contentService
+) : IPlaylistService
 {
     public async Task<IReadOnlyList<PlaylistListItem>> GetAllAsync(
         string userId,
@@ -125,33 +128,60 @@ public sealed class PlaylistService(AppDbContext dbContext, IAssetsService asset
         CancellationToken cancellationToken = default
     )
     {
-        var playlist = await dbContext
-            .Playlists.AsNoTracking()
-            .Where(playlist => playlist.Id == playlistId && playlist.OwnerUserId == userId)
-            .Select(playlist => new PlaylistDetails
-            {
-                PlaylistId = playlist.Id,
-                Name = playlist.Name,
-                Version = playlist.Version,
-                Entries = playlist
-                    .Entries.OrderBy(entry => entry.Position)
-                    .ThenBy(entry => entry.Id)
-                    .Select(entry => new PlaylistEntryDetails
+        var playlist =
+            await dbContext
+                .Playlists.AsNoTracking()
+                .Where(playlist => playlist.Id == playlistId && playlist.OwnerUserId == userId)
+                .Select(playlist => new
+                {
+                    playlist.Id,
+                    playlist.Name,
+                    playlist.Version,
+                    Entries = playlist
+                        .Entries.OrderBy(entry => entry.Position)
+                        .ThenBy(entry => entry.Id)
+                        .Select(entry => new { entry.Id, entry.AlbumTrackId })
+                        .ToList(),
+                })
+                .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new EntityNotFoundException("Playlist not found.");
+        var albumTracks = await dbContext.LoadPlayableAlbumTracksAsync(
+            playlist.Entries.Select(entry => entry.AlbumTrackId),
+            cancellationToken
+        );
+
+        return new PlaylistDetails
+        {
+            PlaylistId = playlist.Id,
+            Name = playlist.Name,
+            Version = playlist.Version,
+            Entries = playlist
+                .Entries.Where(entry => albumTracks.ContainsKey(entry.AlbumTrackId))
+                .Select(entry =>
+                {
+                    var albumTrack = albumTracks[entry.AlbumTrackId];
+                    var album = albumTrack.AlbumDisc!.Album!;
+                    var track = albumTrack.Track!;
+                    return new PlaylistEntryDetails
                     {
                         EntryId = entry.Id,
-                        AlbumId = entry.AlbumTrack!.AlbumDisc!.AlbumId,
-                        AlbumTitle = entry.AlbumTrack.AlbumDisc.Album!.Title,
-                        AlbumLanguageId = entry.AlbumTrack.AlbumDisc.Album.LanguageId,
-                        AlbumDiscId = entry.AlbumTrack.AlbumDiscId,
-                        TrackId = entry.AlbumTrack.TrackId,
-                        Title = entry.AlbumTrack.Track!.Title,
-                        LanguageId = entry.AlbumTrack.Track.LanguageId,
-                        DurationInMs = entry.AlbumTrack.Track.DurationInMs,
-                    })
-                    .ToList(),
-            })
-            .SingleOrDefaultAsync(cancellationToken);
-        return playlist ?? throw new EntityNotFoundException("Playlist not found.");
+                        AlbumId = album.Id,
+                        AlbumTitle = album.Title,
+                        AlbumLanguageId = album.LanguageId,
+                        AlbumDiscId = albumTrack.AlbumDiscId,
+                        TrackId = track.Id,
+                        Title = track.Title,
+                        LanguageId = track.LanguageId,
+                        DurationInMs = track.DurationInMs,
+                        ContentType = track.ContentType,
+                        VersionType = track.VersionType,
+                        Cover = album.ToDiscCoverVariants(albumTrack.AlbumDiscId, assetsService),
+                        Credits = track.ToPartyCredits(assetsService),
+                        Audios = track.ToAudioDetails(contentService, assetsService),
+                    };
+                })
+                .ToList(),
+        };
     }
 
     public async Task<PlaylistDetails> CreateAsync(

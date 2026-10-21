@@ -1,7 +1,4 @@
-import type * as API from "@music/api";
-
 import type { PlaylistDetails } from "#/lib/queries/playlist.queries";
-import { getAlbumCoverUrl } from "#/lib/utils/album";
 
 export function playlistCoverEntries(entries: PlaylistDetails["entries"]) {
 	const discs = new Set<string>();
@@ -13,17 +10,4 @@ export function playlistCoverEntries(entries: PlaylistDetails["entries"]) {
 			return true;
 		})
 		.slice(0, 4);
-}
-
-export function playlistEntryCoverUrl(
-	entry: Pick<PlaylistDetails["entries"][number], "albumDiscId">,
-	album: API.AlbumDetails | undefined,
-) {
-	return (
-		getAlbumCoverUrl(
-			album?.cover.discs.find(
-				(disc) => String(disc.albumDiscId) === String(entry.albumDiscId),
-			)?.variants,
-		) ?? getAlbumCoverUrl(album?.cover.album)
-	);
 }
