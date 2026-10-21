@@ -1,10 +1,10 @@
+import type * as API from "@music/api";
 import { useQueries } from "@tanstack/react-query";
 import type { UseQueryResult } from "@tanstack/react-query";
 
-import type { components } from "#/data/APIschema";
 import { albumQueries } from "#/lib/queries/album.queries";
 
-type AlbumDetails = components["schemas"]["AlbumDetails"];
+type AlbumDetails = API.AlbumDetails;
 
 function combineAlbums(results: UseQueryResult<AlbumDetails>[]) {
 	const byId = new Map<string, AlbumDetails>();

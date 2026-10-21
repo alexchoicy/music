@@ -1,4 +1,5 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
+
 import type { CreditRequest, PartyItem } from "#/store/albumUploadStoreType";
 
 import { checkIfVariousArtists } from "./music";
@@ -19,7 +20,7 @@ function splitArtists(artistString?: string): string[] {
 }
 
 export function searchPartyByNormalizedName(
-	parties: components["schemas"]["PartyItems"][],
+	parties: API.PartyItems[],
 	normalizedPartyName: string,
 ) {
 	return parties.find(
@@ -31,10 +32,7 @@ export function searchPartyByNormalizedName(
 	);
 }
 
-export function resolveParty(
-	rawMetadata: string[],
-	parties: components["schemas"]["PartyItems"][],
-) {
+export function resolveParty(rawMetadata: string[], parties: API.PartyItems[]) {
 	const artists = rawMetadata.flatMap((artist) => splitArtists(artist));
 	const hasVariousArtists = rawMetadata.some(checkIfVariousArtists);
 
@@ -84,7 +82,7 @@ export function getCreditNames(
 }
 
 export function getPartyAvatarUrl(
-	image?: components["schemas"]["ImageFileVariants"] | null,
+	image?: API.ImageFileVariants | null,
 ): string | null {
 	return image?.imageAvatar512x512?.url ?? image?.original?.url ?? null;
 }

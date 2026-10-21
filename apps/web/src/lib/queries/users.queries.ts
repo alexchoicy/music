@@ -1,6 +1,5 @@
+import type * as API from "@music/api";
 import { queryOptions } from "@tanstack/react-query";
-
-import type { components } from "#/data/APIschema";
 
 import { $APIFetch } from "../APIFetchClient";
 
@@ -19,8 +18,7 @@ export const userQuery = {
 		queryOptions({
 			queryKey: ["users"],
 			queryFn: async () => {
-				const result =
-					await $APIFetch<components["schemas"]["UserInfo"][]>("/users");
+				const result = await $APIFetch<API.UserInfo[]>("/users");
 				if (!result.ok) throw new Error("Failed to fetch users");
 				return result.data.toSorted(
 					(a, b) => rolePriority(a.roles) - rolePriority(b.roles),
@@ -31,14 +29,11 @@ export const userQuery = {
 
 export const userMutation = {
 	addUser: () => ({
-		mutationFn: async (info: components["schemas"]["CreateUserRequest"]) => {
-			const result = await $APIFetch<components["schemas"]["UserInfo"]>(
-				"/users",
-				{
-					method: "POST",
-					body: JSON.stringify(info),
-				},
-			);
+		mutationFn: async (info: API.CreateUserRequest) => {
+			const result = await $APIFetch<API.UserInfo>("/users", {
+				method: "POST",
+				body: JSON.stringify(info),
+			});
 			if (!result.ok) {
 				throw result.status === 403
 					? new Error("You can't create a user with that role.")
@@ -51,14 +46,11 @@ export const userMutation = {
 		mutationFn: async ({
 			id,
 			...info
-		}: components["schemas"]["UpdateUserRequest"] & { id: string }) => {
-			const result = await $APIFetch<components["schemas"]["UserInfo"]>(
-				`/users/${id}`,
-				{
-					method: "PATCH",
-					body: JSON.stringify(info),
-				},
-			);
+		}: API.UpdateUserRequest & { id: string }) => {
+			const result = await $APIFetch<API.UserInfo>(`/users/${id}`, {
+				method: "PATCH",
+				body: JSON.stringify(info),
+			});
 			if (!result.ok) {
 				throw result.status === 403
 					? new Error("You don't have permission to make this change.")

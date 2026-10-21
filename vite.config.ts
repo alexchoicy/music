@@ -21,7 +21,6 @@ const ignorePatterns = [
 	"apps/web/src/routeTree.gen.ts",
 	"apps/web/src/styles.css",
 	"apps/web/src/**/base/**/*",
-	"apps/web/src/data/APIschema.ts",
 	"apps/web/src/old-components",
 
 	"apps/phone/.expo/**",
@@ -31,6 +30,7 @@ const ignorePatterns = [
 	"apps/phone/src/global.css",
 	"apps/phone/src/uniwind-types.d.ts",
 	"apps/phone/src/data/APIschema.ts",
+	"packages/api/src/generated/**",
 ];
 
 const sortTailwindcss = (stylesheet: string) => ({

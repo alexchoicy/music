@@ -1,9 +1,9 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 
 import { $APIFetch } from "../APIFetchClient";
 
-type CompleteUploadRequest = components["schemas"]["CompleteUploadRequest"];
-type StartUploadResult = components["schemas"]["StartUploadResult"];
+type CompleteUploadRequest = API.CompleteUploadRequest;
+type StartUploadResult = API.StartUploadResult;
 
 export async function startUpload(fileObjectId: string) {
 	const result = await $APIFetch<StartUploadResult>(

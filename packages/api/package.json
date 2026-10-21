@@ -1,0 +1,17 @@
+{
+	"name": "@music/api",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/generated/types.gen.ts"
+	},
+	"scripts": {
+		"api": "dotnet build ../../apps/backend/Music.Api/Music.Api.csproj && openapi-ts",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@hey-api/openapi-ts": "0.99.0",
+		"typescript": "6.0.3"
+	}
+}

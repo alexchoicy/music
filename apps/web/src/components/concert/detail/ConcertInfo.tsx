@@ -1,17 +1,17 @@
+import type * as API from "@music/api";
 import { Link } from "@tanstack/react-router";
 
 import { AlbumTile } from "#/components/album/AlbumTile";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/base/avatar";
 import { PartyContextMenu } from "#/components/party/PartyContextMenu";
-import type { components } from "#/data/APIschema";
 import { PARTY_TYPE } from "#/enums/partyEnums";
 import { formatDate } from "#/lib/utils/date";
 import { formatDurationInHoursAndMinutes } from "#/lib/utils/music";
 import { getPartyAvatarUrl } from "#/lib/utils/party";
 import { getInitials } from "#/lib/utils/string";
 
-type Concert = components["schemas"]["ConcertDetails"];
-type ConcertParty = components["schemas"]["ConcertPartySummary"];
+type Concert = API.ConcertDetails;
+type ConcertParty = API.ConcertPartySummary;
 
 const PARTY_ROLE: Record<ConcertParty["role"], string> = {
 	MainArtist: "Main artist",

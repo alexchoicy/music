@@ -1,13 +1,11 @@
+import type * as API from "@music/api";
 import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 
-import type { components } from "#/data/APIschema";
 import { $APIFetch } from "#/lib/APIFetchClient";
 
-export type ListeningHistoryPage =
-	components["schemas"]["ListeningHistoryPage"];
+export type ListeningHistoryPage = API.ListeningHistoryPage;
 export type ListeningHistoryEntry = ListeningHistoryPage["entries"][number];
-export type ListeningHistoryCounts =
-	components["schemas"]["ListeningHistoryCounts"];
+export type ListeningHistoryCounts = API.ListeningHistoryCounts;
 
 export const historyQueries = {
 	list: (userId: string) =>
@@ -47,7 +45,7 @@ async function writeHistory(endpoint: string, method: string, body?: unknown) {
 }
 
 export const historyActions = {
-	record: (request: components["schemas"]["RecordListeningHistoryRequest"]) =>
+	record: (request: API.RecordListeningHistoryRequest) =>
 		writeHistory("/history", "POST", request),
 	remove: (entryId: ListeningHistoryEntry["entryId"]) =>
 		writeHistory(`/history/${entryId}`, "DELETE"),

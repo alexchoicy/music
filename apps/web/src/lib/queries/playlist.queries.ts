@@ -1,12 +1,11 @@
+import type * as API from "@music/api";
 import { queryOptions } from "@tanstack/react-query";
 
-import type { components } from "#/data/APIschema";
 import { $APIFetch } from "#/lib/APIFetchClient";
 
-export type PlaylistDetails = components["schemas"]["PlaylistDetails"];
-export type PlaylistListItem = components["schemas"]["PlaylistListItem"];
-export type PlaylistTrackRequest =
-	components["schemas"]["PlaylistTrackRequest"];
+export type PlaylistDetails = API.PlaylistDetails;
+export type PlaylistListItem = API.PlaylistListItem;
+export type PlaylistTrackRequest = API.PlaylistTrackRequest;
 
 export const playlistQueries = {
 	list: (userId: string) =>
@@ -42,7 +41,7 @@ async function writePlaylist(endpoint: string, method: string, body?: unknown) {
 }
 
 export const playlistActions = {
-	create: async (request: components["schemas"]["CreatePlaylistRequest"]) => {
+	create: async (request: API.CreatePlaylistRequest) => {
 		const result = await $APIFetch<PlaylistDetails>("/playlists", {
 			method: "POST",
 			body: JSON.stringify(request),
@@ -52,7 +51,7 @@ export const playlistActions = {
 	},
 	rename: (
 		id: PlaylistDetails["playlistId"],
-		request: components["schemas"]["RenamePlaylistRequest"],
+		request: API.RenamePlaylistRequest,
 	) => writePlaylist(`/playlists/${id}`, "PUT", request),
 	delete: (
 		id: PlaylistDetails["playlistId"],
@@ -60,7 +59,7 @@ export const playlistActions = {
 	) => writePlaylist(`/playlists/${id}?version=${version}`, "DELETE"),
 	add: (
 		id: PlaylistDetails["playlistId"],
-		request: components["schemas"]["AddPlaylistEntriesRequest"],
+		request: API.AddPlaylistEntriesRequest,
 	) => writePlaylist(`/playlists/${id}/entries`, "POST", request),
 	remove: (
 		id: PlaylistDetails["playlistId"],
@@ -73,6 +72,6 @@ export const playlistActions = {
 		),
 	reorder: (
 		id: PlaylistDetails["playlistId"],
-		request: components["schemas"]["ReorderPlaylistEntriesRequest"],
+		request: API.ReorderPlaylistEntriesRequest,
 	) => writePlaylist(`/playlists/${id}/entries/order`, "PUT", request),
 };

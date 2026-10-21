@@ -1,14 +1,14 @@
+import type * as API from "@music/api";
 import { Link } from "@tanstack/react-router";
 
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/base/avatar";
 import { Badge } from "#/components/base/badge";
 import { PartyContextMenu } from "#/components/party/PartyContextMenu";
-import type { components } from "#/data/APIschema";
 import { COUNTRY_CODE, PARTY_KIND, PARTY_TYPE } from "#/enums/partyEnums";
 import { getInitials } from "#/lib/utils/string";
 import { cn } from "#/lib/utils/styles";
 
-type Party = components["schemas"]["PartyItems"];
+type Party = API.PartyItems;
 
 type PartyTileProps = {
 	party: Party;

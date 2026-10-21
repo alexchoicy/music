@@ -1,12 +1,12 @@
+import type * as API from "@music/api";
 import { queryOptions } from "@tanstack/react-query";
 
-import type { components } from "#/data/APIschema";
 import { $APIFetch } from "#/lib/APIFetchClient";
 
-export type RelationshipType = components["schemas"]["PartyRelationshipType"];
-export type RelationshipGraph = components["schemas"]["PartyRelationshipGraph"];
-export type Relationship = components["schemas"]["PartyRelationshipDetails"];
-export type RelationshipParty = components["schemas"]["PartySummary"];
+export type RelationshipType = API.PartyRelationshipType;
+export type RelationshipGraph = API.PartyRelationshipGraph;
+export type Relationship = API.PartyRelationshipDetails;
+export type RelationshipParty = API.PartySummary;
 
 export const relationshipLabels: Record<RelationshipType, string> = {
 	MemberOf: "Member of",
@@ -46,15 +46,16 @@ export const partyRelationshipMutation = {
 		mutationFn: async ({
 			sourcePartyId,
 			...request
-		}: components["schemas"]["CreatePartyRelationshipRequest"] & {
+		}: API.CreatePartyRelationshipRequest & {
 			sourcePartyId: number;
 		}) => {
-			const result = await $APIFetch<
-				components["schemas"]["CreatePartyRelationshipResult"]
-			>(`/parties/${sourcePartyId}/relationships`, {
-				method: "POST",
-				body: JSON.stringify(request),
-			});
+			const result = await $APIFetch<API.CreatePartyRelationshipResult>(
+				`/parties/${sourcePartyId}/relationships`,
+				{
+					method: "POST",
+					body: JSON.stringify(request),
+				},
+			);
 			if (!result.ok) throw result.error;
 			return result.data;
 		},

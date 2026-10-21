@@ -1,10 +1,11 @@
+import type * as API from "@music/api";
+
 import { useAlbumDetails } from "#/components/album/useAlbumDetails";
-import type { components } from "#/data/APIschema";
 import { playlistEntryCoverUrl } from "#/lib/utils/playlist";
 import { albumTrackDetailsToAudioPlayerTrack } from "#/store/audioPlayer/audioPlayerFunction";
 
 type HistoryTrackEntry = Pick<
-	components["schemas"]["ListeningHistoryTrackCount"],
+	API.ListeningHistoryTrackCount,
 	"albumId" | "albumDiscId" | "trackId"
 >;
 

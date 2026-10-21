@@ -1,10 +1,9 @@
+import type * as API from "@music/api";
 import { queryOptions } from "@tanstack/react-query";
-
-import type { components, paths } from "#/data/APIschema";
 
 import { $APIFetch, ApiError } from "../APIFetchClient";
 
-export type PartyQuery = paths["/parties"]["get"]["parameters"]["query"];
+export type PartyQuery = API.GetPartiesData["query"];
 
 export const partyQueries = {
 	getParties: (query?: PartyQuery) =>
@@ -24,10 +23,7 @@ export const partyQueries = {
 
 				const url = params.size ? `/parties?${params}` : "/parties";
 
-				const result = await $APIFetch<components["schemas"]["PartyItems"][]>(
-					url,
-					{ signal },
-				);
+				const result = await $APIFetch<API.PartyItems[]>(url, { signal });
 
 				if (!result.ok) {
 					throw new ApiError("Unable to load parties", result.status);
@@ -39,13 +35,10 @@ export const partyQueries = {
 		queryOptions({
 			queryKey: ["parties", String(id)],
 			queryFn: async ({ signal }) => {
-				const result = await $APIFetch<components["schemas"]["PartyDetails"]>(
-					`/parties/${id}`,
-					{
-						method: "GET",
-						signal,
-					},
-				);
+				const result = await $APIFetch<API.PartyDetails>(`/parties/${id}`, {
+					method: "GET",
+					signal,
+				});
 
 				if (!result.ok) {
 					throw new ApiError("Unable to load party", result.status);
@@ -58,10 +51,8 @@ export const partyQueries = {
 
 export const partyMutation = {
 	createParty: () => ({
-		mutationFn: async (info: components["schemas"]["CreatePartyRequest"]) => {
-			const result = await $APIFetch<
-				components["schemas"]["CreatePartyResult"]
-			>("/parties", {
+		mutationFn: async (info: API.CreatePartyRequest) => {
+			const result = await $APIFetch<API.CreatePartyResult>("/parties", {
 				method: "POST",
 				body: JSON.stringify(info),
 			});

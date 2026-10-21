@@ -1,10 +1,9 @@
+import type * as API from "@music/api";
 import { queryOptions } from "@tanstack/react-query";
-
-import type { components } from "#/data/APIschema";
 
 import { $APIFetch, ApiError } from "../APIFetchClient";
 
-type YouTubeImportJobStatus = components["schemas"]["YouTubeImportJobStatus"];
+type YouTubeImportJobStatus = API.YouTubeImportJobStatus;
 
 const JOB_POLL_INTERVAL_MS = 2000;
 
@@ -14,9 +13,9 @@ export const youtubeQueries = {
 			queryKey: ["youtube", "info", url],
 			queryFn: async () => {
 				const params = new URLSearchParams({ url });
-				const result = await $APIFetch<
-					components["schemas"]["YouTubeVideoInfo"]
-				>(`/youtube/info?${params.toString()}`);
+				const result = await $APIFetch<API.YouTubeVideoInfo>(
+					`/youtube/info?${params.toString()}`,
+				);
 
 				if (!result.ok) throw result.error;
 				return result.data;

@@ -5,7 +5,7 @@ import {
 } from "@tanstack/react-query";
 import { useState } from "react";
 
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 import { useDebouncedValue } from "#/hooks/use-debounced-value";
 import { albumQueries } from "#/lib/queries/album.queries";
 import {
@@ -21,7 +21,7 @@ import {
 	ComboboxValue,
 } from "#/old-components/coss/combobox";
 
-type AlbumItem = components["schemas"]["AlbumListItem"];
+type AlbumItem = API.AlbumListItem;
 type LinkedAlbumsComboboxId = number;
 
 type LinkedAlbumsComboboxProps = {

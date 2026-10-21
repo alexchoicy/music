@@ -1,11 +1,10 @@
+import type * as API from "@music/api";
 import { queryOptions } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 
-import type { components, paths } from "#/data/APIschema";
-
 import { $APIFetch, ApiError } from "../APIFetchClient";
 
-export type AlbumQuery = paths["/albums"]["get"]["parameters"]["query"];
+export type AlbumQuery = API.GetAlbumsData["query"];
 
 export const albumQueries = {
 	getAlbums: (query?: AlbumQuery) =>
@@ -30,9 +29,7 @@ export const albumQueries = {
 
 				const url = params.size ? `/albums?${params.toString()}` : "/albums";
 
-				const result = await $APIFetch<
-					components["schemas"]["AlbumListItem"][]
-				>(url, { signal });
+				const result = await $APIFetch<API.AlbumListItem[]>(url, { signal });
 				if (!result.ok)
 					throw new ApiError("Unable to load albums", result.status);
 				return result.data;
@@ -42,13 +39,10 @@ export const albumQueries = {
 		queryOptions({
 			queryKey: ["albums", String(id)],
 			queryFn: async ({ signal }) => {
-				const result = await $APIFetch<components["schemas"]["AlbumDetails"]>(
-					`/albums/${id}`,
-					{
-						method: "GET",
-						signal,
-					},
-				);
+				const result = await $APIFetch<API.AlbumDetails>(`/albums/${id}`, {
+					method: "GET",
+					signal,
+				});
 
 				if (!result.ok) {
 					throw new ApiError("Unable to load album", result.status);

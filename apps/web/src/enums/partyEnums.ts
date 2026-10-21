@@ -1,11 +1,11 @@
-import type { components } from "@/data/APIschema";
+import type * as API from "@music/api";
 
 import { enumOptions } from "./utils";
 
-type CountryCode = components["schemas"]["CountryCode"];
-type PartyGender = components["schemas"]["PartyGender"];
-type PartyKind = components["schemas"]["PartyKind"];
-type PartyType = components["schemas"]["PartyType"];
+type CountryCode = API.CountryCode;
+type PartyGender = API.PartyGender;
+type PartyKind = API.PartyKind;
+type PartyType = API.PartyType;
 
 export const COUNTRY_CODE: Record<CountryCode, string> = {
 	XX: "Unknown",

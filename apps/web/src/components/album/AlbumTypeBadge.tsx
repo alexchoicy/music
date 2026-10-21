@@ -1,3 +1,4 @@
+import type * as API from "@music/api";
 import {
 	AudioLinesIcon,
 	ClapperboardIcon,
@@ -10,9 +11,8 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 import { Badge } from "#/components/base/badge";
-import type { components } from "#/data/APIschema";
 
-type AlbumType = components["schemas"]["AlbumType"];
+type AlbumType = API.AlbumType;
 
 export const ALBUM_TYPE_ICON: Record<AlbumType, LucideIcon> = {
 	Album: Disc3Icon,

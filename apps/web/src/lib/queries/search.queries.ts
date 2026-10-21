@@ -1,6 +1,5 @@
+import type * as API from "@music/api";
 import { queryOptions } from "@tanstack/react-query";
-
-import type { components } from "#/data/APIschema";
 
 import { $APIFetch, ApiError } from "../APIFetchClient";
 
@@ -13,7 +12,7 @@ export const searchQueries = {
 			queryFn: async ({ signal }) => {
 				const params = new URLSearchParams({ query });
 				if (limit > 0) params.set("limit", String(limit));
-				const result = await $APIFetch<components["schemas"]["SearchResult"]>(
+				const result = await $APIFetch<API.SearchResult>(
 					`/search?${params.toString()}`,
 					{ signal },
 				);

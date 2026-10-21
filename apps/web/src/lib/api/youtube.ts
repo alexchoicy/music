@@ -1,11 +1,9 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 
 import { $APIFetch } from "../APIFetchClient";
 
-type CreateYouTubeCoverRequest =
-	components["schemas"]["CreateYouTubeCoverRequest"];
-type CreateYouTubeCoverResult =
-	components["schemas"]["CreateYouTubeCoverResult"];
+type CreateYouTubeCoverRequest = API.CreateYouTubeCoverRequest;
+type CreateYouTubeCoverResult = API.CreateYouTubeCoverResult;
 
 export async function createYouTubeCover(request: CreateYouTubeCoverRequest) {
 	const result = await $APIFetch<CreateYouTubeCoverResult>("/youtube/covers", {

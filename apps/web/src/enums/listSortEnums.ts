@@ -1,7 +1,8 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
+
 import type { EnumOption } from "#/enums/utils";
 
-export type ListSortOption = components["schemas"]["ListSortOption"];
+export type ListSortOption = API.ListSortOption;
 
 export const DEFAULT_LIST_SORT: ListSortOption = "TitleAsc";
 

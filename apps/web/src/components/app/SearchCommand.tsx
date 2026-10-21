@@ -1,3 +1,4 @@
+import type * as API from "@music/api";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -31,7 +32,6 @@ import {
 import { Kbd, KbdGroup } from "#/components/base/kbd";
 import { Skeleton } from "#/components/base/skeleton";
 import { Spinner } from "#/components/base/spinner";
-import type { components } from "#/data/APIschema";
 import { COUNTRY_CODE, PARTY_TYPE } from "#/enums/partyEnums";
 import { useDebouncedValue } from "#/hooks/use-debounced-value";
 import { useTitleLang } from "#/hooks/use-title-lang";
@@ -41,11 +41,11 @@ import { getConcertCoverUrl } from "#/lib/utils/concert";
 import { getInitials } from "#/lib/utils/string";
 import { cn } from "#/lib/utils/styles";
 
-type Album = components["schemas"]["AlbumListItem"];
+type Album = API.AlbumListItem;
 type MatchedTrack = NonNullable<Album["matchedTracks"]>[number];
-type Concert = components["schemas"]["ConcertListItem"];
-type Party = components["schemas"]["PartyItems"];
-type SearchResult = components["schemas"]["SearchResult"];
+type Concert = API.ConcertListItem;
+type Party = API.PartyItems;
+type SearchResult = API.SearchResult;
 
 type SearchItem =
 	| { kind: "album"; value: Album }

@@ -1,6 +1,9 @@
 {
 	"name": "music",
 	"private": true,
+	"scripts": {
+		"api": "pnpm --filter @music/api api"
+	},
 	"devDependencies": {
 		"@shadcn/lint": "^0.2.1",
 		"vite-plus": "catalog:"

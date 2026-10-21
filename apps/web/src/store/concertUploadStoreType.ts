@@ -1,11 +1,10 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 
 import type { CroppedArea } from "./albumUploadStoreType";
 
-export type CreateConcertRequest =
-	components["schemas"]["CreateConcertRequest"];
-export type ConcertFileType = components["schemas"]["ConcertFileType"];
-export type ConcertMediaSource = components["schemas"]["MediaSource"];
+export type CreateConcertRequest = API.CreateConcertRequest;
+export type ConcertFileType = API.ConcertFileType;
+export type ConcertMediaSource = API.MediaSource;
 export type ConcertUploadStatus =
 	| "idle"
 	| "creating"
@@ -16,7 +15,7 @@ export type ConcertUploadStatus =
 export type ConcertImageAsset = {
 	blake3Hash: string;
 	file: File;
-	imageRequest: components["schemas"]["ConcertImageRequest"];
+	imageRequest: API.ConcertImageRequest;
 	localURL: string;
 	croppedArea: CroppedArea;
 	height: number;
@@ -40,8 +39,7 @@ export type UpdateConcertFileDraftInput = Partial<
 	Pick<ConcertFileDraft, "source" | "sourceUrl" | "title" | "type">
 >;
 
-export type ConcertFileUploadResult =
-	components["schemas"]["CreateConcertUploadItemResult"];
+export type ConcertFileUploadResult = API.CreateConcertUploadItemResult;
 
 export type AddConcertDroppedFilesResult = {
 	processedFileNames: string[];

@@ -1,3 +1,4 @@
+import type * as API from "@music/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -41,7 +42,6 @@ import {
 } from "#/components/settings/SettingsSection";
 import type { DialogControl } from "#/components/settings/SettingsSection";
 import { useUserInfo } from "#/context/UserInfoContext";
-import type { components } from "#/data/APIschema";
 import { ROLE_BADGE_VARIANT, ROLE_OPTIONS } from "#/enums/userEnums";
 import { userMutation, userQuery } from "#/lib/queries/users.queries";
 import {
@@ -51,8 +51,8 @@ import {
 } from "#/lib/utils/password";
 import type { PasswordRuleKey } from "#/lib/utils/password";
 
-type UserInfo = components["schemas"]["UserInfo"];
-type Role = components["schemas"]["Roles"];
+type UserInfo = API.UserInfo;
+type Role = API.Roles;
 
 // Mirrors the server: owners grant Admin, admins grant Uploader and User, and Owner is never granted.
 function assignableRoles(currentUser: UserInfo) {

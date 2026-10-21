@@ -1,9 +1,8 @@
+import type * as API from "@music/api";
 import pMap from "p-map";
 
-import type { components } from "#/data/APIschema";
-
-type MultipartUploadInfo = components["schemas"]["MultipartUploadResults"];
-type CompletedPart = components["schemas"]["CompleteMultipartUploadPart"];
+type MultipartUploadInfo = API.MultipartUploadResults;
+type CompletedPart = API.CompleteMultipartUploadPart;
 
 type UploadMultipartFileOptions = {
 	signal?: AbortSignal;

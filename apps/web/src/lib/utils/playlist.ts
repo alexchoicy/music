@@ -1,4 +1,5 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
+
 import type { PlaylistDetails } from "#/lib/queries/playlist.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 
@@ -16,7 +17,7 @@ export function playlistCoverEntries(entries: PlaylistDetails["entries"]) {
 
 export function playlistEntryCoverUrl(
 	entry: Pick<PlaylistDetails["entries"][number], "albumDiscId">,
-	album: components["schemas"]["AlbumDetails"] | undefined,
+	album: API.AlbumDetails | undefined,
 ) {
 	return (
 		getAlbumCoverUrl(

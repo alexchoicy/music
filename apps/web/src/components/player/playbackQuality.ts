@@ -1,4 +1,5 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
+
 import { MEDIA_SOURCE } from "#/enums/albumEnums";
 import { autoSelectPlaybackQuality } from "#/store/audioPlayer/audioPlayerStore";
 import type {
@@ -6,7 +7,7 @@ import type {
 	AudioPlayerTrack,
 } from "#/store/audioPlayer/audioPlayerType";
 
-type FileObject = components["schemas"]["FileObjectDetails"];
+type FileObject = API.FileObjectDetails;
 
 export type QualityTier = "Hi-Res" | "Lossless" | "Original" | "Opus 96";
 

@@ -1,8 +1,8 @@
+import type * as API from "@music/api";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
-import type { components } from "#/data/APIschema";
 import { completeUpload } from "#/lib/api/uploads";
 import { uploadMultipartFile } from "#/lib/upload/multipartUpload";
 
@@ -14,9 +14,9 @@ export type UploadJobStatus =
 	| "Failed";
 
 export type MultipartUploadInfo =
-	| components["schemas"]["CreateConcertUploadItemResult"]
-	| components["schemas"]["CreateAlbumTrackUploadItemResult"]
-	| components["schemas"]["StartUploadResult"];
+	| API.CreateConcertUploadItemResult
+	| API.CreateAlbumTrackUploadItemResult
+	| API.StartUploadResult;
 
 type UploadRecord = {
 	file?: File;

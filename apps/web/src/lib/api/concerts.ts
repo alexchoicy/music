@@ -1,10 +1,9 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 
 import { $APIFetch } from "../APIFetchClient";
 
-type CreateConcertRequest = components["schemas"]["CreateConcertRequest"];
-type CreateConcertUploadResult =
-	components["schemas"]["CreateConcertUploadResult"];
+type CreateConcertRequest = API.CreateConcertRequest;
+type CreateConcertUploadResult = API.CreateConcertUploadResult;
 
 export async function createConcert(request: CreateConcertRequest) {
 	const result = await $APIFetch<CreateConcertUploadResult>(

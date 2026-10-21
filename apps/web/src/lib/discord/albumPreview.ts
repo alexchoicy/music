@@ -1,12 +1,13 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
+
 import {
 	formatDurationInHoursAndMinutes,
 	formatMsToMMSSOrHMMSS,
 } from "#/lib/utils/music";
 
-type AlbumSummary = components["schemas"]["AlbumSummary"];
-type AlbumSummaryDisc = components["schemas"]["AlbumSummaryDisc"];
-type AlbumSummaryTrack = components["schemas"]["AlbumSummaryTrack"];
+type AlbumSummary = API.AlbumSummary;
+type AlbumSummaryDisc = API.AlbumSummaryDisc;
+type AlbumSummaryTrack = API.AlbumSummaryTrack;
 
 // Discord message component types (Components V2).
 type TextDisplay = { type: 10; content: string };

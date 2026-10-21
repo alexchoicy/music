@@ -1,10 +1,11 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
+
 import { $APIFetch } from "#/lib/APIFetchClient";
 
-export type RadioTrack = components["schemas"]["RadioTrack"];
+export type RadioTrack = API.RadioTrack;
 
 export const trackActions = {
-	radio: async (request: components["schemas"]["RadioTrackRequest"]) => {
+	radio: async (request: API.RadioTrackRequest) => {
 		const result = await $APIFetch<RadioTrack | null>("/tracks/radio", {
 			method: "POST",
 			body: JSON.stringify(request),

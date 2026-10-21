@@ -1,22 +1,17 @@
+import type * as API from "@music/api";
 import { queryOptions } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 
-import type { components } from "#/data/APIschema";
-
 import { $APIFetch, ApiError } from "../APIFetchClient";
 
-export type AlbumEditDetails = components["schemas"]["AlbumEditDetails"];
-export type AlbumEditDisc = components["schemas"]["AlbumEditDisc"];
-export type AlbumEditTrack = components["schemas"]["AlbumEditTrack"];
-export type AlbumEditCover = components["schemas"]["AlbumEditCover"];
-export type UpdateAlbumDetailsRequest =
-	components["schemas"]["UpdateAlbumDetailsRequest"];
-export type UpdateAlbumCoverRequest =
-	components["schemas"]["UpdateAlbumCoverRequest"];
-export type UpdateAlbumCoverResult =
-	components["schemas"]["UpdateAlbumCoverResult"];
-export type UpdateAlbumTracksRequest =
-	components["schemas"]["UpdateAlbumTracksRequest"];
+export type AlbumEditDetails = API.AlbumEditDetails;
+export type AlbumEditDisc = API.AlbumEditDisc;
+export type AlbumEditTrack = API.AlbumEditTrack;
+export type AlbumEditCover = API.AlbumEditCover;
+export type UpdateAlbumDetailsRequest = API.UpdateAlbumDetailsRequest;
+export type UpdateAlbumCoverRequest = API.UpdateAlbumCoverRequest;
+export type UpdateAlbumCoverResult = API.UpdateAlbumCoverResult;
+export type UpdateAlbumTracksRequest = API.UpdateAlbumTracksRequest;
 
 function toError(error: Error, status: number) {
 	if (status === 409) {

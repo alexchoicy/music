@@ -1,9 +1,8 @@
+import type * as API from "@music/api";
 import { Link } from "@tanstack/react-router";
 import { ChevronRightIcon } from "lucide-react";
 
-import type { components } from "#/data/APIschema";
-
-type LibraryStats = components["schemas"]["LibraryStats"];
+type LibraryStats = API.LibraryStats;
 
 const numberFormatter = new Intl.NumberFormat();
 

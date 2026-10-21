@@ -1,4 +1,5 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
+
 import { $APIFetch } from "#/lib/APIFetchClient";
 import { trackActions } from "#/lib/queries/track.queries";
 
@@ -16,7 +17,7 @@ export async function fetchRadioTrack(
 	});
 	if (!radioTrack) return null;
 
-	const result = await $APIFetch<components["schemas"]["AlbumDetails"]>(
+	const result = await $APIFetch<API.AlbumDetails>(
 		`/albums/${radioTrack.albumId}`,
 	);
 	if (!result.ok) throw result.error;

@@ -1,14 +1,13 @@
+import type * as API from "@music/api";
 import { queryOptions } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 
-import type { components } from "#/data/APIschema";
-
 import { $APIFetch, ApiError } from "../APIFetchClient";
 
-export type ExtraDetails = components["schemas"]["ExtraDetails"];
-export type ExtraAssetDetails = components["schemas"]["ExtraAssetDetails"];
-export type SaveExtraRequest = components["schemas"]["SaveExtraRequest"];
-export type SaveExtraResult = components["schemas"]["SaveExtraResult"];
+export type ExtraDetails = API.ExtraDetails;
+export type ExtraAssetDetails = API.ExtraAssetDetails;
+export type SaveExtraRequest = API.SaveExtraRequest;
+export type SaveExtraResult = API.SaveExtraResult;
 
 export const extraQueries = {
 	getAlbumExtras: (albumId: number | string) =>

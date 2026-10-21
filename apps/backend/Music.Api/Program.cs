@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -13,6 +14,7 @@ using Music.Infrastructure.Data;
 using Music.Infrastructure.Data.Seed;
 using Music.Infrastructure.Entities;
 
+var generatingOpenApi = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddProblemDetails(configure =>
@@ -29,6 +31,11 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options =>
 {
+    if (generatingOpenApi)
+    {
+        return;
+    }
+
     options.AddDocumentTransformer(
         (document, context, ct) =>
         {
@@ -44,6 +51,14 @@ builder
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+
+if (generatingOpenApi)
+{
+    var schemaApp = builder.Build();
+    schemaApp.MapControllers();
+    schemaApp.Run();
+    return;
+}
 
 builder.Services.AddCors(options =>
 {

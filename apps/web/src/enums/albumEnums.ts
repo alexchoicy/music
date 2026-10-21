@@ -1,9 +1,9 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 
 import { enumOptions } from "./utils";
 
-type AlbumType = components["schemas"]["AlbumType"];
-type MediaSource = components["schemas"]["MediaSource"];
+type AlbumType = API.AlbumType;
+type MediaSource = API.MediaSource;
 
 const ALBUM_TYPE: Record<AlbumType, string> = {
 	Album: "Album",

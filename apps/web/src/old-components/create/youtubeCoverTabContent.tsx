@@ -12,7 +12,7 @@ import {
 import { useEffect, useId, useState } from "react";
 import type { FormEvent } from "react";
 
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 import { createYouTubeCover, retryYouTubeImportJob } from "#/lib/api/youtube";
 import { youtubeQueries } from "#/lib/queries/youtube.queries";
 import { formatDate } from "#/lib/utils/date";
@@ -47,8 +47,8 @@ import { PartyCombobox } from "#/old-components/PartyCombobox";
 import type { CroppedArea } from "#/store/albumUploadStoreType";
 
 type CreateYouTubeCoverResult =
-	components["schemas"]["CreateYouTubeCoverResult"];
-type YouTubePartySuggestion = components["schemas"]["YouTubePartySuggestion"];
+	API.CreateYouTubeCoverResult;
+type YouTubePartySuggestion = API.YouTubePartySuggestion;
 
 type ImageSize = { width: number; height: number };
 
@@ -464,7 +464,7 @@ type ImportStatusProps = {
 	isRetrying: boolean;
 	onReset: () => void;
 	onRetry: () => void;
-	status?: components["schemas"]["WorkerJobStatus"];
+	status?: API.WorkerJobStatus;
 };
 
 function ImportStatus({

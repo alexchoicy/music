@@ -1,3 +1,4 @@
+import type * as API from "@music/api";
 import type {
 	AuthenticationResponseJSON,
 	PublicKeyCredentialCreationOptionsJSON,
@@ -5,7 +6,6 @@ import type {
 	RegistrationResponseJSON,
 } from "@simplewebauthn/browser";
 
-import type { components } from "#/data/APIschema";
 import { getDefaultDeviceName } from "#/store/playbackDeviceStore";
 
 import { $APIFetch } from "../APIFetchClient";
@@ -35,17 +35,14 @@ export async function passkeyAuthenticationOptions(username?: string) {
 }
 
 export async function signInWithPasskey(assertion: AuthenticationResponseJSON) {
-	const result = await $APIFetch<components["schemas"]["LoginResult"]>(
-		"/auth/passkey-signin",
-		{
-			method: "POST",
-			body: JSON.stringify({
-				credential: assertion,
-				client: "Web",
-				deviceName: getDefaultDeviceName(),
-			} satisfies components["schemas"]["PasskeySignInRequest"]),
-		},
-	);
+	const result = await $APIFetch<API.LoginResult>("/auth/passkey-signin", {
+		method: "POST",
+		body: JSON.stringify({
+			credential: assertion,
+			client: "Web",
+			deviceName: getDefaultDeviceName(),
+		} satisfies API.PasskeySignInRequest),
+	});
 
 	if (!result.ok) {
 		throw new Error("Passkey sign-in failed");

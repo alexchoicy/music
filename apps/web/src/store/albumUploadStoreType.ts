@@ -1,13 +1,13 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 
-export type CreateAlbumRequest = components["schemas"]["CreateAlbumRequest"];
-type AlbumDiscRequest = components["schemas"]["AlbumDiscRequest"];
-export type ImageRequest = components["schemas"]["AlbumImageRequest"];
-type AlbumTrackRequest = components["schemas"]["AlbumTrackRequest"];
-export type PartyItem = components["schemas"]["PartyItems"];
-export type CreditRequest = components["schemas"]["CreditRequest"];
-export type LanguageItem = components["schemas"]["LanguageListItem"];
-export type TrackAudioRequest = components["schemas"]["TrackAudioRequest"];
+export type CreateAlbumRequest = API.CreateAlbumRequest;
+type AlbumDiscRequest = API.AlbumDiscRequest;
+export type ImageRequest = API.AlbumImageRequest;
+type AlbumTrackRequest = API.AlbumTrackRequest;
+export type PartyItem = API.PartyItems;
+export type CreditRequest = API.CreditRequest;
+export type LanguageItem = API.LanguageListItem;
+export type TrackAudioRequest = API.TrackAudioRequest;
 
 export type AlbumLocalId = string;
 export type DiscLocalId = string;
@@ -25,7 +25,7 @@ export type TrackUploadResult = {
 	fileObjectId: string;
 	blake3Hash: string;
 	fileName: string;
-	multipartUploadInfo: components["schemas"]["MultipartUploadResults"];
+	multipartUploadInfo: API.MultipartUploadResults;
 };
 
 export type CroppedArea = {
@@ -87,7 +87,7 @@ export type UpdateAlbumDraftInput = {
 };
 
 export type UpdateTrackDraftAudioInput = {
-	blake3Hash: components["schemas"]["TrackAudioRequest"]["file"]["blake3Hash"];
+	blake3Hash: API.TrackAudioRequest["file"]["blake3Hash"];
 	rank: NonNullable<TrackAudioRequest["rank"]>;
 	pinned: NonNullable<TrackAudioRequest["pinned"]>;
 	source: NonNullable<TrackAudioRequest["source"]>;

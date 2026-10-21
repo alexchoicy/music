@@ -1,11 +1,11 @@
+import type * as API from "@music/api";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createContext, use } from "react";
 import type { ReactNode } from "react";
 
-import type { components } from "#/data/APIschema";
 import { authQueries } from "#/lib/queries/auth.queries";
 
-export type UserInfo = components["schemas"]["UserInfo"];
+export type UserInfo = API.UserInfo;
 
 const UserInfoContext = createContext<UserInfo | null>(null);
 

@@ -8,7 +8,7 @@ import {
 import { PlusIcon } from "lucide-react";
 import { useId, useRef, useState } from "react";
 
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 import {
 	COUNTRY_CODE,
 	COUNTRY_CODE_OPTIONS,
@@ -51,8 +51,8 @@ import { Input } from "#/old-components/coss/input";
 import { EnumFieldSelect } from "#/old-components/enumFieldSelect";
 import type { PartyItem } from "#/store/albumUploadStoreType";
 
-type CreatePartyRequest = components["schemas"]["CreatePartyRequest"];
-type PartyDetails = components["schemas"]["PartyDetails"];
+type CreatePartyRequest = API.CreatePartyRequest;
+type PartyDetails = API.PartyDetails;
 
 export type PartyComboboxId = number;
 

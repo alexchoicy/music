@@ -1,7 +1,6 @@
+import type * as API from "@music/api";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestUrl } from "@tanstack/react-start/server";
-
-import type { components } from "@/data/APIschema";
 
 export const getSimpleAlbum = createServerFn({ method: "GET" })
 	.validator((data: { id: string }) => data)
@@ -27,7 +26,7 @@ export const getSimpleAlbum = createServerFn({ method: "GET" })
 			throw new Error("Failed to fetch album");
 		}
 
-		const album = (await res.json()) as components["schemas"]["AlbumSummary"];
+		const album = (await res.json()) as API.AlbumSummary;
 
 		const albumUrl = new URL(
 			`/albums/${encodeURIComponent(data.id)}`,

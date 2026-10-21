@@ -1,3 +1,4 @@
+import type * as API from "@music/api";
 import type { IAudioMetadata } from "music-metadata";
 
 import {
@@ -5,7 +6,6 @@ import {
 	DEFAULT_TRACK_AUDIO_SOURCE,
 	TRACK_TITLE,
 } from "#/constant/album";
-import type { components } from "#/data/APIschema";
 import {
 	getExtensionFromFileName,
 	getExtensionFromMimeType,
@@ -103,7 +103,7 @@ export function buildAlbumRequests(
 function getTrackContentType(
 	title: string,
 	fileName: string,
-): components["schemas"]["TrackContentType"] {
+): API.TrackContentType {
 	if (checkIfMC(title, fileName)) return "MC";
 	if (checkIfInterlude(title, fileName)) return "Interlude";
 	if (checkIfIntro(title, fileName)) return "Intro";
@@ -113,7 +113,7 @@ function getTrackContentType(
 function getTrackVersionType(
 	title: string,
 	fileName: string,
-): components["schemas"]["TrackVersionType"] {
+): API.TrackVersionType {
 	return checkIfInstrumental(title, fileName) ? "Instrumental" : "Original";
 }
 
@@ -186,7 +186,7 @@ function findDiscByNumber(
 function createTrackAudioRequest(
 	fileData: ProcessedFileData,
 	durationInMs: number,
-): components["schemas"]["TrackAudioRequest"] {
+): API.TrackAudioRequest {
 	const mimeType =
 		fileData.file.type || getMimeTypeFromFileName(fileData.file.name);
 	const extension =

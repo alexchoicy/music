@@ -10,7 +10,7 @@ import {
 	Trash2Icon,
 } from "lucide-react";
 
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 import type { PreparedExtraFile } from "#/lib/upload/extraUpload";
 import { formatFileSize } from "#/lib/utils/file";
 import { cn } from "#/lib/utils/styles";
@@ -18,7 +18,7 @@ import { Badge } from "#/old-components/coss/badge";
 import { Button } from "#/old-components/coss/button";
 import { Input } from "#/old-components/coss/input";
 
-type FileType = components["schemas"]["FileType"];
+type FileType = API.FileType;
 
 export type ExtraAssetDraft = {
 	id: string;

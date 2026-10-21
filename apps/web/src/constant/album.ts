@@ -1,11 +1,10 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 
 export const ALBUM_TITLE = "UNKNOWN ALBUM";
 
 export const TRACK_TITLE = "UNKNOWN TRACK";
 
-export const DEFAULT_TRACK_AUDIO_SOURCE: components["schemas"]["MediaSource"] =
-	"UserUpload";
+export const DEFAULT_TRACK_AUDIO_SOURCE: API.MediaSource = "UserUpload";
 
 export const COVER_IMAGE_ACCEPT = "image/jpeg,image/png";
 

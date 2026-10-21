@@ -1,3 +1,4 @@
+import type * as API from "@music/api";
 import { Link } from "@tanstack/react-router";
 import { Disc3Icon } from "lucide-react";
 
@@ -5,14 +6,13 @@ import { AlbumContextMenu } from "#/components/album/AlbumContextMenu";
 import { AlbumTypeBadge } from "#/components/album/AlbumTypeBadge";
 import { usePlayAlbum } from "#/components/album/usePlayAlbum";
 import { ArtworkPlayButton } from "#/components/app/ArtworkPlayButton";
-import type { components } from "#/data/APIschema";
 import { useTitleLang } from "#/hooks/use-title-lang";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { formatDurationInHoursAndMinutes } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
-type Album = components["schemas"]["AlbumListItem"];
+type Album = API.AlbumListItem;
 
 type AlbumTileProps = {
 	album: Album;

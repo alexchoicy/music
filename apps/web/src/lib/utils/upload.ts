@@ -1,8 +1,8 @@
+import type * as API from "@music/api";
 import type { IAudioMetadata } from "music-metadata";
 import type * as MusicMetadata from "music-metadata";
 import pMap from "p-map";
 
-import type { components } from "#/data/APIschema";
 import type {
 	CoverAsset,
 	CroppedArea,
@@ -161,7 +161,7 @@ export async function processDroppedFiles(
 
 export function makeAlbumMatchingKey(
 	title: string,
-	credits: components["schemas"]["CreditRequest"][],
+	credits: API.CreditRequest[],
 	unsolvedArtists: string[],
 ): string {
 	const t = normalizeString(title);

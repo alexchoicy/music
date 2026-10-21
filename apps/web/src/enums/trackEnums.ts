@@ -1,9 +1,9 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 
 import { enumOptions } from "./utils";
 
-type TrackContentType = components["schemas"]["TrackContentType"];
-type TrackVersionType = components["schemas"]["TrackVersionType"];
+type TrackContentType = API.TrackContentType;
+type TrackVersionType = API.TrackVersionType;
 
 const TRACK_CONTENT_TYPE: Record<TrackContentType, string> = {
 	Music: "Music",

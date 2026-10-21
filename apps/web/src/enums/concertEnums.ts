@@ -1,8 +1,8 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 
 import { enumOptions } from "./utils";
 
-type ConcertFileType = components["schemas"]["ConcertFileType"];
+type ConcertFileType = API.ConcertFileType;
 
 export const CONCERT_FILE_TYPE: Record<ConcertFileType, string> = {
 	Performance: "Performance",

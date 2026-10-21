@@ -6,7 +6,7 @@ import pMap from "p-map";
 import { useEffect, useId, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 import { MEDIA_SOURCE_OPTIONS } from "#/enums/albumEnums";
 import { EXTRA_CATEGORY_OPTIONS } from "#/enums/extraEnums";
 import {
@@ -43,8 +43,8 @@ import type { ExtraAssetDraft } from "./ExtraAssetRow";
 import { ExtraCover } from "./ExtraCover";
 import { getAssetStatusLabel, getAssetThumbnailUrl } from "./extraUtils";
 
-type ExtraCategory = components["schemas"]["ExtraCategory"];
-type MediaSource = components["schemas"]["MediaSource"];
+type ExtraCategory = API.ExtraCategory;
+type MediaSource = API.MediaSource;
 
 type ExtraEditDialogProps = {
 	albumId: number;

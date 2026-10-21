@@ -1,12 +1,12 @@
+import type * as API from "@music/api";
 import { Link } from "@tanstack/react-router";
 import { MicVocalIcon } from "lucide-react";
 
-import type { components } from "#/data/APIschema";
 import { getConcertCoverUrl } from "#/lib/utils/concert";
 import { formatDurationInHoursAndMinutes } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 
-type Concert = components["schemas"]["ConcertListItem"];
+type Concert = API.ConcertListItem;
 
 function plural(count: number, noun: string) {
 	return `${count} ${noun}${count === 1 ? "" : "s"}`;

@@ -1,3 +1,4 @@
+import type * as API from "@music/api";
 import { useQuery } from "@tanstack/react-query";
 import { GitForkIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
@@ -7,7 +8,6 @@ import { Button } from "#/components/base/button";
 import { Spinner } from "#/components/base/spinner";
 import { toastManager } from "#/components/base/toast";
 import { LibraryEmptyState } from "#/components/library/LibraryStates";
-import type { components } from "#/data/APIschema";
 import { partyRelationshipQueries } from "#/lib/queries/party-relationships.queries";
 import type { RelationshipType } from "#/lib/queries/party-relationships.queries";
 import { AddRelationshipDialog } from "#/old-components/parties/AddRelationshipDialog";
@@ -23,11 +23,7 @@ function plural(count: number, noun: string, nouns = `${noun}s`) {
 	return `${count} ${count === 1 ? noun : nouns}`;
 }
 
-export function PartyRelationships({
-	party,
-}: {
-	party: components["schemas"]["PartyDetails"];
-}) {
+export function PartyRelationships({ party }: { party: API.PartyDetails }) {
 	const [anchorId, setAnchorId] = useState(Number(party.partyId));
 	const [adding, setAdding] = useState(false);
 	const query = useQuery(partyRelationshipQueries.graph(anchorId));

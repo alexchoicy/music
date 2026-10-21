@@ -1,13 +1,13 @@
+import type * as API from "@music/api";
 import { queryOptions } from "@tanstack/react-query";
 
 import { getDefaultDeviceName } from "#/store/playbackDeviceStore";
-import type { components } from "@/data/APIschema";
 
 import { $APIFetch, ApiError } from "../APIFetchClient";
 
-export type AuthSession = components["schemas"]["AuthSessionDto"];
-export type ApiKey = components["schemas"]["ApiKeyDto"];
-export type CreatedApiKey = components["schemas"]["CreatedApiKey"];
+export type AuthSession = API.AuthSessionDto;
+export type ApiKey = API.ApiKeyDto;
+export type CreatedApiKey = API.CreatedApiKey;
 
 /** The server rejected the session (401), as opposed to being unreachable or failing. */
 export class UnauthorizedError extends ApiError {
@@ -24,24 +24,18 @@ async function deleteOrThrow(endpoint: string, failure: string) {
 export const authMutations = {
 	login: () => ({
 		mutationFn: async (
-			data: Pick<
-				components["schemas"]["LoginRequest"],
-				"username" | "password"
-			>,
+			data: Pick<API.LoginRequest, "username" | "password">,
 		) => {
 			// Web sessions live in the HttpOnly cookie; the response carries no token.
-			const body: components["schemas"]["LoginRequest"] = {
+			const body: API.LoginRequest = {
 				...data,
 				client: "Web",
 				deviceName: getDefaultDeviceName(),
 			};
-			const result = await $APIFetch<components["schemas"]["LoginResult"]>(
-				"/auth/login",
-				{
-					method: "POST",
-					body: JSON.stringify(body),
-				},
-			);
+			const result = await $APIFetch<API.LoginResult>("/auth/login", {
+				method: "POST",
+				body: JSON.stringify(body),
+			});
 			if (!result.ok) {
 				throw new Error("Invalid username or password");
 			}
@@ -78,12 +72,9 @@ export const authQueries = {
 		queryOptions({
 			queryKey: ["auth", "me"],
 			queryFn: async () => {
-				const result = await $APIFetch<components["schemas"]["UserInfo"]>(
-					"/me",
-					{
-						method: "GET",
-					},
-				);
+				const result = await $APIFetch<API.UserInfo>("/me", {
+					method: "GET",
+				});
 
 				if (!result.ok) {
 					throw result.status === 401

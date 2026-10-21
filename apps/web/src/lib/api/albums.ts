@@ -1,9 +1,9 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
 
 import { $APIFetch } from "../APIFetchClient";
 
-type CreateAlbumRequest = components["schemas"]["CreateAlbumRequest"];
-type CreateAlbumResult = components["schemas"]["CreateAlbumResult"];
+type CreateAlbumRequest = API.CreateAlbumRequest;
+type CreateAlbumResult = API.CreateAlbumResult;
 
 export async function createAlbums(request: CreateAlbumRequest[]) {
 	const result = await $APIFetch<CreateAlbumResult[]>("/albums", {

@@ -1,10 +1,9 @@
+import type * as API from "@music/api";
 import { queryOptions } from "@tanstack/react-query";
-
-import type { components, paths } from "#/data/APIschema";
 
 import { $APIFetch, ApiError } from "../APIFetchClient";
 
-export type ConcertQuery = paths["/concerts"]["get"]["parameters"]["query"];
+export type ConcertQuery = API.GetConcertsData["query"];
 
 export const concertQueries = {
 	getConcerts: (query?: ConcertQuery) =>
@@ -25,9 +24,7 @@ export const concertQueries = {
 					? `/concerts?${params.toString()}`
 					: "/concerts";
 
-				const result = await $APIFetch<
-					components["schemas"]["ConcertListItem"][]
-				>(url, { signal });
+				const result = await $APIFetch<API.ConcertListItem[]>(url, { signal });
 				if (!result.ok)
 					throw new ApiError("Unable to load concerts", result.status);
 				return result.data;
@@ -37,13 +34,10 @@ export const concertQueries = {
 		queryOptions({
 			queryKey: ["concerts", String(id)],
 			queryFn: async ({ signal }) => {
-				const result = await $APIFetch<components["schemas"]["ConcertDetails"]>(
-					`/concerts/${id}`,
-					{
-						method: "GET",
-						signal,
-					},
-				);
+				const result = await $APIFetch<API.ConcertDetails>(`/concerts/${id}`, {
+					method: "GET",
+					signal,
+				});
 
 				if (!result.ok) {
 					throw new ApiError("Unable to load concert", result.status);

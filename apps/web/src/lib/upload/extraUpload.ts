@@ -1,6 +1,6 @@
+import type * as API from "@music/api";
 import pMap from "p-map";
 
-import type { components } from "#/data/APIschema";
 import { completeUpload } from "#/lib/api/uploads";
 import {
 	getExtensionFromFileName,
@@ -10,8 +10,8 @@ import {
 import { hashBlake3Simple, hashFileStream } from "#/lib/utils/hash";
 import { useUploadStore } from "#/store/uploadStore";
 
-type FileRequest = components["schemas"]["FileRequest"];
-type ExtraAssetUploadResult = components["schemas"]["ExtraAssetUploadResult"];
+type FileRequest = API.FileRequest;
+type ExtraAssetUploadResult = API.ExtraAssetUploadResult;
 
 export type PreparedExtraFile = {
 	file: File;

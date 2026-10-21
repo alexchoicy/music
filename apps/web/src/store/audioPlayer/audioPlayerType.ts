@@ -1,9 +1,9 @@
+import type * as API from "@music/api";
 import type WaveSurfer from "wavesurfer.js";
 
-import type { components } from "#/data/APIschema";
 import type { TransferSnapshot } from "#/data/webSocket";
 
-type TrackAudio = components["schemas"]["TrackAudioDetails"];
+type TrackAudio = API.TrackAudioDetails;
 
 type PlayerStatus = "idle" | "ready" | "playing" | "paused" | "loading";
 
@@ -17,8 +17,8 @@ export type AudioPlayerTrack = {
 	// Optional so queues saved before these fields existed still load.
 	languageId?: number | string | null;
 	albumLanguageId?: number | string | null;
-	contentType: components["schemas"]["TrackContentType"];
-	versionType: components["schemas"]["TrackVersionType"];
+	contentType: API.TrackContentType;
+	versionType: API.TrackVersionType;
 	party: {
 		partyId: string;
 		name: string;

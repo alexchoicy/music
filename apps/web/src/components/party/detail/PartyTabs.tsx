@@ -1,3 +1,4 @@
+import type * as API from "@music/api";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -20,14 +21,13 @@ import { Tabs, TabsList, TabsPanel, TabsTab } from "#/components/base/tabs";
 import { TileRow } from "#/components/home/HomeSection";
 import { PartyRelationships } from "#/components/party/relationships/PartyRelationships";
 import { useUserInfo } from "#/context/UserInfoContext";
-import type { components } from "#/data/APIschema";
 import { ROLE } from "#/enums/userEnums";
 import { albumQueries } from "#/lib/queries/album.queries";
 import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
-type PartyDetails = components["schemas"]["PartyDetails"];
-type Album = components["schemas"]["AlbumListItem"];
+type PartyDetails = API.PartyDetails;
+type Album = API.AlbumListItem;
 
 const ALBUM_GRID_CLASS =
 	"grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))]";

@@ -1,3 +1,4 @@
+import type * as API from "@music/api";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import type { UseHotkeyOptions } from "@tanstack/react-hotkeys";
 import {
@@ -37,13 +38,12 @@ import {
 import { Slider } from "#/components/base/slider";
 import { ConcertAmbientLight } from "#/components/concert/detail/ConcertAmbientLight";
 import { VolumeControl } from "#/components/player/VolumeControl";
-import type { components } from "#/data/APIschema";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 import { getPresignedUrl } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
-type ConcertFile = components["schemas"]["ConcertFileDetails"];
+type ConcertFile = API.ConcertFileDetails;
 type Playback = { isDash: boolean; url: string };
 type AudioTrack = ReturnType<shaka.Player["getAudioTracks"]>[number];
 

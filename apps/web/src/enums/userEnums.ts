@@ -1,8 +1,8 @@
-import type { components } from "@/data/APIschema";
+import type * as API from "@music/api";
 
 import { enumOptions } from "./utils";
 
-type Roles = components["schemas"]["Roles"];
+type Roles = API.Roles;
 
 export const ROLE: Record<Roles, string> = {
 	Admin: "Admin",

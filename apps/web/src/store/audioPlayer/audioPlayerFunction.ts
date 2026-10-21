@@ -1,4 +1,5 @@
-import type { components } from "#/data/APIschema";
+import type * as API from "@music/api";
+
 import type { AudioWaveformJson } from "#/data/AudioWaveForm";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { isProbablyPhone } from "#/lib/utils/browser";
@@ -9,9 +10,9 @@ import type {
 	ResolvedPlaybackQuality,
 } from "./audioPlayerType";
 
-type AlbumDetails = components["schemas"]["AlbumDetails"];
-type AlbumDiscDetails = components["schemas"]["AlbumDiscDetails"];
-type AlbumTrackDetails = components["schemas"]["AlbumTrackDetails"];
+type AlbumDetails = API.AlbumDetails;
+type AlbumDiscDetails = API.AlbumDiscDetails;
+type AlbumTrackDetails = API.AlbumTrackDetails;
 
 export function albumDetailsToAudioPlayerTracks(
 	album: AlbumDetails,

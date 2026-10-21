@@ -1,3 +1,4 @@
+import type * as API from "@music/api";
 import {
 	CircleAlertIcon,
 	ClockIcon,
@@ -10,7 +11,6 @@ import { useState } from "react";
 
 import { Badge } from "#/components/base/badge";
 import { FilterChips } from "#/components/library/FilterChips";
-import type { components } from "#/data/APIschema";
 import { EXTRA_CATEGORY } from "#/enums/extraEnums";
 import type { ExtraDetails } from "#/lib/queries/extra.queries";
 
@@ -18,7 +18,7 @@ import { formatFileCount, getExtraStatusLabel } from "./extraAssets";
 import { ExtraCover } from "./ExtraCover";
 import { ExtraViewerDialog } from "./ExtraViewerDialog";
 
-type ExtraCategory = components["schemas"]["ExtraCategory"];
+type ExtraCategory = API.ExtraCategory;
 
 const CATEGORY_ORDER = Object.keys(EXTRA_CATEGORY) as ExtraCategory[];
 

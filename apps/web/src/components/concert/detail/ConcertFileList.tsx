@@ -1,3 +1,4 @@
+import type * as API from "@music/api";
 import { CheckIcon, CopyIcon, DownloadIcon, FilmIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -5,7 +6,6 @@ import { PlayingBars } from "#/components/album/AlbumTile";
 import { Badge } from "#/components/base/badge";
 import { Button } from "#/components/base/button";
 import { toastManager } from "#/components/base/toast";
-import type { components } from "#/data/APIschema";
 import { CONCERT_FILE_TYPE } from "#/enums/concertEnums";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
@@ -14,7 +14,7 @@ import {
 	getPresignedUrl,
 } from "#/store/audioPlayer/audioPlayerFunction";
 
-type ConcertFile = components["schemas"]["ConcertFileDetails"];
+type ConcertFile = API.ConcertFileDetails;
 type ConcertFileType = ConcertFile["type"];
 
 const FILE_TYPE_ORDER: ConcertFileType[] = [

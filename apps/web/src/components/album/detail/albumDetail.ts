@@ -1,13 +1,13 @@
+import type * as API from "@music/api";
 import pmap from "p-map";
 
 import { toastManager } from "#/components/base/toast";
-import type { components } from "#/data/APIschema";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { shareUrl } from "#/lib/utils/browser";
 import { getPresignedDownloadUrl } from "#/store/audioPlayer/audioPlayerFunction";
 
-export type AlbumDetails = components["schemas"]["AlbumDetails"];
-export type AlbumTrack = components["schemas"]["AlbumTrackDetails"];
+export type AlbumDetails = API.AlbumDetails;
+export type AlbumTrack = API.AlbumTrackDetails;
 export type PartyCredit =
 	| AlbumDetails["credits"][number]
 	| AlbumTrack["credits"][number];

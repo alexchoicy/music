@@ -1,3 +1,4 @@
+import type * as API from "@music/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
@@ -26,13 +27,12 @@ import {
 } from "#/components/base/context-menu";
 import { toastManager } from "#/components/base/toast";
 import { AddToPlaylistDialog } from "#/components/playlist/AddToPlaylistDialog";
-import type { components } from "#/data/APIschema";
 import { albumQueries } from "#/lib/queries/album.queries";
 import type { PlaylistTrackRequest } from "#/lib/queries/playlist.queries";
 import { albumDetailsToAudioPlayerTracks } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
-type Album = components["schemas"]["AlbumListItem"];
+type Album = API.AlbumListItem;
 
 export function AlbumContextMenu({
 	album,

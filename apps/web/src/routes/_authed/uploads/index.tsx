@@ -1,3 +1,4 @@
+import type * as API from "@music/api";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -28,7 +29,6 @@ import {
 	TooltipTrigger,
 } from "#/components/base/tooltip";
 import { UploadDropZone } from "#/components/upload/UploadDropZone";
-import type { components } from "#/data/APIschema";
 import { startUpload } from "#/lib/api/uploads";
 import { uploadQueries } from "#/lib/queries/upload.queries";
 import { hashBlake3Simple, hashFileStream } from "#/lib/utils/hash";
@@ -57,33 +57,30 @@ function RouteComponent() {
 	const uploadStoreAddFile = useUploadStore((state) => state.addFile);
 	const uploadStoreStartUpload = useUploadStore((state) => state.startUpload);
 
-	const pendingFileItems =
-		useMemo((): (components["schemas"]["PendingOriginalFileResult"] & {
-			uploadStatus?: string;
-		})[] => {
-			const statusPriority = (
-				item: components["schemas"]["PendingOriginalFileResult"] & {
-					uploadStatus?: string;
-				},
-			) => {
-				if (item.uploadStatus === "Failed") return 0;
-				if (item.uploadStatus === "Uploading") return 1;
-				if (item.uploadStatus === "Queued") return 2;
-				if (item.processingStatus === "Pending") return 3;
-				return 4;
-			};
+	const pendingFileItems = useMemo((): (API.PendingOriginalFileResult & {
+		uploadStatus?: string;
+	})[] => {
+		const statusPriority = (
+			item: API.PendingOriginalFileResult & {
+				uploadStatus?: string;
+			},
+		) => {
+			if (item.uploadStatus === "Failed") return 0;
+			if (item.uploadStatus === "Uploading") return 1;
+			if (item.uploadStatus === "Queued") return 2;
+			if (item.processingStatus === "Pending") return 3;
+			return 4;
+		};
 
-			return pendingFiles
-				.map((file) => ({
-					...file,
-					uploadStatus: fileByBlake3[file.blake3Hash]?.status,
-				}))
-				.sort((a, b) => statusPriority(a) - statusPriority(b));
-		}, [pendingFiles, fileByBlake3]);
+		return pendingFiles
+			.map((file) => ({
+				...file,
+				uploadStatus: fileByBlake3[file.blake3Hash]?.status,
+			}))
+			.sort((a, b) => statusPriority(a) - statusPriority(b));
+	}, [pendingFiles, fileByBlake3]);
 
-	const runUpload = async (
-		item: components["schemas"]["PendingOriginalFileResult"],
-	) => {
+	const runUpload = async (item: API.PendingOriginalFileResult) => {
 		const getStartUpload = await startUpload(item.fileObjectId);
 		uploadStoreStartUpload([getStartUpload]);
 	};

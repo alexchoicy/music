@@ -1,3 +1,4 @@
+import type * as API from "@music/api";
 import { ExternalLinkIcon, PlayIcon, ShuffleIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -5,12 +6,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "#/components/base/avatar";
 import { Badge } from "#/components/base/badge";
 import { Button } from "#/components/base/button";
 import { usePlayParty } from "#/components/party/usePlayParty";
-import type { components } from "#/data/APIschema";
 import { COUNTRY_CODE, PARTY_KIND, PARTY_TYPE } from "#/enums/partyEnums";
 import { getPartyAvatarUrl } from "#/lib/utils/party";
 import { getInitials } from "#/lib/utils/string";
 
-type PartyDetails = components["schemas"]["PartyDetails"];
+type PartyDetails = API.PartyDetails;
 
 // Initials sit on a colour picked from the name, so it stays stable per party.
 const INITIALS_PALETTE = [
