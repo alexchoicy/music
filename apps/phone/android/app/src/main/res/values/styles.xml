@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.Music" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/music_background</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowSplashScreenBackground">@color/music_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+    </style>
+</resources>

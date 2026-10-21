@@ -1,0 +1,115 @@
+package com.alexchoicy.music.ui.theme
+
+import androidx.compose.runtime.Immutable
+import androidx.compose.ui.graphics.Color
+
+@Immutable
+data class MusicColors(
+    val background: Color,
+    val foreground: Color,
+    val card: Color,
+    val popover: Color,
+    val sidebar: Color,
+    val sidebarForeground: Color,
+    val sidebarAccent: Color,
+    val primary: Color,
+    val primaryForeground: Color,
+    val secondary: Color,
+    val muted: Color,
+    val mutedForeground: Color,
+    val accent: Color,
+    val border: Color,
+    val input: Color,
+    val destructive: Color,
+    val onDestructive: Color,
+    val destructiveForeground: Color,
+    val success: Color,
+    val onSuccess: Color,
+    val successForeground: Color,
+    val warning: Color,
+    val onWarning: Color,
+    val warningForeground: Color,
+    val info: Color,
+    val onInfo: Color,
+    val infoForeground: Color,
+    val scrim: Color,
+    val artFade: Color,
+    val chart4: Color,
+) {
+    val cardForeground: Color get() = foreground
+    val popoverForeground: Color get() = foreground
+    val sidebarAccentForeground: Color get() = foreground
+    val secondaryForeground: Color get() = foreground
+    val accentForeground: Color get() = foreground
+    val ring: Color get() = primary
+    val chart1: Color get() = primary
+    val chart2: Color get() = info
+    val chart3: Color get() = warning
+    val chart5: Color get() = success
+}
+
+internal val DarkMusicColors = MusicColors(
+    background = Color(0xFF0D0C0B),
+    foreground = Color(0xFFF3F0EA),
+    card = Color(0xFF151413),
+    popover = Color(0xFF1D1B19),
+    sidebar = Color(0xFF100F0E),
+    sidebarForeground = Color(0xFFBDB9B1),
+    sidebarAccent = Color(0xFF201E1C),
+    primary = Color(0xFFE8758B),
+    primaryForeground = Color(0xFF240811),
+    secondary = Color(0xFF24221F),
+    muted = Color(0xFF1A1918),
+    mutedForeground = Color(0xFFA7A39B),
+    accent = Color(0xFF26231F),
+    border = Color(0xFF2B2925),
+    input = Color(0xFF716D66),
+    destructive = Color(0xFFD6303A),
+    onDestructive = Color(0xFFFFFFFF),
+    destructiveForeground = Color(0xFFFF9B9B),
+    success = Color(0xFF2CC7B8),
+    onSuccess = Color(0xFF06140F),
+    successForeground = Color(0xFF4FDCCF),
+    warning = Color(0xFFE8A41C),
+    onWarning = Color(0xFF1A1000),
+    warningForeground = Color(0xFFF3B84A),
+    info = Color(0xFF4AA3FF),
+    onInfo = Color(0xFF04121F),
+    infoForeground = Color(0xFF8AC4FF),
+    scrim = Color(0xCC000000),
+    artFade = Color(0xF00D0C0B),
+    chart4 = Color(0xFFFF7AB8),
+)
+
+internal val LightMusicColors = MusicColors(
+    background = Color(0xFFF5F3EE),
+    foreground = Color(0xFF1B1916),
+    card = Color(0xFFFFFDF9),
+    popover = Color(0xFFFFFFFF),
+    sidebar = Color(0xFFEFECE5),
+    sidebarForeground = Color(0xFF4B473F),
+    sidebarAccent = Color(0xFFE3DFD6),
+    primary = Color(0xFFAA2249),
+    primaryForeground = Color(0xFFFFFFFF),
+    secondary = Color(0xFFE9E5DC),
+    muted = Color(0xFFEDEAE2),
+    mutedForeground = Color(0xFF5D5950),
+    accent = Color(0xFFE6E2D8),
+    border = Color(0xFFDCD7CB),
+    input = Color(0xFF7A756B),
+    destructive = Color(0xFFC92A2A),
+    onDestructive = Color(0xFFFFFFFF),
+    destructiveForeground = Color(0xFF841919),
+    success = Color(0xFF0B7C7A),
+    onSuccess = Color(0xFFFFFFFF),
+    successForeground = Color(0xFF084E4D),
+    warning = Color(0xFFA35C00),
+    onWarning = Color(0xFFFFFFFF),
+    warningForeground = Color(0xFF683A00),
+    info = Color(0xFF1B62C4),
+    onInfo = Color(0xFFFFFFFF),
+    infoForeground = Color(0xFF134682),
+    scrim = Color(0xA61B1916),
+    artFade = Color(0xF0F5F3EE),
+    chart4 = Color(0xFFB02A74),
+)
