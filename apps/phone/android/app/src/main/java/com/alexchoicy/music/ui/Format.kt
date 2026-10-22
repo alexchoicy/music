@@ -3,6 +3,9 @@ package com.alexchoicy.music.ui
 import android.text.format.DateUtils
 import java.text.NumberFormat
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
@@ -40,3 +43,7 @@ fun formatRelativeTime(instant: Instant): String {
     if (now - millis < DateUtils.MINUTE_IN_MILLIS) return "Just now"
     return DateUtils.getRelativeTimeSpanString(millis, now, DateUtils.MINUTE_IN_MILLIS).toString()
 }
+
+fun formatDate(instant: Instant): String =
+    DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+        .format(instant.atZone(ZoneId.systemDefault()))

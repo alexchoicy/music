@@ -1,5 +1,7 @@
 package com.alexchoicy.music.ui.components
 
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -8,17 +10,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.alexchoicy.music.ui.theme.MusicTheme
 
-enum class ButtonVariant { Primary, Ghost }
+enum class ButtonVariant { Primary, Secondary, Outline, Ghost }
 
 @Composable
 fun MusicButton(
@@ -28,11 +32,14 @@ fun MusicButton(
     variant: ButtonVariant = ButtonVariant.Primary,
     enabled: Boolean = true,
     loading: Boolean = false,
+    @DrawableRes icon: Int? = null,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 20.dp),
 ) {
     val colors = MusicTheme.colors
     val (container, content) = when (variant) {
         ButtonVariant.Primary -> colors.primary to colors.primaryForeground
-        ButtonVariant.Ghost -> Color.Transparent to colors.foreground
+        ButtonVariant.Secondary -> colors.secondary to colors.foreground
+        ButtonVariant.Outline, ButtonVariant.Ghost -> Color.Transparent to colors.foreground
     }
 
     Button(
@@ -48,7 +55,8 @@ fun MusicButton(
             disabledContainerColor = container.copy(alpha = container.alpha * 0.45f),
             disabledContentColor = content.copy(alpha = 0.45f),
         ),
-        contentPadding = PaddingValues(horizontal = 20.dp),
+        border = if (variant == ButtonVariant.Outline) BorderStroke(1.dp, colors.border) else null,
+        contentPadding = contentPadding,
     ) {
         if (loading) {
             CircularProgressIndicator(
@@ -56,6 +64,9 @@ fun MusicButton(
                 color = content.copy(alpha = 0.45f),
                 strokeWidth = 2.dp,
             )
+            Spacer(Modifier.width(8.dp))
+        } else if (icon != null) {
+            Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
         }
         Text(text, style = MaterialTheme.typography.labelLarge)

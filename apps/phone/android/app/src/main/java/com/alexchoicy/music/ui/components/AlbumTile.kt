@@ -1,6 +1,8 @@
 package com.alexchoicy.music.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -24,19 +27,34 @@ import com.alexchoicy.music.ui.plural
 import com.alexchoicy.music.ui.theme.MusicTheme
 
 @Composable
-fun AlbumTile(album: AlbumSummary, modifier: Modifier = Modifier) {
+fun AlbumTile(
+    album: AlbumSummary,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    showMeta: Boolean = true,
+) {
     val colors = MusicTheme.colors
     val meta = listOfNotNull(
         plural(album.trackCount, "track"),
         formatDurationHoursMinutes(album.totalDurationMs),
     ).joinToString(" · ")
 
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    val interactionSource = remember { MutableInteractionSource() }
+
+    Column(
+        modifier = modifier.clickable(
+            interactionSource = interactionSource,
+            indication = null,
+            onClick = onClick,
+        ),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         Box {
             Artwork(
                 url = album.coverUrl,
                 shape = MaterialTheme.shapes.large,
                 placeholderIcon = R.drawable.ic_albums,
+                interactionSource = interactionSource,
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f),
@@ -71,14 +89,16 @@ fun AlbumTile(album: AlbumSummary, modifier: Modifier = Modifier) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Spacer(Modifier.height(2.dp))
-            Text(
-                text = meta,
-                style = MaterialTheme.typography.bodySmall,
-                color = colors.mutedForeground,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            if (showMeta) {
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = meta,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.mutedForeground,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }

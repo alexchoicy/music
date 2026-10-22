@@ -2,10 +2,13 @@ package com.alexchoicy.music.ui.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +33,7 @@ fun Artwork(
     modifier: Modifier = Modifier,
     @DrawableRes placeholderIcon: Int? = null,
     placeholderIconSize: Dp = 40.dp,
+    interactionSource: InteractionSource? = null,
     placeholder: @Composable () -> Unit = {
         if (placeholderIcon != null) {
             Icon(
@@ -46,6 +50,7 @@ fun Artwork(
         modifier = modifier
             .shadow(2.dp, shape)
             .clip(shape)
+            .then(interactionSource?.let { Modifier.indication(it, ripple()) } ?: Modifier)
             .background(MusicTheme.colors.muted),
         contentAlignment = Alignment.Center,
     ) {

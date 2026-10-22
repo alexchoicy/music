@@ -10,11 +10,12 @@ plugins {
 }
 
 val signingPropertiesFile = rootProject.file("keystore.properties")
-val signingProperties = Properties().apply {
-    if (signingPropertiesFile.isFile) {
-        signingPropertiesFile.inputStream().use { load(it) }
+val signingProperties =
+    Properties().apply {
+        if (signingPropertiesFile.isFile) {
+            signingPropertiesFile.inputStream().use { load(it) }
+        }
     }
-}
 
 android {
     namespace = "com.alexchoicy.music"
@@ -80,6 +81,9 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.6.3")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.6.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-navigation3:2.11.0")
+    implementation("androidx.navigation3:navigation3-runtime:1.2.0")
+    implementation("androidx.navigation3:navigation3-ui:1.2.0")
     implementation("io.ktor:ktor-client-okhttp:3.6.0")
     implementation("io.ktor:ktor-client-content-negotiation:3.6.0")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.6.0")

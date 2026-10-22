@@ -1,9 +1,9 @@
 package com.alexchoicy.music.data.home
 
 import androidx.compose.runtime.snapshotFlow
+import com.alexchoicy.music.api.ApiOutcome
 import com.alexchoicy.music.api.HomeApi
 import com.alexchoicy.music.api.HomeFeed
-import com.alexchoicy.music.api.HomeOutcome
 import com.alexchoicy.music.session.SessionStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -57,9 +57,9 @@ class HomeRepository(
         val token = session.token
         if (serverUrl == null || token == null) return RefreshResult.SignedOut
         val current = Session(serverUrl, token)
-        return when (val outcome = api.fetchHome(serverUrl, token)) {
-            is HomeOutcome.Loaded -> try {
-                dao.replace(outcome.feed)
+        return when (val outcome = api.fetchHome()) {
+            is ApiOutcome.Loaded -> try {
+                dao.replace(outcome.value)
                 connectedSession.value = current
                 RefreshResult.Refreshed
             } catch (e: CancellationException) {
@@ -67,12 +67,11 @@ class HomeRepository(
             } catch (_: Exception) {
                 RefreshResult.Failed
             }
-            HomeOutcome.Unauthorized -> {
+            ApiOutcome.Unauthorized -> {
                 connectedSession.value = null
-                session.updateToken(null)
                 RefreshResult.SignedOut
             }
-            HomeOutcome.Failed -> {
+            ApiOutcome.Failed -> {
                 connectedSession.value = null
                 RefreshResult.Failed
             }

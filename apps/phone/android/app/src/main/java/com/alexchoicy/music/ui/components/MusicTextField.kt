@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -35,6 +36,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.alexchoicy.music.ui.theme.MusicColors
 import com.alexchoicy.music.ui.theme.MusicTheme
 
 @Composable
@@ -87,19 +89,7 @@ fun MusicTextField(
                 Box(
                     modifier = Modifier
                         .height(48.dp)
-                        .drawBehind {
-                            if (!focused) return@drawBehind
-                            val spread = 3.dp.toPx()
-                            drawRoundRect(
-                                color = colors.ring.copy(alpha = 0.32f),
-                                topLeft = Offset(-spread / 2, -spread / 2),
-                                size = Size(size.width + spread, size.height + spread),
-                                cornerRadius = CornerRadius(8.dp.toPx() + spread / 2),
-                                style = Stroke(spread),
-                            )
-                        }
-                        .background(colors.card, MaterialTheme.shapes.medium)
-                        .border(1.dp, borderColor, MaterialTheme.shapes.medium)
+                        .fieldFrame(colors, focused, borderColor)
                         .padding(horizontal = 12.dp),
                     contentAlignment = Alignment.CenterStart,
                 ) {
@@ -127,3 +117,19 @@ fun MusicTextField(
         }
     }
 }
+
+@Composable
+internal fun Modifier.fieldFrame(colors: MusicColors, focused: Boolean, borderColor: Color) = this
+    .drawBehind {
+        if (!focused) return@drawBehind
+        val spread = 3.dp.toPx()
+        drawRoundRect(
+            color = colors.ring.copy(alpha = 0.32f),
+            topLeft = Offset(-spread / 2, -spread / 2),
+            size = Size(size.width + spread, size.height + spread),
+            cornerRadius = CornerRadius(8.dp.toPx() + spread / 2),
+            style = Stroke(spread),
+        )
+    }
+    .background(colors.card, MaterialTheme.shapes.medium)
+    .border(1.dp, borderColor, MaterialTheme.shapes.medium)

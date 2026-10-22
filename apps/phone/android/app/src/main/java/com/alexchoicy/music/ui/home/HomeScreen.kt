@@ -20,13 +20,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
@@ -53,7 +50,9 @@ import com.alexchoicy.music.ui.components.Artwork
 import com.alexchoicy.music.ui.components.ButtonVariant
 import com.alexchoicy.music.ui.components.MainTab
 import com.alexchoicy.music.ui.components.MusicButton
+import com.alexchoicy.music.ui.components.MusicSnackbarHost
 import com.alexchoicy.music.ui.components.PartyTile
+import com.alexchoicy.music.ui.components.PlaceholderBlock
 import com.alexchoicy.music.ui.formatCount
 import com.alexchoicy.music.ui.formatPlaybackTime
 import com.alexchoicy.music.ui.formatRelativeTime
@@ -67,6 +66,8 @@ private val SquareTileWidth = 150.dp
 fun HomeScreen(
     contentPadding: PaddingValues,
     onOpenTab: (MainTab) -> Unit,
+    onOpenAlbum: (Long) -> Unit,
+    onOpenParty: (Long) -> Unit,
     viewModel: HomeViewModel = viewModel { HomeViewModel(musicApplication().homeRepository) },
 ) {
     val feed = viewModel.feed
@@ -108,37 +109,35 @@ fun HomeScreen(
                 )
             }
             when {
-                feed != null -> homeContent(feed, onOpenTab)
+                feed != null -> homeContent(feed, onOpenTab, onOpenAlbum, onOpenParty)
                 viewModel.failed -> item { LoadError(onRetry = viewModel::refresh) }
                 else -> item { HomePlaceholder() }
             }
         }
-        SnackbarHost(
+        MusicSnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = contentPadding.calculateBottomPadding()),
-        ) {
-            Snackbar(
-                snackbarData = it,
-                shape = MaterialTheme.shapes.medium,
-                containerColor = MusicTheme.colors.popover,
-                contentColor = MusicTheme.colors.foreground,
-                actionColor = MusicTheme.colors.primary,
-                dismissActionContentColor = MusicTheme.colors.mutedForeground,
-            )
-        }
+        )
     }
 }
 
-private fun LazyListScope.homeContent(feed: HomeFeed, onOpenTab: (MainTab) -> Unit) {
+private fun LazyListScope.homeContent(
+    feed: HomeFeed,
+    onOpenTab: (MainTab) -> Unit,
+    onOpenAlbum: (Long) -> Unit,
+    onOpenParty: (Long) -> Unit,
+) {
     item { LibraryCounts(feed.stats, onOpenTab) }
 
     if (feed.continueListening.isNotEmpty()) {
         item {
             HomeSection("Continue listening", spacing = 12.dp) {
                 Column(Modifier.padding(horizontal = PageInset - 12.dp)) {
-                    feed.continueListening.take(6).forEach { ContinueListeningRow(it) }
+                    feed.continueListening.take(6).forEach {
+                        ContinueListeningRow(it, onClick = { onOpenAlbum(it.album.id) })
+                    }
                 }
             }
         }
@@ -147,7 +146,7 @@ private fun LazyListScope.homeContent(feed: HomeFeed, onOpenTab: (MainTab) -> Un
         item {
             HomeSection("Recently played") {
                 TileRow(feed.recentlyPlayed, key = { it.id }) {
-                    AlbumTile(it, Modifier.width(SquareTileWidth))
+                    AlbumTile(it, onClick = { onOpenAlbum(it.id) }, Modifier.width(SquareTileWidth))
                 }
             }
         }
@@ -156,7 +155,7 @@ private fun LazyListScope.homeContent(feed: HomeFeed, onOpenTab: (MainTab) -> Un
         item {
             HomeSection("Recently added albums", onViewAll = { onOpenTab(MainTab.Albums) }) {
                 TileRow(feed.recentAlbums, key = { it.id }) {
-                    AlbumTile(it, Modifier.width(SquareTileWidth))
+                    AlbumTile(it, onClick = { onOpenAlbum(it.id) }, Modifier.width(SquareTileWidth))
                 }
             }
         }
@@ -165,7 +164,7 @@ private fun LazyListScope.homeContent(feed: HomeFeed, onOpenTab: (MainTab) -> Un
         item {
             HomeSection("Recently added parties", onViewAll = { onOpenTab(MainTab.Parties) }) {
                 TileRow(feed.recentParties, key = { it.id }) {
-                    PartyTile(it, Modifier.width(SquareTileWidth))
+                    PartyTile(it, onClick = { onOpenParty(it.id) }, Modifier.width(SquareTileWidth))
                 }
             }
         }
@@ -261,7 +260,7 @@ private fun <T> TileRow(items: List<T>, key: (T) -> Any, tile: @Composable (T) -
 }
 
 @Composable
-private fun ContinueListeningRow(item: ContinueListeningItem) {
+private fun ContinueListeningRow(item: ContinueListeningItem, onClick: () -> Unit) {
     val colors = MusicTheme.colors
     val album = item.album
     val durationMs = item.durationMs.coerceAtLeast(0)
@@ -271,6 +270,8 @@ private fun ContinueListeningRow(item: ContinueListeningItem) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+            .clickable(onClick = onClick)
             .padding(12.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -410,9 +411,4 @@ private fun HomePlaceholder() {
             }
         }
     }
-}
-
-@Composable
-private fun PlaceholderBlock(modifier: Modifier) {
-    Box(modifier.background(MusicTheme.colors.muted, CircleShape))
 }
