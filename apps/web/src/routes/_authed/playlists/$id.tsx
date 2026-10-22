@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { useAlbumDetails } from "#/components/album/useAlbumDetails";
+import { Alert, AlertDescription } from "#/components/base/alert";
 import { Button } from "#/components/base/button";
 import { toastManager } from "#/components/base/toast";
 import {
@@ -27,28 +29,38 @@ import { LibraryEmptyState } from "#/components/library/LibraryStates";
 import { PlaylistActionsMenu } from "#/components/playlist/PlaylistActionsMenu";
 import { PlaylistArtwork } from "#/components/playlist/PlaylistArtwork";
 import { PlaylistTrackRow } from "#/components/playlist/PlaylistTrackRow";
+import { playlistEntryToTrack } from "#/components/playlist/playlistTracks";
 import { useUserInfo } from "#/context/UserInfoContext";
+import { prefetchAlbums } from "#/lib/queries/album.queries";
 import {
 	playlistActions,
 	playlistQueries,
 } from "#/lib/queries/playlist.queries";
 import type { PlaylistDetails } from "#/lib/queries/playlist.queries";
-import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { formatDurationInHoursMinutesSeconds } from "#/lib/utils/music";
-import { playlistCoverEntries } from "#/lib/utils/playlist";
+import {
+	playlistCoverEntries,
+	playlistEntryCoverUrl,
+} from "#/lib/utils/playlist";
 import { rethrowNotFound } from "#/lib/utils/routing";
-import { albumTrackEntryToAudioPlayerTrack } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 import type { AudioPlayerTrack } from "#/store/audioPlayer/audioPlayerType";
 
 export const Route = createFileRoute("/_authed/playlists/$id")({
-	loader: ({ context, params }) =>
-		context.queryClient
+	loader: async ({ context, params }) => {
+		const playlist = await context.queryClient
 			.query({
 				...playlistQueries.detail(context.userInfo.id, params.id),
 				staleTime: "static",
 			})
-			.catch(rethrowNotFound),
+			.catch(rethrowNotFound);
+		if (!import.meta.env.SSR)
+			prefetchAlbums(
+				context.queryClient,
+				playlist.entries.map((entry) => entry.albumId),
+			);
+		return playlist;
+	},
 	component: PlaylistPage,
 });
 
@@ -94,11 +106,18 @@ function PlaylistPage() {
 	const isCurrentPlaylist = currentTrack?.playlist?.id === source.id;
 	const isPlayingPlaylist = isCurrentPlaylist && isPlaying;
 	const isLoading = useAudioPlayerStore((state) => state.status === "loading");
+	const albums = useAlbumDetails(
+		playlist.entries.map((entry) => entry.albumId),
+	);
+	const loadingAudio = albums.isPending;
+	const failedAudio = albums.isError;
+	const albumForEntry = (entry: PlaylistDetails["entries"][number]) =>
+		albums.byId.get(String(entry.albumId));
 	const coverUrls = playlistCoverEntries(playlist.entries).map((entry) =>
-		getAlbumCoverUrl(entry.cover),
+		playlistEntryCoverUrl(entry, albumForEntry(entry)),
 	);
 	const playableEntries = playlist.entries.flatMap((entry) => {
-		const track = albumTrackEntryToAudioPlayerTrack(entry);
+		const track = playlistEntryToTrack(entry, albumForEntry(entry));
 		return track ? [{ entryId: entry.entryId, track }] : [];
 	});
 	const audioTracks = playableEntries.map((entry) => entry.track);
@@ -160,7 +179,7 @@ function PlaylistPage() {
 				0,
 			),
 		) ?? "0s";
-	const cannotPlay = audioTracks.length === 0;
+	const cannotPlay = loadingAudio || failedAudio || audioTracks.length === 0;
 	const canReorder = trackCount > 1;
 
 	return (
@@ -241,6 +260,22 @@ function PlaylistPage() {
 				</div>
 			</header>
 
+			{failedAudio && (
+				<Alert variant="error">
+					<AlertDescription>
+						Some albums could not be loaded for playback.{" "}
+						<Button onClick={albums.refetchFailed} size="sm" variant="ghost">
+							Retry
+						</Button>
+					</AlertDescription>
+				</Alert>
+			)}
+			{loadingAudio && (
+				<p className="text-sm text-muted-foreground" role="status">
+					Loading playback sources…
+				</p>
+			)}
+
 			{trackCount === 0 ? (
 				<LibraryEmptyState
 					description="Open an album and use Add to playlist to choose tracks for this collection."
@@ -270,12 +305,23 @@ function PlaylistPage() {
 					>
 						<ol className="flex flex-col gap-0.5">
 							{playlist.entries.map((entry, index) => {
+								const album = albumForEntry(entry);
+								const track = album?.discs
+									.find(
+										(disc) =>
+											String(disc.albumDiscId) === String(entry.albumDiscId),
+									)
+									?.tracks.find(
+										(item) => String(item.trackId) === String(entry.trackId),
+									);
 								const playable = playableEntries.find(
 									(item) => item.entryId === entry.entryId,
 								);
 								return (
 									<PlaylistTrackRow
-										audioDisabled={!playable}
+										audioDisabled={loadingAudio || failedAudio || !playable}
+										coverUrl={playlistEntryCoverUrl(entry, album)}
+										credits={track?.credits}
 										disabled={mutation.isPending}
 										editing={editing && canReorder}
 										entry={entry}
@@ -286,7 +332,7 @@ function PlaylistPage() {
 										}
 										isPlaying={isPlaying}
 										key={entry.entryId}
-										noAudioSource={!playable}
+										noAudioSource={!loadingAudio && !failedAudio && !playable}
 										onPlay={() => {
 											if (playable)
 												playAlbum(

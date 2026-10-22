@@ -61,36 +61,6 @@ export function albumTrackDetailsToAudioPlayerTrack(
 	};
 }
 
-export type AlbumTrackEntry =
-	| API.PlaylistEntryDetails
-	| API.ListeningHistoryEntryDetails
-	| API.ListeningHistoryTrackCount;
-
-export function albumTrackEntryToAudioPlayerTrack(
-	entry: AlbumTrackEntry,
-): AudioPlayerTrack | null {
-	const audio = entry.audios.find((item) => item.pinned) ?? entry.audios.at(0);
-	if (!audio) return null;
-
-	return {
-		trackId: String(entry.trackId),
-		albumId: String(entry.albumId),
-		albumTitle: entry.albumTitle,
-		contentType: entry.contentType,
-		versionType: entry.versionType,
-		title: entry.title,
-		languageId: entry.languageId,
-		albumLanguageId: entry.albumLanguageId,
-		party: entry.credits.map((credit) => ({
-			partyId: String(credit.partyId),
-			name: credit.name,
-		})),
-		albumCoverUrl: getAlbumCoverUrl(entry.cover) ?? "",
-		audio,
-		durationInMs: Number(entry.durationInMs),
-	};
-}
-
 export function autoSelectPlaybackQuality(): AudioPlayerState["playbackQuality"] {
 	return isProbablyPhone() ? "Opus96" : "Original";
 }

@@ -1,5 +1,6 @@
 import type * as API from "@music/api";
 import { queryOptions } from "@tanstack/react-query";
+import type { QueryClient } from "@tanstack/react-query";
 
 import { $APIFetch, ApiError } from "../APIFetchClient";
 
@@ -51,3 +52,11 @@ export const albumQueries = {
 			},
 		}),
 };
+
+export function prefetchAlbums(
+	queryClient: QueryClient,
+	albumIds: (number | string)[],
+) {
+	for (const albumId of new Set(albumIds.map(String)))
+		queryClient.query(albumQueries.getAlbum(albumId)).catch(() => {});
+}

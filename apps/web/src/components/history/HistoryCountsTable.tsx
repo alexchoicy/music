@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { PlayingBars } from "#/components/album/AlbumTile";
-import type { HistoryTrack } from "#/components/history/historyTracks";
+import type { HistoryTrack } from "#/components/history/useHistoryTracks";
 import { PlaylistArtwork } from "#/components/playlist/PlaylistArtwork";
 import { TrackActionsMenu } from "#/components/track/TrackActionsMenu";
 import { useTitleLang } from "#/hooks/use-title-lang";

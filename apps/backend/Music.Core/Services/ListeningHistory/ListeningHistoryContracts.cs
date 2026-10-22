@@ -1,7 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Music.Core.Services.Albums;
-using Music.Core.Services.Files;
-using Music.Core.Services.Tracks.Enums;
 
 namespace Music.Core.Services.ListeningHistory;
 
@@ -41,11 +38,6 @@ public sealed class ListeningHistoryEntryDetails
     public required string Title { get; init; }
     public int? LanguageId { get; init; }
     public required int DurationInMs { get; init; }
-    public required TrackContentType ContentType { get; init; }
-    public required TrackVersionType VersionType { get; init; }
-    public required ImageFileVariants Cover { get; init; }
-    public required IReadOnlyList<TrackPartyCredit> Credits { get; init; }
-    public required IReadOnlyList<TrackAudioDetails> Audios { get; init; }
 }
 
 public sealed class ListeningHistoryCounts
@@ -65,11 +57,6 @@ public sealed class ListeningHistoryTrackCount
     public required string Title { get; init; }
     public int? LanguageId { get; init; }
     public required int DurationInMs { get; init; }
-    public required TrackContentType ContentType { get; init; }
-    public required TrackVersionType VersionType { get; init; }
-    public required ImageFileVariants Cover { get; init; }
-    public required IReadOnlyList<TrackPartyCredit> Credits { get; init; }
-    public required IReadOnlyList<TrackAudioDetails> Audios { get; init; }
     public required int PlayCount { get; init; }
     public required DateTimeOffset LastPlayedAt { get; init; }
 }

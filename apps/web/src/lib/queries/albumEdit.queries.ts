@@ -87,6 +87,4 @@ export function applyAlbumEdit(
 		queryKey: ["albums"],
 		predicate: (query) => query.queryKey[2] !== "edit",
 	});
-	void queryClient.invalidateQueries({ queryKey: ["playlists"] });
-	void queryClient.invalidateQueries({ queryKey: ["history"] });
 }

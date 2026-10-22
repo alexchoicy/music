@@ -3,17 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Music.Core.Common.Exceptions;
 using Music.Core.Entities;
 using Music.Core.Services.ListeningHistory;
-using Music.Core.Storage;
 using Music.Infrastructure.Data;
-using Music.Infrastructure.Mappers;
 
 namespace Music.Infrastructure.Services.ListeningHistory;
 
-public sealed class ListeningHistoryService(
-    AppDbContext dbContext,
-    IAssetsService assetsService,
-    IContentService contentService
-) : IListeningHistoryService
+public sealed class ListeningHistoryService(AppDbContext dbContext) : IListeningHistoryService
 {
     private const int MaxCountedTracks = 100;
 
@@ -33,51 +27,28 @@ public sealed class ListeningHistoryService(
         var entries = await query
             .OrderByDescending(entry => entry.Id)
             .Take(request.Limit + 1)
-            .Select(entry => new
+            .Select(entry => new ListeningHistoryEntryDetails
             {
-                entry.Id,
-                entry.PlayedAt,
-                entry.AlbumTrackId,
+                EntryId = entry.Id,
+                PlayedAt = entry.PlayedAt,
+                AlbumId = entry.AlbumTrack!.AlbumDisc!.AlbumId,
+                AlbumTitle = entry.AlbumTrack.AlbumDisc.Album!.Title,
+                AlbumLanguageId = entry.AlbumTrack.AlbumDisc.Album.LanguageId,
+                AlbumDiscId = entry.AlbumTrack.AlbumDiscId,
+                TrackId = entry.AlbumTrack.TrackId,
+                Title = entry.AlbumTrack.Track!.Title,
+                LanguageId = entry.AlbumTrack.Track.LanguageId,
+                DurationInMs = entry.AlbumTrack.Track.DurationInMs,
             })
             .ToListAsync(cancellationToken);
 
         bool hasMore = entries.Count > request.Limit;
         if (hasMore)
             entries.RemoveAt(entries.Count - 1);
-        var albumTracks = await dbContext.LoadPlayableAlbumTracksAsync(
-            entries.Select(entry => entry.AlbumTrackId),
-            cancellationToken
-        );
         return new ListeningHistoryPage
         {
-            Entries = entries
-                .Where(entry => albumTracks.ContainsKey(entry.AlbumTrackId))
-                .Select(entry =>
-                {
-                    var albumTrack = albumTracks[entry.AlbumTrackId];
-                    var album = albumTrack.AlbumDisc!.Album!;
-                    var track = albumTrack.Track!;
-                    return new ListeningHistoryEntryDetails
-                    {
-                        EntryId = entry.Id,
-                        PlayedAt = entry.PlayedAt,
-                        AlbumId = album.Id,
-                        AlbumTitle = album.Title,
-                        AlbumLanguageId = album.LanguageId,
-                        AlbumDiscId = albumTrack.AlbumDiscId,
-                        TrackId = track.Id,
-                        Title = track.Title,
-                        LanguageId = track.LanguageId,
-                        DurationInMs = track.DurationInMs,
-                        ContentType = track.ContentType,
-                        VersionType = track.VersionType,
-                        Cover = album.ToDiscCoverVariants(albumTrack.AlbumDiscId, assetsService),
-                        Credits = track.ToPartyCredits(assetsService),
-                        Audios = track.ToAudioDetails(contentService, assetsService),
-                    };
-                })
-                .ToList(),
-            NextCursor = hasMore ? entries[^1].Id : null,
+            Entries = entries,
+            NextCursor = hasMore ? entries[^1].EntryId : null,
         };
     }
 
@@ -227,37 +198,42 @@ public sealed class ListeningHistoryService(
             .Take(MaxCountedTracks)
             .ToListAsync(cancellationToken);
 
-        var albumTracks = await dbContext.LoadPlayableAlbumTracksAsync(
-            counts.Select(item => item.AlbumTrackId),
-            cancellationToken
-        );
+        int[] albumTrackIds = counts.Select(item => item.AlbumTrackId).ToArray();
+        var albumTracks = await dbContext
+            .AlbumTracks.AsNoTracking()
+            .Where(track => albumTrackIds.Contains(track.Id))
+            .Select(track => new
+            {
+                track.Id,
+                track.AlbumDisc!.AlbumId,
+                AlbumTitle = track.AlbumDisc.Album!.Title,
+                AlbumLanguageId = track.AlbumDisc.Album.LanguageId,
+                track.AlbumDiscId,
+                track.TrackId,
+                track.Track!.Title,
+                track.Track.LanguageId,
+                track.Track.DurationInMs,
+            })
+            .ToDictionaryAsync(track => track.Id, cancellationToken);
 
         return new ListeningHistoryCounts
         {
             TotalPlays = totalPlays,
             TrackCount = trackCount,
             Tracks = counts
-                .Where(item => albumTracks.ContainsKey(item.AlbumTrackId))
                 .Select(item =>
                 {
-                    var albumTrack = albumTracks[item.AlbumTrackId];
-                    var album = albumTrack.AlbumDisc!.Album!;
-                    var track = albumTrack.Track!;
+                    var track = albumTracks[item.AlbumTrackId];
                     return new ListeningHistoryTrackCount
                     {
-                        AlbumId = album.Id,
-                        AlbumTitle = album.Title,
-                        AlbumLanguageId = album.LanguageId,
-                        AlbumDiscId = albumTrack.AlbumDiscId,
-                        TrackId = track.Id,
+                        AlbumId = track.AlbumId,
+                        AlbumTitle = track.AlbumTitle,
+                        AlbumLanguageId = track.AlbumLanguageId,
+                        AlbumDiscId = track.AlbumDiscId,
+                        TrackId = track.TrackId,
                         Title = track.Title,
                         LanguageId = track.LanguageId,
                         DurationInMs = track.DurationInMs,
-                        ContentType = track.ContentType,
-                        VersionType = track.VersionType,
-                        Cover = album.ToDiscCoverVariants(albumTrack.AlbumDiscId, assetsService),
-                        Credits = track.ToPartyCredits(assetsService),
-                        Audios = track.ToAudioDetails(contentService, assetsService),
                         PlayCount = item.PlayCount,
                         LastPlayedAt = item.LastPlayedAt,
                     };

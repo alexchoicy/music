@@ -305,6 +305,20 @@ public class AlbumService(
                     .Select(at =>
                     {
                         Track track = at.Track!;
+
+                        List<TrackAudioDetails> audios = track
+                            .Audios.OrderByDescending(a => a.Pinned)
+                            .ThenBy(a => a.Rank)
+                            .Select(a => new TrackAudioDetails
+                            {
+                                Rank = a.Rank,
+                                Pinned = a.Pinned,
+                                Source = a.File!.Source,
+                                SourceUrl = a.File.SourceUrl,
+                                File = BuildTrackSourceFiles(a.File),
+                            })
+                            .ToList();
+
                         return new AlbumTrackDetails
                         {
                             TrackId = track.Id,
@@ -315,8 +329,19 @@ public class AlbumService(
                             VersionType = track.VersionType,
                             ContentType = track.ContentType,
                             BasedOnTrackId = track.BasedOnTrackId,
-                            Credits = track.ToPartyCredits(_assetsService),
-                            Audios = track.ToAudioDetails(_contentService, _assetsService),
+                            Credits = track
+                                .Credits.Where(c => c.Party is not null)
+                                .OrderBy(c => c.Party!.Name)
+                                .Select(c => new TrackPartyCredit
+                                {
+                                    PartyId = c.PartyId,
+                                    Name = c.Party!.Name,
+                                    Type = c.Party!.Type,
+                                    CreditType = c.Credit,
+                                    Avatar = c.Party.ToPrimaryAvatarImages(_assetsService),
+                                })
+                                .ToList(),
+                            Audios = audios,
                         };
                     })
                     .ToList(),
@@ -354,6 +379,41 @@ public class AlbumService(
                 .ToList(),
             Discs = discs,
             Extras = extras,
+        };
+    }
+
+    private TrackAudioFileVariants BuildTrackSourceFiles(StoredFile? storedFile)
+    {
+        if (storedFile?.FileObjects is null)
+            throw new InvalidOperationException("Track source file is missing file objects");
+
+        FileObject? original = storedFile.FileObjects.FirstOrDefault(fo =>
+            fo.FileObjectVariant == FileObjectVariant.Original
+        );
+
+        if (original is null)
+            throw new InvalidOperationException(
+                "Track source file is missing Original file object variant"
+            );
+
+        FileObject? opus96 = storedFile.FileObjects.FirstOrDefault(fo =>
+            fo.FileObjectVariant == FileObjectVariant.Opus96
+        );
+
+        FileObject? taggedOriginal = storedFile.FileObjects.FirstOrDefault(fo =>
+            fo.FileObjectVariant == FileObjectVariant.TaggedOriginal
+        );
+
+        FileObject? waveformB8Pixel20 = storedFile.FileObjects.FirstOrDefault(fo =>
+            fo.FileObjectVariant == FileObjectVariant.WaveformB8Pixel20
+        );
+
+        return new TrackAudioFileVariants
+        {
+            Original = original.ToContentDetails(_contentService),
+            TaggedOriginal = taggedOriginal?.ToContentDetails(_contentService),
+            Opus96 = opus96?.ToContentDetails(_contentService),
+            WaveformB8Pixel20 = waveformB8Pixel20?.ToAssetDetails(_assetsService),
         };
     }
 

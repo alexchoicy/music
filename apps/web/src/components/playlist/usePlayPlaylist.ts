@@ -1,10 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 
 import { toastManager } from "#/components/base/toast";
+import { playlistEntryToTrack } from "#/components/playlist/playlistTracks";
 import { useUserInfo } from "#/context/UserInfoContext";
+import { albumQueries } from "#/lib/queries/album.queries";
 import { playlistQueries } from "#/lib/queries/playlist.queries";
 import type { PlaylistListItem } from "#/lib/queries/playlist.queries";
-import { albumTrackEntryToAudioPlayerTrack } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
 export function usePlayPlaylist() {
@@ -22,9 +23,18 @@ export function usePlayPlaylist() {
 				...playlistQueries.detail(user.id, playlist.playlistId),
 				staleTime: "static",
 			});
-			const playable = playlistDetails.entries
-				.map(albumTrackEntryToAudioPlayerTrack)
-				.filter((track) => track !== null);
+			const tracks = await Promise.all(
+				playlistDetails.entries.map(async (entry) =>
+					playlistEntryToTrack(
+						entry,
+						await queryClient.query({
+							...albumQueries.getAlbum(String(entry.albumId)),
+							staleTime: "static",
+						}),
+					),
+				),
+			);
+			const playable = tracks.filter((track) => track !== null);
 			if (playable.length === 0) throw new Error("No playable tracks.");
 			if (!queue) {
 				playAlbum(playable, undefined, undefined, {

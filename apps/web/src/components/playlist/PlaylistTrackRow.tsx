@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/react/sortable";
 import { Link } from "@tanstack/react-router";
 import { GripVerticalIcon } from "lucide-react";
 
+import type { AlbumTrack } from "#/components/album/detail/albumDetail";
 import { Button } from "#/components/base/button";
 import {
 	Tooltip,
@@ -12,7 +13,6 @@ import { TrackActionsMenu } from "#/components/track/TrackActionsMenu";
 import { TrackRow } from "#/components/track/TrackRow";
 import { useTitleLang } from "#/hooks/use-title-lang";
 import type { PlaylistDetails } from "#/lib/queries/playlist.queries";
-import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 
@@ -25,6 +25,8 @@ type PlaylistTrackRowProps = {
 	editing: boolean;
 	audioDisabled: boolean;
 	noAudioSource: boolean;
+	coverUrl: string | null;
+	credits: AlbumTrack["credits"] | undefined;
 	isCurrent: boolean;
 	isPlaying: boolean;
 	onPlay: () => void;
@@ -40,6 +42,8 @@ export function PlaylistTrackRow({
 	editing,
 	audioDisabled,
 	noAudioSource,
+	coverUrl,
+	credits,
 	isCurrent,
 	isPlaying,
 	onPlay,
@@ -58,7 +62,7 @@ export function PlaylistTrackRow({
 		<TrackRow
 			badges={noAudioSource ? [{ label: "No audio", outline: true }] : []}
 			className={cn(isDragging && "z-20 bg-accent shadow-pop")}
-			coverUrl={getAlbumCoverUrl(entry.cover)}
+			coverUrl={coverUrl}
 			isCurrent={isCurrent}
 			isPlaying={isPlaying}
 			leading={
@@ -101,20 +105,22 @@ export function PlaylistTrackRow({
 			// while reordering.
 			ref={editing ? ref : undefined}
 			subtitle={
-				entry.credits.length === 0
-					? "No credits"
-					: entry.credits.map((credit, creditIndex) => (
-							<span key={`${credit.partyId}-${credit.creditType}`}>
-								{creditIndex > 0 && ", "}
-								<Link
-									className="rounded-xs outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-									params={{ id: String(credit.partyId) }}
-									to="/parties/$id"
-								>
-									{credit.name}
-								</Link>
-							</span>
-						))
+				credits === undefined
+					? "—"
+					: credits.length === 0
+						? "No credits"
+						: credits.map((credit, creditIndex) => (
+								<span key={`${credit.partyId}-${credit.creditType}`}>
+									{creditIndex > 0 && ", "}
+									<Link
+										className="rounded-xs outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+										params={{ id: String(credit.partyId) }}
+										to="/parties/$id"
+									>
+										{credit.name}
+									</Link>
+								</span>
+							))
 			}
 			title={entry.title}
 			titleLang={titleLang(entry.languageId, entry.albumLanguageId)}
