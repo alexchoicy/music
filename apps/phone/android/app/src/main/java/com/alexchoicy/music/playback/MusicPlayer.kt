@@ -29,6 +29,7 @@ import com.alexchoicy.music.api.PlaybackTrack
 import com.alexchoicy.music.api.valueOrNull
 import com.alexchoicy.music.offline.DownloadStatus
 import com.alexchoicy.music.offline.Downloads
+import io.sentry.Sentry
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -232,7 +233,7 @@ class MusicPlayer(
                     positionJumps++
                 }
 
-                override fun onPlayerError(playbackError: PlaybackException) = failed()
+                override fun onPlayerError(playbackError: PlaybackException) = failed(playbackError)
 
                 override fun onEvents(
                     player: Player,
@@ -896,8 +897,9 @@ class MusicPlayer(
         exo.seekTo(exo.currentMediaItemIndex, 0)
     }
 
-    private fun failed() {
+    private fun failed(playbackError: PlaybackException) {
         val entry = current ?: return
+        if (source?.local == true || network.online) report(playbackError, entry)
         if (useDownload(exo.currentPosition)) {
             exo.prepare()
             return
@@ -912,6 +914,25 @@ class MusicPlayer(
         error = message
         notices.show(message)
         sync()
+    }
+
+    private fun report(
+        playbackError: PlaybackException,
+        entry: QueueEntry,
+    ) {
+        val source = source
+        Sentry.captureException(playbackError) { scope ->
+            scope.setTag("playback.error", playbackError.errorCodeName)
+            scope.setTag("playback.source", if (source?.local == true) "download" else "stream")
+            source?.file?.let { file ->
+                scope.setTag("playback.format", file.formatName)
+                scope.setExtra("fileId", file.id)
+                scope.setExtra("codec", file.codec.toString())
+            }
+            scope.setExtra("trackId", entry.track.trackId.toString())
+            scope.setExtra("albumId", entry.track.albumId.toString())
+            scope.setExtra("positionMs", exo.currentPosition.toString())
+        }
     }
 
     // A current entry downloaded while it streamed moves to the file when it reloads anyway,

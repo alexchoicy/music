@@ -1,6 +1,7 @@
 package com.alexchoicy.music
 
 import android.app.Application
+import android.content.pm.ApplicationInfo
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -28,6 +29,7 @@ import com.alexchoicy.music.playback.MusicPlayer
 import com.alexchoicy.music.playback.NetworkMonitor
 import com.alexchoicy.music.playback.PlaybackSettings
 import com.alexchoicy.music.session.SessionStore
+import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.MainScope
 import java.io.File
 
@@ -75,6 +77,10 @@ class MusicApplication :
 
     override fun onCreate() {
         super.onCreate()
+        SentryAndroid.init(this) { options ->
+            options.dsn = "https://6b9637ea75707ec5387acbc2d39a1a02@o4506760346468352.ingest.us.sentry.io/4512318214307840"
+            options.isDebug = applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+        }
         ProcessLifecycleOwner.get().lifecycle.addObserver(
             LifecycleEventObserver { _, event ->
                 if (event == Lifecycle.Event.ON_STOP && playerLazy.isInitialized()) player.savePosition()

@@ -87,6 +87,7 @@ appConfig.yaml
 /apps/phone/android/.idea/
 /apps/phone/android/local.properties
 /apps/phone/android/keystore.properties
+/apps/phone/android/release.sh
 music-upload.jks
 *.jks
 *.keystore

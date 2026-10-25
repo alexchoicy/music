@@ -6,6 +6,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
     id("androidx.room3")
+    id("io.sentry.android.gradle")
     id("org.jlleitschuh.gradle.ktlint")
 }
 
@@ -71,6 +72,13 @@ kotlin {
 
 room3 {
     schemaDirectory("$projectDir/schemas")
+}
+
+sentry {
+    includeSourceContext = true
+    org = "alexchoicy"
+    projectName = "music-android-native"
+    authToken = System.getenv("SENTRY_AUTH_TOKEN")
 }
 
 dependencies {
