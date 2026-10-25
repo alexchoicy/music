@@ -516,6 +516,7 @@ public class PartyService(
                 Gender = p.Gender,
                 Similarity = p.Similarity,
                 AlbumCount = p.AlbumCount,
+                CreatedAt = p.CreatedAt,
                 Aliases = aliasesByPartyId.TryGetValue(p.PartyId, out var aliases) ? aliases : [],
             })
             .ToList();

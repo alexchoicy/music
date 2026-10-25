@@ -514,7 +514,7 @@ export function PlayerBar() {
 						<div className="flex min-h-8 w-full items-center gap-2">
 							<button
 								aria-label="Toggle elapsed and remaining time"
-								className="min-w-10 shrink-0 cursor-pointer rounded-xs text-right text-xs text-muted-foreground tabular-nums outline-none select-none focus-visible:ring-2 focus-visible:ring-ring"
+								className="min-w-10 shrink-0 cursor-pointer rounded-xs text-right text-xs text-muted-foreground tabular-nums outline-none select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover"
 								disabled={!currentTrack}
 								onClick={() => {
 									showRemainingRef.current = !showRemainingRef.current;

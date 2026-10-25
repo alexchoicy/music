@@ -80,3 +80,14 @@ appConfig.yaml
 **/appsettings.*.json
 # BRO AS EXAMPLE
 !**/appsettings.json
+
+# Android
+/apps/phone/android/.gradle/
+/apps/phone/android/.kotlin/
+/apps/phone/android/.idea/
+/apps/phone/android/local.properties
+/apps/phone/android/keystore.properties
+/apps/phone/android/release.sh
+music-upload.jks
+*.jks
+*.keystore

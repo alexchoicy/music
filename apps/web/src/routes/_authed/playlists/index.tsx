@@ -40,7 +40,7 @@ function PlaylistsPage() {
 			) : (
 				<ul
 					aria-label="Playlists"
-					className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-[repeat(auto-fill,minmax(168px,1fr))]"
+					className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))]"
 				>
 					{playlists.map((playlist) => (
 						<li className="min-w-0" key={playlist.playlistId}>

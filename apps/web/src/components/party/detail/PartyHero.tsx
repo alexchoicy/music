@@ -13,22 +13,16 @@ import { getInitials } from "#/lib/utils/string";
 type PartyDetails = API.PartyDetails;
 
 // Initials sit on a colour picked from the name, so it stays stable per party.
-const INITIALS_PALETTE = [
-	["#1d5c63", "#f0c987"],
-	["#8a2f3d", "#f3d9c4"],
-	["#2d3a6b", "#9fc3e8"],
-	["#c9772e", "#2a1d12"],
-	["#3a5a3a", "#d6e29a"],
-	["#5b2d6e", "#f0a6c8"],
-	["#222a30", "#7fd0c8"],
-	["#1b2b4a", "#f2a65a"],
-] as const;
+const INITIALS_PALETTE_SIZE = 8;
 
 function initialsColors(name: string) {
 	let hash = 0;
 	for (const char of name) hash = (hash * 31 + char.codePointAt(0)!) >>> 0;
-	const [background, color] = INITIALS_PALETTE[hash % INITIALS_PALETTE.length];
-	return { background, color };
+	const index = (hash % INITIALS_PALETTE_SIZE) + 1;
+	return {
+		background: `var(--initials-${index})`,
+		color: `var(--on-initials-${index})`,
+	};
 }
 
 function plural(count: number, noun: string) {
@@ -91,7 +85,7 @@ export function PartyHero({ party }: { party: PartyDetails }) {
 									</Badge>
 								))}
 							</div>
-							<h1 className="text-3xl font-bold tracking-[-.03em] break-words sm:text-5xl sm:leading-[52px]">
+							<h1 className="text-3xl font-bold tracking-[-.03em] break-words lg:text-5xl lg:leading-[52px]">
 								{party.name}
 							</h1>
 						</div>
@@ -120,7 +114,7 @@ export function PartyHero({ party }: { party: PartyDetails }) {
 
 					<p className="text-sm text-sidebar-foreground">{stats.join(" · ")}</p>
 					{aliases.length > 0 && (
-						<p className="text-[13px] text-muted-foreground">
+						<p className="text-xs text-muted-foreground">
 							Also known as {aliases.join(", ")}
 						</p>
 					)}

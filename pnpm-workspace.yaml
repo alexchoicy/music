@@ -1,6 +1,5 @@
 packages:
   - apps/web
-  - apps/phone
   - packages/*
 allowBuilds:
   "@sentry/cli": true
@@ -11,8 +10,6 @@ catalog:
 overrides:
   vite@*: "catalog:"
   "@hey-api/openapi-ts>typescript": "6.0.3"
-patchedDependencies:
-  expo-audio@57.0.5: apps/phone/patches/expo-audio@57.0.5.patch
 peerDependencyRules:
   allowAny:
     - vite

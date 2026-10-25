@@ -477,7 +477,7 @@ export function ConcertVideoPlayer({
 						poster={posterUrl}
 						ref={videoRef}
 					/>
-					<span className="pointer-events-none absolute inset-0 rounded-[inherit] shadow-[inset_0_0_0_1px_--theme(--color-white/8%)]" />
+					<span className="artwork-edge pointer-events-none absolute inset-0 rounded-[inherit]" />
 
 					{!isPlaying && (
 						<div className="absolute inset-0 flex items-center justify-center">

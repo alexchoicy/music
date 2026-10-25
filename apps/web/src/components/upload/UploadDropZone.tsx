@@ -32,7 +32,7 @@ export function UploadDropZone({
 				"aria-busy": isProcessing,
 			})}
 			className={cn(
-				"flex min-h-40 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl p-6 text-center shadow-[inset_0_0_0_2px_var(--color-input)] transition-[box-shadow,background-color] duration-150 outline-none hover:bg-card hover:shadow-[inset_0_0_0_2px_--theme(--color-primary/60%)] focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none",
+				"flex min-h-40 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl p-6 text-center shadow-[inset_0_0_0_2px_var(--color-input)] transition-[box-shadow,background-color] duration-150 outline-none hover:bg-card hover:shadow-[inset_0_0_0_2px_--theme(--color-primary/60%)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none",
 				isDragAccept &&
 					"bg-primary/8 shadow-[inset_0_0_0_2px_var(--color-primary)] hover:bg-primary/8 hover:shadow-[inset_0_0_0_2px_var(--color-primary)]",
 				isDragReject &&
@@ -49,7 +49,7 @@ export function UploadDropZone({
 			<span className="text-base font-semibold">{title}</span>
 			<span
 				className={cn(
-					"text-[13px] text-muted-foreground",
+					"text-xs text-muted-foreground",
 					isDragReject && "text-destructive-foreground",
 				)}
 			>

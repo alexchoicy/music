@@ -131,10 +131,10 @@ function ContinueListeningRow({ item }: { item: ContinueListeningItem }) {
 
 	return (
 		<li className="min-w-0">
-			<div className="flex items-center gap-4 rounded-lg p-3 transition-colors duration-100 hover:bg-accent motion-reduce:transition-none">
+			<div className="flex items-center gap-4 rounded-lg p-3 transition-colors duration-150 hover:bg-accent motion-reduce:transition-none">
 				<Link
 					aria-label={`Open ${album.title}`}
-					className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+					className="artwork-edge relative size-16 shrink-0 overflow-hidden rounded-lg bg-muted shadow-card outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 					params={{ id: String(album.albumId) }}
 					to="/albums/$id"
 				>
@@ -150,7 +150,6 @@ function ContinueListeningRow({ item }: { item: ContinueListeningItem }) {
 							<Disc3Icon aria-hidden="true" className="size-7" />
 						</span>
 					)}
-					<span className="pointer-events-none absolute inset-0 rounded-lg shadow-[inset_0_0_0_1px_--theme(--color-white/8%)]" />
 				</Link>
 
 				<div className="flex min-w-0 flex-1 flex-col gap-1.5">

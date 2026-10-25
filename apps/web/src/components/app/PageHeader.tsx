@@ -8,7 +8,7 @@ export function PageHeader({
 	return (
 		<header className="flex flex-col gap-1">
 			<p className="text-xs text-muted-foreground">{eyebrow}</p>
-			<h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
+			<h1 className="text-3xl font-bold tracking-tight lg:text-4xl">{title}</h1>
 		</header>
 	);
 }

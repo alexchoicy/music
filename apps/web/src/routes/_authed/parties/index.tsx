@@ -123,7 +123,7 @@ function toPartyQuery(filters: PartySearch, search = filters.search) {
 }
 
 const PARTY_GRID_CLASS =
-	"grid min-w-0 grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-[repeat(auto-fill,minmax(148px,1fr))]";
+	"grid min-w-0 grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))]";
 
 // Chip groups use [] for "All"; the URL keeps the "All" sentinel.
 function toChips<Value extends string>(value: "All" | Value): Value[] {

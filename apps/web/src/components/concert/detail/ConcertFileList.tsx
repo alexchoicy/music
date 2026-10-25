@@ -48,10 +48,10 @@ export function ConcertFileList({
 			className="flex min-w-0 flex-col gap-4"
 		>
 			<div className="flex items-baseline justify-between gap-3">
-				<h2 className="text-base font-semibold" id="concert-files">
+				<h2 className="text-xl font-semibold tracking-tight" id="concert-files">
 					Files
 				</h2>
-				<span className="text-[13px] font-medium text-muted-foreground tabular-nums">
+				<span className="text-xs font-medium text-muted-foreground tabular-nums">
 					{files.length}
 				</span>
 			</div>
@@ -133,7 +133,7 @@ function ConcertFileRow({
 	return (
 		<div
 			className={cn(
-				"group/file relative flex flex-col rounded-lg p-2 transition-colors duration-100 hover:bg-accent motion-reduce:transition-none",
+				"group/file relative flex flex-col rounded-lg p-2 transition-colors duration-150 hover:bg-accent motion-reduce:transition-none",
 			)}
 		>
 			<button
@@ -143,7 +143,7 @@ function ConcertFileRow({
 				onClick={onSelect}
 				type="button"
 			>
-				<span className="relative flex aspect-video w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-muted-foreground">
+				<span className="artwork-edge relative flex aspect-video w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-muted-foreground shadow-card">
 					{thumbnail ? (
 						<img alt="" className="size-full object-cover" src={thumbnail} />
 					) : (
@@ -154,7 +154,6 @@ function ConcertFileRow({
 							<PlayingBars />
 						</span>
 					)}
-					<span className="pointer-events-none absolute inset-0 rounded-lg shadow-[inset_0_0_0_1px_--theme(--color-white/8%)]" />
 				</span>
 				<span className="flex min-w-0 flex-col gap-0.5 pe-16">
 					<span

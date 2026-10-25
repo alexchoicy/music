@@ -1,0 +1,64 @@
+package com.alexchoicy.music.ui
+
+import android.text.format.DateUtils
+import java.text.NumberFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
+
+fun plural(
+    count: Int,
+    noun: String,
+) = "$count $noun${if (count == 1) "" else "s"}"
+
+fun formatCount(count: Long): String = NumberFormat.getIntegerInstance().format(count)
+
+fun formatDurationHoursMinutes(durationMs: Long): String? {
+    if (durationMs <= 0) return null
+    val totalMinutes = (durationMs / 60_000.0).roundToLong()
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    return when {
+        hours == 0L -> "${minutes}m"
+        minutes == 0L -> "${hours}h"
+        else -> "${hours}h ${minutes}m"
+    }
+}
+
+fun formatPlaybackTime(ms: Long): String {
+    val totalSeconds = (ms.coerceAtLeast(0) / 1000.0).roundToInt()
+    val hours = totalSeconds / 3600
+    val minutes = totalSeconds % 3600 / 60
+    val seconds = totalSeconds % 60
+    return if (hours > 0) {
+        "%d:%02d:%02d".format(hours, minutes, seconds)
+    } else {
+        "%02d:%02d".format(minutes, seconds)
+    }
+}
+
+fun formatRelativeTime(instant: Instant): String {
+    val millis = instant.toEpochMilli()
+    val now = System.currentTimeMillis()
+    if (now - millis < DateUtils.MINUTE_IN_MILLIS) return "Just now"
+    return DateUtils.getRelativeTimeSpanString(millis, now, DateUtils.MINUTE_IN_MILLIS).toString()
+}
+
+fun formatDate(instant: Instant): String =
+    DateTimeFormatter
+        .ofLocalizedDate(FormatStyle.MEDIUM)
+        .format(instant.atZone(ZoneId.systemDefault()))
+
+fun formatFileSize(bytes: Long): String {
+    val units = listOf("B", "KB", "MB", "GB", "TB")
+    var value = bytes.coerceAtLeast(0).toDouble()
+    var unit = 0
+    while (value >= 1000 && unit < units.lastIndex) {
+        value /= 1000
+        unit++
+    }
+    return if (unit == 0 || value >= 100) "${value.roundToLong()} ${units[unit]}" else "%.1f %s".format(value, units[unit])
+}

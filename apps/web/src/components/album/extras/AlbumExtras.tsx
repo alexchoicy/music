@@ -114,14 +114,14 @@ function ExtraTile({
 
 	return (
 		<button
-			className="group/extra flex w-full flex-col gap-2 rounded-2xl p-2 text-left outline-none hover:bg-popover focus-visible:ring-2 focus-visible:ring-ring"
+			className="group/extra flex w-full flex-col gap-2 rounded-2xl p-2 text-left outline-none hover:bg-popover focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 			onClick={onOpen}
 			type="button"
 		>
 			<span className="relative block transition-transform duration-150 ease-out group-hover/extra:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover/extra:translate-y-0">
 				<ExtraCover extra={extra} />
 				{statusLabel ? (
-					<span className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background/70 px-2 text-center text-[13px] text-foreground">
+					<span className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 rounded-xl bg-background/70 px-2 text-center text-xs text-foreground">
 						<StatusIcon aria-hidden="true" className="size-5" />
 						{statusLabel}
 					</span>

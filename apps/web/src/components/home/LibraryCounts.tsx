@@ -20,13 +20,13 @@ export function LibraryCounts({ stats }: { stats: LibraryStats }) {
 		>
 			{counts.map((item) => (
 				<Link
-					className="flex items-center justify-between gap-4 rounded-lg px-5 py-4 transition-colors duration-100 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset motion-reduce:transition-none"
+					className="flex items-center justify-between gap-4 rounded-lg px-5 py-4 transition-colors duration-150 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset motion-reduce:transition-none"
 					key={item.to}
 					to={item.to}
 				>
 					<span className="flex flex-col gap-0.5">
 						<span className="text-xs text-muted-foreground">{item.label}</span>
-						<span className="text-[28px] leading-8 font-semibold tracking-tight tabular-nums">
+						<span className="text-3xl font-semibold tracking-tight tabular-nums">
 							{numberFormatter.format(Number(item.count))}
 						</span>
 					</span>

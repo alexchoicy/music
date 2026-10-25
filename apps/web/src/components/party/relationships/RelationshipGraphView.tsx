@@ -168,7 +168,7 @@ export function RelationshipGraphView({ graph }: { graph: RelationshipGraph }) {
 					<Link
 						aria-current={isFocus ? "page" : undefined}
 						className={cn(
-							"absolute flex items-center gap-3 rounded-xl bg-popover px-3 shadow-pop transition-[opacity,box-shadow] duration-150 outline-none hover:shadow-hover focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none",
+							"absolute flex items-center gap-3 rounded-xl bg-popover px-3 shadow-pop transition-[opacity,box-shadow] duration-150 outline-none hover:shadow-hover focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none",
 							isFocus && "shadow-glow-primary hover:shadow-glow-primary",
 							activeId !== null &&
 								!linkedIds.has(partyId) &&

@@ -2,19 +2,36 @@
 
 Visual specification for shared colors, typography, spacing, components, and responsive behavior.
 
-Task-specific design direction takes precedence for the requested scope. Historical mockups and legacy screens are references; apply the user's later corrections. Keep shared theme tokens and component variants aligned with this guide.
+## How to use this guide
+
+- Task-specific design direction from the user takes precedence for the requested scope.
+- Keep shared theme tokens and component variants aligned with this guide. Repeated page-level restyling belongs in a shared variant, not in individual pages.
+- This guide is shared across products. Each product keeps its own product mark, and the media and collection patterns apply only where a product already has those screens; they are not a reason to add them.
+
+## Breakpoints
+
+Tailwind defaults. "Compact" means below `md`; "wide" means `lg` and up.
+
+| Name    | Min width | Layout                                                        |
+| ------- | --------- | ------------------------------------------------------------- |
+| compact | 0         | Single column, mobile navigation, wrapped toolbars |
+| `md`    | 768px     | Expanded sidebar; two columns where useful         |
+| `lg`    | 1024px    | Full toolbars, wide sizes                          |
+| `xl`    | 1280px    | Wider grids; no new layout modes                   |
+
+UI review covers at least compact (390px) and wide (1280px) widths, plus `md` when a layout changes between them.
 
 ## Visual direction
 
-- Warm near-black surfaces, warm off-white text, and a muted rose accent. Dark mode is the reference appearance; the light palette uses warm paper surfaces and a deeper rose.
-- Let content, artwork, typography, and spacing establish hierarchy. Use accent color for primary actions, selected controls, and active playback.
+- Warm near-black surfaces, warm off-white text, and a muted rose accent. Dark mode is the reference appearance. The light palette uses warm paper surfaces and a deeper rose.
+- Hierarchy comes from content, artwork, typography, and spacing. Use `primary` (the rose) only for primary actions, selected controls, and active playback. The `accent` token is a hover surface, not the brand accent.
 - Prefer open sections and quiet surfaces. Counters, informational sections, empty states, and ordinary media rows have no decorative frames or divider lines.
-- Keep purposeful outlines on inputs, filter chips, outlined buttons and badges, and upload drop zones. Underline tabs retain their active indicator. Border removal is scoped to decorative framing.
-- Refine shared components and variants for consistent color, type, spacing, radii, sizes, and states. Repeated page-level restyling belongs in a shared variant.
+- Keep purposeful outlines: inputs, filter chips, outlined buttons and badges, and upload drop zones. Underline tabs keep their active indicator. Only decorative framing is removed.
+- Refine shared components and their variants for consistent color, type, spacing, radii, sizes, and states.
 
 ## Color palette
 
-Use semantic tokens in UI code. Hex values belong in the shared theme. Pair filled surfaces with their corresponding foreground tokens rather than assuming white text.
+Use semantic tokens in UI code. Hex values belong in the shared theme. Pair every filled surface with its matching foreground token; do not assume white text.
 
 | Token                | Dark        | Light       | Purpose                         |
 | -------------------- | ----------- | ----------- | ------------------------------- |
@@ -36,11 +53,17 @@ Use semantic tokens in UI code. Hex values belong in the shared theme. Pair fill
 | `scrim`              | `#000000cc` | `#1b1916a6` | Backdrop over content           |
 | `art-fade`           | `#0d0c0bf0` | `#f5f3eef0` | Artwork fade into the canvas    |
 
-Aliases: `card-foreground`, `popover-foreground`, `sidebar-accent-foreground`, `secondary-foreground`, and `accent-foreground` use `foreground`. `ring` and `sidebar-primary` use `primary`; `sidebar-primary-foreground` uses `primary-foreground`. `sidebar-border` uses `border` and `sidebar-ring` uses `ring`.
+Aliases:
+
+- `card-foreground`, `popover-foreground`, `sidebar-accent-foreground`, `secondary-foreground`, `accent-foreground` → `foreground`
+- `ring`, `sidebar-primary` → `primary`
+- `sidebar-primary-foreground` → `primary-foreground`
+- `sidebar-border` → `border`
+- `sidebar-ring` → `ring`
 
 ### Status colors
 
-Each status has a fill, text on that fill, and text for a subtle tinted surface. Include an icon or label so color is not the only signal.
+Each status has a fill, a text color for that fill (`on-*`), and a text color for a subtle tinted surface (`*-foreground`). Always pair status color with an icon or label so color is not the only signal.
 
 | Token                    | Dark      | Light     |
 | ------------------------ | --------- | --------- |
@@ -57,17 +80,28 @@ Each status has a fill, text on that fill, and text for a subtle tinted surface.
 | `on-info`                | `#04121f` | `#ffffff` |
 | `info-foreground`        | `#8ac4ff` | `#134682` |
 
-Subtle status badges use the status fill at 16% opacity in dark mode and 8% in light mode, with the status foreground text.
+Subtle status badges: status fill at 16% opacity (dark) or 8% opacity (light), with the `*-foreground` text color.
 
-Chart colors: `chart-1 = primary`, `chart-2 = info`, `chart-3 = warning`, `chart-4 = #ff7ab8` in dark mode / `#b02a74` in light mode, and `chart-5 = success`. Use labels alongside chart and relationship colors.
+### Chart colors
+
+| Token     | Value                                |
+| --------- | ------------------------------------ |
+| `chart-1` | `primary`                            |
+| `chart-2` | `info`                               |
+| `chart-3` | `warning`                            |
+| `chart-4` | `#ff7ab8` (dark) / `#b02a74` (light) |
+| `chart-5` | `success`                            |
+
+Always label chart and relationship colors.
 
 ## Typography
 
-- Use Geist Variable for interface text and headings. Body weight is 400; controls use 500, section headings and item titles 600, and page headings 700.
-- Use the normal sans-serif font for durations, track numbers, counts, playback statistics, dates, and file hashes. Use `font-variant-numeric: tabular-nums` when numbers need alignment. Reserve Geist Mono for code and literal keyboard notation.
-- Use warm `foreground` for important text and `muted-foreground` for secondary information. Keep text readable; small secondary labels should not become an additional low-opacity layer.
-- Headings use tight tracking. Tile titles and compact metadata can truncate with access to the full text; large headings wrap.
-- Use the shared antialiased text treatment where supported.
+- Interface text and headings use Geist Variable. Weights: body 400, controls 500, section headings and item titles 600, page headings 700.
+- Numbers (durations, track numbers, counts, playback statistics, dates, file hashes) use the normal sans-serif font. Add `font-variant-numeric: tabular-nums` when numbers need to align in columns.
+- Geist Mono is reserved for code and literal keyboard notation.
+- Important text uses `foreground`; secondary information uses `muted-foreground`. Do not stack extra opacity on muted text; small secondary labels must stay readable.
+- Headings use tight tracking. Tile titles and compact metadata may truncate as long as the full text remains accessible. Large headings wrap.
+- Apply `-webkit-font-smoothing: antialiased` and `-moz-osx-font-smoothing: grayscale` at the root.
 
 | Role                                      | Size                     | Treatment                                   |
 | ----------------------------------------- | ------------------------ | ------------------------------------------- |
@@ -87,33 +121,44 @@ Default sans-serif stack:
 "Noto Sans TC Variable", "Noto Sans KR Variable", system-ui, sans-serif
 ```
 
-Japanese is the default CJK glyph fallback. This does not assign a language to unknown text. Keep the document language aligned with the interface language and tag content titles separately using known metadata.
+Japanese is the default CJK glyph fallback. That is a rendering default, not a language assignment: it does not tag unknown text as Japanese.
 
-- `ja`: prioritize Noto Sans JP after Geist.
-- `zh`: prioritize Noto Sans SC after Geist as the default glyph preference; the language tag alone does not prove a writing system.
-- `zh-HK`, `zh-TW`, `zh-Hant`: prioritize Noto Sans TC after Geist.
-- `ko`: prioritize Noto Sans KR after Geist.
-- Use known item language first, then an established container language where the product supports that fallback. Leave unknown language unset. Do not infer the language of a person's name from a release or from appearance.
+Language-specific fallbacks after Geist:
+
+| Language tag                | Preferred CJK font | Note                                                                    |
+| --------------------------- | ------------------ | ----------------------------------------------------------------------- |
+| `ja`                        | Noto Sans JP       |                                                                         |
+| `zh`                        | Noto Sans SC       | Default glyph preference; the tag alone does not prove a writing system |
+| `zh-HK`, `zh-TW`, `zh-Hant` | Noto Sans TC       |                                                                         |
+| `ko`                        | Noto Sans KR       |                                                                         |
+
+Language tagging rules:
+
+- Keep the document language aligned with the interface language. Tag content titles separately from known metadata.
+- Use the item's known language first, then an established container language where the product supports that fallback.
+- Leave unknown language unset. Never infer the language of a person's name from a release or from how it looks.
 
 ## Spacing and sizing
 
-Use a 4px spacing rhythm with 8px, 12px, 16px, 24px, and 32px steps. Keep these values in shared tokens. Responsive and native layouts may adapt them to fit their platform.
+Use a 4px rhythm with 8px, 12px, 16px, 24px, and 32px steps, through the framework's spacing scale (Tailwind utilities on the web). Do not add tokens that only rename steps of that scale. Responsive and native layouts may adapt these values to fit their platform.
 
-| Token           | Value | Purpose                          |
-| --------------- | ----- | -------------------------------- |
-| `control-xs`    | 24px  | Smallest compact control         |
-| `control-sm`    | 28px  | Small control                    |
-| `control-md`    | 32px  | Standard desktop control         |
-| `control-lg`    | 40px  | Large control and navigation row |
-| `control-xl`    | 48px  | Largest control token            |
-| `page-gutter`   | 24px  | Default page inset               |
-| `grid-gap`      | 16px  | Tile and grid gap                |
-| `section-gap`   | 32px  | Space between sections           |
-| `card-pad`      | 16px  | Default card inset               |
-| `sidebar-width` | 256px | Expanded desktop navigation      |
-| `player-height` | 80px  | Baseline desktop media bar       |
+| Use                        | Value |
+| -------------------------- | ----- |
+| Smallest compact control   | 24px  |
+| Small control              | 28px  |
+| Standard desktop control   | 32px  |
+| Large control, nav row     | 40px  |
+| Largest control            | 48px  |
+| Page inset                 | 24px  |
+| Tile and grid gap          | 16px  |
+| Space between sections     | 32px  |
+| Card inset                 | 16px  |
+| Expanded desktop sidebar   | 256px |
+| Baseline desktop media bar | 80px  |
 
-Use shared control size variants; these tokens are the common scale, not a requirement to rewrite every existing component's responsive sizing. Touch targets should be at least 44px even when the visible icon control is smaller. Expanded panels and wrapped controls can exceed baseline heights.
+- Use the shared control size variants for control heights. These values are the common scale, not a mandate to rewrite every component's existing responsive sizing.
+- Touch targets are at least 44px, even when the visible icon control is smaller.
+- Expanded panels and wrapped controls may exceed baseline heights.
 
 ### Radii
 
@@ -125,11 +170,13 @@ Use shared control size variants; these tokens are the common scale, not a requi
 | `radius-xl`, `radius-2xl`, `radius-3xl` | 12px  | Artwork tiles and cards               |
 | `radius-4xl`                            | 16px  | Large artwork and floating surfaces   |
 
-Use a full circle for round portraits and transport buttons, and a pill for short filter labels. Multiline or stacked labels use a rounded rectangle that grows with its content.
+Round portraits and transport buttons are full circles. Short filter labels are pills. Multiline or stacked labels use a rounded rectangle that grows with the content.
+
+The scale is deliberately clamped: `xl`, `2xl`, and `3xl` all resolve to 12px so Tailwind `rounded-*` utilities stay within the intended range without per-call overrides.
 
 ## Elevation
 
-Use elevation for artwork, popovers, and floating controls. Ordinary text sections remain flat. Keep these shadows in shared theme tokens.
+Use elevation for artwork, popovers, and floating controls. Ordinary text sections stay flat. Keep these shadows in shared theme tokens.
 
 | Token              | Dark                                           | Light                                        |
 | ------------------ | ---------------------------------------------- | -------------------------------------------- |
@@ -139,37 +186,84 @@ Use elevation for artwork, popovers, and floating controls. Ordinary text sectio
 | `ds-shadow-player` | `0 12px 40px #000000b3, 0 0 0 1px #ffffff14`   | `0 12px 40px #1b19162e, 0 0 0 1px #1b191614` |
 | `ds-glow-primary`  | `0 0 0 1px #e8758b66, 0 0 24px #e8758b33`      | `0 0 0 1px #aa224966, 0 0 16px #aa224926`    |
 
-Use the primary glow sparingly for active playback or the current item. Frosted floating surfaces must retain readable contrast over the content behind them.
+Use `ds-glow-primary` sparingly: active playback or the current item only. Frosted floating surfaces must keep readable contrast over whatever scrolls behind them.
+
+### Layering
+
+Stacking order, lowest to highest:
+
+1. Page content
+2. Sticky headers and toolbars
+3. Floating media bar
+4. Overlays: popovers, menus, tooltips, scrim, and dialogs
+5. Toasts
+
+Overlays share one layer and stack in the order they open, so a menu opened from a dialog sits above that dialog. Keep the shared components' z-index values. Inside a component, use small local values only to order its own parts.
+
+## Motion
+
+- Hover and press feedback: 150ms. Enter and exit of menus, popovers, and toasts: 200ms. Larger layout transitions: 300ms maximum.
+- Use ease-out for entering, ease-in for leaving. No bounce or overshoot.
+- Under `prefers-reduced-motion: reduce`, drop hover lift, playback bar animation, and ambient effects; keep opacity fades at most.
 
 ## Components and states
 
-- Reuse the repository's shared controls. For Coss/Base UI projects, refine the local wrappers and their variants. Use semantic HTML for simple layout and domain compositions. Native apps express the same visual intent through native controls.
-- Primary buttons use `primary` and `primary-foreground`. Secondary, outline, and ghost variants serve less prominent actions. Round play/pause controls use a primary fill; other transport controls are quiet and turn primary when active.
-- Inputs, selects, and comboboxes share sizing, outlines, labels, focus, and error treatments. Dark field surfaces use `card`. Filter chips retain a subtle outline; selected chips gain a primary outline.
-- Active sidebar rows use `sidebar-accent`, the main foreground for the label, and primary for the icon. Underline tabs are text-only with a primary active indicator and no hover fill.
-- Empty states use a muted standalone icon, a clear title, a brief explanation, and an action when relevant. Avoid a bordered box behind the icon.
+### General
+
+- Reuse the repository's shared controls. In Coss/Base UI projects, refine the local wrappers and their variants rather than restyling call sites. Use semantic HTML for simple layout and domain compositions. Native apps express the same intent through native controls.
 - Keep explicit idle, hover, focus-visible, pressed/selected, disabled, loading, and error states. Loading placeholders follow the shape of their content.
-- Use the existing product SVG mark, rendered in the foreground color on a transparent background. Preserve its shape and proportions; a decorative square is not part of this treatment. Other repositories retain their own product mark.
-- Icons share the existing icon set, consistent stroke weight, and component size variants. Give icon-only actions accessible names and short tooltips when their meaning needs explanation.
-- Successful add-to-queue and add-to-collection actions give concise toast feedback. Errors explain the failed action and offer a useful recovery where available.
+- Focus ring: 2px `ring`, shown on `:focus-visible` only, with a 2px offset by default. Use an inset ring where an outer ring would be clipped or overlap neighbors, such as rows in lists and scroll areas or full-bleed canvases. Never remove it without an equivalent visible replacement.
+- Icons share the existing icon set, a consistent stroke weight, and the component size variants. Icon-only actions need an accessible name and a short tooltip when the meaning is not obvious.
+- The product mark is the existing SVG, rendered in `foreground` on a transparent background. Preserve its shape and proportions; do not add a decorative square behind it.
+
+### Buttons and transport
+
+- Primary buttons use `primary` with `primary-foreground`. Secondary, outline, and ghost variants serve less prominent actions.
+- Round play/pause controls use a primary fill. Other transport controls are quiet and turn primary when active.
+
+### Fields and chips
+
+- Inputs, selects, and comboboxes share sizing, outlines, labels, focus, and error treatment. Field surfaces use `card` in both themes. Field focus is a `ring`-colored outline with a soft ring halo.
+- Filter chips keep a subtle outline; selected chips gain a primary outline.
+
+### Navigation
+
+- Active sidebar rows use `sidebar-accent` as the surface, `foreground` for the label, and `primary` for the icon.
+- Underline tabs are text-only with a primary active indicator and no hover fill.
+
+### Feedback
+
+- Empty states: a muted standalone icon, a clear title, a brief explanation, and an action when one is relevant. No bordered box behind the icon.
+- Successful add-to-queue and add-to-collection actions show a concise toast. Errors name the failed action and offer a recovery where one exists.
 
 ## Media and collection layouts
 
-Apply these patterns when the product contains media or collection screens; they do not require adding those features to another application.
+Applies to products that already have media or collection screens.
 
-- Square artwork for releases, round portraits for credited entities, and 16:9 artwork for video collections. Use 12px artwork corners and restrained elevation.
-- Tiles have a semibold title, a muted attribution line, and optional compact metadata. Titles do not underline on hover. A standard square tile row starts from a 150px minimum tile width with 16px gaps; wide tiles start from 240px.
-- Put release-type badges over the artwork. A plain Album needs no type badge. Below 140px container width, retain the badge icon and accessible label while hiding its visible text.
-- Album and playlist tiles share the play button and active-playback treatment. Reveal artwork actions on hover and keyboard focus; provide usable touch access.
-- Active playback uses a primary title, a small bars indicator, and a restrained artwork glow. Media rows use spacing and hover treatment rather than routine divider lines.
-- Home preview sections show complete tiles in one row with a View all action. Full collection screens use responsive grids. Loading and pagination behavior remain product decisions.
-- Floating media bars sit above scrolling content with a small edge gap, rounded corners, and surrounding shadow. Reserve bottom scroll space based on the actual bar height so final content and focused controls remain reachable.
-- Keep quality badges concise; detailed codec and playback statistics belong in settings. Preserve the volume button's mute action and hover slider, with keyboard and touch access. Preserve existing mobile transport and device controls when changing their appearance.
+### Artwork and tiles
+
+- Square artwork for releases, round portraits for credited entities, 16:9 artwork for video collections. Artwork corners are 12px with restrained elevation.
+- Tiles have a semibold title, a muted attribution line, and optional compact metadata. Titles do not underline on hover.
+- Square tile rows start from a 150px minimum tile width with 16px gaps; wide tiles start from 240px.
+- Release-type badges sit over the artwork. A plain Album needs no badge. Below 140px container width, keep the badge icon and accessible label but hide the visible text.
+- Album and playlist tiles share the play button and active-playback treatment. Reveal artwork actions on hover and keyboard focus, and provide usable touch access.
+
+### Playback
+
+- Active playback uses a primary-colored title, a small bars indicator, and a restrained artwork glow.
+- Media rows use spacing and hover treatment, not routine divider lines.
+- Floating media bars sit above scrolling content with a small edge gap, rounded corners, and a surrounding shadow. Reserve bottom scroll space based on the actual bar height so final content and focused controls stay reachable.
+- Keep quality badges concise; detailed codec and playback statistics belong in settings.
+- Preserve the volume button's mute action and hover slider, with keyboard and touch access. Preserve existing mobile transport and device controls when restyling them.
+
+### Collections
+
+- Home preview sections show complete tiles in a single row with a View all action.
+- Full collection screens use responsive grids. Loading and pagination behavior are product decisions.
 
 ## Responsive behavior and accessibility
 
-- Adapt layouts to the content width. Collapse desktop sidebars into accessible mobile navigation, wrap toolbars, reduce grid columns, and prioritize essential metadata.
-- Keep safe areas and persistent bars clear of page content. Long titles, stacked badges, and expanded controls must grow or wrap without clipping or horizontal page overflow.
-- Preserve keyboard navigation, visible focus, accessible names, overlay focus handling, and meaningful HTML or native semantics. Context menus supplement discoverable actions.
-- Use color plus text, icons, or shape for status and selection. Check contrast for text, outlined controls, and overlays in every theme the product exposes.
-- Keep motion brief and purposeful. Respect reduced-motion preferences for hover lift, playback indicators, transitions, and ambient effects.
+- Adapt layouts to the available width: collapse desktop sidebars into accessible mobile navigation, wrap toolbars, reduce grid columns, and prioritize essential metadata.
+- Keep page content clear of safe areas and persistent bars. Long titles, stacked badges, and expanded controls must grow or wrap without clipping or horizontal page overflow.
+- Preserve keyboard navigation, visible focus, accessible names, overlay focus handling, and meaningful HTML or native semantics. Context menus supplement discoverable actions; they never replace them.
+- Signal status and selection with color plus text, icon, or shape. Check contrast for text, outlined controls, and overlays in every theme the product exposes.

@@ -43,6 +43,7 @@ public sealed class PartyItems
     public PartyGender Gender { get; init; } = PartyGender.Unknown;
     public double Similarity { get; init; }
     public required int AlbumCount { get; init; }
+    public required DateTimeOffset CreatedAt { get; init; }
     public required IReadOnlyList<PartyAlias> Aliases { get; init; } = [];
 }
 

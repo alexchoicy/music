@@ -69,7 +69,7 @@ export function HistoryCountsTable({
 			<div
 				className={cn(
 					COLUMNS,
-					"border-b px-3 pb-2 text-xs font-medium text-muted-foreground",
+					"px-3 pb-2 text-xs font-medium text-muted-foreground",
 				)}
 				role="row"
 			>
@@ -101,7 +101,7 @@ export function HistoryCountsTable({
 					<div
 						className={cn(
 							COLUMNS,
-							"group/track relative min-h-14 rounded-lg px-3 py-2 transition-colors duration-100 hover:bg-accent motion-reduce:transition-none",
+							"group/track relative min-h-14 rounded-lg px-3 py-2 transition-colors duration-150 hover:bg-accent motion-reduce:transition-none",
 						)}
 						key={`${entry.albumDiscId}-${entry.trackId}`}
 						role="row"
@@ -143,7 +143,7 @@ export function HistoryCountsTable({
 						</div>
 						<span className="hidden min-w-0 @4xl:block" role="cell">
 							<Link
-								className="relative z-10 block truncate rounded-xs text-sm text-sidebar-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+								className="relative z-10 block truncate rounded-xs text-sm text-sidebar-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 								lang={titleLang(entry.albumLanguageId)}
 								params={{ id: String(entry.albumId) }}
 								to="/albums/$id"
@@ -173,7 +173,7 @@ export function HistoryCountsTable({
 							{formatLastPlayed(entry.lastPlayedAt)}
 						</time>
 						<span
-							className="relative z-10 opacity-100 transition-opacity group-focus-within/track:opacity-100 group-hover/track:opacity-100 md:opacity-0"
+							className="relative z-10 opacity-100 transition-opacity group-focus-within/track:opacity-100 group-hover/track:opacity-100 md:pointer-fine:opacity-0"
 							role="cell"
 						>
 							<TrackActionsMenu

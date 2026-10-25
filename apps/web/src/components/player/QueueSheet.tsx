@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useRef } from "react";
 
+import { PlayingBars } from "#/components/album/AlbumTile";
 import { Button } from "#/components/base/button";
 import {
 	Sheet,
@@ -18,6 +19,7 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "#/components/base/sheet";
+import { useTitleLang } from "#/hooks/use-title-lang";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
@@ -81,7 +83,7 @@ export function QueueSheet({
 				<SheetPanel>
 					<div className="flex flex-col gap-1">
 						{queueLength === 0 ? (
-							<div className="flex min-h-32 flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-center text-muted-foreground">
+							<div className="flex min-h-32 flex-col items-center justify-center gap-2 text-center text-muted-foreground">
 								<ListMusicIcon aria-hidden="true" className="size-6" />
 								<p className="text-sm">Your queue is empty.</p>
 							</div>
@@ -147,13 +149,16 @@ function QueueTrackRow({
 		group: "audio-player-queue",
 		disabled: queueLength < 2,
 	});
+	const titleLang = useTitleLang();
+	const isPlaying = useAudioPlayerStore(
+		(state) => isCurrent && state.status === "playing",
+	);
 
 	return (
 		<div
 			className={cn(
 				"relative flex min-w-0 items-center gap-1 rounded-lg pr-1",
-				isCurrent && "bg-accent text-foreground",
-				isDragging && "z-10 bg-accent shadow-lg",
+				isDragging && "z-10 bg-accent shadow-pop",
 			)}
 			ref={ref}
 		>
@@ -170,7 +175,7 @@ function QueueTrackRow({
 			<button
 				aria-current={isCurrent ? "true" : undefined}
 				aria-label={`Play ${track.title}, queue item ${trackIndex + 1}`}
-				className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-2 text-left transition-colors outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+				className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-2 text-left transition-colors outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
 				onClick={() => playQueueTrack(trackIndex)}
 				type="button"
 			>
@@ -186,7 +191,18 @@ function QueueTrackRow({
 					)}
 				</div>
 				<div className="min-w-0 flex-1">
-					<p className="truncate text-sm font-medium">{track.title}</p>
+					<p className="flex min-w-0 items-center gap-1.5">
+						{isPlaying && <PlayingBars />}
+						<span
+							className={cn(
+								"truncate text-sm font-medium",
+								isCurrent && "text-primary",
+							)}
+							lang={titleLang(track.languageId, track.albumLanguageId)}
+						>
+							{track.title}
+						</span>
+					</p>
 					<p className="truncate text-xs text-muted-foreground">
 						{track.party.length > 0
 							? track.party.map((party) => party.name).join(", ")

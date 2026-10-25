@@ -20,7 +20,7 @@ export function MobileHeader({ onOpenSearch }: { onOpenSearch: () => void }) {
 			</Button>
 
 			<Link
-				className="flex items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
+				className="flex items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				to="/"
 			>
 				<AppMark className="size-7" />

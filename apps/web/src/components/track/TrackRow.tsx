@@ -44,7 +44,7 @@ export function TrackRow({
 	return (
 		<li
 			className={cn(
-				"group/track relative flex min-h-14 items-center gap-4 rounded-lg px-3 py-2 transition-colors duration-100 hover:bg-accent motion-reduce:transition-none",
+				"group/track relative flex min-h-14 items-center gap-4 rounded-lg px-3 py-2 transition-colors duration-150 hover:bg-accent motion-reduce:transition-none",
 				className,
 			)}
 			{...props}
@@ -95,7 +95,7 @@ export function TrackRow({
 			</div>
 			{trailing}
 			{menu && (
-				<div className="relative z-10 opacity-100 transition-opacity group-focus-within/track:opacity-100 group-hover/track:opacity-100 md:opacity-0">
+				<div className="relative z-10 opacity-100 transition-opacity group-focus-within/track:opacity-100 group-hover/track:opacity-100 md:pointer-fine:opacity-0">
 					{menu}
 				</div>
 			)}
