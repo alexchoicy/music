@@ -124,7 +124,6 @@ function CoverSlot({
 		},
 		onSuccess: (result) => {
 			applyAlbumEdit(queryClient, albumId, result.album);
-			void queryClient.invalidateQueries({ queryKey: ["playlists"] });
 			// The upload above changed processing state after the response was built
 			void queryClient.invalidateQueries({
 				queryKey: ["albums", String(albumId), "edit"],
