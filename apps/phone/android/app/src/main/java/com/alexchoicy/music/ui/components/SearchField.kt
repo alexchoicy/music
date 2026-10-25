@@ -48,9 +48,10 @@ fun SearchField(
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = placeholder },
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = placeholder },
         singleLine = true,
         textStyle = typography.bodyLarge.copy(color = colors.foreground),
         cursorBrush = SolidColor(colors.primary),
@@ -59,10 +60,11 @@ fun SearchField(
         interactionSource = interactionSource,
         decorationBox = { innerTextField ->
             Row(
-                modifier = Modifier
-                    .height(48.dp)
-                    .fieldFrame(colors, focused, if (focused) colors.primary else colors.input)
-                    .padding(start = 12.dp),
+                modifier =
+                    Modifier
+                        .height(48.dp)
+                        .fieldFrame(colors, focused, if (focused) colors.primary else colors.input)
+                        .padding(start = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

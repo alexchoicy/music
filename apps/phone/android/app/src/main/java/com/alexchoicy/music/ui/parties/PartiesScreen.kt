@@ -19,6 +19,7 @@ import com.alexchoicy.music.R
 import com.alexchoicy.music.api.PartyType
 import com.alexchoicy.music.ui.collection.CollectionCopy
 import com.alexchoicy.music.ui.collection.CollectionScreen
+import com.alexchoicy.music.ui.collection.DownloadedSection
 import com.alexchoicy.music.ui.components.FilterChip
 import com.alexchoicy.music.ui.components.PartyArtworkMaxSize
 import com.alexchoicy.music.ui.components.PartyTile
@@ -27,21 +28,22 @@ import com.alexchoicy.music.ui.components.SheetSection
 import com.alexchoicy.music.ui.musicApplication
 import com.alexchoicy.music.ui.theme.MusicTheme
 
-private val PartiesCopy = CollectionCopy(
-    title = "Parties",
-    searchPlaceholder = "Search parties",
-    icon = R.drawable.ic_parties,
-    emptyTitle = "No parties yet",
-    emptyDescription = "Artists, groups, and projects with releases will appear here.",
-)
+private val PartiesCopy =
+    CollectionCopy(
+        title = "Parties",
+        searchPlaceholder = "Search parties",
+        icon = R.drawable.ic_parties,
+        emptyTitle = "No parties yet",
+    )
 
 @Composable
 fun PartiesScreen(
     contentPadding: PaddingValues,
     onOpenParty: (Long) -> Unit,
-    viewModel: PartiesViewModel = viewModel {
-        PartiesViewModel(musicApplication().libraryRepository)
-    },
+    viewModel: PartiesViewModel =
+        viewModel {
+            PartiesViewModel(musicApplication().libraryRepository, musicApplication().network)
+        },
 ) {
     val loader = viewModel.parties
     val query = loader.query
@@ -55,12 +57,16 @@ fun PartiesScreen(
         onSearchChange = { loader.query = query.copy(search = it) },
         sort = query.sort,
         onSortChange = { loader.query = query.copy(sort = it) },
-        filterCount = if (query.type != null) 1 else 0,
-        onResetFilters = { loader.query = query.copy(type = null) },
+        filterCount = listOf(query.type != null, query.downloaded).count { it },
+        onResetFilters = { loader.query = query.copy(type = null, downloaded = false) },
         key = { it.id },
         tile = { PartyTile(it, onClick = { onOpenParty(it.id) }, Modifier.fillMaxWidth()) },
         placeholderTile = { PartyPlaceholder() },
     ) {
+        DownloadedSection(
+            selected = query.downloaded,
+            onSelectedChange = { loader.query = query.copy(downloaded = it) },
+        )
         SheetSection("Type") {
             PartyType.entries.forEach { type ->
                 FilterChip(

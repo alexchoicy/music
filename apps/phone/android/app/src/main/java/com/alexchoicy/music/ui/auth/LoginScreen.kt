@@ -40,18 +40,20 @@ import com.alexchoicy.music.ui.theme.MusicTheme
 @Composable
 fun LoginScreen(
     serverUrl: String,
-    viewModel: LoginViewModel = viewModel {
-        val application = musicApplication()
-        LoginViewModel(
-            session = application.session,
-            api = application.authApi,
-            database = application.database,
-            deviceName = Settings.Global.getString(
-                application.contentResolver,
-                Settings.Global.DEVICE_NAME,
-            ),
-        )
-    },
+    viewModel: LoginViewModel =
+        viewModel {
+            val application = musicApplication()
+            LoginViewModel(
+                session = application.session,
+                api = application.authApi,
+                database = application.database,
+                deviceName =
+                    Settings.Global.getString(
+                        application.contentResolver,
+                        Settings.Global.DEVICE_NAME,
+                    ),
+            )
+        },
 ) {
     val colors = MusicTheme.colors
     var username by rememberSaveable(stateSaver = TextFieldValue.Saver) {
@@ -81,7 +83,6 @@ fun LoginScreen(
 
     AuthLayout(
         title = "Welcome back",
-        description = "Sign in to listen to your music library.",
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             MusicTextField(
@@ -93,14 +94,16 @@ fun LoginScreen(
                 },
                 label = "Username",
                 error = usernameError,
-                modifier = Modifier
-                    .focusRequester(usernameFocus)
-                    .semantics { contentType = ContentType.Username },
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.None,
-                    autoCorrectEnabled = false,
-                    imeAction = ImeAction.Next,
-                ),
+                modifier =
+                    Modifier
+                        .focusRequester(usernameFocus)
+                        .semantics { contentType = ContentType.Username },
+                keyboardOptions =
+                    KeyboardOptions(
+                        capitalization = KeyboardCapitalization.None,
+                        autoCorrectEnabled = false,
+                        imeAction = ImeAction.Next,
+                    ),
                 keyboardActions = KeyboardActions(onNext = { passwordFocus.requestFocus() }),
             )
             MusicTextField(
@@ -111,16 +114,18 @@ fun LoginScreen(
                     viewModel.clearError()
                 },
                 label = "Password",
-                modifier = Modifier
-                    .focusRequester(passwordFocus)
-                    .semantics { contentType = ContentType.Password },
+                modifier =
+                    Modifier
+                        .focusRequester(passwordFocus)
+                        .semantics { contentType = ContentType.Password },
                 error = passwordError ?: viewModel.error,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.None,
-                    autoCorrectEnabled = false,
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Go,
-                ),
+                keyboardOptions =
+                    KeyboardOptions(
+                        capitalization = KeyboardCapitalization.None,
+                        autoCorrectEnabled = false,
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Go,
+                    ),
                 keyboardActions = KeyboardActions(onGo = { submit() }),
                 visualTransformation = PasswordVisualTransformation(),
             )
@@ -134,9 +139,10 @@ fun LoginScreen(
         )
 
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {

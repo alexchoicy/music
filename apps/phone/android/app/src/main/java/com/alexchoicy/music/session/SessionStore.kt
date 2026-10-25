@@ -6,7 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 
-class SessionStore(context: Context) {
+class SessionStore(
+    context: Context,
+) {
     private val preferences = context.getSharedPreferences("session", Context.MODE_PRIVATE)
 
     var serverUrl by mutableStateOf(preferences.getString(SERVER_URL_KEY, null))

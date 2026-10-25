@@ -45,7 +45,6 @@ fun MusicTextField(
     onValueChange: (TextFieldValue) -> Unit,
     label: String,
     modifier: Modifier = Modifier,
-    description: String? = null,
     error: String? = null,
     placeholder: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -56,11 +55,12 @@ fun MusicTextField(
     val typography = MaterialTheme.typography
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
-    val borderColor = when {
-        error != null -> colors.destructive
-        focused -> colors.primary
-        else -> colors.input
-    }
+    val borderColor =
+        when {
+            error != null -> colors.destructive
+            focused -> colors.primary
+            else -> colors.input
+        }
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
@@ -72,12 +72,13 @@ fun MusicTextField(
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = modifier
-                .fillMaxWidth()
-                .semantics(mergeDescendants = true) {
-                    contentDescription = label
-                    if (error != null) error(error)
-                },
+            modifier =
+                modifier
+                    .fillMaxWidth()
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = label
+                        if (error != null) error(error)
+                    },
             singleLine = true,
             textStyle = typography.bodyLarge.copy(color = colors.foreground),
             cursorBrush = SolidColor(colors.primary),
@@ -87,10 +88,11 @@ fun MusicTextField(
             interactionSource = interactionSource,
             decorationBox = { innerTextField ->
                 Box(
-                    modifier = Modifier
-                        .height(48.dp)
-                        .fieldFrame(colors, focused, borderColor)
-                        .padding(horizontal = 12.dp),
+                    modifier =
+                        Modifier
+                            .height(48.dp)
+                            .fieldFrame(colors, focused, borderColor)
+                            .padding(horizontal = 12.dp),
                     contentAlignment = Alignment.CenterStart,
                 ) {
                     if (value.text.isEmpty() && placeholder != null) {
@@ -112,14 +114,16 @@ fun MusicTextField(
                 color = colors.destructiveForeground,
                 style = typography.bodyMedium,
             )
-        } else if (description != null) {
-            Text(description, color = colors.mutedForeground, style = typography.bodyMedium)
         }
     }
 }
 
 @Composable
-internal fun Modifier.fieldFrame(colors: MusicColors, focused: Boolean, borderColor: Color) = this
+internal fun Modifier.fieldFrame(
+    colors: MusicColors,
+    focused: Boolean,
+    borderColor: Color,
+) = this
     .drawBehind {
         if (!focused) return@drawBehind
         val spread = 3.dp.toPx()
@@ -130,6 +134,5 @@ internal fun Modifier.fieldFrame(colors: MusicColors, focused: Boolean, borderCo
             cornerRadius = CornerRadius(8.dp.toPx() + spread / 2),
             style = Stroke(spread),
         )
-    }
-    .background(colors.card, MaterialTheme.shapes.medium)
+    }.background(colors.card, MaterialTheme.shapes.medium)
     .border(1.dp, borderColor, MaterialTheme.shapes.medium)

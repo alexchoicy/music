@@ -4,14 +4,21 @@ import com.alexchoicy.music.api.AlbumDetail
 import com.alexchoicy.music.api.ApiOutcome
 import com.alexchoicy.music.api.DetailApi
 import com.alexchoicy.music.api.PartyDetail
+import com.alexchoicy.music.api.valueOrNull
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 
-class DetailRepository(private val api: DetailApi, private val dao: DetailDao) {
+class DetailRepository(
+    private val api: DetailApi,
+    private val dao: DetailDao,
+) {
     fun album(id: Long): Flow<AlbumDetail?> = dao.observeAlbum(id).distinctUntilChanged()
 
     fun party(id: Long): Flow<PartyDetail?> = dao.observeParty(id).distinctUntilChanged()
+
+    suspend fun albumShareUrl(id: Long): String? = album(id).first()?.shareUrl ?: api.fetchAlbum(id).valueOrNull()?.shareUrl
 
     suspend fun syncAlbum(id: Long): Boolean = sync({ api.fetchAlbum(id) }, dao::replaceAlbum)
 
@@ -21,7 +28,7 @@ class DetailRepository(private val api: DetailApi, private val dao: DetailDao) {
         request: suspend () -> ApiOutcome<T>,
         save: suspend (T) -> Unit,
     ): Boolean {
-        val value = (request() as? ApiOutcome.Loaded)?.value ?: return false
+        val value = request().valueOrNull() ?: return false
         return try {
             save(value)
             true

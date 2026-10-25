@@ -11,6 +11,8 @@ import com.alexchoicy.music.api.AlbumSummary
 import com.alexchoicy.music.api.Language
 import com.alexchoicy.music.api.ListSort
 import com.alexchoicy.music.api.PartySummary
+import com.alexchoicy.music.offline.DownloadStatus
+import com.alexchoicy.music.offline.TrackDownloadEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -23,9 +25,11 @@ abstract class LibraryDao {
         filter.search("album.searchText", query.search)
         filter.anyOf("album.type", query.types.map { it.name })
         filter.anyOf("album.languageId", query.languageIds.toList())
-        val sql = "SELECT album.* FROM album " +
-            "INNER JOIN library_album ON library_album.albumId = album.id" +
-            filter.where() + orderBy(query.sort, "album.title", "album.createdAtMs")
+        if (query.downloaded) filter.where(hasDownload("album.id"))
+        val sql =
+            "SELECT album.* FROM album " +
+                "INNER JOIN library_album ON library_album.albumId = album.id" +
+                filter.where() + orderBy(query.sort, "album.title", "album.createdAtMs")
         return observeAlbums(filter.toQuery(sql)).map { albums -> albums.map { it.toSummary() } }
     }
 
@@ -33,20 +37,29 @@ abstract class LibraryDao {
         val filter = SqlFilter()
         filter.search("party.searchText", query.search)
         filter.anyOf("party.type", listOfNotNull(query.type?.name))
-        val sql = "SELECT party.* FROM party " +
-            "INNER JOIN library_party ON library_party.partyId = party.id" +
-            filter.where() + orderBy(query.sort, "party.name", "party.createdAtMs")
+        if (query.downloaded) {
+            filter.where(
+                "EXISTS (SELECT 1 FROM album_artist WHERE album_artist.partyId = party.id AND " +
+                    hasDownload("album_artist.albumId") + ")",
+            )
+        }
+        val sql =
+            "SELECT party.* FROM party " +
+                "INNER JOIN library_party ON library_party.partyId = party.id" +
+                filter.where() + orderBy(query.sort, "party.name", "party.createdAtMs")
         return observeParties(filter.toQuery(sql)).map { parties -> parties.map { it.toSummary() } }
     }
 
-    fun observeLanguages(): Flow<List<Language>> =
-        observeLanguageEntities().map { languages -> languages.map { it.toLanguage() } }
+    fun observeLanguages(): Flow<List<Language>> = observeLanguageEntities().map { languages -> languages.map { it.toLanguage() } }
 
     @Query("SELECT EXISTS(SELECT 1 FROM library_sync WHERE kind = :kind)")
     abstract fun observeSynced(kind: LibraryKind): Flow<Boolean>
 
     @Transaction
-    open suspend fun replaceAlbums(albums: List<AlbumSummary>, languages: List<Language>?) {
+    open suspend fun replaceAlbums(
+        albums: List<AlbumSummary>,
+        languages: List<Language>?,
+    ) {
         upsertAlbums(albums)
         deleteLibraryAlbums()
         insertLibraryAlbums(albums.map { LibraryAlbumEntity(it.id) })
@@ -73,10 +86,24 @@ abstract class LibraryDao {
     }
 
     @Transaction
-    @RawQuery(observedEntities = [AlbumEntity::class, AlbumArtistEntity::class, LibraryAlbumEntity::class])
+    @RawQuery(
+        observedEntities = [
+            AlbumEntity::class,
+            AlbumArtistEntity::class,
+            LibraryAlbumEntity::class,
+            TrackDownloadEntity::class,
+        ],
+    )
     protected abstract fun observeAlbums(query: RoomRawQuery): Flow<List<AlbumWithArtists>>
 
-    @RawQuery(observedEntities = [PartyEntity::class, LibraryPartyEntity::class])
+    @RawQuery(
+        observedEntities = [
+            PartyEntity::class,
+            LibraryPartyEntity::class,
+            AlbumArtistEntity::class,
+            TrackDownloadEntity::class,
+        ],
+    )
     protected abstract fun observeParties(query: RoomRawQuery): Flow<List<PartyEntity>>
 
     @Query("SELECT * FROM language ORDER BY name")
@@ -116,41 +143,61 @@ abstract class LibraryDao {
     protected abstract suspend fun upsertSync(sync: LibrarySyncEntity)
 }
 
-private fun orderBy(sort: ListSort, title: String, createdAt: String): String {
+private fun hasDownload(albumId: String) =
+    "EXISTS (SELECT 1 FROM track_download WHERE track_download.albumId = $albumId " +
+        "AND track_download.status = '${DownloadStatus.Downloaded.name}')"
+
+private fun orderBy(
+    sort: ListSort,
+    title: String,
+    createdAt: String,
+): String {
     val byTitle = "$title COLLATE UNICODE"
-    return " ORDER BY " + when (sort) {
-        ListSort.TitleAsc -> "$byTitle ASC"
-        ListSort.TitleDesc -> "$byTitle DESC"
-        ListSort.CreatedAtDesc -> "$createdAt DESC, $byTitle ASC"
-        ListSort.CreatedAtAsc -> "$createdAt ASC, $byTitle ASC"
-    }
+    return " ORDER BY " +
+        when (sort) {
+            ListSort.TitleAsc -> "$byTitle ASC"
+            ListSort.TitleDesc -> "$byTitle DESC"
+            ListSort.CreatedAtDesc -> "$createdAt DESC, $byTitle ASC"
+            ListSort.CreatedAtAsc -> "$createdAt ASC, $byTitle ASC"
+        }
 }
 
 private class SqlFilter {
     private val conditions = mutableListOf<String>()
     private val args = mutableListOf<Any>()
 
-    fun search(column: String, text: String) {
+    fun search(
+        column: String,
+        text: String,
+    ) {
         val key = searchKey(text)
         if (key.isEmpty()) return
         conditions += "$column LIKE ?"
         args += "%$key%"
     }
 
-    fun anyOf(column: String, values: List<Any>) {
+    fun anyOf(
+        column: String,
+        values: List<Any>,
+    ) {
         if (values.isEmpty()) return
         conditions += "$column IN (${values.joinToString(", ") { "?" }})"
         args.addAll(values)
     }
 
+    fun where(condition: String) {
+        conditions += condition
+    }
+
     fun where() = if (conditions.isEmpty()) "" else " WHERE " + conditions.joinToString(" AND ")
 
-    fun toQuery(sql: String) = RoomRawQuery(sql) { statement ->
-        args.forEachIndexed { index, arg ->
-            when (arg) {
-                is Long -> statement.bindLong(index + 1, arg)
-                else -> statement.bindText(index + 1, arg.toString())
+    fun toQuery(sql: String) =
+        RoomRawQuery(sql) { statement ->
+            args.forEachIndexed { index, arg ->
+                when (arg) {
+                    is Long -> statement.bindLong(index + 1, arg)
+                    else -> statement.bindText(index + 1, arg.toString())
+                }
             }
         }
-    }
 }

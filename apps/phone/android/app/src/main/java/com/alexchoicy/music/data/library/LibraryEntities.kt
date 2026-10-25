@@ -49,10 +49,14 @@ data class PartyEntity(
 )
 
 @Entity(tableName = "library_album")
-data class LibraryAlbumEntity(@PrimaryKey val albumId: Long)
+data class LibraryAlbumEntity(
+    @PrimaryKey val albumId: Long,
+)
 
 @Entity(tableName = "library_party")
-data class LibraryPartyEntity(@PrimaryKey val partyId: Long)
+data class LibraryPartyEntity(
+    @PrimaryKey val partyId: Long,
+)
 
 @Entity(tableName = "language")
 data class LanguageEntity(
@@ -63,64 +67,72 @@ data class LanguageEntity(
 enum class LibraryKind { Albums, Parties }
 
 @Entity(tableName = "library_sync")
-data class LibrarySyncEntity(@PrimaryKey val kind: LibraryKind, val syncedAtMs: Long)
+data class LibrarySyncEntity(
+    @PrimaryKey val kind: LibraryKind,
+    val syncedAtMs: Long,
+)
 
 data class AlbumWithArtists(
     @Embedded val album: AlbumEntity,
     @Relation(parentColumns = ["id"], entityColumns = ["albumId"])
     val artists: List<AlbumArtistEntity>,
 ) {
-    fun toSummary() = AlbumSummary(
-        id = album.id,
-        title = album.title,
-        type = album.type,
-        coverUrl = album.coverUrl,
-        artists = artists.sortedBy { it.position }.map { AlbumArtist(it.partyId, it.name) },
-        trackCount = album.trackCount,
-        totalDurationMs = album.totalDurationMs,
-        languageId = album.languageId,
-        releaseDate = album.releaseDateMs?.let(Instant::ofEpochMilli),
-        createdAt = album.createdAtMs?.let(Instant::ofEpochMilli),
+    fun toSummary() =
+        AlbumSummary(
+            id = album.id,
+            title = album.title,
+            type = album.type,
+            coverUrl = album.coverUrl,
+            artists = artists.sortedBy { it.position }.map { AlbumArtist(it.partyId, it.name) },
+            trackCount = album.trackCount,
+            totalDurationMs = album.totalDurationMs,
+            languageId = album.languageId,
+            releaseDate = album.releaseDateMs?.let(Instant::ofEpochMilli),
+            createdAt = album.createdAtMs?.let(Instant::ofEpochMilli),
+        )
+}
+
+fun AlbumSummary.toEntity() =
+    AlbumEntity(
+        id = id,
+        title = title,
+        type = type,
+        coverUrl = coverUrl,
+        trackCount = trackCount,
+        totalDurationMs = totalDurationMs,
+        languageId = languageId,
+        releaseDateMs = releaseDate?.toEpochMilli(),
+        createdAtMs = createdAt?.toEpochMilli(),
+        searchText = searchKey(title),
     )
-}
 
-fun AlbumSummary.toEntity() = AlbumEntity(
-    id = id,
-    title = title,
-    type = type,
-    coverUrl = coverUrl,
-    trackCount = trackCount,
-    totalDurationMs = totalDurationMs,
-    languageId = languageId,
-    releaseDateMs = releaseDate?.toEpochMilli(),
-    createdAtMs = createdAt?.toEpochMilli(),
-    searchText = searchKey(title),
-)
+fun AlbumSummary.toArtistEntities() =
+    artists.mapIndexed { position, artist ->
+        AlbumArtistEntity(id, position, artist.partyId, artist.name)
+    }
 
-fun AlbumSummary.toArtistEntities() = artists.mapIndexed { position, artist ->
-    AlbumArtistEntity(id, position, artist.partyId, artist.name)
-}
+fun PartyEntity.toSummary() =
+    PartySummary(
+        id = id,
+        name = name,
+        coverUrl = coverUrl,
+        albumCount = albumCount,
+        type = type,
+        aliases = aliases.split(ALIAS_SEPARATOR).filter { it.isNotEmpty() },
+        createdAt = createdAtMs?.let(Instant::ofEpochMilli),
+    )
 
-fun PartyEntity.toSummary() = PartySummary(
-    id = id,
-    name = name,
-    coverUrl = coverUrl,
-    albumCount = albumCount,
-    type = type,
-    aliases = aliases.split(ALIAS_SEPARATOR).filter { it.isNotEmpty() },
-    createdAt = createdAtMs?.let(Instant::ofEpochMilli),
-)
-
-fun PartySummary.toEntity() = PartyEntity(
-    id = id,
-    name = name,
-    coverUrl = coverUrl,
-    albumCount = albumCount,
-    type = type,
-    aliases = aliases.joinToString(ALIAS_SEPARATOR),
-    createdAtMs = createdAt?.toEpochMilli(),
-    searchText = (listOf(name) + aliases).joinToString(" ") { searchKey(it) },
-)
+fun PartySummary.toEntity() =
+    PartyEntity(
+        id = id,
+        name = name,
+        coverUrl = coverUrl,
+        albumCount = albumCount,
+        type = type,
+        aliases = aliases.joinToString(ALIAS_SEPARATOR),
+        createdAtMs = createdAt?.toEpochMilli(),
+        searchText = (listOf(name) + aliases).joinToString(" ") { searchKey(it) },
+    )
 
 fun LanguageEntity.toLanguage() = Language(id, name)
 
@@ -129,8 +141,10 @@ fun Language.toEntity() = LanguageEntity(id, name)
 // Mirrors the server's matching: accents removed, case folded, only letters and digits kept.
 // Keys never contain spaces, so space-joined keys cannot match across names.
 fun searchKey(text: String): String {
-    val decomposed = Normalizer.normalize(text, Normalizer.Form.NFKD)
-        .filterNot { Character.getType(it) == Character.NON_SPACING_MARK.toInt() }
+    val decomposed =
+        Normalizer
+            .normalize(text, Normalizer.Form.NFKD)
+            .filterNot { Character.getType(it) == Character.NON_SPACING_MARK.toInt() }
     val folded = Normalizer.normalize(decomposed, Normalizer.Form.NFKC).uppercase()
     return buildString {
         folded.codePoints().forEach { if (Character.isLetterOrDigit(it)) appendCodePoint(it) }

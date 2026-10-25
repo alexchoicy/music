@@ -14,14 +14,19 @@ import androidx.compose.ui.unit.dp
 import com.alexchoicy.music.ui.theme.MusicTheme
 
 @Composable
-fun Tag(text: String, modifier: Modifier = Modifier, outlined: Boolean = false) {
+fun Tag(
+    text: String,
+    modifier: Modifier = Modifier,
+    outlined: Boolean = false,
+) {
     val colors = MusicTheme.colors
     Text(
         text = text,
-        modifier = modifier
-            .background(if (outlined) Color.Transparent else colors.secondary, CircleShape)
-            .border(1.dp, if (outlined) colors.border else Color.Transparent, CircleShape)
-            .padding(horizontal = 8.dp, vertical = 2.dp),
+        modifier =
+            modifier
+                .background(if (outlined) Color.Transparent else colors.secondary, CircleShape)
+                .border(1.dp, if (outlined) colors.border else Color.Transparent, CircleShape)
+                .padding(horizontal = 8.dp, vertical = 2.dp),
         style = MaterialTheme.typography.labelSmall,
         color = colors.foreground,
         maxLines = 1,

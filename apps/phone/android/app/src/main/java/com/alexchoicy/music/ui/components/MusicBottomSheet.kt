@@ -38,6 +38,9 @@ import kotlinx.coroutines.launch
 fun MusicBottomSheet(
     title: String,
     onDismiss: () -> Unit,
+    subtitle: String? = null,
+    scrollable: Boolean = true,
+    action: (@Composable (hide: () -> Unit) -> Unit)? = null,
     footer: (@Composable RowScope.(hide: () -> Unit) -> Unit)? = null,
     content: @Composable ColumnScope.(hide: () -> Unit) -> Unit,
 ) {
@@ -59,24 +62,43 @@ fun MusicBottomSheet(
         scrimColor = colors.scrim,
         dragHandle = { BottomSheetDefaults.DragHandle(color = colors.border) },
     ) {
-        Text(
-            text = title,
-            modifier = Modifier.padding(horizontal = 24.dp),
-            style = MaterialTheme.typography.titleLarge,
-            color = colors.foreground,
-        )
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = 24.dp, end = if (action != null) 12.dp else 24.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = colors.foreground,
+                )
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.mutedForeground,
+                    )
+                }
+            }
+            if (action != null) action(hide)
+        }
         Column(
-            modifier = Modifier
-                .weight(1f, fill = false)
-                .verticalScroll(rememberScrollState())
-                .padding(top = 16.dp, bottom = 24.dp),
+            modifier =
+                Modifier
+                    .weight(1f, fill = false)
+                    .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
+                    .padding(top = 16.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) { content(hide) }
         if (footer != null) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 24.dp, end = 24.dp, bottom = 16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 24.dp, end = 24.dp, bottom = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) { footer(hide) }
         }
@@ -84,7 +106,10 @@ fun MusicBottomSheet(
 }
 
 @Composable
-fun SheetSection(label: String, content: @Composable () -> Unit) {
+fun SheetSection(
+    label: String,
+    content: @Composable () -> Unit,
+) {
     Column(
         modifier = Modifier.padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -102,16 +127,21 @@ fun SheetSection(label: String, content: @Composable () -> Unit) {
 }
 
 @Composable
-fun SheetOption(label: String, selected: Boolean, onClick: () -> Unit) {
+fun SheetOption(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
     val colors = MusicTheme.colors
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp)
-            .clip(MaterialTheme.shapes.medium)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
-            .heightIn(min = 48.dp)
-            .padding(horizontal = 12.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp)
+                .clip(MaterialTheme.shapes.medium)
+                .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+                .heightIn(min = 48.dp)
+                .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(

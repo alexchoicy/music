@@ -1,9 +1,9 @@
 package com.alexchoicy.music.api
 
-import java.time.Instant
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.Serializable
+import java.time.Instant
 
 data class Credit(
     val partyId: Long,
@@ -37,13 +37,21 @@ data class AlbumDetail(
     val trackCount: Int,
     val totalDurationMs: Long,
     val coverUrl: String?,
+    val shareUrl: String?,
     val credits: List<Credit>,
     val discs: List<AlbumDisc>,
 )
 
-data class ExternalLink(val type: String, val url: String)
+data class ExternalLink(
+    val type: String,
+    val url: String,
+)
 
-data class PartyMember(val partyId: Long, val name: String, val avatarUrl: String?)
+data class PartyMember(
+    val partyId: Long,
+    val name: String,
+    val avatarUrl: String?,
+)
 
 data class PartyDetail(
     val id: Long,
@@ -61,17 +69,21 @@ data class PartyDetail(
     val members: List<PartyMember>,
 )
 
-class DetailApi(private val client: ApiClient) {
-    suspend fun fetchAlbum(id: Long): ApiOutcome<AlbumDetail> = apiOutcome {
-        client.get<AlbumDetailDto>("/albums/$id").toDetail()
-    }
-
-    suspend fun fetchParty(id: Long): ApiOutcome<PartyDetail> = apiOutcome {
-        coroutineScope {
-            val graph = async { client.get<RelationshipGraphDto>("/parties/$id/relationships") }
-            client.get<PartyDetailDto>("/parties/$id").toDetail(graph.await())
+class DetailApi(
+    private val client: ApiClient,
+) {
+    suspend fun fetchAlbum(id: Long): ApiOutcome<AlbumDetail> =
+        apiOutcome {
+            client.get<AlbumDetailDto>("/albums/$id").toDetail()
         }
-    }
+
+    suspend fun fetchParty(id: Long): ApiOutcome<PartyDetail> =
+        apiOutcome {
+            coroutineScope {
+                val graph = async { client.get<RelationshipGraphDto>("/parties/$id/relationships") }
+                client.get<PartyDetailDto>("/parties/$id").toDetail(graph.await())
+            }
+        }
 }
 
 @Serializable
@@ -83,6 +95,7 @@ private class AlbumDetailDto(
     val totalTrackCount: Int,
     val totalDurationInMs: Long,
     val cover: AlbumCoverDto,
+    val shareUrl: String,
     val credits: List<CreditDto>,
     val discs: List<AlbumDiscDto>,
 )
@@ -137,7 +150,10 @@ private class PartyDetailDto(
 )
 
 @Serializable
-private class ExternalLinkDto(val type: String, val url: String)
+private class ExternalLinkDto(
+    val type: String,
+    val url: String,
+)
 
 @Serializable
 private class RelationshipGraphDto(
@@ -153,67 +169,83 @@ private class GraphPartyDto(
 )
 
 @Serializable
-private class RelationshipDto(val sourcePartyId: Long, val targetPartyId: Long, val type: String)
+private class RelationshipDto(
+    val sourcePartyId: Long,
+    val targetPartyId: Long,
+    val type: String,
+)
 
-private fun AlbumDetailDto.toDetail() = AlbumDetail(
-    id = albumId,
-    title = title,
-    type = type,
-    releaseDate = parseInstant(releaseDate),
-    trackCount = totalTrackCount,
-    totalDurationMs = totalDurationInMs,
-    coverUrl = cover.album?.url { imageCover1024x1024 }
-        ?: cover.discs.firstOrNull()?.variants?.url { imageCover1024x1024 },
-    credits = credits.map { it.toCredit() },
-    discs = discs.map { disc ->
-        AlbumDisc(
-            id = disc.albumDiscId,
-            discNumber = disc.discNumber,
-            subtitle = disc.subtitle?.ifBlank { null },
-            tracks = disc.tracks.map { track ->
-                AlbumTrack(
-                    trackId = track.trackId,
-                    trackNumber = track.trackNumber,
-                    title = track.title,
-                    durationMs = track.durationInMs,
-                    contentType = track.contentType,
-                    versionType = track.versionType,
-                    credits = track.credits.map { it.toCredit() },
+private fun AlbumDetailDto.toDetail() =
+    AlbumDetail(
+        id = albumId,
+        title = title,
+        type = type,
+        releaseDate = parseInstant(releaseDate),
+        trackCount = totalTrackCount,
+        totalDurationMs = totalDurationInMs,
+        coverUrl =
+            cover.album?.url { imageCover1024x1024 }
+                ?: cover.discs
+                    .firstOrNull()
+                    ?.variants
+                    ?.url { imageCover1024x1024 },
+        shareUrl = shareUrl,
+        credits = credits.map { it.toCredit() },
+        discs =
+            discs.map { disc ->
+                AlbumDisc(
+                    id = disc.albumDiscId,
+                    discNumber = disc.discNumber,
+                    subtitle = disc.subtitle?.ifBlank { null },
+                    tracks =
+                        disc.tracks.map { track ->
+                            AlbumTrack(
+                                trackId = track.trackId,
+                                trackNumber = track.trackNumber,
+                                title = track.title,
+                                durationMs = track.durationInMs,
+                                contentType = track.contentType,
+                                versionType = track.versionType,
+                                credits = track.credits.map { it.toCredit() },
+                            )
+                        },
                 )
             },
-        )
-    },
-)
+    )
 
-private fun CreditDto.toCredit() = Credit(
-    partyId = partyId,
-    name = name,
-    creditType = creditType,
-    avatarUrl = avatar?.url { imageAvatar512x512 },
-)
+private fun CreditDto.toCredit() =
+    Credit(
+        partyId = partyId,
+        name = name,
+        creditType = creditType,
+        avatarUrl = avatar?.url { imageAvatar512x512 },
+    )
 
-private fun PartyDetailDto.toDetail(graph: RelationshipGraphDto) = PartyDetail(
-    id = partyId,
-    name = name,
-    avatarUrl = avatarImages?.url { imageAvatar512x512 },
-    description = description.trim(),
-    type = type,
-    kind = kind,
-    gender = gender,
-    country = country,
-    aliases = aliases.map { it.name }.filter { it.isNotBlank() },
-    links = externalInfoLinks.map { ExternalLink(it.type, it.url) },
-    albums = albums.map { it.toAlbum() },
-    appearsOn = appearsOnAlbums.map { it.toAlbum() },
-    members = graph.members(partyId),
-)
+private fun PartyDetailDto.toDetail(graph: RelationshipGraphDto) =
+    PartyDetail(
+        id = partyId,
+        name = name,
+        avatarUrl = avatarImages?.url { imageAvatar512x512 },
+        description = description.trim(),
+        type = type,
+        kind = kind,
+        gender = gender,
+        country = country,
+        aliases = aliases.map { it.name }.filter { it.isNotBlank() },
+        links = externalInfoLinks.map { ExternalLink(it.type, it.url) },
+        albums = albums.map { it.toAlbum() },
+        appearsOn = appearsOnAlbums.map { it.toAlbum() },
+        members = graph.members(partyId),
+    )
 
 private fun RelationshipGraphDto.members(groupId: Long): List<PartyMember> {
     val partiesById = parties.associateBy { it.partyId }
     return relationships
+        .asSequence()
         .filter { it.type == "MemberOf" && it.targetPartyId == groupId }
         .mapNotNull { partiesById[it.sourcePartyId] }
         .distinctBy { it.partyId }
         .sortedBy { it.name }
         .map { PartyMember(it.partyId, it.name, it.avatarImages?.url { imageAvatar512x512 }) }
+        .toList()
 }

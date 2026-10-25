@@ -24,7 +24,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
 import com.alexchoicy.music.ui.theme.MusicTheme
+import coil3.size.Size as CoilSize
 
 @Composable
 fun Artwork(
@@ -34,6 +37,9 @@ fun Artwork(
     @DrawableRes placeholderIcon: Int? = null,
     placeholderIconSize: Dp = 40.dp,
     interactionSource: InteractionSource? = null,
+    // For artwork that changes size, e.g. while the player expands: decodes the full image
+    // instead of the size it first appeared at.
+    originalSize: Boolean = false,
     placeholder: @Composable () -> Unit = {
         if (placeholderIcon != null) {
             Icon(
@@ -47,18 +53,31 @@ fun Artwork(
 ) {
     var failed by remember(url) { mutableStateOf(false) }
     Box(
-        modifier = modifier
-            .shadow(2.dp, shape)
-            .clip(shape)
-            .then(interactionSource?.let { Modifier.indication(it, ripple()) } ?: Modifier)
-            .background(MusicTheme.colors.muted),
+        modifier =
+            modifier
+                .shadow(2.dp, shape)
+                .clip(shape)
+                .then(interactionSource?.let { Modifier.indication(it, ripple()) } ?: Modifier)
+                .background(MusicTheme.colors.muted),
         contentAlignment = Alignment.Center,
     ) {
         if (url == null || failed) {
             placeholder()
         } else {
+            val context = LocalPlatformContext.current
             AsyncImage(
-                model = url,
+                model =
+                    if (originalSize) {
+                        remember(url) {
+                            ImageRequest
+                                .Builder(context)
+                                .data(url)
+                                .size(CoilSize.ORIGINAL)
+                                .build()
+                        }
+                    } else {
+                        url
+                    },
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,

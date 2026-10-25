@@ -27,13 +27,14 @@ fun FilterChip(
     val colors = MusicTheme.colors
 
     Row(
-        modifier = modifier
-            .minimumInteractiveComponentSize()
-            .height(32.dp)
-            .clip(CircleShape)
-            .toggleable(value = selected, role = Role.Checkbox, onValueChange = onSelectedChange)
-            .border(1.dp, if (selected) colors.primary else colors.border, CircleShape)
-            .padding(horizontal = 14.dp),
+        modifier =
+            modifier
+                .minimumInteractiveComponentSize()
+                .height(32.dp)
+                .clip(CircleShape)
+                .toggleable(value = selected, role = Role.Checkbox, onValueChange = onSelectedChange)
+                .border(1.dp, if (selected) colors.primary else colors.border, CircleShape)
+                .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(

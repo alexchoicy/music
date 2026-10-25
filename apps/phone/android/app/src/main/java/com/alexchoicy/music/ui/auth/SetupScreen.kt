@@ -41,7 +41,6 @@ fun SetupScreen(
 
     AuthLayout(
         title = "Connect to your library",
-        description = "Enter the address of your Music server to get started.",
     ) {
         MusicTextField(
             value = serverUrl,
@@ -50,17 +49,18 @@ fun SetupScreen(
                 viewModel.clearError()
             },
             label = "Server address",
-            modifier = Modifier
-                .focusRequester(focusRequester),
-            description = "Enter your server address without https://",
+            modifier =
+                Modifier
+                    .focusRequester(focusRequester),
             error = viewModel.error,
             placeholder = "music.example.com",
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.None,
-                autoCorrectEnabled = false,
-                keyboardType = KeyboardType.Uri,
-                imeAction = ImeAction.Go,
-            ),
+            keyboardOptions =
+                KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrectEnabled = false,
+                    keyboardType = KeyboardType.Uri,
+                    imeAction = ImeAction.Go,
+                ),
             keyboardActions = KeyboardActions(onGo = { submit() }),
         )
         MusicButton(

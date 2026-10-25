@@ -19,51 +19,56 @@ object MusicTheme {
 }
 
 @Composable
-fun MusicTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+fun MusicTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit,
+) {
     val colors = if (darkTheme) DarkMusicColors else LightMusicColors
     val baseScheme = if (darkTheme) darkColorScheme() else lightColorScheme()
-    val colorScheme = baseScheme.copy(
-        primary = colors.primary,
-        onPrimary = colors.primaryForeground,
-        primaryContainer = colors.secondary,
-        onPrimaryContainer = colors.foreground,
-        inversePrimary = if (darkTheme) LightMusicColors.primary else DarkMusicColors.primary,
-        secondary = colors.secondary,
-        onSecondary = colors.foreground,
-        secondaryContainer = colors.sidebarAccent,
-        onSecondaryContainer = colors.foreground,
-        tertiary = colors.info,
-        onTertiary = colors.onInfo,
-        tertiaryContainer = colors.muted,
-        onTertiaryContainer = colors.foreground,
-        background = colors.background,
-        onBackground = colors.foreground,
-        surface = colors.card,
-        onSurface = colors.foreground,
-        surfaceVariant = colors.muted,
-        onSurfaceVariant = colors.mutedForeground,
-        surfaceTint = colors.primary,
-        inverseSurface = if (darkTheme) LightMusicColors.card else DarkMusicColors.card,
-        inverseOnSurface = if (darkTheme) {
-            LightMusicColors.foreground
-        } else {
-            DarkMusicColors.foreground
-        },
-        error = colors.destructive,
-        onError = colors.onDestructive,
-        errorContainer = colors.destructive.copy(alpha = if (darkTheme) 0.16f else 0.08f),
-        onErrorContainer = colors.destructiveForeground,
-        outline = colors.input,
-        outlineVariant = colors.border,
-        scrim = colors.scrim,
-        surfaceBright = colors.popover,
-        surfaceDim = colors.background,
-        surfaceContainerLowest = colors.background,
-        surfaceContainerLow = colors.card,
-        surfaceContainer = colors.card,
-        surfaceContainerHigh = colors.popover,
-        surfaceContainerHighest = colors.accent,
-    )
+    val colorScheme =
+        baseScheme.copy(
+            primary = colors.primary,
+            onPrimary = colors.primaryForeground,
+            primaryContainer = colors.secondary,
+            onPrimaryContainer = colors.foreground,
+            inversePrimary = if (darkTheme) LightMusicColors.primary else DarkMusicColors.primary,
+            secondary = colors.secondary,
+            onSecondary = colors.foreground,
+            secondaryContainer = colors.sidebarAccent,
+            onSecondaryContainer = colors.foreground,
+            tertiary = colors.info,
+            onTertiary = colors.onInfo,
+            tertiaryContainer = colors.muted,
+            onTertiaryContainer = colors.foreground,
+            background = colors.background,
+            onBackground = colors.foreground,
+            surface = colors.card,
+            onSurface = colors.foreground,
+            surfaceVariant = colors.muted,
+            onSurfaceVariant = colors.mutedForeground,
+            surfaceTint = colors.primary,
+            inverseSurface = if (darkTheme) LightMusicColors.card else DarkMusicColors.card,
+            inverseOnSurface =
+                if (darkTheme) {
+                    LightMusicColors.foreground
+                } else {
+                    DarkMusicColors.foreground
+                },
+            error = colors.destructive,
+            onError = colors.onDestructive,
+            errorContainer = colors.destructive.copy(alpha = if (darkTheme) 0.16f else 0.08f),
+            onErrorContainer = colors.destructiveForeground,
+            outline = colors.input,
+            outlineVariant = colors.border,
+            scrim = colors.scrim,
+            surfaceBright = colors.popover,
+            surfaceDim = colors.background,
+            surfaceContainerLowest = colors.background,
+            surfaceContainerLow = colors.card,
+            surfaceContainer = colors.card,
+            surfaceContainerHigh = colors.popover,
+            surfaceContainerHighest = colors.accent,
+        )
 
     CompositionLocalProvider(LocalMusicColors provides colors) {
         MaterialTheme(

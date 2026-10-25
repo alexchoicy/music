@@ -29,15 +29,15 @@ import com.alexchoicy.music.ui.theme.MusicTheme
 fun EmptyState(
     @DrawableRes icon: Int,
     title: String,
-    description: String,
     modifier: Modifier = Modifier,
     action: (@Composable () -> Unit)? = null,
 ) {
     val colors = MusicTheme.colors
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 48.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(vertical = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -54,12 +54,6 @@ fun EmptyState(
             color = colors.foreground,
             textAlign = TextAlign.Center,
         )
-        Text(
-            text = description,
-            style = MaterialTheme.typography.bodyMedium,
-            color = colors.mutedForeground,
-            textAlign = TextAlign.Center,
-        )
         if (action != null) action()
     }
 }
@@ -70,7 +64,10 @@ fun PlaceholderBlock(modifier: Modifier) {
 }
 
 @Composable
-fun MusicSnackbarHost(hostState: SnackbarHostState, modifier: Modifier = Modifier) {
+fun MusicSnackbarHost(
+    hostState: SnackbarHostState,
+    modifier: Modifier = Modifier,
+) {
     SnackbarHost(hostState = hostState, modifier = modifier) {
         Snackbar(
             snackbarData = it,

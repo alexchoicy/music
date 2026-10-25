@@ -28,17 +28,22 @@ import com.alexchoicy.music.ui.theme.MusicTheme
 val PartyArtworkMaxSize = 104.dp
 
 @Composable
-fun PartyTile(party: PartySummary, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun PartyTile(
+    party: PartySummary,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val colors = MusicTheme.colors
 
     val interactionSource = remember { MutableInteractionSource() }
 
     Column(
-        modifier = modifier.clickable(
-            interactionSource = interactionSource,
-            indication = null,
-            onClick = onClick,
-        ),
+        modifier =
+            modifier.clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -46,10 +51,11 @@ fun PartyTile(party: PartySummary, onClick: () -> Unit, modifier: Modifier = Mod
             name = party.name,
             url = party.coverUrl,
             interactionSource = interactionSource,
-            modifier = Modifier
-                .widthIn(max = PartyArtworkMaxSize)
-                .fillMaxWidth()
-                .aspectRatio(1f),
+            modifier =
+                Modifier
+                    .widthIn(max = PartyArtworkMaxSize)
+                    .fillMaxWidth()
+                    .aspectRatio(1f),
         )
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -97,5 +103,11 @@ fun PartyAvatar(
 }
 
 private fun initials(name: String) =
-    name.trim().split(Regex("\\s+")).mapNotNull { it.firstOrNull() }
-        .joinToString("").take(2).uppercase().ifEmpty { "?" }
+    name
+        .trim()
+        .split(Regex("\\s+"))
+        .mapNotNull { it.firstOrNull() }
+        .joinToString("")
+        .take(2)
+        .uppercase()
+        .ifEmpty { "?" }

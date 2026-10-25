@@ -9,7 +9,10 @@ import java.time.format.FormatStyle
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
-fun plural(count: Int, noun: String) = "$count $noun${if (count == 1) "" else "s"}"
+fun plural(
+    count: Int,
+    noun: String,
+) = "$count $noun${if (count == 1) "" else "s"}"
 
 fun formatCount(count: Long): String = NumberFormat.getIntegerInstance().format(count)
 
@@ -45,5 +48,17 @@ fun formatRelativeTime(instant: Instant): String {
 }
 
 fun formatDate(instant: Instant): String =
-    DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+    DateTimeFormatter
+        .ofLocalizedDate(FormatStyle.MEDIUM)
         .format(instant.atZone(ZoneId.systemDefault()))
+
+fun formatFileSize(bytes: Long): String {
+    val units = listOf("B", "KB", "MB", "GB", "TB")
+    var value = bytes.coerceAtLeast(0).toDouble()
+    var unit = 0
+    while (value >= 1000 && unit < units.lastIndex) {
+        value /= 1000
+        unit++
+    }
+    return if (unit == 0 || value >= 100) "${value.roundToLong()} ${units[unit]}" else "%.1f %s".format(value, units[unit])
+}

@@ -13,7 +13,10 @@ import androidx.compose.ui.res.painterResource
 import com.alexchoicy.music.R
 import com.alexchoicy.music.ui.theme.MusicTheme
 
-enum class MainTab(val label: String, @param:DrawableRes val icon: Int) {
+enum class MainTab(
+    val label: String,
+    @param:DrawableRes val icon: Int,
+) {
     Home("Home", R.drawable.ic_home),
     Albums("Albums", R.drawable.ic_albums),
     Parties("Parties", R.drawable.ic_parties),
@@ -22,7 +25,11 @@ enum class MainTab(val label: String, @param:DrawableRes val icon: Int) {
 }
 
 @Composable
-fun MusicBottomNav(selected: MainTab, onSelect: (MainTab) -> Unit, modifier: Modifier = Modifier) {
+fun MusicBottomNav(
+    selected: MainTab,
+    onSelect: (MainTab) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val colors = MusicTheme.colors
     NavigationBar(
         modifier = modifier,
@@ -35,13 +42,14 @@ fun MusicBottomNav(selected: MainTab, onSelect: (MainTab) -> Unit, modifier: Mod
                 onClick = { onSelect(tab) },
                 icon = { Icon(painterResource(tab.icon), contentDescription = null) },
                 label = { Text(tab.label, style = MaterialTheme.typography.labelSmall) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = colors.primary,
-                    selectedTextColor = colors.foreground,
-                    indicatorColor = colors.sidebarAccent,
-                    unselectedIconColor = colors.sidebarForeground,
-                    unselectedTextColor = colors.sidebarForeground,
-                ),
+                colors =
+                    NavigationBarItemDefaults.colors(
+                        selectedIconColor = colors.primary,
+                        selectedTextColor = colors.foreground,
+                        indicatorColor = colors.sidebarAccent,
+                        unselectedIconColor = colors.sidebarForeground,
+                        unselectedTextColor = colors.sidebarForeground,
+                    ),
             )
         }
     }

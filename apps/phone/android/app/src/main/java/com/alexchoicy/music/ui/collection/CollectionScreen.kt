@@ -46,25 +46,26 @@ import com.alexchoicy.music.ui.components.MusicButton
 import com.alexchoicy.music.ui.components.MusicSnackbarHost
 import com.alexchoicy.music.ui.components.SearchField
 import com.alexchoicy.music.ui.components.SheetOption
+import com.alexchoicy.music.ui.components.SwitchRow
 import com.alexchoicy.music.ui.theme.MusicTheme
+import com.alexchoicy.music.ui.theme.PageInset
 
-private val PageInset = 24.dp
 private const val PLACEHOLDER_COUNT = 9
 
 private val ListSort.label
-    get() = when (this) {
-        ListSort.TitleAsc -> "Title A–Z"
-        ListSort.TitleDesc -> "Title Z–A"
-        ListSort.CreatedAtDesc -> "Recently added"
-        ListSort.CreatedAtAsc -> "Oldest added"
-    }
+    get() =
+        when (this) {
+            ListSort.TitleAsc -> "Title A–Z"
+            ListSort.TitleDesc -> "Title Z–A"
+            ListSort.CreatedAtDesc -> "Recently added"
+            ListSort.CreatedAtAsc -> "Oldest added"
+        }
 
 class CollectionCopy(
     val title: String,
     val searchPlaceholder: String,
     @param:DrawableRes val icon: Int,
     val emptyTitle: String,
-    val emptyDescription: String,
 )
 
 @Composable
@@ -92,132 +93,157 @@ fun <Q, T> CollectionScreen(
 
     LaunchedEffect(showRefreshError) {
         if (!showRefreshError) return@LaunchedEffect
-        val result = snackbarHostState.showSnackbar(
-            message = "Couldn't refresh ${copy.title.lowercase()}",
-            actionLabel = "Retry",
-            duration = SnackbarDuration.Indefinite,
-            withDismissAction = true,
-        )
+        val result =
+            snackbarHostState.showSnackbar(
+                message = "Couldn't refresh ${copy.title.lowercase()}",
+                actionLabel = "Retry",
+                duration = SnackbarDuration.Indefinite,
+                withDismissAction = true,
+            )
         if (result == SnackbarResult.ActionPerformed) loader.refresh()
     }
 
-    PullToRefreshBox(
-        isRefreshing = loader.refreshing,
-        onRefresh = loader::refresh,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = contentPadding.calculateTopPadding()),
+    Column(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(top = contentPadding.calculateTopPadding()),
     ) {
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(minTileWidth),
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = PageInset,
-                top = PageInset,
-                end = PageInset,
-                bottom = contentPadding.calculateBottomPadding() + PageInset,
-            ),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+        Column(
+            modifier = Modifier.padding(start = PageInset, top = PageInset, end = PageInset, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            fullWidthItem("header") {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = copy.title,
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineLarge,
-                            color = MusicTheme.colors.foreground,
-                        )
-                        FilterButton(filterCount) { openSheet = CollectionSheet.Filter }
-                        HeaderButton(R.drawable.ic_sort, "Sort, ${sort.label}") {
-                            openSheet = CollectionSheet.Sort
-                        }
-                    }
-                    SearchField(
-                        value = search,
-                        onValueChange = onSearchChange,
-                        placeholder = copy.searchPlaceholder,
-                    )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = copy.title,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MusicTheme.colors.foreground,
+                )
+                FilterButton(filterCount) { openSheet = CollectionSheet.Filter }
+                HeaderButton(R.drawable.ic_sort, "Sort, ${sort.label}") {
+                    openSheet = CollectionSheet.Sort
                 }
             }
-            when {
-                items != null && items.isEmpty() -> fullWidthItem {
-                    EmptyState(
-                        icon = if (filtered) R.drawable.ic_search else copy.icon,
-                        title = if (filtered) "No matches" else copy.emptyTitle,
-                        description = if (filtered) {
-                            "Try a different search or filter."
-                        } else {
-                            copy.emptyDescription
-                        },
-                    )
-                }
-                items != null -> items(items, key = key) { tile(it) }
-                loader.failed -> fullWidthItem {
-                    EmptyState(
-                        icon = R.drawable.ic_cloud_off,
-                        title = "Couldn't load ${copy.title.lowercase()}",
-                        description = "Check your connection to the server, then try again.",
-                        action = {
-                            MusicButton(
-                                text = "Try again",
-                                onClick = loader::refresh,
-                                variant = ButtonVariant.Ghost,
-                            )
-                        },
-                    )
-                }
-                else -> items(PLACEHOLDER_COUNT) { placeholderTile() }
-            }
+            SearchField(
+                value = search,
+                onValueChange = onSearchChange,
+                placeholder = copy.searchPlaceholder,
+            )
         }
-        MusicSnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = contentPadding.calculateBottomPadding()),
-        )
+        PullToRefreshBox(
+            isRefreshing = loader.refreshing,
+            onRefresh = loader::refresh,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minTileWidth),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding =
+                    PaddingValues(
+                        start = PageInset,
+                        top = 8.dp,
+                        end = PageInset,
+                        bottom = contentPadding.calculateBottomPadding() + PageInset,
+                    ),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                when {
+                    items != null && items.isEmpty() ->
+                        fullWidthItem {
+                            EmptyState(
+                                icon = if (filtered) R.drawable.ic_search else copy.icon,
+                                title = if (filtered) "No matches" else copy.emptyTitle,
+                            )
+                        }
+                    items != null -> items(items, key = key) { tile(it) }
+                    loader.failed ->
+                        fullWidthItem {
+                            EmptyState(
+                                icon = R.drawable.ic_cloud_off,
+                                title = "Couldn't load ${copy.title.lowercase()}",
+                                action = {
+                                    MusicButton(
+                                        text = "Try again",
+                                        onClick = loader::refresh,
+                                        variant = ButtonVariant.Ghost,
+                                    )
+                                },
+                            )
+                        }
+                    else -> items(PLACEHOLDER_COUNT) { placeholderTile() }
+                }
+            }
+            MusicSnackbarHost(
+                hostState = snackbarHostState,
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = contentPadding.calculateBottomPadding()),
+            )
+        }
     }
 
     when (openSheet) {
-        CollectionSheet.Filter -> MusicBottomSheet(
-            title = "Filter ${copy.title.lowercase()}",
-            onDismiss = { openSheet = null },
-            footer = { hide ->
-                MusicButton(
-                    text = "Reset",
-                    onClick = onResetFilters,
-                    modifier = Modifier.weight(1f),
-                    variant = ButtonVariant.Ghost,
-                    enabled = filterCount > 0,
-                )
-                MusicButton(text = "Done", onClick = hide, modifier = Modifier.weight(1f))
-            },
-        ) { filters() }
-        CollectionSheet.Sort -> MusicBottomSheet(
-            title = "Sort by",
-            onDismiss = { openSheet = null },
-        ) { hide ->
-            Column {
-                ListSort.entries.forEach { option ->
-                    SheetOption(label = option.label, selected = option == sort) {
-                        onSortChange(option)
-                        hide()
+        CollectionSheet.Filter ->
+            MusicBottomSheet(
+                title = "Filter ${copy.title.lowercase()}",
+                onDismiss = { openSheet = null },
+                footer = { hide ->
+                    MusicButton(
+                        text = "Reset",
+                        onClick = onResetFilters,
+                        modifier = Modifier.weight(1f),
+                        variant = ButtonVariant.Ghost,
+                        enabled = filterCount > 0,
+                    )
+                    MusicButton(text = "Done", onClick = hide, modifier = Modifier.weight(1f))
+                },
+            ) { filters() }
+        CollectionSheet.Sort ->
+            MusicBottomSheet(
+                title = "Sort by",
+                onDismiss = { openSheet = null },
+            ) { hide ->
+                Column {
+                    ListSort.entries.forEach { option ->
+                        SheetOption(label = option.label, selected = option == sort) {
+                            onSortChange(option)
+                            hide()
+                        }
                     }
                 }
             }
-        }
         null -> Unit
     }
 }
 
+@Composable
+fun DownloadedSection(
+    selected: Boolean,
+    onSelectedChange: (Boolean) -> Unit,
+) {
+    SwitchRow(
+        label = "Downloaded only",
+        checked = selected,
+        onCheckedChange = onSelectedChange,
+    )
+}
+
 private enum class CollectionSheet { Filter, Sort }
 
-internal fun LazyGridScope.fullWidthItem(key: Any? = null, content: @Composable () -> Unit) =
-    item(key = key, span = { GridItemSpan(maxLineSpan) }) { content() }
+internal fun LazyGridScope.fullWidthItem(
+    key: Any? = null,
+    content: @Composable () -> Unit,
+) = item(key = key, span = { GridItemSpan(maxLineSpan) }) { content() }
 
 @Composable
-private fun HeaderButton(@DrawableRes icon: Int, label: String, onClick: () -> Unit) {
+private fun HeaderButton(
+    @DrawableRes icon: Int,
+    label: String,
+    onClick: () -> Unit,
+) {
     IconButton(onClick = onClick) {
         Icon(
             painterResource(icon),
@@ -229,7 +255,10 @@ private fun HeaderButton(@DrawableRes icon: Int, label: String, onClick: () -> U
 }
 
 @Composable
-private fun FilterButton(count: Int, onClick: () -> Unit) {
+private fun FilterButton(
+    count: Int,
+    onClick: () -> Unit,
+) {
     val colors = MusicTheme.colors
     BadgedBox(
         badge = {

@@ -14,32 +14,34 @@ import com.alexchoicy.music.api.PartyMember
 import com.alexchoicy.music.data.MusicDatabase
 import com.alexchoicy.music.data.library.ALIAS_SEPARATOR
 import com.alexchoicy.music.data.library.AlbumWithArtists
-import java.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.Instant
 
 @Dao
-abstract class DetailDao(private val database: MusicDatabase) {
-    fun observeAlbum(id: Long): Flow<AlbumDetail?> = database.invalidationTracker
-        .createFlow(
-            "album_detail",
-            "album_credit",
-            "album_disc",
-            "album_track",
-            "album_track_credit",
-        )
-        .map { loadAlbum(id) }
+abstract class DetailDao(
+    private val database: MusicDatabase,
+) {
+    fun observeAlbum(id: Long): Flow<AlbumDetail?> =
+        database.invalidationTracker
+            .createFlow(
+                "album_detail",
+                "album_credit",
+                "album_disc",
+                "album_track",
+                "album_track_credit",
+            ).map { loadAlbum(id) }
 
-    fun observeParty(id: Long): Flow<PartyDetail?> = database.invalidationTracker
-        .createFlow(
-            "party_detail",
-            "party_link",
-            "party_album",
-            "party_member",
-            "album",
-            "album_artist",
-        )
-        .map { loadParty(id) }
+    fun observeParty(id: Long): Flow<PartyDetail?> =
+        database.invalidationTracker
+            .createFlow(
+                "party_detail",
+                "party_link",
+                "party_album",
+                "party_member",
+                "album",
+                "album_artist",
+            ).map { loadParty(id) }
 
     @Transaction
     open suspend fun loadAlbum(id: Long): AlbumDetail? {
@@ -54,26 +56,31 @@ abstract class DetailDao(private val database: MusicDatabase) {
             trackCount = album.trackCount,
             totalDurationMs = album.totalDurationMs,
             coverUrl = album.coverUrl,
+            shareUrl = album.shareUrl,
             credits = albumCredits(id).map { it.toCredit() },
-            discs = albumDiscs(id).map { disc ->
-                AlbumDisc(
-                    id = disc.id,
-                    discNumber = disc.discNumber,
-                    subtitle = disc.subtitle,
-                    tracks = tracks[disc.id].orEmpty().map { track ->
-                        AlbumTrack(
-                            trackId = track.trackId,
-                            trackNumber = track.trackNumber,
-                            title = track.title,
-                            durationMs = track.durationMs,
-                            contentType = track.contentType,
-                            versionType = track.versionType,
-                            credits = trackCredits[disc.id to track.position].orEmpty()
-                                .map { it.toCredit() },
-                        )
-                    },
-                )
-            },
+            discs =
+                albumDiscs(id).map { disc ->
+                    AlbumDisc(
+                        id = disc.id,
+                        discNumber = disc.discNumber,
+                        subtitle = disc.subtitle,
+                        tracks =
+                            tracks[disc.id].orEmpty().map { track ->
+                                AlbumTrack(
+                                    trackId = track.trackId,
+                                    trackNumber = track.trackNumber,
+                                    title = track.title,
+                                    durationMs = track.durationMs,
+                                    contentType = track.contentType,
+                                    versionType = track.versionType,
+                                    credits =
+                                        trackCredits[disc.id to track.position]
+                                            .orEmpty()
+                                            .map { it.toCredit() },
+                                )
+                            },
+                    )
+                },
         )
     }
 
@@ -112,6 +119,7 @@ abstract class DetailDao(private val database: MusicDatabase) {
                 trackCount = album.trackCount,
                 totalDurationMs = album.totalDurationMs,
                 coverUrl = album.coverUrl,
+                shareUrl = album.shareUrl,
             ),
         )
         insertAlbumCredits(
@@ -193,9 +201,10 @@ abstract class DetailDao(private val database: MusicDatabase) {
         insertPartyAlbums(
             party.albums.mapIndexed { position, album ->
                 PartyAlbumEntity(party.id, PartyAlbumRole.Credited, position, album.id)
-            } + party.appearsOn.mapIndexed { position, album ->
-                PartyAlbumEntity(party.id, PartyAlbumRole.AppearsOn, position, album.id)
-            },
+            } +
+                party.appearsOn.mapIndexed { position, album ->
+                    PartyAlbumEntity(party.id, PartyAlbumRole.AppearsOn, position, album.id)
+                },
         )
         insertPartyMembers(
             party.members.mapIndexed { position, member ->

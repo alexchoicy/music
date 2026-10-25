@@ -1,11 +1,6 @@
 package com.alexchoicy.music.ui.albums
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
@@ -18,26 +13,30 @@ import com.alexchoicy.music.R
 import com.alexchoicy.music.api.AlbumType
 import com.alexchoicy.music.ui.collection.CollectionCopy
 import com.alexchoicy.music.ui.collection.CollectionScreen
+import com.alexchoicy.music.ui.collection.DownloadedSection
+import com.alexchoicy.music.ui.components.AlbumPlaceholder
 import com.alexchoicy.music.ui.components.AlbumTile
 import com.alexchoicy.music.ui.components.FilterChip
-import com.alexchoicy.music.ui.components.PlaceholderBlock
 import com.alexchoicy.music.ui.components.SheetSection
 import com.alexchoicy.music.ui.musicApplication
 import com.alexchoicy.music.ui.theme.MusicTheme
 
-private val AlbumsCopy = CollectionCopy(
-    title = "Albums",
-    searchPlaceholder = "Search albums",
-    icon = R.drawable.ic_albums,
-    emptyTitle = "No albums yet",
-    emptyDescription = "Albums in your library will appear here.",
-)
+private val AlbumsCopy =
+    CollectionCopy(
+        title = "Albums",
+        searchPlaceholder = "Search albums",
+        icon = R.drawable.ic_albums,
+        emptyTitle = "No albums yet",
+    )
 
 @Composable
 fun AlbumsScreen(
     contentPadding: PaddingValues,
     onOpenAlbum: (Long) -> Unit,
-    viewModel: AlbumsViewModel = viewModel { AlbumsViewModel(musicApplication().libraryRepository) },
+    viewModel: AlbumsViewModel =
+        viewModel {
+            AlbumsViewModel(musicApplication().libraryRepository, musicApplication().network)
+        },
 ) {
     val loader = viewModel.albums
     val query = loader.query
@@ -51,21 +50,28 @@ fun AlbumsScreen(
         onSearchChange = { loader.query = query.copy(search = it) },
         sort = query.sort,
         onSortChange = { loader.query = query.copy(sort = it) },
-        filterCount = query.types.size + query.languageIds.size,
-        onResetFilters = { loader.query = query.copy(types = emptySet(), languageIds = emptySet()) },
+        filterCount = query.types.size + query.languageIds.size + if (query.downloaded) 1 else 0,
+        onResetFilters = {
+            loader.query = query.copy(types = emptySet(), languageIds = emptySet(), downloaded = false)
+        },
         key = { it.id },
         tile = { AlbumTile(it, onClick = { onOpenAlbum(it.id) }, Modifier.fillMaxWidth()) },
         placeholderTile = { AlbumPlaceholder() },
     ) {
+        DownloadedSection(
+            selected = query.downloaded,
+            onSelectedChange = { loader.query = query.copy(downloaded = it) },
+        )
         SheetSection("Type") {
             AlbumType.entries.forEach { type ->
                 FilterChip(
                     label = type.name,
                     selected = type in query.types,
                     onSelectedChange = { selected ->
-                        loader.query = query.copy(
-                            types = if (selected) query.types + type else query.types - type,
-                        )
+                        loader.query =
+                            query.copy(
+                                types = if (selected) query.types + type else query.types - type,
+                            )
                     },
                 )
             }
@@ -89,21 +95,23 @@ private fun LanguageSection(
 
     SheetSection("Language") {
         when {
-            languages.isNotEmpty() -> languages.forEach { language ->
-                FilterChip(
-                    label = language.name,
-                    selected = language.id in selected,
-                    onSelectedChange = { on ->
-                        onSelectedChange(if (on) selected + language.id else selected - language.id)
-                    },
-                )
-            }
+            languages.isNotEmpty() ->
+                languages.forEach { language ->
+                    FilterChip(
+                        label = language.name,
+                        selected = language.id in selected,
+                        onSelectedChange = { on ->
+                            onSelectedChange(if (on) selected + language.id else selected - language.id)
+                        },
+                    )
+                }
             loader.syncing -> SheetMessage("Loading…")
-            loader.failed -> FilterChip(
-                label = "Couldn't load languages. Retry",
-                selected = false,
-                onSelectedChange = { loader.refresh() },
-            )
+            loader.failed ->
+                FilterChip(
+                    label = "Couldn't load languages. Retry",
+                    selected = false,
+                    onSelectedChange = { loader.refresh() },
+                )
             else -> SheetMessage("No languages yet")
         }
     }
@@ -116,18 +124,4 @@ private fun SheetMessage(text: String) {
         style = MaterialTheme.typography.bodyMedium,
         color = MusicTheme.colors.mutedForeground,
     )
-}
-
-@Composable
-private fun AlbumPlaceholder() {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .background(MusicTheme.colors.muted, MaterialTheme.shapes.large),
-        )
-        PlaceholderBlock(Modifier.size(110.dp, 14.dp))
-        PlaceholderBlock(Modifier.size(80.dp, 12.dp))
-    }
 }

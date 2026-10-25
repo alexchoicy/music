@@ -1,11 +1,14 @@
 package com.alexchoicy.music.api
 
 import io.ktor.client.request.parameter
+import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.time.OffsetDateTime
-import kotlinx.serialization.Serializable
 
-data class AlbumArtist(val partyId: Long, val name: String)
+data class AlbumArtist(
+    val partyId: Long,
+    val name: String,
+)
 
 data class AlbumSummary(
     val id: Long,
@@ -32,7 +35,10 @@ data class PartySummary(
     val createdAt: Instant?,
 )
 
-data class Language(val id: Long, val name: String)
+data class Language(
+    val id: Long,
+    val name: String,
+)
 
 enum class ListSort { TitleAsc, TitleDesc, CreatedAtDesc, CreatedAtAsc }
 
@@ -40,20 +46,26 @@ enum class AlbumType { Album, Single, Compilation, Live, Soundtrack, Remix, Othe
 
 enum class PartyType { Individual, Group, Project }
 
-class LibraryApi(private val client: ApiClient) {
-    suspend fun fetchAlbums(): ApiOutcome<List<AlbumSummary>> = apiOutcome {
-        client.get<List<AlbumDto>>("/albums").map { it.toAlbum() }
-    }
+class LibraryApi(
+    private val client: ApiClient,
+) {
+    suspend fun fetchAlbums(): ApiOutcome<List<AlbumSummary>> =
+        apiOutcome {
+            client.get<List<AlbumDto>>("/albums").map { it.toAlbum() }
+        }
 
-    suspend fun fetchParties(): ApiOutcome<List<PartySummary>> = apiOutcome {
-        client.get<List<PartyDto>>("/parties") {
-            parameter("ExcludeNoAlbums", true)
-        }.map { it.toParty() }
-    }
+    suspend fun fetchParties(): ApiOutcome<List<PartySummary>> =
+        apiOutcome {
+            client
+                .get<List<PartyDto>>("/parties") {
+                    parameter("ExcludeNoAlbums", true)
+                }.map { it.toParty() }
+        }
 
-    suspend fun fetchLanguages(): ApiOutcome<List<Language>> = apiOutcome {
-        client.get<List<LanguageDto>>("/languages").map { Language(it.id, it.language) }
-    }
+    suspend fun fetchLanguages(): ApiOutcome<List<Language>> =
+        apiOutcome {
+            client.get<List<LanguageDto>>("/languages").map { Language(it.id, it.language) }
+        }
 }
 
 @Serializable
@@ -64,11 +76,21 @@ internal class AlbumDto(
     val coverVariants: ImageVariantsDto? = null,
     val discCovers: List<DiscCoverDto> = emptyList(),
     val artists: List<ArtistDto>,
+    val matchedTracks: List<MatchedTrackDto> = emptyList(),
     val trackCount: Int,
     val totalDurationInMs: Long,
     val languageId: Long? = null,
     val releaseDate: String? = null,
     val createdAt: String? = null,
+)
+
+@Serializable
+internal class MatchedTrackDto(
+    val trackId: Long,
+    val discNumber: Int,
+    val trackNumber: Int,
+    val title: String,
+    val basedOnTrackTitle: String? = null,
 )
 
 @Serializable
@@ -83,13 +105,21 @@ internal class PartyDto(
 )
 
 @Serializable
-internal class AliasDto(val name: String)
+internal class AliasDto(
+    val name: String,
+)
 
 @Serializable
-internal class DiscCoverDto(val variants: ImageVariantsDto)
+internal class DiscCoverDto(
+    val discNumber: Int? = null,
+    val variants: ImageVariantsDto,
+)
 
 @Serializable
-internal class ArtistDto(val partyId: Long, val name: String)
+internal class ArtistDto(
+    val partyId: Long,
+    val name: String,
+)
 
 @Serializable
 internal class ImageVariantsDto(
@@ -99,37 +129,43 @@ internal class ImageVariantsDto(
 )
 
 @Serializable
-internal class FileDto(val url: String)
+internal class FileDto(
+    val url: String,
+)
 
 @Serializable
-private class LanguageDto(val id: Long, val language: String)
-
-internal fun parseInstant(value: String?): Instant? =
-    value?.let { runCatching { OffsetDateTime.parse(it).toInstant() }.getOrNull() }
-
-internal fun AlbumDto.toAlbum() = AlbumSummary(
-    id = albumId,
-    title = title,
-    type = type,
-    coverUrl = coverVariants?.url { imageCover1024x1024 }
-        ?: discCovers.firstOrNull()?.variants?.url { imageCover1024x1024 },
-    artists = artists.map { AlbumArtist(it.partyId, it.name) },
-    trackCount = trackCount,
-    totalDurationMs = totalDurationInMs,
-    languageId = languageId,
-    releaseDate = parseInstant(releaseDate),
-    createdAt = parseInstant(createdAt),
+private class LanguageDto(
+    val id: Long,
+    val language: String,
 )
 
-internal fun PartyDto.toParty() = PartySummary(
-    id = partyId,
-    name = name,
-    coverUrl = coverUrl?.ifEmpty { null },
-    albumCount = albumCount,
-    type = type,
-    aliases = aliases.map { it.name },
-    createdAt = parseInstant(createdAt),
-)
+internal fun parseInstant(value: String?): Instant? = value?.let { runCatching { OffsetDateTime.parse(it).toInstant() }.getOrNull() }
 
-internal fun ImageVariantsDto.url(variant: ImageVariantsDto.() -> FileDto?): String? =
-    (variant() ?: original)?.url?.ifEmpty { null }
+internal fun AlbumDto.toAlbum() =
+    AlbumSummary(
+        id = albumId,
+        title = title,
+        type = type,
+        coverUrl =
+            coverVariants?.url { imageCover1024x1024 }
+                ?: discCovers.firstOrNull()?.variants?.url { imageCover1024x1024 },
+        artists = artists.map { AlbumArtist(it.partyId, it.name) },
+        trackCount = trackCount,
+        totalDurationMs = totalDurationInMs,
+        languageId = languageId,
+        releaseDate = parseInstant(releaseDate),
+        createdAt = parseInstant(createdAt),
+    )
+
+internal fun PartyDto.toParty() =
+    PartySummary(
+        id = partyId,
+        name = name,
+        coverUrl = coverUrl?.ifEmpty { null },
+        albumCount = albumCount,
+        type = type,
+        aliases = aliases.map { it.name },
+        createdAt = parseInstant(createdAt),
+    )
+
+internal fun ImageVariantsDto.url(variant: ImageVariantsDto.() -> FileDto?): String? = (variant() ?: original)?.url?.ifEmpty { null }

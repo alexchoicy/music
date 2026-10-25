@@ -80,6 +80,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("io.coil-kt.coil3:coil-compose:3.6.3")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.6.3")
+    implementation("androidx.lifecycle:lifecycle-process:2.11.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-navigation3:2.11.0")
     implementation("androidx.navigation3:navigation3-runtime:1.2.0")
@@ -88,6 +89,9 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:3.6.0")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0")
+    implementation("androidx.media3:media3-exoplayer:1.11.1")
+    implementation("androidx.media3:media3-session:1.11.1")
     implementation("androidx.room3:room3-runtime:3.0.3")
+    implementation("androidx.work:work-runtime:2.12.0")
     ksp("androidx.room3:room3-compiler:3.0.3")
 }

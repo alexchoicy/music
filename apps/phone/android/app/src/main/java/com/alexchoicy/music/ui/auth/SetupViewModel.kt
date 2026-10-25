@@ -9,7 +9,10 @@ import com.alexchoicy.music.api.AuthApi
 import com.alexchoicy.music.session.SessionStore
 import kotlinx.coroutines.launch
 
-class SetupViewModel(private val session: SessionStore, private val api: AuthApi) : ViewModel() {
+class SetupViewModel(
+    private val session: SessionStore,
+    private val api: AuthApi,
+) : ViewModel() {
     var checking by mutableStateOf(false)
         private set
     var error by mutableStateOf<String?>(null)

@@ -16,13 +16,19 @@ class DetailViewModel<T : Any>(
         private set
     var syncing by mutableStateOf(false)
         private set
-    var failed by mutableStateOf(false)
-        private set
+    private var syncFailed by mutableStateOf(false)
+    private var cacheRead by mutableStateOf(false)
+    val failed get() = syncFailed && cacheRead
     var refreshing by mutableStateOf(false)
         private set
 
     init {
-        viewModelScope.launch { observe.collect { item = it } }
+        viewModelScope.launch {
+            observe.collect {
+                item = it
+                cacheRead = true
+            }
+        }
         startSync()
     }
 
@@ -33,9 +39,9 @@ class DetailViewModel<T : Any>(
 
     private fun startSync() {
         syncing = true
-        failed = false
+        syncFailed = false
         viewModelScope.launch {
-            failed = !sync()
+            syncFailed = !sync()
             syncing = false
             refreshing = false
         }

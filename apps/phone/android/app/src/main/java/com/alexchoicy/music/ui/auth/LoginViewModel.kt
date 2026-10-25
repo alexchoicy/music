@@ -22,7 +22,10 @@ class LoginViewModel(
     var error by mutableStateOf<String?>(null)
         private set
 
-    fun signIn(username: String, password: String) {
+    fun signIn(
+        username: String,
+        password: String,
+    ) {
         val serverUrl = session.serverUrl
         if (signingIn || serverUrl == null) return
         signingIn = true

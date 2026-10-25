@@ -36,25 +36,28 @@ fun MusicButton(
     contentPadding: PaddingValues = PaddingValues(horizontal = 20.dp),
 ) {
     val colors = MusicTheme.colors
-    val (container, content) = when (variant) {
-        ButtonVariant.Primary -> colors.primary to colors.primaryForeground
-        ButtonVariant.Secondary -> colors.secondary to colors.foreground
-        ButtonVariant.Outline, ButtonVariant.Ghost -> Color.Transparent to colors.foreground
-    }
+    val (container, content) =
+        when (variant) {
+            ButtonVariant.Primary -> colors.primary to colors.primaryForeground
+            ButtonVariant.Secondary -> colors.secondary to colors.foreground
+            ButtonVariant.Outline, ButtonVariant.Ghost -> Color.Transparent to colors.foreground
+        }
 
     Button(
         onClick = onClick,
-        modifier = modifier
-            .height(48.dp)
-            .semantics { if (loading) stateDescription = "Loading" },
+        modifier =
+            modifier
+                .height(48.dp)
+                .semantics { if (loading) stateDescription = "Loading" },
         enabled = enabled && !loading,
         shape = MaterialTheme.shapes.medium,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = container,
-            contentColor = content,
-            disabledContainerColor = container.copy(alpha = container.alpha * 0.45f),
-            disabledContentColor = content.copy(alpha = 0.45f),
-        ),
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = container,
+                contentColor = content,
+                disabledContainerColor = container.copy(alpha = container.alpha * 0.45f),
+                disabledContentColor = content.copy(alpha = 0.45f),
+            ),
         border = if (variant == ButtonVariant.Outline) BorderStroke(1.dp, colors.border) else null,
         contentPadding = contentPadding,
     ) {

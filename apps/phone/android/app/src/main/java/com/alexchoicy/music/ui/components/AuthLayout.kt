@@ -27,16 +27,20 @@ import com.alexchoicy.music.R
 import com.alexchoicy.music.ui.theme.MusicTheme
 
 @Composable
-fun AuthLayout(title: String, description: String, content: @Composable ColumnScope.() -> Unit) {
+fun AuthLayout(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     val colors = MusicTheme.colors
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .heightIn(min = maxHeight)
-                .padding(24.dp),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .heightIn(min = maxHeight)
+                    .padding(24.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -51,19 +55,12 @@ fun AuthLayout(title: String, description: String, content: @Composable ColumnSc
                         modifier = Modifier.size(width = 46.dp, height = 48.dp),
                         tint = colors.foreground,
                     )
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(
-                            title,
-                            modifier = Modifier.semantics { heading() },
-                            color = colors.foreground,
-                            style = MaterialTheme.typography.headlineLarge,
-                        )
-                        Text(
-                            description,
-                            color = colors.mutedForeground,
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                    }
+                    Text(
+                        title,
+                        modifier = Modifier.semantics { heading() },
+                        color = colors.foreground,
+                        style = MaterialTheme.typography.headlineLarge,
+                    )
                 }
                 content()
             }

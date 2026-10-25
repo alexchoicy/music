@@ -1,6 +1,5 @@
 package com.alexchoicy.music.data
 
-import androidx.room3.AutoMigration
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
 import com.alexchoicy.music.data.detail.AlbumCreditEntity
@@ -14,7 +13,6 @@ import com.alexchoicy.music.data.detail.PartyDetailEntity
 import com.alexchoicy.music.data.detail.PartyLinkEntity
 import com.alexchoicy.music.data.detail.PartyMemberEntity
 import com.alexchoicy.music.data.home.HomeAlbumEntity
-import com.alexchoicy.music.data.home.HomeContinueListeningEntity
 import com.alexchoicy.music.data.home.HomeDao
 import com.alexchoicy.music.data.home.HomeEntity
 import com.alexchoicy.music.data.home.HomePartyEntity
@@ -26,6 +24,18 @@ import com.alexchoicy.music.data.library.LibraryDao
 import com.alexchoicy.music.data.library.LibraryPartyEntity
 import com.alexchoicy.music.data.library.LibrarySyncEntity
 import com.alexchoicy.music.data.library.PartyEntity
+import com.alexchoicy.music.offline.OfflineAlbumEntity
+import com.alexchoicy.music.offline.OfflineArtworkEntity
+import com.alexchoicy.music.offline.OfflineDao
+import com.alexchoicy.music.offline.OfflinePlaylistEntity
+import com.alexchoicy.music.offline.OfflinePlaylistTrackEntity
+import com.alexchoicy.music.offline.TrackDownloadArtistEntity
+import com.alexchoicy.music.offline.TrackDownloadEntity
+import com.alexchoicy.music.playback.QueueDao
+import com.alexchoicy.music.playback.QueueEntryArtistEntity
+import com.alexchoicy.music.playback.QueueEntryEntity
+import com.alexchoicy.music.playback.QueuePlayOrderEntity
+import com.alexchoicy.music.playback.QueueStateEntity
 
 @Database(
     entities = [
@@ -33,7 +43,6 @@ import com.alexchoicy.music.data.library.PartyEntity
         AlbumArtistEntity::class,
         PartyEntity::class,
         HomeEntity::class,
-        HomeContinueListeningEntity::class,
         HomeAlbumEntity::class,
         HomePartyEntity::class,
         LibraryAlbumEntity::class,
@@ -49,16 +58,27 @@ import com.alexchoicy.music.data.library.PartyEntity
         PartyLinkEntity::class,
         PartyAlbumEntity::class,
         PartyMemberEntity::class,
+        OfflineAlbumEntity::class,
+        OfflinePlaylistEntity::class,
+        OfflinePlaylistTrackEntity::class,
+        TrackDownloadEntity::class,
+        TrackDownloadArtistEntity::class,
+        OfflineArtworkEntity::class,
+        QueueEntryEntity::class,
+        QueueEntryArtistEntity::class,
+        QueuePlayOrderEntity::class,
+        QueueStateEntity::class,
     ],
-    version = 4,
-    autoMigrations = [
-        AutoMigration(from = 1, to = 2),
-        AutoMigration(from = 2, to = 3),
-        AutoMigration(from = 3, to = 4),
-    ],
+    version = 1,
 )
 abstract class MusicDatabase : RoomDatabase() {
     abstract fun homeDao(): HomeDao
+
     abstract fun libraryDao(): LibraryDao
+
     abstract fun detailDao(): DetailDao
+
+    abstract fun offlineDao(): OfflineDao
+
+    abstract fun queueDao(): QueueDao
 }

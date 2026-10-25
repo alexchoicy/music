@@ -14,6 +14,7 @@ data class AlbumDetailEntity(
     val trackCount: Int,
     val totalDurationMs: Long,
     val coverUrl: String?,
+    val shareUrl: String?,
 )
 
 @Entity(tableName = "album_credit", primaryKeys = ["albumId", "position"])
@@ -72,7 +73,12 @@ data class PartyDetailEntity(
 )
 
 @Entity(tableName = "party_link", primaryKeys = ["partyId", "position"])
-data class PartyLinkEntity(val partyId: Long, val position: Int, val type: String, val url: String)
+data class PartyLinkEntity(
+    val partyId: Long,
+    val position: Int,
+    val type: String,
+    val url: String,
+)
 
 @Entity(tableName = "party_member", primaryKeys = ["partyId", "position"])
 data class PartyMemberEntity(
