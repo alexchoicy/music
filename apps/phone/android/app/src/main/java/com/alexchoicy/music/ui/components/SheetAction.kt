@@ -14,26 +14,32 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.alexchoicy.music.ui.theme.MusicTheme
+import com.alexchoicy.music.ui.theme.UNAVAILABLE_ALPHA
 
 @Composable
 fun SheetAction(
     @DrawableRes icon: Int,
     label: String,
+    enabled: Boolean = true,
+    destructive: Boolean = false,
     onClick: () -> Unit,
 ) {
     val colors = MusicTheme.colors
+    val content = if (destructive) colors.destructiveForeground else colors.foreground
     Row(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp)
                 .clip(MaterialTheme.shapes.medium)
-                .clickable(onClick = onClick)
+                .clickable(enabled = enabled, onClick = onClick)
+                .alpha(if (enabled) 1f else UNAVAILABLE_ALPHA)
                 .heightIn(min = 48.dp)
                 .padding(horizontal = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -43,13 +49,13 @@ fun SheetAction(
             painterResource(icon),
             contentDescription = null,
             modifier = Modifier.size(20.dp),
-            tint = colors.mutedForeground,
+            tint = if (destructive) content else colors.mutedForeground,
         )
         Text(
             text = label,
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.bodyLarge,
-            color = colors.foreground,
+            color = content,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )

@@ -377,7 +377,7 @@ private fun QueueRow(
                         ),
                 ) {
                     Icon(
-                        painterResource(R.drawable.ic_stop_after),
+                        painterResource(R.drawable.ic_circle_pause),
                         contentDescription =
                             if (stopped) {
                                 "Stops after ${track.title}. Remove stop"
@@ -398,11 +398,32 @@ private fun QueueRow(
 
 @Composable
 private fun StopLine() {
-    val color = MusicTheme.colors.primary.copy(alpha = 0.4f)
+    val color = MusicTheme.colors.primary
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        DashedLine(color.copy(alpha = 0.4f), Modifier.weight(1f))
+        Text(
+            text = "Pauses here",
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
+        )
+        DashedLine(color.copy(alpha = 0.4f), Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun DashedLine(
+    color: Color,
+    modifier: Modifier,
+) {
     Box(
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 6.dp)
+        modifier
             .height(2.dp)
             .drawBehind {
                 drawLine(

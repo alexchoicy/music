@@ -16,12 +16,14 @@ import com.alexchoicy.music.api.DetailApi
 import com.alexchoicy.music.api.HomeApi
 import com.alexchoicy.music.api.LibraryApi
 import com.alexchoicy.music.api.PlaybackApi
+import com.alexchoicy.music.api.PlaylistApi
 import com.alexchoicy.music.api.SearchApi
 import com.alexchoicy.music.api.createHttpClient
 import com.alexchoicy.music.data.MusicDatabase
 import com.alexchoicy.music.data.detail.DetailRepository
 import com.alexchoicy.music.data.home.HomeRepository
 import com.alexchoicy.music.data.library.LibraryRepository
+import com.alexchoicy.music.data.playlists.PlaylistRepository
 import com.alexchoicy.music.data.search.SearchRepository
 import com.alexchoicy.music.devices.PlaybackDevices
 import com.alexchoicy.music.offline.Downloads
@@ -67,6 +69,9 @@ class MusicApplication :
             http = httpClient,
             scope = scope,
         )
+    }
+    val playlists by lazy {
+        PlaylistRepository(PlaylistApi(apiClient), downloads, network, notices, scope)
     }
     private val playerLazy =
         lazy {

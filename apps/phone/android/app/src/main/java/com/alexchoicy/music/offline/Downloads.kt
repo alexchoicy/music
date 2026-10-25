@@ -16,6 +16,8 @@ import com.alexchoicy.music.api.AudioFile
 import com.alexchoicy.music.api.PlaybackAlbum
 import com.alexchoicy.music.api.PlaybackApi
 import com.alexchoicy.music.api.PlaybackTrack
+import com.alexchoicy.music.api.PlaylistDetail
+import com.alexchoicy.music.api.PlaylistEntry
 import com.alexchoicy.music.api.TrackArtist
 import com.alexchoicy.music.api.valueOrNull
 import com.alexchoicy.music.data.detail.DetailRepository
@@ -320,25 +322,83 @@ class Downloads(
         }
     }
 
-    suspend fun downloadPlaylist(playlistId: Long): Boolean {
-        val playlist = api.fetchPlaylist(playlistId).valueOrNull() ?: return false
+    // Playlists whose download was requested and is being saved.
+    var startingPlaylists by mutableStateOf<Set<Long>>(emptySet())
+        private set
+
+    fun startPlaylistDownload(
+        playlist: PlaylistDetail,
+        onFailed: () -> Unit,
+    ) {
+        if (playlist.id in startingPlaylists) return
+        startingPlaylists = startingPlaylists + playlist.id
+        scope.launch {
+            val started = savePlaylist(playlist, keepEmpty = false)
+            startingPlaylists = startingPlaylists - playlist.id
+            if (!started) onFailed()
+        }
+    }
+
+    // Keeps a downloaded playlist in step with newer details; unchanged ones are only
+    // saved again for tracks without a download yet.
+    fun syncPlaylist(playlist: PlaylistDetail) {
+        val saved = playlists.firstOrNull { it.playlistId == playlist.id } ?: return
+        val trackIds = playlist.tracks.map { it.trackId }
+        val unchanged =
+            saved.name == playlist.name &&
+                saved.coverUrl == playlist.coverUrls.firstOrNull() &&
+                saved.trackIds == trackIds &&
+                trackIds.all { it in tracks }
+        if (!unchanged) scope.launch { savePlaylist(playlist, keepEmpty = true) }
+    }
+
+    // The copy saved with a download, for when the server can't be reached.
+    fun savedPlaylist(playlistId: Long): PlaylistDetail? {
+        val saved = playlists.firstOrNull { it.playlistId == playlistId } ?: return null
+        return PlaylistDetail(
+            id = saved.playlistId,
+            name = saved.name,
+            version = null,
+            entries =
+                saved.trackIds.mapNotNull { tracks[it]?.track }.map { track ->
+                    PlaylistEntry(
+                        entryId = null,
+                        albumId = track.albumId,
+                        trackId = track.trackId,
+                        title = track.title,
+                        albumTitle = track.albumTitle,
+                        artists = track.artists,
+                        durationMs = track.durationMs,
+                        coverUrl = track.coverUrl,
+                        track = track,
+                    )
+                },
+        )
+    }
+
+    // Saves a playlist and queues its tracks; a new download needs at least one that can download.
+    private suspend fun savePlaylist(
+        playlist: PlaylistDetail,
+        keepEmpty: Boolean,
+    ): Boolean {
+        awaitLoaded()
         val quality = settings.downloadQuality
         val tracks =
             playlist.tracks
                 .distinctBy { it.trackId }
                 .mapNotNull { track -> downloadFile(track, quality)?.let { track to it } }
-        if (tracks.isEmpty()) return false
+        if (tracks.isEmpty() && !keepEmpty) return false
         dao.savePlaylist(
             playlist =
                 OfflinePlaylistEntity(
-                    playlistId = playlist.playlistId,
+                    playlistId = playlist.id,
                     name = playlist.name,
-                    coverUrl = playlist.tracks.firstNotNullOfOrNull { it.coverUrl },
+                    coverUrl = playlist.coverUrls.firstOrNull(),
                     downloadedAt = System.currentTimeMillis(),
                 ),
             entries =
                 playlist.tracks.mapIndexed { position, track ->
-                    OfflinePlaylistTrackEntity(playlist.playlistId, position, track.trackId)
+                    OfflinePlaylistTrackEntity(playlist.id, position, track.trackId)
                 },
             albums =
                 tracks

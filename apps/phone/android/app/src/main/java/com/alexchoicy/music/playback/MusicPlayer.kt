@@ -356,6 +356,20 @@ class MusicPlayer(
         }
     }
 
+    // tracks is null when the playlist couldn't load.
+    fun playPlaylist(
+        startIndex: Int? = null,
+        shuffle: Boolean? = null,
+        tracks: suspend () -> List<PlaybackTrack>?,
+    ) = load {
+        val loaded = tracks()
+        when {
+            loaded == null -> notices.show("Couldn't play. Check your connection and try again.")
+            loaded.isEmpty() -> notices.show("Couldn't play. This playlist has no playable tracks.")
+            else -> playTracks(loaded, startIndex, shuffle)
+        }
+    }
+
     fun queueAlbum(
         albumId: Long,
         next: Boolean,

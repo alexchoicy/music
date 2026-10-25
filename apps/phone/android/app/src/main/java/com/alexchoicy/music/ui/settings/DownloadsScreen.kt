@@ -72,6 +72,7 @@ fun DownloadsScreen(
     contentPadding: PaddingValues,
     onBack: () -> Unit,
     onOpenAlbum: (Long) -> Unit,
+    onOpenPlaylist: (Long) -> Unit,
 ) {
     val app = currentMusicApplication()
     val downloads = app.downloads
@@ -144,6 +145,7 @@ fun DownloadsScreen(
                         when {
                             selecting != null -> selected = selecting.toggle(item.key)
                             item is DownloadItem.Album -> onOpenAlbum(item.album.albumId)
+                            item is DownloadItem.Playlist -> onOpenPlaylist(item.playlist.playlistId)
                         }
                     },
                     onRetry = {

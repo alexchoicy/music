@@ -60,12 +60,6 @@ data class PlaybackAlbum(
     val tracks: List<PlaybackTrack>,
 )
 
-data class PlaybackPlaylist(
-    val playlistId: Long,
-    val name: String,
-    val tracks: List<PlaybackTrack>,
-)
-
 class PlaybackApi(
     private val client: ApiClient,
 ) {
@@ -81,16 +75,6 @@ class PlaybackApi(
                     .map { async { client.get<PlaybackAlbumDto>("/albums/$it").toAlbum() } }
                     .awaitAll()
             }
-        }
-
-    suspend fun fetchPlaylist(playlistId: Long): ApiOutcome<PlaybackPlaylist> =
-        apiOutcome {
-            val playlist = client.get<PlaylistDto>("/playlists/$playlistId")
-            PlaybackPlaylist(
-                playlistId = playlist.playlistId,
-                name = playlist.name,
-                tracks = playlist.entries.mapNotNull { it.toTrack() },
-            )
         }
 
     suspend fun radioTrack(
@@ -186,33 +170,9 @@ private class PlaybackTrackDto(
 )
 
 @Serializable
-private class PlaybackCreditDto(
+internal class PlaybackCreditDto(
     val partyId: Long,
     val name: String,
-)
-
-@Serializable
-private class PlaylistDto(
-    val playlistId: Long,
-    val name: String,
-    val entries: List<PlaylistEntryDto>,
-)
-
-@Serializable
-private class PlaylistEntryDto(
-    val albumId: Long,
-    val albumTitle: String,
-    val albumLanguageId: Long? = null,
-    val albumDiscId: Long,
-    val trackId: Long,
-    val title: String,
-    val languageId: Long? = null,
-    val durationInMs: Long,
-    val contentType: String,
-    val versionType: String,
-    val cover: ImageVariantsDto? = null,
-    val credits: List<PlaybackCreditDto>,
-    val audios: List<JsonObject>,
 )
 
 @Serializable
@@ -252,7 +212,7 @@ private fun AudioFile.qualityLabel(opus: Boolean): String {
     ).joinToString(" · ")
 }
 
-private fun List<JsonObject>.preferredAudio(): JsonObject? {
+internal fun List<JsonObject>.preferredAudio(): JsonObject? {
     val audios =
         mapNotNull { audio ->
             runCatching { ApiJson.decodeFromJsonElement<TrackAudioDto>(audio) }
@@ -311,27 +271,5 @@ private fun PlaybackAlbumDto.toAlbum(): PlaybackAlbum {
                 ?.variants
                 ?.url { imageCover1024x1024 },
         tracks = tracks,
-    )
-}
-
-private fun PlaylistEntryDto.toTrack(): PlaybackTrack? {
-    val audio = audios.preferredAudio() ?: return null
-    val (original, opus96) = audio.toAudioFiles() ?: return null
-    return PlaybackTrack(
-        albumId = albumId,
-        albumDiscId = albumDiscId,
-        trackId = trackId,
-        title = title,
-        artists = credits.distinctBy { it.partyId }.map { TrackArtist(it.partyId, it.name) },
-        albumTitle = albumTitle,
-        coverUrl = cover?.url { imageCover1024x1024 },
-        durationMs = durationInMs,
-        contentType = contentType,
-        versionType = versionType,
-        original = original,
-        opus96 = opus96,
-        audio = audio,
-        languageId = languageId,
-        albumLanguageId = albumLanguageId,
     )
 }

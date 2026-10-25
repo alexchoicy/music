@@ -13,10 +13,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -56,6 +54,8 @@ import com.alexchoicy.music.ui.player.MiniPlayerSpace
 import com.alexchoicy.music.ui.player.PlayerSheet
 import com.alexchoicy.music.ui.player.ProvidePlayer
 import com.alexchoicy.music.ui.player.rememberPlayerSheetState
+import com.alexchoicy.music.ui.playlists.PlaylistDetailScreen
+import com.alexchoicy.music.ui.playlists.PlaylistsScreen
 import com.alexchoicy.music.ui.search.SearchScreen
 import com.alexchoicy.music.ui.settings.DownloadsScreen
 import com.alexchoicy.music.ui.settings.SettingsScreen
@@ -77,6 +77,11 @@ private data class AlbumRoute(
 @Serializable
 private data class PartyRoute(
     val partyId: Long,
+) : NavKey
+
+@Serializable
+private data class PlaylistRoute(
+    val playlistId: Long,
 ) : NavKey
 
 @Serializable
@@ -240,6 +245,7 @@ private fun mainEntries(
 ) = entryProvider {
     val openAlbum: (Long) -> Unit = { backStack.add(AlbumRoute(it)) }
     val openParty: (Long) -> Unit = { backStack.add(PartyRoute(it)) }
+    val openPlaylist: (Long) -> Unit = { backStack.add(PlaylistRoute(it)) }
     val openDownloads: () -> Unit = { backStack.add(DownloadsRoute) }
     val back: () -> Unit = { backStack.removeLastOrNull() }
 
@@ -265,17 +271,7 @@ private fun mainEntries(
                     reselects = reselects,
                 )
 
-            else ->
-                Text(
-                    text = route.tab.label,
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(padding)
-                            .padding(24.dp),
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MusicTheme.colors.foreground,
-                )
+            MainTab.Playlists -> PlaylistsScreen(contentPadding = padding, onOpenPlaylist = openPlaylist)
         }
     }
     entry<AlbumRoute> { route ->
@@ -295,6 +291,16 @@ private fun mainEntries(
             onOpenParty = openParty,
         )
     }
+    entry<PlaylistRoute> { route ->
+        PlaylistDetailScreen(
+            playlistId = route.playlistId,
+            contentPadding = LocalContentPadding.current,
+            onBack = back,
+            onDeleted = { if (backStack.lastOrNull() == route) backStack.removeLastOrNull() },
+            onOpenAlbum = openAlbum,
+            onOpenParty = openParty,
+        )
+    }
     entry<SettingsRoute> {
         SettingsScreen(
             contentPadding = LocalContentPadding.current,
@@ -307,6 +313,7 @@ private fun mainEntries(
             contentPadding = LocalContentPadding.current,
             onBack = back,
             onOpenAlbum = openAlbum,
+            onOpenPlaylist = openPlaylist,
         )
     }
 }

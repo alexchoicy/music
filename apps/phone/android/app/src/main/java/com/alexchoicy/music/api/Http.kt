@@ -55,6 +55,11 @@ fun <T> ApiOutcome<T>.valueOrNull(): T? = (this as? ApiOutcome.Loaded)?.value
 
 internal class UnauthorizedException : Exception()
 
+internal class HttpStatusException(
+    path: String,
+    val status: Int,
+) : Exception("$path returned $status")
+
 internal suspend fun <T> apiOutcome(block: suspend () -> T): ApiOutcome<T> =
     try {
         ApiOutcome.Loaded(block())
@@ -92,6 +97,27 @@ class ApiClient(
         return if (response.status == HttpStatusCode.NoContent) null else response.body<R>()
     }
 
+    internal suspend inline fun <reified T> put(
+        path: String,
+        body: T,
+    ) {
+        send(path) {
+            method = HttpMethod.Put
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }
+    }
+
+    internal suspend fun delete(
+        path: String,
+        block: HttpRequestBuilder.() -> Unit = {},
+    ) {
+        send(path) {
+            method = HttpMethod.Delete
+            block()
+        }
+    }
+
     @PublishedApi
     internal suspend inline fun <reified T> postRequest(
         path: String,
@@ -122,7 +148,7 @@ class ApiClient(
                 throw UnauthorizedException()
             }
 
-            !response.status.isSuccess() -> error("$path returned ${response.status.value}")
+            !response.status.isSuccess() -> throw HttpStatusException(path, response.status.value)
         }
         return response
     }

@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,7 +53,7 @@ import com.alexchoicy.music.api.Credit
 import com.alexchoicy.music.playback.PlayerStatus
 import com.alexchoicy.music.ui.collection.fullWidthItem
 import com.alexchoicy.music.ui.components.Artwork
-import com.alexchoicy.music.ui.components.ConfirmDialog
+import com.alexchoicy.music.ui.components.DownloadButton
 import com.alexchoicy.music.ui.components.MusicBottomSheet
 import com.alexchoicy.music.ui.components.PartyAvatar
 import com.alexchoicy.music.ui.components.PlayingBars
@@ -68,6 +67,7 @@ import com.alexchoicy.music.ui.formatDurationHoursMinutes
 import com.alexchoicy.music.ui.formatPlaybackTime
 import com.alexchoicy.music.ui.musicApplication
 import com.alexchoicy.music.ui.player.LocalPlayer
+import com.alexchoicy.music.ui.playlists.AddToPlaylistSheet
 import com.alexchoicy.music.ui.plural
 import com.alexchoicy.music.ui.rememberAlbumSharer
 import com.alexchoicy.music.ui.theme.MusicTheme
@@ -275,7 +275,8 @@ private fun TrackList(
     val player = LocalPlayer.current
     val app = currentMusicApplication()
     val showDiscBands = album.discs.size > 1
-    var menuTrack by remember { mutableStateOf<AlbumTrack?>(null) }
+    var menuTrack by remember { mutableStateOf<Pair<AlbumDisc, AlbumTrack>?>(null) }
+    var addingTrack by remember { mutableStateOf<Pair<AlbumDisc, AlbumTrack>?>(null) }
     val sharer = rememberAlbumSharer()
     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
         album.discs.forEach { disc ->
@@ -290,13 +291,13 @@ private fun TrackList(
                         downloaded = downloaded,
                         available = app.network.online || downloaded,
                         onPlay = { player.playAlbum(album.id, startTrackId = track.trackId) },
-                        onMore = { menuTrack = track },
+                        onMore = { menuTrack = disc to track },
                     )
                 }
             }
         }
     }
-    menuTrack?.let { track ->
+    menuTrack?.let { (disc, track) ->
         MusicBottomSheet(
             title = track.title,
             subtitle = track.credits.joinToString(", ") { it.name }.ifEmpty { "No credits" },
@@ -309,6 +310,10 @@ private fun TrackList(
                 }
                 SheetAction(R.drawable.ic_list_plus, "Add to queue") {
                     player.queueAlbum(album.id, next = false, trackId = track.trackId)
+                    hide()
+                }
+                SheetAction(R.drawable.ic_playlists, "Add to playlist…") {
+                    addingTrack = disc to track
                     hide()
                 }
                 SheetAction(R.drawable.ic_share, "Share") {
@@ -324,6 +329,9 @@ private fun TrackList(
             }
         }
     }
+    addingTrack?.let { (disc, track) ->
+        AddToPlaylistSheet(disc.id, track.trackId, onDismiss = { addingTrack = null })
+    }
 }
 
 @Composable
@@ -331,96 +339,21 @@ private fun AlbumDownloadButton(
     albumId: Long,
     modifier: Modifier,
 ) {
-    val colors = MusicTheme.colors
     val app = currentMusicApplication()
     val downloads = app.downloads
-    var confirmRemove by remember { mutableStateOf(false) }
     val stats = downloads.albumStats(albumId)
-    val starting = albumId in downloads.startingAlbums
-    val downloaded = downloads.albums[albumId]?.whole == true && stats.total > 0
-    val active = downloaded && stats.active
-    val failed = downloaded && !active && stats.failed > 0
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        IconButton(
-            onClick = {
-                when {
-                    starting -> Unit
-                    !downloaded ->
-                        downloads.startAlbumDownload(albumId) {
-                            app.notices.show("Couldn't download album")
-                        }
-
-                    failed -> downloads.retryAlbum(albumId)
-                    else -> confirmRemove = true
-                }
-            },
-        ) {
-            when {
-                starting || active ->
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color = colors.primary,
-                        strokeWidth = 2.dp,
-                    )
-
-                else ->
-                    Icon(
-                        painterResource(
-                            when {
-                                failed -> R.drawable.ic_alert
-                                downloaded -> R.drawable.ic_downloaded
-                                else -> R.drawable.ic_download
-                            },
-                        ),
-                        contentDescription =
-                            when {
-                                failed -> "${stats.failed} of ${stats.total} tracks failed to download, retry"
-                                downloaded -> "Downloaded, remove download"
-                                else -> "Download album"
-                            },
-                        modifier = Modifier.size(22.dp),
-                        tint =
-                            when {
-                                failed -> colors.destructiveForeground
-                                downloaded -> colors.primary
-                                else -> colors.foreground
-                            },
-                    )
-            }
-        }
-        val status =
-            when {
-                active -> "${stats.downloaded}/${stats.total}"
-                failed -> "${stats.failed} failed"
-                else -> null
-            }
-        if (status != null) {
-            Text(
-                text = status,
-                modifier =
-                    Modifier.clickable {
-                        if (failed) downloads.retryAlbum(albumId) else confirmRemove = true
-                    },
-                style = MaterialTheme.typography.labelSmall.merge(TabularNumbers),
-                color = if (failed) colors.destructiveForeground else colors.mutedForeground,
-            )
-        }
-    }
-    if (confirmRemove) {
-        ConfirmDialog(
-            title = if (active) "Cancel download?" else "Remove download?",
-            message =
-                if (active) {
-                    "Tracks downloaded so far will be deleted."
-                } else {
-                    "You won't be able to play this album offline."
-                },
-            confirmLabel = if (active) "Cancel download" else "Remove",
-            cancelLabel = if (active) "Keep downloading" else "Cancel",
-            onConfirm = { downloads.remove(albumIds = listOf(albumId), playlistIds = emptyList()) },
-            onDismiss = { confirmRemove = false },
-        )
-    }
+    DownloadButton(
+        noun = "album",
+        stats = stats,
+        starting = albumId in downloads.startingAlbums,
+        downloaded = downloads.albums[albumId]?.whole == true && stats.total > 0,
+        cancelMessage = "Tracks downloaded so far will be deleted.",
+        removeMessage = "You won't be able to play this album offline.",
+        onDownload = { downloads.startAlbumDownload(albumId) { app.notices.show("Couldn't download album") } },
+        onRetry = { downloads.retryAlbum(albumId) },
+        onRemove = { downloads.remove(albumIds = listOf(albumId), playlistIds = emptyList()) },
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -675,7 +608,7 @@ private fun Section(
 }
 
 @Composable
-private fun Eyebrow(text: String) {
+internal fun Eyebrow(text: String) {
     Text(
         text = text.uppercase(),
         style = MaterialTheme.typography.labelSmall,
