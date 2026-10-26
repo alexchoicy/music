@@ -10,8 +10,6 @@ FROM pnpm-base AS deps
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/
-COPY apps/phone/package.json ./apps/phone/
-COPY apps/phone/patches ./apps/phone/patches
 RUN pnpm install --frozen-lockfile --filter web
 
 FROM deps AS build
