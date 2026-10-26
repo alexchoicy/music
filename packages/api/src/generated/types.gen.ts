@@ -750,6 +750,7 @@ export type PartyItems = {
     gender?: PartyGender;
     similarity?: number | string;
     albumCount: number | string;
+    createdAt: string;
     aliases: Array<PartyAlias>;
 };
 
@@ -870,11 +871,17 @@ export type RadioTrack = {
     albumId: number | string;
     albumDiscId: number | string;
     trackId: number | string;
+    reason: RadioTrackReason;
 };
 
+export type RadioTrackReason = 'SameArtist' | 'RelatedArtist' | 'Discovery';
+
 export type RadioTrackRequest = {
-    queueTrackIds?: Array<number | string>;
+    baseTrackIds?: Array<number | string>;
+    playedRadioTrackIds?: Array<number | string>;
+    upcomingTrackIds?: Array<number | string>;
     includeInstrumental?: boolean;
+    count?: number | string;
 };
 
 export type RecordListeningHistoryRequest = {
@@ -2579,11 +2586,7 @@ export type PostTracksRadioResponses = {
     /**
      * OK
      */
-    200: RadioTrack;
-    /**
-     * No Content
-     */
-    204: void;
+    200: Array<RadioTrack>;
 };
 
 export type PostTracksRadioResponse = PostTracksRadioResponses[keyof PostTracksRadioResponses];

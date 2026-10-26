@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Music.Core.Services.Tracks;
@@ -9,15 +11,17 @@ namespace Music.Api.Controllers;
 [Authorize]
 public class TrackController(ITrackService trackService) : ControllerBase
 {
+    private string UserId =>
+        User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? throw new ValidationException("Missing user identifier claim.");
+
     [HttpPost("radio")]
-    [ProducesResponseType(typeof(RadioTrack), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> GetRadioTrack(
+    [ProducesResponseType(typeof(IReadOnlyList<RadioTrack>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetRadioTracks(
         [FromBody] RadioTrackRequest request,
         CancellationToken cancellationToken
     )
     {
-        RadioTrack? track = await trackService.GetRadioTrackAsync(request, cancellationToken);
-        return track is null ? NoContent() : Ok(track);
+        return Ok(await trackService.GetRadioTracksAsync(request, UserId, cancellationToken));
     }
 }

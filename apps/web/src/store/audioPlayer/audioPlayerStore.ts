@@ -20,7 +20,7 @@ import {
 	startListeningSession,
 	trackListeningProgress,
 } from "./listeningHistory";
-import { fetchRadioTrack } from "./radio";
+import { fetchRadioTracks } from "./radio";
 
 export { autoSelectPlaybackQuality } from "./audioPlayerFunction";
 
@@ -44,6 +44,9 @@ let waveSurfer: WaveSurfer | null = null;
 let loadRequestId = 0;
 let finishedRequestId = 0;
 let pausedLoadRequestId = 0;
+let radioRequest: Promise<number> | null = null;
+let radioSession = 0;
+const RADIO_REFILL_REMAINING = 3;
 const seekListeners = new Set<() => void>();
 
 export const AUDIO_PLAYER_IDLE_PEAKS: WaveSurferOptions["peaks"] = [[0, 0]];
@@ -209,6 +212,16 @@ function remapShuffleIndices(
 	state.shuffleRemaining = state.shuffleRemaining
 		.map(mapIndex)
 		.filter((index) => index !== null);
+}
+
+function getUpcomingIndices(state: AudioPlayerState): number[] {
+	if (state.shuffle) {
+		return [
+			...state.shuffleHistory.slice(state.shuffleHistoryIndex + 1),
+			...state.shuffleRemaining,
+		];
+	}
+	return state.queue.map((_, i) => i).slice(state.index + 1);
 }
 
 function getNextPlayback(state: AudioPlayerState, automatic: boolean) {
@@ -464,39 +477,85 @@ function endPlayback(): void {
 	useAudioPlayerStore.setState({ currentPlayingKey: null, status: "idle" });
 }
 
-// Appends a radio pick to the end of the queue and plays it.
+function refillRadio(): Promise<number> {
+	if (radioRequest) return radioRequest;
+	const state = useAudioPlayerStore.getState();
+	const { playInstrumental, playTalkTrack, queue } = state;
+	const upcomingIndices = getUpcomingIndices(state);
+	const remaining = upcomingIndices.filter(
+		(i) => !shouldAutoSkipTrack(queue[i], playTalkTrack, playInstrumental),
+	).length;
+	if (
+		!state.radio ||
+		state.repeatMode !== "off" ||
+		queue.length === 0 ||
+		remaining > RADIO_REFILL_REMAINING
+	)
+		return Promise.resolve(0);
+
+	const session = radioSession;
+	const request = fetchRadioTracks(queue, upcomingIndices, playInstrumental)
+		.then((tracks) => {
+			const current = useAudioPlayerStore.getState();
+			if (session !== radioSession || !current.radio) return 0;
+			const queuedTrackIds = new Set(
+				current.queue.map((entry) => entry.trackId),
+			);
+			const entries = createQueueEntries(
+				tracks.filter((track) => !queuedTrackIds.has(track.trackId)),
+			).map((entry) => ({ ...entry, radio: true }));
+			if (entries.length === 0) return 0;
+
+			console.log("[audio-player] radio:append", { count: entries.length });
+			useAudioPlayerStore.setState((draft) => {
+				const oldLength = draft.queue.length;
+				draft.queue.push(...entries);
+				if (draft.shuffle) {
+					draft.shuffleRemaining.push(...entries.map((_, i) => oldLength + i));
+				}
+			});
+			return entries.length;
+		})
+		.catch((error) => {
+			console.log("[audio-player] radio:fetch failed", error);
+			return 0;
+		})
+		.finally(() => {
+			if (radioRequest === request) radioRequest = null;
+		});
+	radioRequest = request;
+	return request;
+}
+
+function resetRadio(): void {
+	radioSession++;
+	radioRequest = null;
+}
+
 async function playRadioTrack(onEmpty: () => void): Promise<void> {
 	const requestId = ++loadRequestId;
 	finishedRequestId = requestId;
-	const { playInstrumental, queue } = useAudioPlayerStore.getState();
 	useAudioPlayerStore.setState({ status: "loading" });
 
-	let track: AudioPlayerTrack | null = null;
-	try {
-		track = await fetchRadioTrack(queue, playInstrumental);
-	} catch (error) {
-		if (requestId !== loadRequestId) return;
-		console.log("[audio-player] radio:fetch failed", error);
-	}
+	await refillRadio();
 	if (requestId !== loadRequestId) return;
 
-	if (!track) {
+	const state = useAudioPlayerStore.getState();
+	const next = getNextPlayback(state, true);
+	if (!next) {
 		console.log("[audio-player] radio:no track");
 		clearPendingLoad(requestId);
 		onEmpty();
 		return;
 	}
 
+	const track = state.queue[next.index];
 	console.log("[audio-player] radio:next", {
 		trackId: track.trackId,
 		title: track.title,
 	});
-	useAudioPlayerStore.setState((state) => {
-		state.queue.push(...createQueueEntries([track]));
-		state.index = state.queue.length - 1;
-		recordShuffleTrack(state, state.index);
-	});
-	void loadAndPlay(useAudioPlayerStore.getState().playbackQuality, track, {
+	useAudioPlayerStore.setState(next);
+	void loadAndPlay(state.playbackQuality, track, {
 		currentTime: 0,
 		startListening: true,
 	});
@@ -626,6 +685,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						trackId: track.trackId,
 						title: track.title,
 					});
+					resetRadio();
 					set({
 						queue: createQueueEntries(album, playlist),
 						index,
@@ -763,6 +823,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 				clearQueue: () => {
 					const { index, queue, shuffle } = get();
 					if (queue.length <= 1) return;
+					resetRadio();
 					set({
 						queue: [queue[index]],
 						index: 0,
@@ -1037,6 +1098,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					const track = queue.at(snapshot.index);
 					if (!track) return false;
 
+					resetRadio();
 					set({
 						queue: createQueueEntries(queue),
 						index: snapshot.index,
@@ -1126,3 +1188,14 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 		),
 	),
 );
+
+useAudioPlayerStore.subscribe((state, previous) => {
+	if (!state.radio || state.status !== "playing") return;
+	if (
+		!previous.radio ||
+		previous.status !== "playing" ||
+		state.index !== previous.index ||
+		state.queue !== previous.queue
+	)
+		void refillRadio();
+});

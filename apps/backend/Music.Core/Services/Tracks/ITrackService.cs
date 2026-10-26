@@ -7,8 +7,9 @@ public interface ITrackService
         CancellationToken cancellationToken = default
     );
 
-    Task<RadioTrack?> GetRadioTrackAsync(
+    Task<IReadOnlyList<RadioTrack>> GetRadioTracksAsync(
         RadioTrackRequest request,
+        string userId,
         CancellationToken cancellationToken = default
     );
 }

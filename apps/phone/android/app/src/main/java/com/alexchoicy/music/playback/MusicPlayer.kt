@@ -73,6 +73,7 @@ private const val QUEUE_SAVE_DELAY_MS = 300L
 private const val ALBUM_FETCH_TIMEOUT_MS = 3_000L
 
 private const val PREVIOUS_LIMIT = 50
+private const val RADIO_REFILL_REMAINING = 3
 
 @androidx.annotation.OptIn(UnstableApi::class)
 class MusicPlayer(
@@ -283,7 +284,7 @@ class MusicPlayer(
             snapshotFlow { settings.savePlayedTracks }.drop(1).collect { if (it) savePlayed() }
         }
         scope.launch {
-            snapshotFlow { settings.radio }.drop(1).collect { if (!it) dropRadioEntries() }
+            snapshotFlow { settings.radio }.drop(1).collect { if (it) prefetchRadio() else dropRadioEntries() }
         }
         scope.launch {
             snapshotFlow {
@@ -735,6 +736,7 @@ class MusicPlayer(
     private fun syncPlaylist(
         next: List<String> = emptyList(),
         keep: String? = null,
+        last: List<String> = emptyList(),
     ) {
         val keep = setOfNotNull(currentId, exo.currentMediaItem?.mediaId, keep)
         val order = playOrder
@@ -788,9 +790,9 @@ class MusicPlayer(
         }
         // Moved and replaced items land at random in ExoPlayer's shuffle order.
         if (exo.shuffleModeEnabled && reshuffled) applyPlayOrder(order)
-        if (exo.shuffleModeEnabled && (added.isNotEmpty() || next.isNotEmpty())) {
+        if (exo.shuffleModeEnabled && (added.isNotEmpty() || next.isNotEmpty() || last.isNotEmpty())) {
             readOrder()
-            placeInShuffle(added - next.toSet(), next)
+            placeInShuffle(added - next.toSet() - last.toSet(), next, last)
         }
         readOrder()
         // A stop after an entry that won't play anymore, e.g. removed or now skipped, goes away.
@@ -804,15 +806,16 @@ class MusicPlayer(
     private fun placeInShuffle(
         random: List<String>,
         next: List<String>,
+        last: List<String> = emptyList(),
     ) {
         val id = currentId
-        val moved = (random + next).toSet()
+        val moved = (random + next + last).toSet()
         val remaining = playOrder.filter { it !in moved }
         val before = remaining.takeWhile { it != id } + listOfNotNull(id.takeIf { it in remaining })
         val after = remaining.drop(before.size).toMutableList()
         random.forEach { after.add(Random.nextInt(after.size + 1), it) }
         val exoIds = exoIndices().keys
-        applyPlayOrder(before + next.filter { it in exoIds } + after)
+        applyPlayOrder(before + next.filter { it in exoIds } + after + last.filter { it in exoIds })
     }
 
     private fun applyPlayOrder(order: List<String>) {
@@ -1002,35 +1005,31 @@ class MusicPlayer(
         }
     }
 
-    // Appends a track similar to the queue before it runs out. Only while playing, so
-    // editing a paused queue never adds tracks.
     private fun prefetchRadio() {
         val id = currentId ?: return
         if (!exo.playWhenReady) return
         if (!settings.radio || exo.repeatMode != Player.REPEAT_MODE_OFF || !network.online) return
-        if (exo.mediaItemCount == 0 || exo.hasNextMediaItem() || exo.pauseAtEndOfMediaItems) return
+        if (exo.mediaItemCount == 0 || exo.pauseAtEndOfMediaItems) return
+        if (upcoming.count(::isAutoPlayable) > RADIO_REFILL_REMAINING) return
         if (radioFor == id || radioJob?.isActive == true) return
         radioFor = id
         radioJob =
             scope.launch {
-                val track = fetchRadioTrack() ?: return@launch
-                if (currentId != id || exo.hasNextMediaItem()) return@launch
-                appendRadio(track)
+                val tracks = fetchRadioTracks()
+                if (settings.radio) appendRadio(tracks)
             }
     }
 
-    // Appends a track similar to the queue and plays it.
     private fun playRadio() {
         val id = ++requestId
         loadingRadio = true
         radioJob?.cancel()
         radioJob =
             scope.launch {
-                val track = fetchRadioTrack()
+                val tracks = fetchRadioTracks()
                 loadingRadio = false
                 if (id != requestId) return@launch
-                val entryId = track?.let(::appendRadio)
-                val index = entryId?.let(::exoIndex) ?: -1
+                val index = appendRadio(tracks).firstOrNull()?.let(::exoIndex) ?: -1
                 if (index < 0) {
                     finish()
                     return@launch
@@ -1040,15 +1039,32 @@ class MusicPlayer(
             }
     }
 
-    private fun appendRadio(track: PlaybackTrack): String {
-        val entry = listOf(track).toQueueEntries().first().copy(radio = true)
-        queue = queue + entry
-        syncPlaylist(next = listOf(entry.entryId))
-        return entry.entryId
+    private fun appendRadio(tracks: List<PlaybackTrack>): List<String> {
+        val queued = queue.map { it.track.trackId }.toSet()
+        val entries =
+            tracks
+                .filter { it.trackId !in queued }
+                .toQueueEntries()
+                .map { it.copy(radio = true) }
+        if (entries.isEmpty()) return emptyList()
+        queue = queue + entries
+        val entryIds = entries.map { it.entryId }
+        syncPlaylist(last = entryIds)
+        return entryIds
     }
 
-    private suspend fun fetchRadioTrack(): PlaybackTrack? =
-        api.radioTrack(queue.map { it.track.trackId }, settings.playInstrumentals).valueOrNull()
+    private suspend fun fetchRadioTracks(): List<PlaybackTrack> {
+        val upcoming = upcoming
+        val upcomingIds = upcoming.map { it.entryId }.toSet()
+        return api
+            .radioTracks(
+                baseTrackIds = queue.filter { !it.radio }.map { it.track.trackId },
+                playedRadioTrackIds = queue.filter { it.radio && it.entryId !in upcomingIds }.map { it.track.trackId },
+                upcomingTrackIds = upcoming.map { it.track.trackId },
+                includeInstrumental = settings.playInstrumentals,
+            ).valueOrNull()
+            .orEmpty()
+    }
 
     // Turning radio off drops the picks that have not played yet.
     private fun dropRadioEntries() {

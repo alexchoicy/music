@@ -41,7 +41,7 @@ class AuthApi(
 ) {
     suspend fun checkServer(serverUrl: String): Boolean =
         try {
-            client.get("https://$serverUrl/auth").status.value in setOf(200, 401)
+            client.get("${serverHttpUrl(serverUrl)}/auth").status.value in setOf(200, 401)
         } catch (e: CancellationException) {
             throw e
         } catch (_: Exception) {
@@ -56,7 +56,7 @@ class AuthApi(
     ): LoginOutcome =
         try {
             val response =
-                client.post("https://$serverUrl/auth/login") {
+                client.post("${serverHttpUrl(serverUrl)}/auth/login") {
                     contentType(ContentType.Application.Json)
                     setBody(LoginRequest(username, password, client = "App", deviceName))
                 }

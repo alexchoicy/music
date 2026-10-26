@@ -6,7 +6,7 @@ export type RadioTrack = API.RadioTrack;
 
 export const trackActions = {
 	radio: async (request: API.RadioTrackRequest) => {
-		const result = await $APIFetch<RadioTrack | null>("/tracks/radio", {
+		const result = await $APIFetch<RadioTrack[]>("/tracks/radio", {
 			method: "POST",
 			body: JSON.stringify(request),
 		});

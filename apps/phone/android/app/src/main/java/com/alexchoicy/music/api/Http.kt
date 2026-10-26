@@ -27,6 +27,10 @@ private const val TIMEOUT_MS = 10_000L
 
 internal val ApiJson = Json { ignoreUnknownKeys = true }
 
+internal fun serverHttpUrl(serverUrl: String) = if ("://" in serverUrl) serverUrl else "https://$serverUrl"
+
+internal fun serverWebSocketUrl(serverUrl: String) = serverHttpUrl(serverUrl).replaceFirst("http", "ws")
+
 fun createHttpClient() =
     HttpClient(OkHttp) {
         install(ContentNegotiation) {
@@ -136,7 +140,7 @@ class ApiClient(
         val serverUrl = session.serverUrl ?: throw UnauthorizedException()
         val token = session.token ?: throw UnauthorizedException()
         val response =
-            http.request("https://$serverUrl$path") {
+            http.request("${serverHttpUrl(serverUrl)}$path") {
                 bearerAuth(token)
                 block()
             }

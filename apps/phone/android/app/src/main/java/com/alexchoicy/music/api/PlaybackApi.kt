@@ -77,21 +77,30 @@ class PlaybackApi(
             }
         }
 
-    suspend fun radioTrack(
-        queueTrackIds: List<Long>,
+    suspend fun radioTracks(
+        baseTrackIds: List<Long>,
+        playedRadioTrackIds: List<Long>,
+        upcomingTrackIds: List<Long>,
         includeInstrumental: Boolean,
-    ): ApiOutcome<PlaybackTrack?> =
+    ): ApiOutcome<List<PlaybackTrack>> =
         apiOutcome {
-            val pick =
-                client.postOrNull<RadioRequestDto, RadioTrackDto>(
-                    "/tracks/radio",
-                    RadioRequestDto(queueTrackIds.distinct(), includeInstrumental),
-                ) ?: return@apiOutcome null
-            client
-                .get<PlaybackAlbumDto>("/albums/${pick.albumId}")
-                .toAlbum()
-                .tracks
-                .firstOrNull { it.trackId == pick.trackId }
+            val picks =
+                client
+                    .postOrNull<RadioRequestDto, List<RadioTrackDto>>(
+                        "/tracks/radio",
+                        RadioRequestDto(baseTrackIds, playedRadioTrackIds, upcomingTrackIds, includeInstrumental),
+                    ).orEmpty()
+            val tracks =
+                coroutineScope {
+                    picks
+                        .map { it.albumId }
+                        .distinct()
+                        .map { async { client.get<PlaybackAlbumDto>("/albums/$it").toAlbum().tracks } }
+                        .awaitAll()
+                        .flatten()
+                        .associateBy { it.trackId }
+                }
+            picks.mapNotNull { tracks[it.trackId] }
         }
 
     suspend fun fileUrl(fileId: String): String = client.getText("/files/$fileId").trim()
@@ -119,7 +128,9 @@ private class RecordListenDto(
 
 @Serializable
 private class RadioRequestDto(
-    val queueTrackIds: List<Long>,
+    val baseTrackIds: List<Long>,
+    val playedRadioTrackIds: List<Long>,
+    val upcomingTrackIds: List<Long>,
     val includeInstrumental: Boolean,
 )
 

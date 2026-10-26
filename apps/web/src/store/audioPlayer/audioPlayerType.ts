@@ -35,6 +35,7 @@ export type AudioPlayerQueueEntry = AudioPlayerTrack & {
 	queueEntryId: string;
 	/** Set when played from a playlist, so its tile can show it is playing. */
 	playlist?: AudioPlayerQueuePlaylist;
+	radio?: boolean;
 };
 
 export type AudioPlayerState = {

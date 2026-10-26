@@ -11,6 +11,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.alexchoicy.music.Notices
 import com.alexchoicy.music.api.ApiJson
+import com.alexchoicy.music.api.serverWebSocketUrl
 import com.alexchoicy.music.playback.MusicPlayer
 import com.alexchoicy.music.playback.NetworkMonitor
 import com.alexchoicy.music.playback.PlayerStatus
@@ -280,7 +281,7 @@ class PlaybackDevices(
         while (currentCoroutineContext().isActive) {
             try {
                 client.webSocket(
-                    urlString = "wss://$serverUrl/ws",
+                    urlString = "${serverWebSocketUrl(serverUrl)}/ws",
                     request = { bearerAuth(token) },
                 ) {
                     socket = this
