@@ -32,7 +32,7 @@ RUN set -eux; \
     make -C /tmp/audiowaveform/build install; \
     rm -rf /tmp/audiowaveform
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0.403-noble AS build
 WORKDIR /src
 
 COPY Music.slnx .
@@ -56,7 +56,7 @@ RUN --mount=type=secret,id=sixlabors_license,required=true \
     dotnet publish ./Music.Api/Music.Api.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false \
     /p:SixLaborsLicenseFile=/run/secrets/sixlabors_license
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.14-noble AS runtime
 WORKDIR /app
 
 ENV DEBIAN_FRONTEND=noninteractive
