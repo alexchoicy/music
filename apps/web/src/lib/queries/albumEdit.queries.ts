@@ -12,6 +12,10 @@ export type UpdateAlbumDetailsRequest = API.UpdateAlbumDetailsRequest;
 export type UpdateAlbumCoverRequest = API.UpdateAlbumCoverRequest;
 export type UpdateAlbumCoverResult = API.UpdateAlbumCoverResult;
 export type UpdateAlbumTracksRequest = API.UpdateAlbumTracksRequest;
+export type AlbumEditTrackAudio = API.AlbumEditTrackAudio;
+export type AddTrackAudioRequest = API.AddTrackAudioRequest;
+export type AddTrackAudioResult = API.AddTrackAudioResult;
+export type UpdateTrackAudiosRequest = API.UpdateTrackAudiosRequest;
 
 function toError(error: Error, status: number) {
 	if (status === 409) {
@@ -69,6 +73,42 @@ export const albumEditActions = {
 			{ method: "PUT", body: JSON.stringify(request) },
 		);
 		if (!result.ok) throw toError(result.error, result.status);
+		return result.data;
+	},
+	addTrackAudio: async (
+		albumId: number | string,
+		trackId: number | string,
+		request: AddTrackAudioRequest,
+	) => {
+		const result = await $APIFetch<AddTrackAudioResult>(
+			`/albums/${albumId}/tracks/${trackId}/audios`,
+			{ method: "POST", body: JSON.stringify(request) },
+		);
+		if (!result.ok) throw result.error;
+		return result.data;
+	},
+	updateTrackAudios: async (
+		albumId: number | string,
+		trackId: number | string,
+		request: UpdateTrackAudiosRequest,
+	) => {
+		const result = await $APIFetch<AlbumEditDetails>(
+			`/albums/${albumId}/tracks/${trackId}/audios`,
+			{ method: "PUT", body: JSON.stringify(request) },
+		);
+		if (!result.ok) throw result.error;
+		return result.data;
+	},
+	removeTrackAudio: async (
+		albumId: number | string,
+		trackId: number | string,
+		trackAudioId: number | string,
+	) => {
+		const result = await $APIFetch<AlbumEditDetails>(
+			`/albums/${albumId}/tracks/${trackId}/audios/${trackAudioId}`,
+			{ method: "DELETE" },
+		);
+		if (!result.ok) throw result.error;
 		return result.data;
 	},
 };

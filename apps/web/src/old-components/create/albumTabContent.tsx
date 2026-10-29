@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { UploadIcon } from "lucide-react";
 import { useState } from "react";
-import type { Accept } from "react-dropzone";
+import { AUDIO_FILE_ACCEPT } from "#/constant/album";
 
 import { partyQueries } from "#/lib/queries/party.queries";
 import { DropBox } from "#/old-components/dropBox";
@@ -14,10 +14,6 @@ import { AlbumDraftCard } from "./album/albumDraftCard";
 import { AlbumDraftEditDialog } from "./album/albumDraftEditDialog";
 import { AlbumDraftMergeDialog } from "./album/albumDraftMergeDialog";
 import { TrackDraftEditDialog } from "./album/trackDraftEditDialog";
-
-const albumAudioAccept: Accept = {
-	"audio/*": [".flac", ".mp3", ".wav", ".dsf"],
-};
 
 export function AlbumTabContent() {
 	const addDroppedFiles = useAlbumUploadStore((state) => state.addDroppedFiles);
@@ -100,7 +96,7 @@ export function AlbumTabContent() {
 			</div>
 			<DropBox
 				isProcessing={isProcessing}
-				accept={albumAudioAccept}
+				accept={AUDIO_FILE_ACCEPT}
 				activeHint="Drop the album audio files here."
 				errorHint="Only FLAC, MP3, WAV, or DSF audio files are supported."
 				hint="Drag and drop FLAC, MP3, WAV, or DSF files here, or browse from your device."

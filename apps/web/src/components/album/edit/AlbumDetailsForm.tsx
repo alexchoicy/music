@@ -1,6 +1,13 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useId, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useId, useState } from "react";
 
+import { Alert, AlertDescription } from "#/components/base/alert";
+import { Button } from "#/components/base/button";
+import { Field, FieldDescription, FieldLabel } from "#/components/base/field";
+import { Input } from "#/components/base/input";
+import { Textarea } from "#/components/base/textarea";
+import { toastManager } from "#/components/base/toast";
+import { FilterSelect } from "#/components/library/FilterSelect";
 import { ALBUM_TYPE_OPTIONS } from "#/enums/albumEnums";
 import {
 	albumEditActions,
@@ -10,25 +17,14 @@ import type {
 	AlbumEditDetails,
 	UpdateAlbumDetailsRequest,
 } from "#/lib/queries/albumEdit.queries";
-import { languageQueries } from "#/lib/queries/language.queries";
-import { makeLanguageOptions } from "#/lib/utils/language";
-import { Alert, AlertDescription } from "#/old-components/coss/alert";
-import { Button } from "#/old-components/coss/button";
-import {
-	Field,
-	FieldDescription,
-	FieldLabel,
-} from "#/old-components/coss/field";
-import { Input } from "#/old-components/coss/input";
-import { Textarea } from "#/old-components/coss/textarea";
-import { toastManager } from "#/old-components/coss/toast";
-import { EnumFieldSelect } from "#/old-components/enumFieldSelect";
-import { OptionSelectField } from "#/old-components/OptionSelectField";
 import { PartyCombobox } from "#/old-components/PartyCombobox";
 import { ReleaseDateField } from "#/old-components/ReleaseDateField";
 
+import { LanguageSelect } from "./LanguageSelect";
+
 type DetailsForm = Omit<UpdateAlbumDetailsRequest, "version"> & {
 	artistIds: number[];
+	languageId: number | null;
 };
 
 function toForm(album: AlbumEditDetails): DetailsForm {
@@ -42,25 +38,24 @@ function toForm(album: AlbumEditDetails): DetailsForm {
 	};
 }
 
-function isSameForm(a: DetailsForm, b: DetailsForm) {
-	return JSON.stringify(a) === JSON.stringify(b);
-}
-
-export function AlbumDetailsTab({ album }: { album: AlbumEditDetails }) {
+export function AlbumDetailsForm({
+	album,
+	onDirtyChange,
+}: {
+	album: AlbumEditDetails;
+	onDirtyChange: (isDirty: boolean) => void;
+}) {
 	const titleId = useId();
 	const descriptionId = useId();
-	const languageFieldId = useId();
 	const queryClient = useQueryClient();
 	const initial = toForm(album);
 	const [form, setForm] = useState<DetailsForm>(initial);
-	const isDirty = !isSameForm(form, initial);
+	const isDirty = JSON.stringify(form) !== JSON.stringify(initial);
 
-	const { data: languages = [] } = useQuery(languageQueries.getLanguages());
-	const languageOptions = makeLanguageOptions(languages);
-	const selectedLanguage =
-		languageOptions.find(
-			(option) => option.id !== null && Number(option.id) === form.languageId,
-		) ?? languageOptions[0];
+	useEffect(() => {
+		onDirtyChange(isDirty);
+		return () => onDirtyChange(false);
+	}, [isDirty, onDirtyChange]);
 
 	const mutation = useMutation({
 		mutationFn: () =>
@@ -82,7 +77,7 @@ export function AlbumDetailsTab({ album }: { album: AlbumEditDetails }) {
 
 	return (
 		<form
-			className="grid max-w-3xl gap-5"
+			className="flex max-w-3xl flex-col gap-5"
 			onSubmit={(event) => {
 				event.preventDefault();
 				if (form.title.trim() && isDirty) mutation.mutate();
@@ -115,7 +110,7 @@ export function AlbumDetailsTab({ album }: { album: AlbumEditDetails }) {
 			</Field>
 
 			<div className="grid gap-4 sm:grid-cols-2">
-				<EnumFieldSelect
+				<FilterSelect
 					label="Type"
 					onValueChange={(type) => update({ type })}
 					options={ALBUM_TYPE_OPTIONS}
@@ -129,16 +124,9 @@ export function AlbumDetailsTab({ album }: { album: AlbumEditDetails }) {
 				/>
 			</div>
 
-			<OptionSelectField
-				id={languageFieldId}
-				label="Language"
-				name="languageId"
-				onValueChange={(id) =>
-					update({ languageId: id == null ? null : Number(id) })
-				}
-				options={languageOptions}
-				placeholder="Select language"
-				value={selectedLanguage}
+			<LanguageSelect
+				onValueChange={(languageId) => update({ languageId })}
+				value={form.languageId}
 			/>
 
 			<Field>

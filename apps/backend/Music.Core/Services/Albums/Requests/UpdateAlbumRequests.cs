@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Music.Core.Services.Albums.Enums;
+using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Files.Requests;
 using Music.Core.Services.Tracks.Enums;
 
@@ -107,8 +108,50 @@ public sealed class UpdateAlbumTrackRequest
 {
     public required int TrackId { get; init; }
     public required string Title { get; init; }
+    public string Description { get; init; } = string.Empty;
     public TrackContentType ContentType { get; init; } = TrackContentType.Music;
     public TrackVersionType VersionType { get; init; } = TrackVersionType.Original;
     public int? LanguageId { get; init; }
     public IReadOnlyList<int> ArtistIds { get; init; } = [];
+}
+
+public sealed class AddTrackAudioRequest : IValidatableObject
+{
+    public required FileRequest File { get; init; }
+    public MediaSource Source { get; init; } = MediaSource.Unknown;
+    public string? SourceUrl { get; init; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (File?.MimeType?.StartsWith("audio/", StringComparison.OrdinalIgnoreCase) != true)
+            yield return new ValidationResult("Track files must be audio files.", [nameof(File)]);
+    }
+}
+
+// Full audio order for one track, preferred first. Every audio must appear exactly once.
+public sealed class UpdateTrackAudiosRequest : IValidatableObject
+{
+    public required IReadOnlyList<int> TrackAudioIds { get; init; } = [];
+    public int? PinnedTrackAudioId { get; init; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (TrackAudioIds is null || TrackAudioIds.Count == 0)
+        {
+            yield return new ValidationResult("Audios are required.", [nameof(TrackAudioIds)]);
+            yield break;
+        }
+
+        if (TrackAudioIds.Distinct().Count() != TrackAudioIds.Count)
+            yield return new ValidationResult(
+                "An audio can only appear once.",
+                [nameof(TrackAudioIds)]
+            );
+
+        if (PinnedTrackAudioId is { } pinned && !TrackAudioIds.Contains(pinned))
+            yield return new ValidationResult(
+                "The pinned audio must be one of the listed audios.",
+                [nameof(PinnedTrackAudioId)]
+            );
+    }
 }

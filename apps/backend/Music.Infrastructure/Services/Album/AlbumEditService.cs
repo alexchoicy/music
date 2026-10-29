@@ -10,6 +10,7 @@ using Music.Core.Services.Albums.Requests;
 using Music.Core.Services.Albums.Results;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Files.Requests;
+using Music.Core.Services.Uploads.Results;
 using Music.Core.Storage;
 using Music.Core.Workers;
 using Music.Infrastructure.Data;
@@ -17,8 +18,11 @@ using Music.Infrastructure.Mappers;
 
 namespace Music.Infrastructure.Services.Album;
 
-public class AlbumEditService(AppDbContext dbContext, IAssetsService assetsService)
-    : IAlbumEditService
+public class AlbumEditService(
+    AppDbContext dbContext,
+    IAssetsService assetsService,
+    IContentService contentService
+) : IAlbumEditService
 {
     // Seeded "Unknown" party, used when an album has no artists
     private const int UnknownPartyId = 1;
@@ -84,6 +88,7 @@ public class AlbumEditService(AppDbContext dbContext, IAssetsService assetsServi
                             TrackId = albumTrack.TrackId,
                             TrackNumber = albumTrack.TrackNumber,
                             Title = albumTrack.Track!.Title,
+                            Description = albumTrack.Track.Description,
                             DurationInMs = albumTrack.Track.DurationInMs,
                             ContentType = albumTrack.Track.ContentType,
                             VersionType = albumTrack.Track.VersionType,
@@ -95,6 +100,12 @@ public class AlbumEditService(AppDbContext dbContext, IAssetsService assetsServi
                             OtherAlbumCount = otherAlbumCounts.GetValueOrDefault(
                                 albumTrack.TrackId
                             ),
+                            Audios = albumTrack
+                                .Track.Audios.OrderByDescending(audio => audio.Pinned)
+                                .ThenBy(audio => audio.Rank)
+                                .ThenBy(audio => audio.Id)
+                                .Select(ToEditAudio)
+                                .ToList(),
                         })
                         .ToList(),
                 })
@@ -312,6 +323,7 @@ public class AlbumEditService(AppDbContext dbContext, IAssetsService assetsServi
                 albumTrack.TrackNumber = index + 1;
 
                 track.Title = trackRequest.Title.Trim();
+                track.Description = trackRequest.Description;
                 track.ContentType = trackRequest.ContentType;
                 track.VersionType = trackRequest.VersionType;
                 track.LanguageId = trackRequest.LanguageId is null or 0
@@ -342,6 +354,163 @@ public class AlbumEditService(AppDbContext dbContext, IAssetsService assetsServi
         return await GetAsync(albumId, cancellationToken);
     }
 
+    public async Task<AddTrackAudioResult> AddTrackAudioAsync(
+        int albumId,
+        int trackId,
+        AddTrackAudioRequest request,
+        string userId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Track track = await GetAlbumTrackAsync(albumId, trackId, cancellationToken);
+
+        (StoredFile storedFile, FileObject fileObject) = contentService.CreateStoredFileWithObject(
+            request.File,
+            FileType.Audio,
+            contentService.GetStoragePath(
+                MediaFolderOptions.OriginalMusic,
+                request.File.Blake3Hash,
+                request.File.MimeType
+            ),
+            StorageArea.Content,
+            FileObjectVariant.Original,
+            userId,
+            request.Source,
+            request.SourceUrl
+        );
+
+        dbContext.StoredFiles.Add(storedFile);
+        dbContext.FileObjects.Add(fileObject);
+        dbContext.TrackAudios.Add(
+            new TrackAudio
+            {
+                Track = track,
+                File = storedFile,
+                Rank = track.Audios.Count == 0 ? 0 : track.Audios.Max(audio => audio.Rank) + 1,
+                UploadedByUserId = userId,
+            }
+        );
+
+        MultipartUploadResults multipartUpload = await contentService.CreateMultipartUploadAsync(
+            fileObject.StoragePath,
+            fileObject.MimeType,
+            fileObject.SizeInBytes,
+            cancellationToken
+        );
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new AddTrackAudioResult
+        {
+            Album = await GetAsync(albumId, cancellationToken),
+            Upload = new CreateAlbumTrackUploadItemResult
+            {
+                FileObjectId = fileObject.Id,
+                Blake3Hash = request.File.Blake3Hash,
+                FileName = request.File.OriginalFileName,
+                MultipartUploadInfo = multipartUpload,
+            },
+        };
+    }
+
+    public async Task<AlbumEditDetails> UpdateTrackAudiosAsync(
+        int albumId,
+        int trackId,
+        UpdateTrackAudiosRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Track track = await GetAlbumTrackAsync(albumId, trackId, cancellationToken);
+
+        Dictionary<int, TrackAudio> audios = track.Audios.ToDictionary(audio => audio.Id);
+        if (!audios.Keys.ToHashSet().SetEquals(request.TrackAudioIds))
+            throw new ValidationException("Every audio of the track must be listed exactly once.");
+
+        for (int index = 0; index < request.TrackAudioIds.Count; index++)
+        {
+            TrackAudio audio = audios[request.TrackAudioIds[index]];
+            audio.Rank = index;
+            audio.Pinned = audio.Id == request.PinnedTrackAudioId;
+            audio.UpdatedAt = DateTimeOffset.UtcNow;
+        }
+        TouchTrack(track);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return await GetAsync(albumId, cancellationToken);
+    }
+
+    // Only unlinks the audio; the stored file is kept
+    public async Task<AlbumEditDetails> RemoveTrackAudioAsync(
+        int albumId,
+        int trackId,
+        int trackAudioId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Track track = await GetAlbumTrackAsync(albumId, trackId, cancellationToken);
+
+        TrackAudio audio =
+            track.Audios.FirstOrDefault(item => item.Id == trackAudioId)
+            ?? throw new EntityNotFoundException($"Audio {trackAudioId} not found");
+
+        if (track.Audios.Count <= 1)
+            throw new ValidationException("A track must keep at least one audio.");
+
+        dbContext.TrackAudios.Remove(audio);
+        TouchTrack(track);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return await GetAsync(albumId, cancellationToken);
+    }
+
+    private async Task<Track> GetAlbumTrackAsync(
+        int albumId,
+        int trackId,
+        CancellationToken cancellationToken
+    ) =>
+        await dbContext
+            .Tracks.Include(track => track.Audios)
+            .FirstOrDefaultAsync(
+                track =>
+                    track.Id == trackId
+                    && track.AlbumTracks.Any(albumTrack =>
+                        albumTrack.AlbumDisc!.AlbumId == albumId
+                    ),
+                cancellationToken
+            )
+        ?? throw new EntityNotFoundException($"Track {trackId} not found on album {albumId}");
+
+    private static void TouchTrack(Track track) => track.UpdatedAt = DateTimeOffset.UtcNow;
+
+    private static AlbumEditTrackAudio ToEditAudio(TrackAudio audio)
+    {
+        FileObject? original = audio.File?.FileObjects.FirstOrDefault(fileObject =>
+            fileObject.FileObjectVariant == FileObjectVariant.Original
+        );
+
+        return new AlbumEditTrackAudio
+        {
+            TrackAudioId = audio.Id,
+            Rank = audio.Rank,
+            Pinned = audio.Pinned,
+            FileName = audio.File?.OriginalFileName ?? string.Empty,
+            Source = audio.File?.Source ?? MediaSource.Unknown,
+            SourceUrl = audio.File?.SourceUrl,
+            ProcessingStatus = original?.ProcessingStatus ?? FileProcessingStatus.Pending,
+            Container = original?.Container,
+            Codec = original?.Codec,
+            Lossless = original?.Lossless ?? false,
+            AudioSampleRate = original?.AudioSampleRate,
+            BitsPerSample = original?.BitsPerSample,
+            AudioChannels = original?.AudioChannels,
+            Bitrate = original?.Bitrate,
+            DurationInMs = original?.DurationInMs,
+            SizeInBytes = original?.SizeInBytes,
+            CreatedAt = audio.CreatedAt,
+        };
+    }
+
     private IQueryable<Core.Entities.Album> QueryAlbum() =>
         dbContext
             .Albums.AsSplitQuery()
@@ -352,7 +521,13 @@ public class AlbumEditService(AppDbContext dbContext, IAssetsService assetsServi
             .Include(album => album.Discs)
                 .ThenInclude(disc => disc.Tracks)
                     .ThenInclude(albumTrack => albumTrack.Track!)
-                        .ThenInclude(track => track.Credits);
+                        .ThenInclude(track => track.Credits)
+            .Include(album => album.Discs)
+                .ThenInclude(disc => disc.Tracks)
+                    .ThenInclude(albumTrack => albumTrack.Track!)
+                        .ThenInclude(track => track.Audios)
+                            .ThenInclude(audio => audio.File!)
+                                .ThenInclude(file => file.FileObjects);
 
     private static AlbumImage? GetPrimaryImage(Core.Entities.Album album, int? albumDiscId) =>
         album

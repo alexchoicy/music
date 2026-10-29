@@ -9,6 +9,17 @@ export type AddPlaylistEntriesRequest = {
     tracks: Array<PlaylistTrackRequest>;
 };
 
+export type AddTrackAudioRequest = {
+    file: FileRequest;
+    source?: MediaSource;
+    sourceUrl?: null | string;
+};
+
+export type AddTrackAudioResult = {
+    album: AlbumEditDetails;
+    upload: CreateAlbumTrackUploadItemResult;
+};
+
 export type AlbumCoverDetails = {
     album: ImageFileVariants;
     discs: Array<AlbumDiscCoverDetails>;
@@ -81,12 +92,34 @@ export type AlbumEditTrack = {
     trackId: number | string;
     trackNumber: number | string;
     title: string;
+    description: string;
     durationInMs: number | string;
     contentType: TrackContentType;
     versionType: TrackVersionType;
     languageId?: null | number | string;
     artistIds: Array<number | string>;
     otherAlbumCount: number | string;
+    audios: Array<AlbumEditTrackAudio>;
+};
+
+export type AlbumEditTrackAudio = {
+    trackAudioId: number | string;
+    rank: number | string;
+    pinned: boolean;
+    fileName: string;
+    source: MediaSource;
+    sourceUrl?: null | string;
+    processingStatus: FileProcessingStatus;
+    container?: null | string;
+    codec?: null | string;
+    lossless: boolean;
+    audioSampleRate?: null | number | string;
+    bitsPerSample?: null | number | string;
+    audioChannels?: null | number | string;
+    bitrate?: null | number | string;
+    durationInMs?: null | number | string;
+    sizeInBytes?: null | number | string;
+    createdAt: string;
 };
 
 export type AlbumImageRequest = {
@@ -1013,6 +1046,7 @@ export type UpdateAlbumDiscRequest = {
 export type UpdateAlbumTrackRequest = {
     trackId: number | string;
     title: string;
+    description?: string;
     contentType?: TrackContentType;
     versionType?: TrackVersionType;
     languageId?: null | number | string;
@@ -1052,6 +1086,11 @@ export type UpdatePartyRequest = {
 export type UpdatePartyResult = {
     partyId: number | string;
     images?: Array<PartyImageUploadResult>;
+};
+
+export type UpdateTrackAudiosRequest = {
+    trackAudioIds: Array<number | string>;
+    pinnedTrackAudioId?: null | number | string;
 };
 
 export type UpdateUserRequest = {
@@ -1321,6 +1360,91 @@ export type PutAlbumsByIdTracksResponses = {
 };
 
 export type PutAlbumsByIdTracksResponse = PutAlbumsByIdTracksResponses[keyof PutAlbumsByIdTracksResponses];
+
+export type PostAlbumsByIdTracksByTrackIdAudiosData = {
+    body: AddTrackAudioRequest;
+    path: {
+        id: number;
+        trackId: number;
+    };
+    query?: never;
+    url: '/albums/{id}/tracks/{trackId}/audios';
+};
+
+export type PostAlbumsByIdTracksByTrackIdAudiosErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type PostAlbumsByIdTracksByTrackIdAudiosError = PostAlbumsByIdTracksByTrackIdAudiosErrors[keyof PostAlbumsByIdTracksByTrackIdAudiosErrors];
+
+export type PostAlbumsByIdTracksByTrackIdAudiosResponses = {
+    /**
+     * OK
+     */
+    200: AddTrackAudioResult;
+};
+
+export type PostAlbumsByIdTracksByTrackIdAudiosResponse = PostAlbumsByIdTracksByTrackIdAudiosResponses[keyof PostAlbumsByIdTracksByTrackIdAudiosResponses];
+
+export type PutAlbumsByIdTracksByTrackIdAudiosData = {
+    body: UpdateTrackAudiosRequest;
+    path: {
+        id: number;
+        trackId: number;
+    };
+    query?: never;
+    url: '/albums/{id}/tracks/{trackId}/audios';
+};
+
+export type PutAlbumsByIdTracksByTrackIdAudiosErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type PutAlbumsByIdTracksByTrackIdAudiosError = PutAlbumsByIdTracksByTrackIdAudiosErrors[keyof PutAlbumsByIdTracksByTrackIdAudiosErrors];
+
+export type PutAlbumsByIdTracksByTrackIdAudiosResponses = {
+    /**
+     * OK
+     */
+    200: AlbumEditDetails;
+};
+
+export type PutAlbumsByIdTracksByTrackIdAudiosResponse = PutAlbumsByIdTracksByTrackIdAudiosResponses[keyof PutAlbumsByIdTracksByTrackIdAudiosResponses];
+
+export type DeleteAlbumsByIdTracksByTrackIdAudiosByTrackAudioIdData = {
+    body?: never;
+    path: {
+        id: number;
+        trackId: number;
+        trackAudioId: number;
+    };
+    query?: never;
+    url: '/albums/{id}/tracks/{trackId}/audios/{trackAudioId}';
+};
+
+export type DeleteAlbumsByIdTracksByTrackIdAudiosByTrackAudioIdErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type DeleteAlbumsByIdTracksByTrackIdAudiosByTrackAudioIdError = DeleteAlbumsByIdTracksByTrackIdAudiosByTrackAudioIdErrors[keyof DeleteAlbumsByIdTracksByTrackIdAudiosByTrackAudioIdErrors];
+
+export type DeleteAlbumsByIdTracksByTrackIdAudiosByTrackAudioIdResponses = {
+    /**
+     * OK
+     */
+    200: AlbumEditDetails;
+};
+
+export type DeleteAlbumsByIdTracksByTrackIdAudiosByTrackAudioIdResponse = DeleteAlbumsByIdTracksByTrackIdAudiosByTrackAudioIdResponses[keyof DeleteAlbumsByIdTracksByTrackIdAudiosByTrackAudioIdResponses];
 
 export type PostAuthLoginData = {
     body: LoginRequest;

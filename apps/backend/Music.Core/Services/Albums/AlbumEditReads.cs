@@ -48,6 +48,7 @@ public sealed class AlbumEditTrack
     public required int TrackId { get; init; }
     public required int TrackNumber { get; init; }
     public required string Title { get; init; }
+    public required string Description { get; init; }
     public required int DurationInMs { get; init; }
     public required TrackContentType ContentType { get; init; }
     public required TrackVersionType VersionType { get; init; }
@@ -56,4 +57,27 @@ public sealed class AlbumEditTrack
 
     // Tracks are shared, edits also show up on these other albums
     public required int OtherAlbumCount { get; init; }
+
+    public required IReadOnlyList<AlbumEditTrackAudio> Audios { get; init; } = [];
+}
+
+public sealed class AlbumEditTrackAudio
+{
+    public required int TrackAudioId { get; init; }
+    public required int Rank { get; init; }
+    public required bool Pinned { get; init; }
+    public required string FileName { get; init; }
+    public required MediaSource Source { get; init; }
+    public string? SourceUrl { get; init; }
+    public required FileProcessingStatus ProcessingStatus { get; init; }
+    public string? Container { get; init; }
+    public string? Codec { get; init; }
+    public required bool Lossless { get; init; }
+    public int? AudioSampleRate { get; init; }
+    public int? BitsPerSample { get; init; }
+    public int? AudioChannels { get; init; }
+    public int? Bitrate { get; init; }
+    public int? DurationInMs { get; init; }
+    public long? SizeInBytes { get; init; }
+    public required DateTimeOffset CreatedAt { get; init; }
 }

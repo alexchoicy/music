@@ -1,16 +1,7 @@
 import type * as API from "@music/api";
 import type { IAudioMetadata } from "music-metadata";
 
-import {
-	ALBUM_TITLE,
-	DEFAULT_TRACK_AUDIO_SOURCE,
-	TRACK_TITLE,
-} from "#/constant/album";
-import {
-	getExtensionFromFileName,
-	getExtensionFromMimeType,
-	getMimeTypeFromFileName,
-} from "#/lib/utils/file";
+import { ALBUM_TITLE, TRACK_TITLE } from "#/constant/album";
 import {
 	checkIfInstrumental,
 	checkIfInterlude,
@@ -18,7 +9,10 @@ import {
 	checkIfMC,
 } from "#/lib/utils/music";
 import { resolveParty } from "#/lib/utils/party";
-import { makeAlbumMatchingKey } from "#/lib/utils/upload";
+import {
+	createTrackAudioRequest,
+	makeAlbumMatchingKey,
+} from "#/lib/utils/upload";
 import type { ProcessedFileData } from "#/lib/utils/upload";
 
 import type {
@@ -181,43 +175,6 @@ function findDiscByNumber(
 		const disc = state.discsById[discId];
 		return Number(disc.discNumber) === discNumber;
 	});
-}
-
-function createTrackAudioRequest(
-	fileData: ProcessedFileData,
-	durationInMs: number,
-): API.TrackAudioRequest {
-	const mimeType =
-		fileData.file.type || getMimeTypeFromFileName(fileData.file.name);
-	const extension =
-		getExtensionFromMimeType(mimeType) ||
-		getExtensionFromFileName(fileData.file.name);
-
-	return {
-		file: {
-			blake3Hash: fileData.blake3Hash,
-			mimeType,
-			sizeInBytes: fileData.file.size,
-			container:
-				fileData.metadata.format.container?.trim().toLowerCase() || extension,
-			extension: extension,
-			codec: fileData.metadata.format.codec?.trim().toLowerCase() ?? null,
-			width: null,
-			height: null,
-			audioSampleRate: fileData.metadata.format.sampleRate ?? null,
-			bitrate: Math.round(fileData.metadata.format.bitrate ?? 0),
-			frameRate: null,
-			durationInMs,
-			originalFileName: fileData.file.name,
-			bitsPerSample: fileData.metadata.format.bitsPerSample ?? null,
-			lossless: fileData.metadata.format.lossless ?? false,
-			audioChannels: fileData.metadata.format.numberOfChannels ?? null,
-		},
-		rank: 0,
-		pinned: true,
-		source: DEFAULT_TRACK_AUDIO_SOURCE,
-		sourceUrl: null,
-	};
 }
 
 function hasTrackAudio(state: AlbumUploadState, blake3Hash: string) {

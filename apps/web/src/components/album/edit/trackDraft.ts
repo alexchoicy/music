@@ -8,6 +8,7 @@ export type TrackDraft = {
 	id: string;
 	trackId: number;
 	title: string;
+	description: string;
 	durationInMs: number;
 	contentType: AlbumEditTrack["contentType"];
 	versionType: AlbumEditTrack["versionType"];
@@ -41,6 +42,7 @@ export function toTracksDraft(album: AlbumEditDetails): TracksDraft {
 				id: `track-${track.trackId}`,
 				trackId: Number(track.trackId),
 				title: track.title,
+				description: track.description,
 				durationInMs: Number(track.durationInMs),
 				contentType: track.contentType,
 				versionType: track.versionType,
@@ -74,6 +76,7 @@ export function toTracksRequest(
 				(track) => ({
 					trackId: track.trackId,
 					title: track.title.trim(),
+					description: track.description,
 					contentType: track.contentType,
 					versionType: track.versionType,
 					languageId: track.languageId,

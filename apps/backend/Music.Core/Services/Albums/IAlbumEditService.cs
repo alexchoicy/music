@@ -25,4 +25,26 @@ public interface IAlbumEditService
         UpdateAlbumTracksRequest request,
         CancellationToken cancellationToken = default
     );
+
+    Task<AddTrackAudioResult> AddTrackAudioAsync(
+        int albumId,
+        int trackId,
+        AddTrackAudioRequest request,
+        string userId,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<AlbumEditDetails> UpdateTrackAudiosAsync(
+        int albumId,
+        int trackId,
+        UpdateTrackAudiosRequest request,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<AlbumEditDetails> RemoveTrackAudioAsync(
+        int albumId,
+        int trackId,
+        int trackAudioId,
+        CancellationToken cancellationToken = default
+    );
 }

@@ -3,6 +3,9 @@ import { ImageIcon } from "lucide-react";
 import { useId, useState } from "react";
 import type { ChangeEvent } from "react";
 
+import { Badge } from "#/components/base/badge";
+import { Button } from "#/components/base/button";
+import { toastManager } from "#/components/base/toast";
 import { ALBUM_COVER_ASPECT_RATIO, COVER_IMAGE_ACCEPT } from "#/constant/album";
 import { completeUpload } from "#/lib/api/uploads";
 import {
@@ -15,15 +18,6 @@ import type {
 	UpdateAlbumCoverRequest,
 } from "#/lib/queries/albumEdit.queries";
 import { createCoverAsset } from "#/lib/utils/upload";
-import { Badge } from "#/old-components/coss/badge";
-import { Button } from "#/old-components/coss/button";
-import {
-	Card,
-	CardHeader,
-	CardPanel,
-	CardTitle,
-} from "#/old-components/coss/card";
-import { toastManager } from "#/old-components/coss/toast";
 import { CroppedImagePreview } from "#/old-components/croppedImagePreview";
 import { ImageCropDialog } from "#/old-components/imageCropDialog";
 import type { CroppedArea } from "#/store/albumUploadStoreType";
@@ -48,7 +42,7 @@ function CoverPreview({
 		return (
 			<img
 				alt={label}
-				className="size-40 rounded-xl border object-cover"
+				className="size-40 rounded-xl object-cover shadow-card"
 				src={processed.url}
 			/>
 		);
@@ -286,46 +280,38 @@ function CoverSlot({
 	);
 }
 
-export function AlbumCoverTab({ album }: { album: AlbumEditDetails }) {
+export function AlbumCoversEditor({ album }: { album: AlbumEditDetails }) {
 	const albumId = Number(album.albumId);
 
 	return (
-		<div className="grid max-w-3xl gap-4">
-			<Card>
-				<CardHeader>
-					<CardTitle>Album cover</CardTitle>
-				</CardHeader>
-				<CardPanel>
-					<CoverSlot
-						albumDiscId={null}
-						albumId={albumId}
-						cover={album.cover}
-						hasAlbumCover={Boolean(album.cover)}
-						label="Album cover"
-					/>
-				</CardPanel>
-			</Card>
+		<div className="flex max-w-3xl flex-col gap-8">
+			<section className="flex flex-col gap-4">
+				<h2 className="text-xl font-semibold tracking-tight">Album cover</h2>
+				<CoverSlot
+					albumDiscId={null}
+					albumId={albumId}
+					cover={album.cover}
+					hasAlbumCover={Boolean(album.cover)}
+					label="Album cover"
+				/>
+			</section>
 
 			{album.discs.length > 1 && (
-				<Card>
-					<CardHeader>
-						<CardTitle>Disc covers</CardTitle>
-					</CardHeader>
-					<CardPanel>
-						<div className="grid gap-6">
-							{album.discs.map((disc) => (
-								<CoverSlot
-									albumDiscId={Number(disc.albumDiscId)}
-									albumId={albumId}
-									cover={disc.cover}
-									hasAlbumCover={Boolean(album.cover)}
-									key={disc.albumDiscId}
-									label={`Disc ${disc.discNumber} cover`}
-								/>
-							))}
-						</div>
-					</CardPanel>
-				</Card>
+				<section className="flex flex-col gap-4">
+					<h2 className="text-xl font-semibold tracking-tight">Disc covers</h2>
+					<div className="flex flex-col gap-6">
+						{album.discs.map((disc) => (
+							<CoverSlot
+								albumDiscId={Number(disc.albumDiscId)}
+								albumId={albumId}
+								cover={disc.cover}
+								hasAlbumCover={Boolean(album.cover)}
+								key={disc.albumDiscId}
+								label={`Disc ${disc.discNumber} cover`}
+							/>
+						))}
+					</div>
+				</section>
 			)}
 		</div>
 	);

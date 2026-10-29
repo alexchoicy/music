@@ -1,14 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
 import { useId, useState } from "react";
 
-import {
-	TRACK_CONTENT_TYPE_OPTIONS,
-	TRACK_VERSION_TYPE_OPTIONS,
-} from "#/enums/trackEnums";
-import { languageQueries } from "#/lib/queries/language.queries";
-import { makeLanguageOptions } from "#/lib/utils/language";
-import { Alert, AlertDescription } from "#/old-components/coss/alert";
-import { Button } from "#/old-components/coss/button";
+import { Alert, AlertDescription } from "#/components/base/alert";
+import { Button } from "#/components/base/button";
 import {
 	Dialog,
 	DialogClose,
@@ -18,16 +11,21 @@ import {
 	DialogPanel,
 	DialogPopup,
 	DialogTitle,
-} from "#/old-components/coss/dialog";
-import { Field, FieldLabel } from "#/old-components/coss/field";
-import { Input } from "#/old-components/coss/input";
-import { EnumFieldSelect } from "#/old-components/enumFieldSelect";
-import { OptionSelectField } from "#/old-components/OptionSelectField";
+} from "#/components/base/dialog";
+import { Field, FieldLabel } from "#/components/base/field";
+import { Input } from "#/components/base/input";
+import { Textarea } from "#/components/base/textarea";
+import { FilterSelect } from "#/components/library/FilterSelect";
+import {
+	TRACK_CONTENT_TYPE_OPTIONS,
+	TRACK_VERSION_TYPE_OPTIONS,
+} from "#/enums/trackEnums";
 import { PartyCombobox } from "#/old-components/PartyCombobox";
 
+import { LanguageSelect } from "./LanguageSelect";
 import type { TrackDraft } from "./trackDraft";
 
-export function TrackDetailsDialog({
+export function TrackEditDialog({
 	track,
 	onClose,
 	onSave,
@@ -37,14 +35,8 @@ export function TrackDetailsDialog({
 	onSave: (track: TrackDraft) => void;
 }) {
 	const titleId = useId();
-	const languageFieldId = useId();
+	const descriptionId = useId();
 	const [draft, setDraft] = useState(track);
-	const { data: languages = [] } = useQuery(languageQueries.getLanguages());
-	const languageOptions = makeLanguageOptions(languages);
-	const selectedLanguage =
-		languageOptions.find(
-			(option) => option.id !== null && Number(option.id) === draft.languageId,
-		) ?? languageOptions[0];
 
 	function update(next: Partial<TrackDraft>) {
 		setDraft((current) => ({ ...current, ...next }));
@@ -65,13 +57,13 @@ export function TrackDetailsDialog({
 					</DialogDescription>
 				</DialogHeader>
 				<DialogPanel>
-					<div className="grid gap-4">
+					<div className="flex flex-col gap-4">
 						{track.otherAlbumCount > 0 && (
 							<Alert variant="warning">
 								<AlertDescription>
 									This track is also on {track.otherAlbumCount} other album
-									{track.otherAlbumCount === 1 ? "" : "s"}. Title, type,
-									language and artists change there too.
+									{track.otherAlbumCount === 1 ? "" : "s"}. These changes show
+									up there too.
 								</AlertDescription>
 							</Alert>
 						)}
@@ -97,30 +89,34 @@ export function TrackDetailsDialog({
 							/>
 						</Field>
 						<div className="grid gap-4 sm:grid-cols-2">
-							<EnumFieldSelect
+							<FilterSelect
 								label="Content"
 								onValueChange={(contentType) => update({ contentType })}
 								options={TRACK_CONTENT_TYPE_OPTIONS}
 								value={draft.contentType}
 							/>
-							<EnumFieldSelect
+							<FilterSelect
 								label="Version"
 								onValueChange={(versionType) => update({ versionType })}
 								options={TRACK_VERSION_TYPE_OPTIONS}
 								value={draft.versionType}
 							/>
 						</div>
-						<OptionSelectField
-							id={languageFieldId}
-							label="Language"
-							name="trackLanguageId"
-							onValueChange={(id) =>
-								update({ languageId: id == null ? null : Number(id) })
-							}
-							options={languageOptions}
-							placeholder="Select language"
-							value={selectedLanguage}
+						<LanguageSelect
+							onValueChange={(languageId) => update({ languageId })}
+							value={draft.languageId}
 						/>
+						<Field>
+							<FieldLabel htmlFor={descriptionId}>Description</FieldLabel>
+							<Textarea
+								id={descriptionId}
+								onChange={(event) =>
+									update({ description: event.target.value })
+								}
+								rows={3}
+								value={draft.description}
+							/>
+						</Field>
 					</div>
 				</DialogPanel>
 				<DialogFooter>

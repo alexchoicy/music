@@ -2,9 +2,19 @@ import { move } from "@dnd-kit/helpers";
 import { DragDropProvider, useDroppable } from "@dnd-kit/react";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GripVerticalIcon, PencilIcon } from "lucide-react";
-import { useRef, useState } from "react";
+import { AudioLinesIcon, GripVerticalIcon, PencilIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
+import { Alert, AlertDescription } from "#/components/base/alert";
+import { Badge } from "#/components/base/badge";
+import { Button } from "#/components/base/button";
+import { Input } from "#/components/base/input";
+import { toastManager } from "#/components/base/toast";
+import {
+	Tooltip,
+	TooltipPopup,
+	TooltipTrigger,
+} from "#/components/base/tooltip";
 import {
 	albumEditActions,
 	applyAlbumEdit,
@@ -13,38 +23,32 @@ import type { AlbumEditDetails } from "#/lib/queries/albumEdit.queries";
 import { partyQueries } from "#/lib/queries/party.queries";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
-import { Alert, AlertDescription } from "#/old-components/coss/alert";
-import { Badge } from "#/old-components/coss/badge";
-import { Button } from "#/old-components/coss/button";
-import {
-	Card,
-	CardHeader,
-	CardPanel,
-	CardTitle,
-} from "#/old-components/coss/card";
-import { Input } from "#/old-components/coss/input";
-import { toastManager } from "#/old-components/coss/toast";
 
-import { TrackDetailsDialog } from "./TrackDetailsDialog";
+import { TrackAudiosDialog } from "./TrackAudiosDialog";
 import { discKey, toTracksDraft, toTracksRequest } from "./trackDraft";
 import type { TrackDraft, TracksDraft } from "./trackDraft";
+import { TrackEditDialog } from "./TrackEditDialog";
 
 function TrackRow({
 	track,
 	index,
 	group,
 	artistNames,
+	audioCount,
 	disabled,
 	onTitleChange,
 	onEdit,
+	onEditAudios,
 }: {
 	track: TrackDraft;
 	index: number;
 	group: string;
 	artistNames: string;
+	audioCount: number;
 	disabled: boolean;
 	onTitleChange: (title: string) => void;
 	onEdit: () => void;
+	onEditAudios: () => void;
 }) {
 	const { handleRef, isDragging, ref } = useSortable({
 		id: track.id,
@@ -58,10 +62,9 @@ function TrackRow({
 	return (
 		<div
 			className={cn(
-				"grid grid-cols-[2rem_2rem_minmax(0,1fr)_auto] items-center gap-2 px-3 py-2",
+				"grid grid-cols-[2rem_1.5rem_minmax(0,1fr)_auto] items-center gap-2 rounded-lg px-2 py-2 transition-colors duration-150 hover:bg-accent/60",
 				isDragging && "opacity-50",
 			)}
-			data-testid="edit-track-row"
 			ref={ref}
 		>
 			<Button
@@ -76,7 +79,7 @@ function TrackRow({
 			<span className="text-center text-sm text-muted-foreground tabular-nums">
 				{index + 1}
 			</span>
-			<div className="grid min-w-0 gap-1">
+			<div className="flex min-w-0 flex-col gap-1">
 				<Input
 					aria-label={`Title of track ${index + 1}`}
 					disabled={disabled}
@@ -84,7 +87,7 @@ function TrackRow({
 					size="sm"
 					value={track.title}
 				/>
-				<div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+				<div className="flex min-w-0 flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
 					<span className="truncate">{artistNames || "No artists"}</span>
 					{track.contentType !== "Music" && (
 						<Badge size="sm" variant="secondary">
@@ -104,19 +107,42 @@ function TrackRow({
 					)}
 				</div>
 			</div>
-			<div className="flex items-center gap-2">
-				<span className="text-xs text-muted-foreground tabular-nums">
+			<div className="flex items-center gap-1">
+				<span className="mr-1 hidden text-xs text-muted-foreground tabular-nums sm:inline">
 					{formatMsToMMSSOrHMMSS(track.durationInMs)}
 				</span>
-				<Button
-					aria-label={`Edit ${track.title}`}
-					disabled={disabled}
-					onClick={onEdit}
-					size="icon-sm"
-					variant="ghost"
-				>
-					<PencilIcon aria-hidden="true" />
-				</Button>
+				<Tooltip>
+					<TooltipTrigger
+						render={
+							<Button
+								aria-label={`Audio versions of ${track.title}`}
+								onClick={onEditAudios}
+								size="xs"
+								variant="ghost"
+							/>
+						}
+					>
+						<AudioLinesIcon aria-hidden="true" />
+						<span className="tabular-nums">{audioCount}</span>
+					</TooltipTrigger>
+					<TooltipPopup>Audio versions</TooltipPopup>
+				</Tooltip>
+				<Tooltip>
+					<TooltipTrigger
+						render={
+							<Button
+								aria-label={`Edit ${track.title}`}
+								disabled={disabled}
+								onClick={onEdit}
+								size="icon-sm"
+								variant="ghost"
+							/>
+						}
+					>
+						<PencilIcon aria-hidden="true" />
+					</TooltipTrigger>
+					<TooltipPopup>Edit track</TooltipPopup>
+				</Tooltip>
 			</div>
 		</div>
 	);
@@ -141,13 +167,13 @@ function DiscTrackList({
 	return (
 		<div
 			className={cn(
-				"min-h-14 divide-y rounded-xl border",
-				isDropTarget && "border-primary",
+				"-mx-2 flex min-h-14 flex-col rounded-lg",
+				isDropTarget && "ring-2 ring-primary ring-inset",
 			)}
 			ref={ref}
 		>
 			{isEmpty ? (
-				<p className="px-4 py-4 text-sm text-muted-foreground">
+				<p className="px-2 py-4 text-sm text-muted-foreground">
 					No tracks. Drag tracks here.
 				</p>
 			) : (
@@ -157,17 +183,34 @@ function DiscTrackList({
 	);
 }
 
-export function AlbumTracksTab({ album }: { album: AlbumEditDetails }) {
+export function AlbumTracksEditor({
+	album,
+	onDirtyChange,
+}: {
+	album: AlbumEditDetails;
+	onDirtyChange: (isDirty: boolean) => void;
+}) {
 	const queryClient = useQueryClient();
 	const initial = toTracksDraft(album);
 	const [draft, setDraft] = useState<TracksDraft>(initial);
 	const [editing, setEditing] = useState<TrackDraft | null>(null);
+	const [audioTrackId, setAudioTrackId] = useState<number | null>(null);
 	const beforeDrag = useRef<TracksDraft["tracksByDisc"] | null>(null);
 	const isDirty = JSON.stringify(draft) !== JSON.stringify(initial);
+
+	useEffect(() => {
+		onDirtyChange(isDirty);
+		return () => onDirtyChange(false);
+	}, [isDirty, onDirtyChange]);
 
 	const { data: parties = [] } = useQuery(partyQueries.getParties());
 	const partyNames = new Map(
 		parties.map((party) => [Number(party.partyId), party.name]),
+	);
+	const audioCounts = new Map(
+		album.discs.flatMap((disc) =>
+			disc.tracks.map((track) => [Number(track.trackId), track.audios.length]),
+		),
 	);
 
 	const mutation = useMutation({
@@ -200,10 +243,10 @@ export function AlbumTracksTab({ album }: { album: AlbumEditDetails }) {
 	);
 
 	return (
-		<div className="grid max-w-4xl gap-4">
+		<div className="flex max-w-4xl flex-col gap-8">
 			<p className="text-sm text-muted-foreground">
 				Drag tracks to reorder them or move them to another disc. Track numbers
-				follow the order.
+				follow the order. Audio versions save right away.
 			</p>
 
 			<DragDropProvider
@@ -229,50 +272,50 @@ export function AlbumTracksTab({ album }: { album: AlbumEditDetails }) {
 					const tracks = draft.tracksByDisc[group] ?? [];
 
 					return (
-						<Card key={disc.albumDiscId}>
-							<CardHeader>
-								<CardTitle>Disc {disc.discNumber}</CardTitle>
-							</CardHeader>
-							<CardPanel>
-								<div className="grid gap-3">
-									<Input
-										aria-label={`Disc ${disc.discNumber} subtitle`}
+						<section className="flex flex-col gap-3" key={disc.albumDiscId}>
+							<div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+								<h2 className="text-xl font-semibold tracking-tight">
+									Disc {disc.discNumber}
+								</h2>
+								<Input
+									aria-label={`Disc ${disc.discNumber} subtitle`}
+									className="max-w-sm flex-1"
+									disabled={mutation.isPending}
+									onChange={(event) => {
+										const subtitle = event.target.value;
+										setDraft((current) => ({
+											...current,
+											discs: current.discs.map((item) =>
+												item.albumDiscId === disc.albumDiscId
+													? { ...item, subtitle }
+													: item,
+											),
+										}));
+									}}
+									placeholder="Disc subtitle (optional)"
+									size="sm"
+									value={disc.subtitle}
+								/>
+							</div>
+							<DiscTrackList group={group} isEmpty={tracks.length === 0}>
+								{tracks.map((track, index) => (
+									<TrackRow
+										artistNames={track.artistIds
+											.map((id) => partyNames.get(id) ?? "Unknown artist")
+											.join(", ")}
+										audioCount={audioCounts.get(track.trackId) ?? 0}
 										disabled={mutation.isPending}
-										onChange={(event) => {
-											const subtitle = event.target.value;
-											setDraft((current) => ({
-												...current,
-												discs: current.discs.map((item) =>
-													item.albumDiscId === disc.albumDiscId
-														? { ...item, subtitle }
-														: item,
-												),
-											}));
-										}}
-										placeholder="Disc subtitle (optional)"
-										value={disc.subtitle}
+										group={group}
+										index={index}
+										key={track.id}
+										onEdit={() => setEditing(track)}
+										onEditAudios={() => setAudioTrackId(track.trackId)}
+										onTitleChange={(title) => updateTrack({ ...track, title })}
+										track={track}
 									/>
-									<DiscTrackList group={group} isEmpty={tracks.length === 0}>
-										{tracks.map((track, index) => (
-											<TrackRow
-												artistNames={track.artistIds
-													.map((id) => partyNames.get(id) ?? "Unknown artist")
-													.join(", ")}
-												disabled={mutation.isPending}
-												group={group}
-												index={index}
-												key={track.id}
-												onEdit={() => setEditing(track)}
-												onTitleChange={(title) =>
-													updateTrack({ ...track, title })
-												}
-												track={track}
-											/>
-										))}
-									</DiscTrackList>
-								</div>
-							</CardPanel>
-						</Card>
+								))}
+							</DiscTrackList>
+						</section>
 					);
 				})}
 			</DragDropProvider>
@@ -300,11 +343,20 @@ export function AlbumTracksTab({ album }: { album: AlbumEditDetails }) {
 			</div>
 
 			{editing && (
-				<TrackDetailsDialog
+				<TrackEditDialog
 					key={editing.id}
 					onClose={() => setEditing(null)}
 					onSave={updateTrack}
 					track={editing}
+				/>
+			)}
+
+			{audioTrackId !== null && (
+				<TrackAudiosDialog
+					album={album}
+					key={audioTrackId}
+					onClose={() => setAudioTrackId(null)}
+					trackId={audioTrackId}
 				/>
 			)}
 		</div>

@@ -1,8 +1,15 @@
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeftIcon, Disc3Icon, LockIcon } from "lucide-react";
+import { useState } from "react";
 import { z } from "zod";
 
+import { AlbumCoversEditor } from "#/components/album/edit/AlbumCoversEditor";
+import { AlbumDetailsForm } from "#/components/album/edit/AlbumDetailsForm";
+import { AlbumTracksEditor } from "#/components/album/edit/AlbumTracksEditor";
+import { Button } from "#/components/base/button";
+import { Skeleton } from "#/components/base/skeleton";
+import { Tabs, TabsList, TabsPanel, TabsTab } from "#/components/base/tabs";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { albumQueries } from "#/lib/queries/album.queries";
 import { albumEditQueries } from "#/lib/queries/albumEdit.queries";
@@ -10,21 +17,25 @@ import type { AlbumEditDetails } from "#/lib/queries/albumEdit.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { canEditContent } from "#/lib/utils/roles";
 import { rethrowNotFound } from "#/lib/utils/routing";
-import { AlbumCoverTab } from "#/old-components/albums/edit/AlbumCoverTab";
-import { AlbumDetailsTab } from "#/old-components/albums/edit/AlbumDetailsTab";
-import { AlbumTracksTab } from "#/old-components/albums/edit/AlbumTracksTab";
 import { AlbumExtrasTab } from "#/old-components/albums/extras/AlbumExtrasTab";
-import { Button } from "#/old-components/coss/button";
-import { Skeleton } from "#/old-components/coss/skeleton";
-import { Tabs, TabsList, TabsPanel, TabsTab } from "#/old-components/coss/tabs";
 import { LibraryEmptyState } from "#/old-components/LibraryEmptyState";
 
 const editTabs = ["details", "cover", "tracks", "extras"] as const;
 
-function hasProcessingCover(album: AlbumEditDetails | undefined) {
+function hasProcessingFiles(album: AlbumEditDetails | undefined) {
 	if (!album) return false;
-	return [album.cover, ...album.discs.map((disc) => disc.cover)].some(
-		(cover) => cover && cover.processingStatus !== "Completed",
+	const audios = album.discs.flatMap((disc) =>
+		disc.tracks.flatMap((track) => track.audios),
+	);
+	return [
+		album.cover,
+		...album.discs.map((disc) => disc.cover),
+		...audios,
+	].some(
+		(file) =>
+			file &&
+			file.processingStatus !== "Completed" &&
+			file.processingStatus !== "Failed",
 	);
 }
 
@@ -51,16 +62,16 @@ function RouteComponent() {
 	const { data: album } = useSuspenseQuery(albumQueries.getAlbum(id));
 	const coverUrl = getAlbumCoverUrl(album.cover.album);
 	const canEdit = canEditContent(userInfo);
+	const [isDirty, setIsDirty] = useState(false);
 	const { data: editAlbum } = useQuery({
 		...albumEditQueries.getAlbumEdit(id),
 		enabled: canEdit,
-		// Pick up the processed cover once the worker finishes
 		refetchInterval: (query) =>
-			hasProcessingCover(query.state.data) ? 4000 : false,
+			hasProcessingFiles(query.state.data) ? 4000 : false,
 	});
 
 	return (
-		<main className="flex min-h-full w-full flex-col gap-6 p-4 sm:p-6">
+		<main className="flex min-h-full w-full min-w-0 flex-col gap-7 p-4 sm:p-6">
 			<header className="flex items-center gap-4">
 				<Button
 					aria-label="Back to album"
@@ -70,7 +81,7 @@ function RouteComponent() {
 				>
 					<ArrowLeftIcon aria-hidden="true" />
 				</Button>
-				<div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted text-muted-foreground">
+				<div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted text-muted-foreground shadow-card">
 					{coverUrl ? (
 						<img alt="" className="size-full object-cover" src={coverUrl} />
 					) : (
@@ -78,8 +89,8 @@ function RouteComponent() {
 					)}
 				</div>
 				<div className="min-w-0">
-					<p className="text-sm text-muted-foreground">Edit album</p>
-					<h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">
+					<p className="text-xs text-muted-foreground">Edit album</p>
+					<h1 className="text-3xl font-bold tracking-tight wrap-anywhere lg:text-4xl">
 						{album.title}
 					</h1>
 				</div>
@@ -92,40 +103,58 @@ function RouteComponent() {
 					}
 					value={tab}
 				>
-					<TabsList variant="underline">
-						<TabsTab value="details">Details</TabsTab>
-						<TabsTab value="cover">Cover</TabsTab>
-						<TabsTab value="tracks">Tracks</TabsTab>
-						<TabsTab value="extras">Extras</TabsTab>
+					<TabsList
+						aria-label="Edit album"
+						className="mb-6"
+						variant="underline"
+					>
+						<TabsTab disabled={isDirty && tab !== "details"} value="details">
+							Details
+						</TabsTab>
+						<TabsTab disabled={isDirty && tab !== "cover"} value="cover">
+							Cover
+						</TabsTab>
+						<TabsTab disabled={isDirty && tab !== "tracks"} value="tracks">
+							Tracks
+						</TabsTab>
+						<TabsTab disabled={isDirty && tab !== "extras"} value="extras">
+							Extras
+						</TabsTab>
 					</TabsList>
 					{editAlbum ? (
 						<>
 							<TabsPanel value="details">
-								<div className="mt-6">
-									<AlbumDetailsTab album={editAlbum} />
+								<div>
+									<AlbumDetailsForm
+										album={editAlbum}
+										onDirtyChange={setIsDirty}
+									/>
 								</div>
 							</TabsPanel>
 							<TabsPanel value="cover">
-								<div className="mt-6">
-									<AlbumCoverTab album={editAlbum} />
+								<div>
+									<AlbumCoversEditor album={editAlbum} />
 								</div>
 							</TabsPanel>
 							<TabsPanel value="tracks">
-								<div className="mt-6">
-									<AlbumTracksTab album={editAlbum} />
+								<div>
+									<AlbumTracksEditor
+										album={editAlbum}
+										onDirtyChange={setIsDirty}
+									/>
 								</div>
 							</TabsPanel>
 						</>
 					) : (
 						tab !== "extras" && (
-							<div className="mt-6 grid max-w-3xl gap-4">
+							<div className="grid max-w-3xl gap-4">
 								<Skeleton className="h-10" />
 								<Skeleton className="h-40" />
 							</div>
 						)
 					)}
 					<TabsPanel value="extras">
-						<div className="mt-6">
+						<div>
 							<AlbumExtrasTab albumId={Number(album.albumId)} />
 						</div>
 					</TabsPanel>

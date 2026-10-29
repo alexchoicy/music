@@ -86,4 +86,66 @@ public sealed class AlbumEditController(IAlbumEditService albumEditService) : Co
         );
         return Ok(album);
     }
+
+    [HttpPost("tracks/{trackId:int}/audios")]
+    [ProducesResponseType(typeof(AddTrackAudioResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AddTrackAudio(
+        [FromRoute] [Required] int id,
+        [FromRoute] [Required] int trackId,
+        [FromBody] AddTrackAudioRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        string userId =
+            User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new ValidationException("Missing user identifier claim.");
+
+        AddTrackAudioResult result = await _albumEditService.AddTrackAudioAsync(
+            id,
+            trackId,
+            request,
+            userId,
+            cancellationToken
+        );
+        return Ok(result);
+    }
+
+    [HttpPut("tracks/{trackId:int}/audios")]
+    [ProducesResponseType(typeof(AlbumEditDetails), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateTrackAudios(
+        [FromRoute] [Required] int id,
+        [FromRoute] [Required] int trackId,
+        [FromBody] UpdateTrackAudiosRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        AlbumEditDetails album = await _albumEditService.UpdateTrackAudiosAsync(
+            id,
+            trackId,
+            request,
+            cancellationToken
+        );
+        return Ok(album);
+    }
+
+    [HttpDelete("tracks/{trackId:int}/audios/{trackAudioId:int}")]
+    [ProducesResponseType(typeof(AlbumEditDetails), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoveTrackAudio(
+        [FromRoute] [Required] int id,
+        [FromRoute] [Required] int trackId,
+        [FromRoute] [Required] int trackAudioId,
+        CancellationToken cancellationToken
+    )
+    {
+        AlbumEditDetails album = await _albumEditService.RemoveTrackAudioAsync(
+            id,
+            trackId,
+            trackAudioId,
+            cancellationToken
+        );
+        return Ok(album);
+    }
 }
