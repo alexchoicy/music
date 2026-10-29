@@ -12,9 +12,11 @@ import { languageQueries } from "#/lib/queries/language.queries";
 import { makeLanguageOptions } from "#/lib/utils/language";
 
 export function LanguageSelect({
+	disabled,
 	onValueChange,
 	value,
 }: {
+	disabled?: boolean;
 	onValueChange: (languageId: number | null) => void;
 	value: number | null;
 }) {
@@ -31,6 +33,7 @@ export function LanguageSelect({
 				Language
 			</FieldLabel>
 			<Select
+				disabled={disabled}
 				items={options}
 				itemToStringLabel={(option) => option.label}
 				itemToStringValue={(option) => option.value}

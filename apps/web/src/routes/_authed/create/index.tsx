@@ -25,9 +25,9 @@ const ConcertTabContent = lazy(() =>
 	})),
 );
 
-const YouTubeCoverTabContent = lazy(() =>
-	import("#/old-components/create/youtubeCoverTabContent").then((module) => ({
-		default: module.YouTubeCoverTabContent,
+const YouTubeCoverImport = lazy(() =>
+	import("#/components/create/youtube/YouTubeCoverImport").then((module) => ({
+		default: module.YouTubeCoverImport,
 	})),
 );
 
@@ -112,7 +112,7 @@ function RouteComponent() {
 					value="cover"
 				>
 					<Suspense fallback={<CreateTabFallback label="cover" />}>
-						<YouTubeCoverTabContent />
+						<YouTubeCoverImport />
 					</Suspense>
 				</TabsContent>
 				<TabsContent
