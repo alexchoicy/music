@@ -46,7 +46,7 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    [Authorize]
+    [Authorize(Policy = AuthorizationPolicies.BotAllowed)]
     [Produces("application/json")]
     [ProducesResponseType(typeof(AlbumDetails), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

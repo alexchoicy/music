@@ -1,12 +1,13 @@
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Music.Core.Common.Constants;
 using Music.Core.Services.Search;
 
 namespace Music.Api.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Policy = AuthorizationPolicies.BotAllowed)]
 [Route("search")]
 public sealed class SearchController(ISearchService searchService, IConfiguration configuration)
     : ControllerBase
