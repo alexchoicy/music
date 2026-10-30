@@ -41,13 +41,13 @@ export function ConcertHeading({ concert }: { concert: Concert }) {
 				<p className="text-xs font-semibold tracking-[.06em] text-muted-foreground uppercase">
 					Concert
 				</p>
-				<h1 className="text-3xl font-bold tracking-[-.03em] break-words lg:text-5xl lg:leading-[52px]">
+				<h1 className="text-3xl font-bold tracking-[-.03em] break-words select-text lg:text-5xl lg:leading-[52px]">
 					{concert.title}
 				</h1>
-				<p className="text-xs text-muted-foreground">{meta}</p>
+				<p className="text-xs text-muted-foreground select-text">{meta}</p>
 			</div>
 			{description && (
-				<p className="text-base text-pretty text-muted-foreground">
+				<p className="text-base text-pretty text-muted-foreground select-text">
 					{description}
 				</p>
 			)}

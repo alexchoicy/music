@@ -92,7 +92,7 @@ export function AlbumAbout({ album }: { album: AlbumDetails }) {
 			<h2 className="text-xl font-semibold tracking-tight" id="album-about">
 				About this album
 			</h2>
-			<dl className="grid grid-cols-[auto_1fr] gap-x-6 text-sm">
+			<dl className="grid grid-cols-[auto_1fr] gap-x-6 text-sm select-text">
 				{rows.map((row) => (
 					<div className="contents" key={row.label}>
 						<dt className="py-2.5 text-muted-foreground">{row.label}</dt>

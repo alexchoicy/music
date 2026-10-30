@@ -101,12 +101,12 @@ export function AlbumHero({
 						{album.type}
 					</p>
 					<h1
-						className="text-3xl font-bold tracking-[-.03em] break-words lg:text-5xl lg:leading-[52px]"
+						className="text-3xl font-bold tracking-[-.03em] break-words select-text lg:text-5xl lg:leading-[52px]"
 						lang={titleLang(album.languageId)}
 					>
 						{album.title}
 					</h1>
-					<p className="text-base text-muted-foreground">
+					<p className="text-base text-muted-foreground select-text">
 						{album.credits.length > 0
 							? album.credits.map((credit, index) => (
 									<span key={`${credit.partyId}-${credit.creditType}`}>
@@ -127,7 +127,7 @@ export function AlbumHero({
 								))
 							: "Unknown artist"}
 					</p>
-					<p className="text-xs text-muted-foreground">{meta}</p>
+					<p className="text-xs text-muted-foreground select-text">{meta}</p>
 				</div>
 
 				<div className="flex flex-wrap gap-2">

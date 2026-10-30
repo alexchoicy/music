@@ -175,7 +175,7 @@ function PlaylistPage() {
 						<p className="text-xs font-semibold tracking-[.06em] text-muted-foreground uppercase">
 							Playlist
 						</p>
-						<h1 className="text-3xl font-bold tracking-[-.03em] wrap-anywhere lg:text-5xl lg:leading-[52px]">
+						<h1 className="text-3xl font-bold tracking-[-.03em] wrap-anywhere select-text lg:text-5xl lg:leading-[52px]">
 							{playlist.name}
 						</h1>
 						<p className="text-xs text-muted-foreground">

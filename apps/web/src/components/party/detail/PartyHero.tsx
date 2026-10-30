@@ -85,7 +85,7 @@ export function PartyHero({ party }: { party: PartyDetails }) {
 									</Badge>
 								))}
 							</div>
-							<h1 className="text-3xl font-bold tracking-[-.03em] break-words lg:text-5xl lg:leading-[52px]">
+							<h1 className="text-3xl font-bold tracking-[-.03em] break-words select-text lg:text-5xl lg:leading-[52px]">
 								{party.name}
 							</h1>
 						</div>
@@ -114,12 +114,12 @@ export function PartyHero({ party }: { party: PartyDetails }) {
 
 					<p className="text-sm text-sidebar-foreground">{stats.join(" · ")}</p>
 					{aliases.length > 0 && (
-						<p className="text-xs text-muted-foreground">
+						<p className="text-xs text-muted-foreground select-text">
 							Also known as {aliases.join(", ")}
 						</p>
 					)}
 					{description && (
-						<p className="max-w-160 text-sm leading-6 whitespace-pre-line text-muted-foreground">
+						<p className="max-w-160 text-sm leading-6 whitespace-pre-line text-muted-foreground select-text">
 							{description}
 						</p>
 					)}

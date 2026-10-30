@@ -203,7 +203,10 @@ function DiscBand({
 			<span className="text-xs font-semibold tracking-[.06em] whitespace-nowrap text-muted-foreground uppercase">
 				Disc {disc.discNumber}
 			</span>
-			<span className="min-w-0 grow truncate text-sm font-semibold" lang={lang}>
+			<span
+				className="min-w-0 grow truncate text-sm font-semibold select-text"
+				lang={lang}
+			>
 				{disc.subtitle}
 			</span>
 			<span className="text-xs whitespace-nowrap text-muted-foreground">
