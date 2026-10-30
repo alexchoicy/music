@@ -84,7 +84,7 @@ public class FileUrlService(IContentService contentService, AppDbContext context
 
         return contentService.GetPresignedUrl(
             fileObject.StoragePath,
-            DateTime.UtcNow.AddMinutes(30),
+            DateTime.UtcNow.AddHours(12),
             null,
             cancellationToken
         );
@@ -133,7 +133,7 @@ public class FileUrlService(IContentService contentService, AppDbContext context
 
         return contentService.GetPresignedUrl(
             fileObject.StoragePath,
-            DateTime.UtcNow.AddMinutes(30),
+            DateTime.UtcNow.AddHours(12),
             fileName,
             cancellationToken
         );
