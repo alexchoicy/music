@@ -50,7 +50,7 @@ public class FileController(IFileUrlService fileUrlService) : ControllerBase
     }
 
     [HttpGet("{id:guid}/download")]
-    [Authorize]
+    [Authorize(Policy = AuthorizationPolicies.BotAllowed)]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public async Task<IActionResult> DownloadTrack(
         [FromRoute] [Required] Guid id,
