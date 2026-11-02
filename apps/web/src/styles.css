@@ -11,8 +11,8 @@
 
 @theme {
 	--font-sans:
-		"Geist Variable", "Noto Sans JP Variable", "Noto Sans SC Variable",
-		"Noto Sans TC Variable", "Noto Sans KR Variable", system-ui, sans-serif;
+		"Geist Variable", "Noto Sans CJK JP", "Noto Sans JP Variable", "Noto Sans CJK SC", "Noto Sans SC Variable",
+		"Noto Sans CJK TC", "Noto Sans TC Variable", "Noto Sans CJK KR", "Noto Sans KR Variable", system-ui, sans-serif;
 	--font-heading: var(--font-sans);
 	--font-mono:
 		"Geist Mono Variable", ui-monospace, "SFMono-Regular", "Menlo", "Consolas",
@@ -354,20 +354,20 @@
 	}
 	:lang(zh) {
 		--font-sans:
-			"Geist Variable", "Noto Sans SC Variable", "Noto Sans TC Variable",
-			"Noto Sans JP Variable", "Noto Sans KR Variable", system-ui, sans-serif;
+			"Geist Variable", "Noto Sans CJK SC", "Noto Sans SC Variable", "Noto Sans CJK TC", "Noto Sans TC Variable",
+			"Noto Sans CJK JP", "Noto Sans JP Variable", "Noto Sans CJK KR", "Noto Sans KR Variable", system-ui, sans-serif;
 	}
 	:lang(zh-HK),
 	:lang(zh-TW),
 	:lang(zh-Hant) {
 		--font-sans:
-			"Geist Variable", "Noto Sans TC Variable", "Noto Sans SC Variable",
-			"Noto Sans JP Variable", "Noto Sans KR Variable", system-ui, sans-serif;
+			"Geist Variable", "Noto Sans CJK TC", "Noto Sans TC Variable", "Noto Sans CJK SC", "Noto Sans SC Variable",
+			"Noto Sans CJK JP", "Noto Sans JP Variable", "Noto Sans CJK KR", "Noto Sans KR Variable", system-ui, sans-serif;
 	}
 	:lang(ko) {
 		--font-sans:
-			"Geist Variable", "Noto Sans KR Variable", "Noto Sans JP Variable",
-			"Noto Sans SC Variable", "Noto Sans TC Variable", system-ui, sans-serif;
+			"Geist Variable", "Noto Sans CJK KR", "Noto Sans KR Variable", "Noto Sans CJK JP", "Noto Sans JP Variable",
+			"Noto Sans CJK SC", "Noto Sans SC Variable", "Noto Sans CJK TC", "Noto Sans TC Variable", system-ui, sans-serif;
 	}
 	[lang] {
 		font-family: var(--font-sans);

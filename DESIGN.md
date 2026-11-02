@@ -117,9 +117,13 @@ Always label chart and relationship colors.
 Default sans-serif stack:
 
 ```css
-"Geist Variable", "Noto Sans JP Variable", "Noto Sans SC Variable",
-"Noto Sans TC Variable", "Noto Sans KR Variable", system-ui, sans-serif
+"Geist Variable", "Noto Sans CJK JP", "Noto Sans JP Variable",
+"Noto Sans CJK SC", "Noto Sans SC Variable", "Noto Sans CJK TC",
+"Noto Sans TC Variable", "Noto Sans CJK KR", "Noto Sans KR Variable",
+system-ui, sans-serif
 ```
+
+Each CJK font is listed as the installed "Noto Sans CJK" copy first, then the bundled web font. Devices with Noto Sans CJK installed skip downloading the web font slices.
 
 Japanese is the default CJK glyph fallback. That is a rendering default, not a language assignment: it does not tag unknown text as Japanese.
 
