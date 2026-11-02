@@ -207,6 +207,7 @@ function QueueTrackRow({
 						{track.party.length > 0
 							? track.party.map((party) => party.name).join(", ")
 							: track.albumTitle}
+						{track.radio && " · Radio"}
 					</p>
 				</div>
 				<span className="hidden shrink-0 text-xs text-muted-foreground tabular-nums sm:inline">

@@ -185,6 +185,9 @@ fun MainScreen() {
                         )
                     }
                 },
+                onOpenParty = { partyId ->
+                    if (backStack.lastOrNull() != PartyRoute(partyId)) backStack.add(PartyRoute(partyId))
+                },
             )
         }
     }

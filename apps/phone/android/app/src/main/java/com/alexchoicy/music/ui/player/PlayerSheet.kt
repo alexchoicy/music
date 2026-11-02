@@ -86,8 +86,13 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -207,6 +212,7 @@ fun PlayerSheet(
     sheet: PlayerSheetState,
     bottomBarHeight: Dp,
     onOpenAlbum: (Long) -> Unit,
+    onOpenParty: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var lastEntry by remember { mutableStateOf(player.current) }
@@ -241,6 +247,7 @@ fun PlayerSheet(
                 sheet = sheet,
                 bottomBarHeight = bottomBarHeight,
                 onOpenAlbum = onOpenAlbum,
+                onOpenParty = onOpenParty,
             )
         }
     }
@@ -255,6 +262,7 @@ private fun ExpandingPlayer(
     sheet: PlayerSheetState,
     bottomBarHeight: Dp,
     onOpenAlbum: (Long) -> Unit,
+    onOpenParty: (Long) -> Unit,
 ) {
     val colors = MusicTheme.colors
     val density = LocalDensity.current
@@ -328,6 +336,10 @@ private fun ExpandingPlayer(
                 onCollapse = { scope.launch { sheet.collapse() } },
                 onOpenAlbum = {
                     onOpenAlbum(entry.track.albumId)
+                    scope.launch { sheet.collapse() }
+                },
+                onOpenParty = { partyId ->
+                    onOpenParty(partyId)
                     scope.launch { sheet.collapse() }
                 },
                 onOpenSheet = { openSheet = it },
@@ -538,6 +550,7 @@ private fun FullPlayer(
     onSeek: (Long) -> Unit,
     onCollapse: () -> Unit,
     onOpenAlbum: () -> Unit,
+    onOpenParty: (Long) -> Unit,
     onOpenSheet: (PlayerSheetContent) -> Unit,
     onArtSlot: (Rect) -> Unit,
     interactive: Boolean,
@@ -627,7 +640,7 @@ private fun FullPlayer(
                     .padding(horizontal = 16.dp, vertical = 24.dp),
                 artSlot,
             )
-            PlayerDetails(player, entry, positionMs, onSeek, onOpenSheet)
+            PlayerDetails(player, entry, positionMs, onSeek, onOpenParty, onOpenSheet)
             Spacer(Modifier.height(24.dp))
         }
         if (!interactive) {
@@ -661,6 +674,7 @@ private fun ColumnScope.PlayerDetails(
     entry: QueueEntry,
     positionMs: () -> Long,
     onSeek: (Long) -> Unit,
+    onOpenParty: (Long) -> Unit,
     onOpenSheet: (PlayerSheetContent) -> Unit,
 ) {
     val colors = MusicTheme.colors
@@ -674,8 +688,21 @@ private fun ColumnScope.PlayerDetails(
         color = colors.foreground,
         maxLines = 1,
     )
+    val artists = entry.track.artists.distinctBy { it.partyId }
     Text(
-        text = entry.track.artistNames ?: "Unknown artist",
+        text =
+            buildAnnotatedString {
+                if (artists.isEmpty()) append("Unknown artist")
+                artists.forEachIndexed { index, artist ->
+                    if (index > 0) append(", ")
+                    withLink(
+                        LinkAnnotation.Clickable(
+                            tag = artist.partyId.toString(),
+                            styles = TextLinkStyles(SpanStyle(color = colors.foreground)),
+                        ) { onOpenParty(artist.partyId) },
+                    ) { append(artist.name) }
+                }
+            },
         modifier = Modifier.padding(top = 4.dp),
         style = MaterialTheme.typography.bodyLarge,
         color = colors.foreground,

@@ -389,7 +389,9 @@ class MusicPlayer(
     fun addToQueue(tracks: List<PlaybackTrack>) {
         if (tracks.isEmpty()) return
         val entries = tracks.toQueueEntries()
-        queue = queue + entries
+        val current = queue.indexOfFirst { it.entryId == currentId }
+        val at = queue.withIndex().firstOrNull { (i, entry) -> i > current && entry.radio }?.index ?: queue.size
+        queue = queue.toMutableList().apply { addAll(at, entries) }
         if (currentId == null) currentId = entries.first().entryId
         syncPlaylist()
         notices.show(if (tracks.size == 1) "Added to queue" else "Added ${tracks.size} tracks to queue")
@@ -813,7 +815,12 @@ class MusicPlayer(
         val remaining = playOrder.filter { it !in moved }
         val before = remaining.takeWhile { it != id } + listOfNotNull(id.takeIf { it in remaining })
         val after = remaining.drop(before.size).toMutableList()
-        random.forEach { after.add(Random.nextInt(after.size + 1), it) }
+        val radioIds = queue.filter { it.radio }.map { it.entryId }.toSet()
+        random.forEach {
+            val radioAt = after.indexOfFirst { id -> id in radioIds }
+            val bound = if (it in radioIds || radioAt < 0) after.size else radioAt
+            after.add(Random.nextInt(bound + 1), it)
+        }
         val exoIds = exoIndices().keys
         applyPlayOrder(before + next.filter { it in exoIds } + after + last.filter { it in exoIds })
     }

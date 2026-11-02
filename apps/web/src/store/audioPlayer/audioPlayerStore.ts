@@ -701,17 +701,36 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 				addToQueue: (tracks: AudioPlayerTrack[]) => {
 					if (tracks.length === 0) return;
 					set((state) => {
-						const oldLength = state.queue.length;
-						state.queue.push(...createQueueEntries(tracks));
-						if (oldLength === 0) {
+						if (state.queue.length === 0) {
+							state.queue.push(...createQueueEntries(tracks));
 							state.index = 0;
 							Object.assign(
 								state,
 								createShuffleState(state.queue.length, 0, state.shuffle),
 							);
-						} else if (state.shuffle) {
-							state.shuffleRemaining.push(
-								...shuffleIndices(tracks.map((_, i) => oldLength + i)),
+							return;
+						}
+						// Queued tracks play before upcoming radio picks.
+						const radioIndex = state.queue.findIndex(
+							(entry, i) => i > state.index && entry.radio,
+						);
+						const insertIndex =
+							radioIndex === -1 ? state.queue.length : radioIndex;
+						remapShuffleIndices(state, (i) =>
+							i >= insertIndex ? i + tracks.length : i,
+						);
+						state.queue.splice(insertIndex, 0, ...createQueueEntries(tracks));
+						if (state.shuffle) {
+							const added = shuffleIndices(
+								tracks.map((_, i) => insertIndex + i),
+							);
+							const radioAt = state.shuffleRemaining.findIndex(
+								(i) => state.queue[i].radio,
+							);
+							state.shuffleRemaining.splice(
+								radioAt === -1 ? state.shuffleRemaining.length : radioAt,
+								0,
+								...added,
 							);
 						}
 					});
