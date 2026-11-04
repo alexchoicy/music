@@ -109,16 +109,16 @@ function RouteComponent() {
 	});
 
 	useHotkey("1", () => {
-		navigator({ to: "/" });
+		void navigator({ to: "/" });
 	});
 	useHotkey("2", () => {
-		navigator({ to: "/albums" });
+		void navigator({ to: "/albums" });
 	});
 	useHotkey("3", () => {
-		navigator({ to: "/parties" });
+		void navigator({ to: "/parties" });
 	});
 	useHotkey("4", () => {
-		navigator({ to: "/concerts" });
+		void navigator({ to: "/concerts" });
 	});
 
 	useEffect(() => {

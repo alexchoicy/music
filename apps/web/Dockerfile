@@ -1,22 +1,19 @@
-FROM node:24-bookworm-slim AS pnpm-base
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
+FROM ghcr.io/pnpm/pnpm:12.17.0 AS deps
 ENV CI=true
-RUN corepack enable
 
 WORKDIR /app
 
-FROM pnpm-base AS deps
-
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/
-RUN pnpm install --frozen-lockfile --filter web
+COPY packages/api/package.json ./packages/api/
+RUN pnpm install --frozen-lockfile
 
 FROM deps AS build
 COPY apps/web ./apps/web
+COPY packages/api ./packages/api
 RUN pnpm --filter web run build
 
-FROM node:24-bookworm-slim AS runtime
+FROM node:26-trixie-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0

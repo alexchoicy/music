@@ -12,8 +12,8 @@ Visual specification for shared colors, typography, spacing, components, and res
 
 Tailwind defaults. "Compact" means below `md`; "wide" means `lg` and up.
 
-| Name    | Min width | Layout                                                        |
-| ------- | --------- | ------------------------------------------------------------- |
+| Name    | Min width | Layout                                             |
+| ------- | --------- | -------------------------------------------------- |
 | compact | 0         | Single column, mobile navigation, wrapped toolbars |
 | `md`    | 768px     | Expanded sidebar; two columns where useful         |
 | `lg`    | 1024px    | Full toolbars, wide sizes                          |

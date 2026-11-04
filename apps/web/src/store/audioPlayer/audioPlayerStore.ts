@@ -606,15 +606,11 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					});
 				},
 				reloadAudio: async (options) => {
+					const player = waveSurfer;
 					const { currentPlayingKey, index, playbackQuality, queue, status } =
 						get();
 					const track = queue.at(index);
-					if (
-						!waveSurfer ||
-						!track ||
-						status === "idle" ||
-						status === "loading"
-					)
+					if (!player || !track || status === "idle" || status === "loading")
 						return;
 
 					const playbackSource = resolvePlaybackSource(playbackQuality, track);
@@ -626,28 +622,24 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 						return;
 					}
 
-					const media = waveSurfer.getMediaElement();
-					const currentTime = waveSurfer.getCurrentTime();
-					const requestId = loadRequestId;
-					const autoplay = options?.autoplay ?? waveSurfer.isPlaying();
-					const seekToCurrentTime = () => {
-						if (requestId !== loadRequestId) return;
-						media.currentTime = currentTime;
-					};
+					const media = player.getMediaElement();
+					if (!media) return;
 
-					media.addEventListener("loadedmetadata", seekToCurrentTime, {
-						once: true,
-					});
+					const currentTime = player.getCurrentTime();
+					const requestId = loadRequestId;
+					const autoplay = options?.autoplay ?? player.isPlaying();
+
 					media.src = playbackSource.url;
 					media.load();
+					player.setTime(currentTime);
 
 					if (autoplay) {
 						try {
-							await media.play();
-							if (requestId !== loadRequestId) return;
+							await player.play();
+							if (requestId !== loadRequestId || player !== waveSurfer) return;
 							set({ status: "playing" });
 						} catch (error) {
-							if (requestId !== loadRequestId) return;
+							if (requestId !== loadRequestId || player !== waveSurfer) return;
 							console.log("[audio-player] reloadAudio:play failed", error);
 							set({ status: "paused" });
 						}
@@ -1110,7 +1102,10 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					if (!queue.at(index)) return null;
 
 					return {
-						queue: queue.map(({ queueEntryId: _, ...track }) => track),
+						queue: queue.map((entry) => {
+							const { queueEntryId: _, ...track } = entry;
+							return track;
+						}),
 						index,
 						positionMs: getPlaybackPositionMs(),
 						playing: status === "playing" || isAutoplayPending(status),

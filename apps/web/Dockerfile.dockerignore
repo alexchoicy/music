@@ -3,8 +3,8 @@
 !pnpm-lock.yaml
 !pnpm-workspace.yaml
 !apps/web
-!apps/phone/package.json
-!apps/phone/patches
+!packages/api/package.json
+!packages/api/src
 
 **/.DS_Store
 **/node_modules

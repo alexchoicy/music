@@ -6,7 +6,7 @@ import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig, lazyPlugins } from "vite-plus";
 
-const config = defineConfig({
+export default defineConfig({
 	resolve: { tsconfigPaths: true },
 	plugins: lazyPlugins(() => [
 		devtools(),
@@ -17,5 +17,3 @@ const config = defineConfig({
 		babel({ presets: [reactCompilerPreset()] }),
 	]),
 });
-
-export default config;

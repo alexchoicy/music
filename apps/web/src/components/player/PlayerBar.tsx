@@ -291,6 +291,12 @@ export function PlayerBar() {
 			],
 		});
 
+		const unsubscribeLoadPhase = player
+			.getState()
+			.loadPhase.subscribe((phase) => {
+				console.log("[audio-player] waveform load phase", { phase });
+			});
+
 		bindWaveSurfer(player);
 
 		const unsubscribeReady = player.on("ready", () => onReady());
@@ -304,6 +310,7 @@ export function PlayerBar() {
 		audio.addEventListener("stalled", handleStalled);
 
 		return () => {
+			unsubscribeLoadPhase();
 			unsubscribeReady();
 			unsubscribePlay();
 			unsubscribePause();

@@ -11,6 +11,6 @@ export const COVER_IMAGE_ACCEPT = "image/jpeg,image/png";
 
 export const ALBUM_COVER_ASPECT_RATIO = 1;
 
-export const AUDIO_FILE_ACCEPT: Accept = {
+export const AUDIO_FILE_ACCEPT = {
 	"audio/*": [".flac", ".mp3", ".wav", ".dsf"],
-};
+} satisfies Accept;
