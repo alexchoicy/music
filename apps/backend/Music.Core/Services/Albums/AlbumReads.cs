@@ -9,6 +9,7 @@ using Music.Core.Services.Files.Requests;
 using Music.Core.Services.Parties;
 using Music.Core.Services.Parties.Enums;
 using Music.Core.Services.Parties.Requests;
+using Music.Core.Services.Subtitles;
 using Music.Core.Services.Tracks;
 using Music.Core.Services.Tracks.Enums;
 
@@ -149,6 +150,7 @@ public sealed class AlbumTrackDetails
 
     public required IReadOnlyList<TrackPartyCredit> Credits { get; init; } = [];
     public required IReadOnlyList<TrackAudioDetails> Audios { get; init; } = [];
+    public required IReadOnlyList<SubtitleSummary> Subtitles { get; init; } = [];
 }
 
 public sealed class TrackPartyCredit

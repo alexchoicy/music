@@ -46,6 +46,7 @@
 		"lucide-react": "^1.59.0",
 		"music-metadata": "^12.2.3",
 		"nitro": "npm:nitro-nightly@3.0.1-20261020-035547-d046d733",
+		"opencc-js": "^1.4.2",
 		"p-map": "^7.1.1",
 		"react": "^19.3.1",
 		"react-day-picker": "^10.0.2",

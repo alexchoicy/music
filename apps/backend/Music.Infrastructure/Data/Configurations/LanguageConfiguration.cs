@@ -26,6 +26,12 @@ public class LanguageConfiguration : IEntityTypeConfiguration<Language>
             .HasForeignKey(t => t.LanguageId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder
+            .HasMany(l => l.Subtitles)
+            .WithOne(s => s.Language)
+            .HasForeignKey(s => s.LanguageId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(l => l.Name).IsUnique();
     }
 }

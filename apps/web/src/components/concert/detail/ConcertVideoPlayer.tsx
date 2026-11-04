@@ -2,6 +2,7 @@ import type * as API from "@music/api";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import type { UseHotkeyOptions } from "@tanstack/react-hotkeys";
 import {
+	CaptionsIcon,
 	ChevronDownIcon,
 	MaximizeIcon,
 	MinimizeIcon,
@@ -37,18 +38,18 @@ import {
 } from "#/components/base/menu";
 import { Slider } from "#/components/base/slider";
 import { ConcertAmbientLight } from "#/components/concert/detail/ConcertAmbientLight";
+import { useConcertCaptions } from "#/components/concert/detail/useConcertCaptions";
 import { VolumeControl } from "#/components/player/VolumeControl";
+import { handlePlayerSpace } from "#/lib/utils/browser";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 import { getPresignedUrl } from "#/store/audioPlayer/audioPlayerFunction";
 import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
+import { useConcertPlayerStore } from "#/store/concertPlayerStore";
 
 type ConcertFile = API.ConcertFileDetails;
-type Playback = { isDash: boolean; url: string };
+type Playback = { isDash: boolean; url: string; mimeType?: string };
 type AudioTrack = ReturnType<shaka.Player["getAudioTracks"]>[number];
-
-const AUTOPLAY_STORAGE_KEY = "concert-autoplay";
-const AMBIENT_LIGHT_STORAGE_KEY = "concert-ambient-light";
 
 const SHAKA_PLAYER_CONFIG = {
 	abr: { enabled: true },
@@ -70,27 +71,8 @@ function getPlayback(concertFile: ConcertFile): Playback {
 	if (concertFile.file.dashAV1) {
 		return { isDash: true, url: concertFile.file.dashAV1.url };
 	}
-	if (concertFile.file.remuxedOriginal) {
-		return { isDash: false, url: concertFile.file.remuxedOriginal.url };
-	}
-	return { isDash: false, url: concertFile.file.original.url };
-}
-
-function useStoredSetting(key: string, defaultValue: boolean) {
-	const [value, setValue] = useState(defaultValue);
-
-	useEffect(() => {
-		const stored = window.localStorage.getItem(key);
-		if (stored !== null) setValue(stored === "true");
-	}, [key]);
-
-	return [
-		value,
-		(next: boolean) => {
-			setValue(next);
-			window.localStorage.setItem(key, String(next));
-		},
-	] as const;
+	const file = concertFile.file.remuxedOriginal ?? concertFile.file.original;
+	return { isDash: false, url: file.url, mimeType: file.mimeType };
 }
 
 type ConcertVideoPlayerProps = {
@@ -121,6 +103,8 @@ export function ConcertVideoPlayer({
 	const playerRef = useRef<shaka.Player | null>(null);
 	const loadRequestIdRef = useRef(0);
 	const hasFile = currentFile !== null;
+	const currentFileId = currentFile?.concertFileId;
+	const currentPlayback = currentFile ? getPlayback(currentFile) : null;
 
 	const [isPlaying, setIsPlaying] = useState(false);
 	const [currentTime, setCurrentTime] = useState(0);
@@ -129,11 +113,30 @@ export function ConcertVideoPlayer({
 	const [muted, setMuted] = useState(false);
 	const [isFullscreen, setIsFullscreen] = useState(false);
 	const [audioTracks, setAudioTracks] = useState<AudioTrack[]>([]);
-	const [autoplay, setAutoplay] = useStoredSetting(AUTOPLAY_STORAGE_KEY, true);
-	const [ambientLight, setAmbientLight] = useStoredSetting(
-		AMBIENT_LIGHT_STORAGE_KEY,
-		true,
+	const autoplay = useConcertPlayerStore((state) => state.autoplay);
+	const setAutoplay = useConcertPlayerStore((state) => state.setAutoplay);
+	const ambientLight = useConcertPlayerStore((state) => state.ambientLight);
+	const setAmbientLight = useConcertPlayerStore(
+		(state) => state.setAmbientLight,
 	);
+	const [loadId, setLoadId] = useState(0);
+	const loadCountRef = useRef(0);
+	const captions = useConcertCaptions(playerRef, currentFile, loadId);
+	const controlsRef = useRef<HTMLDivElement>(null);
+	const [controlsHeight, setControlsHeight] = useState(0);
+
+	useEffect(() => {
+		const controls = controlsRef.current;
+		if (!controls) return;
+		const observer = new ResizeObserver(() => {
+			const paddingTop = Number.parseFloat(
+				getComputedStyle(controls).paddingTop,
+			);
+			setControlsHeight(controls.offsetHeight - paddingTop);
+		});
+		observer.observe(controls);
+		return () => observer.disconnect();
+	}, [hasFile]);
 
 	// Video and music never play together.
 	useEffect(() => {
@@ -141,76 +144,85 @@ export function ConcertVideoPlayer({
 		if (hasFile) pauseAudioPlayer();
 	}, [hasFile, pauseAudioPlayer, setAudioPlayerHidden]);
 
-	useEffect(() => {
-		const file = currentFile;
-		const video = videoRef.current;
-		if (!file || !video) return;
+	async function loadPlayback(
+		element: HTMLVideoElement,
+		file: ConcertFile,
+		loadRequestId: number,
+		startTime?: number,
+	) {
+		const isStale = () => loadRequestId !== loadRequestIdRef.current;
+		setLoadId(0);
+		const playback = getPlayback(file);
+		const url = playback.isDash
+			? playback.url
+			: await getPresignedUrl(playback.url);
+		if (!url || isStale()) return false;
 
-		const loadRequestId = ++loadRequestIdRef.current;
+		let player = playerRef.current;
+		if (!player) {
+			element.removeAttribute("src");
+			element.load();
+			player = new shaka.Player();
+			player.configure(SHAKA_PLAYER_CONFIG);
+			player.setVideoContainer(containerRef.current);
+			playerRef.current = player;
+			await player.attach(element);
+			if (isStale()) return false;
+		}
 
-		async function loadFile(
-			fileToLoad: ConcertFile,
-			element: HTMLVideoElement,
-		) {
+		const networkingEngine = player.getNetworkingEngine();
+		networkingEngine?.clearAllRequestFilters();
+		if (playback.isDash) {
+			const manifestOrigin = new URL(url, window.location.href).origin;
+			networkingEngine?.registerRequestFilter((_type, request) => {
+				const requestUrl = request.uris[0];
+				if (
+					requestUrl &&
+					new URL(requestUrl, window.location.href).origin === manifestOrigin
+				) {
+					request.allowCrossSiteCredentials = true;
+				}
+			});
+		}
+
+		try {
+			await player.load(url, startTime, playback.mimeType);
+		} catch (error) {
+			if (isStale()) return false;
+			throw error;
+		}
+		if (isStale()) return false;
+		setAudioTracks(player.getAudioTracks());
+		setLoadId(++loadCountRef.current);
+		return true;
+	}
+
+	const onLoadFile = useEffectEvent(
+		async (element: HTMLVideoElement, id: number) => {
+			const file = currentFile;
+			if (!file) return;
 			setCurrentTime(0);
 			setDuration(0);
 			setAudioTracks([]);
-
-			const playback = getPlayback(fileToLoad);
-
-			if (playback.isDash) {
-				let player = playerRef.current;
-				if (!player) {
-					element.removeAttribute("src");
-					element.load();
-					player = new shaka.Player();
-					player.configure(SHAKA_PLAYER_CONFIG);
-					playerRef.current = player;
-					await player.attach(element);
-				}
-				if (loadRequestId !== loadRequestIdRef.current) return;
-
-				const manifestOrigin = new URL(playback.url, window.location.href)
-					.origin;
-				const networkingEngine = player.getNetworkingEngine();
-				networkingEngine?.clearAllRequestFilters();
-				networkingEngine?.registerRequestFilter((_type, request) => {
-					const requestUrl = request.uris[0];
-					if (
-						requestUrl &&
-						new URL(requestUrl, window.location.href).origin === manifestOrigin
-					) {
-						request.allowCrossSiteCredentials = true;
-					}
-				});
-
-				await player.load(playback.url);
-				setAudioTracks(player.getAudioTracks());
-			} else {
-				if (playerRef.current) {
-					await playerRef.current.destroy();
-					playerRef.current = null;
-				}
-				const presignedUrl = await getPresignedUrl(playback.url);
-				if (!presignedUrl || loadRequestId !== loadRequestIdRef.current) return;
-				element.src = presignedUrl;
-				element.load();
-			}
-
-			if (loadRequestId !== loadRequestIdRef.current) return;
+			if (!(await loadPlayback(element, file, id))) return;
 			try {
 				await element.play();
 			} catch {
 				// Browsers can block autoplay; the play button stays available.
 			}
-		}
+		},
+	);
 
-		void loadFile(file, video);
+	useEffect(() => {
+		const video = videoRef.current;
+		if (currentFileId == null || !video) return;
+
+		void onLoadFile(video, ++loadRequestIdRef.current);
 
 		return () => {
 			loadRequestIdRef.current++;
 		};
-	}, [currentFile]);
+	}, [currentFileId, currentPlayback?.url, currentPlayback?.mimeType]);
 
 	useEffect(() => {
 		return () => {
@@ -263,37 +275,12 @@ export function ConcertVideoPlayer({
 		if (!file || !video) return;
 
 		const loadRequestId = ++loadRequestIdRef.current;
-		const playback = getPlayback(file);
 		const resumeTime = video.currentTime;
 		const wasPaused = video.paused;
 
 		void (async () => {
-			if (playback.isDash) {
-				const player = playerRef.current;
-				if (!player) return;
-				await player.load(playback.url, resumeTime);
-				if (loadRequestId !== loadRequestIdRef.current) return;
-				setAudioTracks(player.getAudioTracks());
-				if (!wasPaused) void video.play();
-				return;
-			}
-
-			const presignedUrl = await getPresignedUrl(playback.url);
-			if (!presignedUrl || loadRequestId !== loadRequestIdRef.current) return;
-			video.addEventListener(
-				"loadedmetadata",
-				() => {
-					if (loadRequestId !== loadRequestIdRef.current) return;
-					video.currentTime = Math.min(
-						resumeTime,
-						video.duration || resumeTime,
-					);
-					if (!wasPaused) void video.play();
-				},
-				{ once: true },
-			);
-			video.src = presignedUrl;
-			video.load();
+			if (!(await loadPlayback(video, file, loadRequestId, resumeTime))) return;
+			if (!wasPaused) void video.play();
 		})();
 	};
 
@@ -443,6 +430,7 @@ export function ConcertVideoPlayer({
 			<ContextMenu>
 				<ContextMenuTrigger
 					onClick={togglePlayback}
+					onKeyDown={(event) => handlePlayerSpace(event, togglePlayback)}
 					ref={containerRef}
 					render={
 						<div
@@ -451,7 +439,13 @@ export function ConcertVideoPlayer({
 								isTheaterMode && "max-h-[calc(100svh-8rem)]",
 								isFullscreen && "rounded-none",
 							)}
+							data-playing={isPlaying || undefined}
 							data-slot="concert-player"
+							style={
+								{
+									"--controls-height": `${controlsHeight}px`,
+								} as React.CSSProperties
+							}
 						/>
 					}
 				>
@@ -498,10 +492,11 @@ export function ConcertVideoPlayer({
 
 					{hasFile && (
 						<div
+							ref={controlsRef}
 							className={cn(
 								"absolute inset-x-0 bottom-0 flex cursor-default flex-col gap-1.5 bg-linear-to-t from-background/95 to-transparent px-4 pt-12 pb-3 transition-opacity motion-reduce:transition-none",
 								isPlaying &&
-									"group-focus-within/player:opacity-100 group-hover/player:opacity-100 pointer-fine:opacity-0",
+									"group-hover/player:opacity-100 group-has-focus-visible/player:opacity-100 pointer-fine:opacity-0",
 							)}
 							onClick={(event) => event.stopPropagation()}
 						>
@@ -540,6 +535,42 @@ export function ConcertVideoPlayer({
 									{formatMsToMMSSOrHMMSS(duration * 1000)}
 								</span>
 								<span className="grow" />
+
+								{captions.options.length > 0 && (
+									<Menu>
+										<MenuTrigger
+											render={
+												<Button
+													aria-label="Subtitles"
+													size="icon"
+													variant="player"
+												/>
+											}
+										>
+											<CaptionsIcon aria-hidden="true" />
+										</MenuTrigger>
+										<MenuPopup align="end" portalProps={portalProps} side="top">
+											<MenuGroup>
+												<MenuGroupLabel>Subtitles</MenuGroupLabel>
+												<MenuRadioGroup
+													onValueChange={(value) =>
+														captions.select(
+															value === "off" ? null : String(value),
+														)
+													}
+													value={captions.selectedKey ?? "off"}
+												>
+													<MenuRadioItem value="off">Off</MenuRadioItem>
+													{captions.options.map((option) => (
+														<MenuRadioItem key={option.key} value={option.key}>
+															{option.label}
+														</MenuRadioItem>
+													))}
+												</MenuRadioGroup>
+											</MenuGroup>
+										</MenuPopup>
+									</Menu>
+								)}
 
 								{audioOptions.length > 1 && (
 									<Menu>

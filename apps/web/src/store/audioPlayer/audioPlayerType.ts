@@ -56,6 +56,7 @@ export type AudioPlayerState = {
 	playTalkTrack: boolean;
 	playInstrumental: boolean;
 	stopAfterMusicCount: number | null;
+	captionsOn: boolean;
 };
 
 export type ResolvedPlaybackQuality = Exclude<
@@ -95,6 +96,7 @@ export type AudioPlayerAction = {
 	setPlayTalkTrack: (playTalkTrack: boolean) => void;
 	setPlayInstrumental: (playInstrumental: boolean) => void;
 	setStopAfterMusicCount: (stopAfterMusicCount: number | null) => void;
+	setCaptionsOn: (captionsOn: boolean) => void;
 
 	getTransferSnapshot: () => TransferSnapshot | null;
 	// Resolves true once the snapshot is loaded and, when it was playing, audibly playing here.

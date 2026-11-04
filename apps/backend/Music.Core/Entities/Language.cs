@@ -8,4 +8,5 @@ public class Language
 
     public ICollection<Album> Albums { get; set; } = [];
     public ICollection<Track> Tracks { get; set; } = [];
+    public ICollection<Subtitle> Subtitles { get; set; } = [];
 }

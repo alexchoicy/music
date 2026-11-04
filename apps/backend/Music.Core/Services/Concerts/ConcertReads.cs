@@ -13,6 +13,7 @@ using Music.Core.Services.Files.Requests;
 using Music.Core.Services.Parties;
 using Music.Core.Services.Parties.Enums;
 using Music.Core.Services.Parties.Requests;
+using Music.Core.Services.Subtitles;
 
 namespace Music.Core.Services.Concerts;
 
@@ -59,6 +60,7 @@ public sealed class ConcertFileDetails
     public required MediaSource Source { get; init; }
     public string? SourceUrl { get; init; }
     public required ConcertFileVariants File { get; init; }
+    public required IReadOnlyList<SubtitleSummary> Subtitles { get; init; } = [];
 }
 
 public sealed class ConcertFileVariants

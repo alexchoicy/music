@@ -1,13 +1,26 @@
 import type * as API from "@music/api";
-import { CheckIcon, CopyIcon, DownloadIcon, FilmIcon } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+	CaptionsIcon,
+	CheckIcon,
+	CopyIcon,
+	DownloadIcon,
+	FilmIcon,
+} from "lucide-react";
 import { useState } from "react";
 
 import { PlayingBars } from "#/components/album/AlbumTile";
 import { Badge } from "#/components/base/badge";
 import { Button } from "#/components/base/button";
 import { toastManager } from "#/components/base/toast";
-import { CONCERT_FILE_TYPE } from "#/enums/concertEnums";
+import { SubtitlesDialog } from "#/components/subtitle/SubtitlesDialog";
+import { useUserInfo } from "#/context/UserInfoContext";
+import {
+	CONCERT_FILE_TYPE,
+	CONCERT_FILE_TYPE_ORDER,
+} from "#/enums/concertEnums";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
+import { canEditContent } from "#/lib/utils/roles";
 import { cn } from "#/lib/utils/styles";
 import {
 	getPresignedDownloadUrl,
@@ -15,16 +28,9 @@ import {
 } from "#/store/audioPlayer/audioPlayerFunction";
 
 type ConcertFile = API.ConcertFileDetails;
-type ConcertFileType = ConcertFile["type"];
-
-const FILE_TYPE_ORDER: ConcertFileType[] = [
-	"Performance",
-	"BehindTheScenes",
-	"Extra",
-	"Other",
-];
 
 type ConcertFileListProps = {
+	concertId: API.ConcertDetails["concertId"];
 	files: ConcertFile[];
 	currentFileId: ConcertFile["concertFileId"] | null;
 	isPlaying: boolean;
@@ -32,12 +38,16 @@ type ConcertFileListProps = {
 };
 
 export function ConcertFileList({
+	concertId,
 	files,
 	currentFileId,
 	isPlaying,
 	onSelectFile,
 }: ConcertFileListProps) {
-	const groups = FILE_TYPE_ORDER.map((type) => ({
+	const queryClient = useQueryClient();
+	const canEdit = canEditContent(useUserInfo());
+	const [subtitleFile, setSubtitleFile] = useState<ConcertFile | null>(null);
+	const groups = CONCERT_FILE_TYPE_ORDER.map((type) => ({
 		type,
 		files: files.filter((file) => file.type === type),
 	})).filter((group) => group.files.length > 0);
@@ -71,11 +81,35 @@ export function ConcertFileList({
 							isCurrent={file.concertFileId === currentFileId}
 							isPlaying={isPlaying}
 							key={file.concertFileId}
+							onEditSubtitles={
+								canEdit ? () => setSubtitleFile(file) : undefined
+							}
 							onSelect={() => onSelectFile(file)}
 						/>
 					))}
 				</section>
 			))}
+
+			{subtitleFile && (
+				<SubtitlesDialog
+					key={subtitleFile.concertFileId}
+					onChange={() =>
+						void queryClient.invalidateQueries({ queryKey: ["concerts"] })
+					}
+					onClose={() => setSubtitleFile(null)}
+					owner={{
+						kind: "concertFile",
+						concertId,
+						id: subtitleFile.concertFileId,
+					}}
+					ownerTitle={subtitleFile.title}
+					subtitles={
+						files.find(
+							(file) => file.concertFileId === subtitleFile.concertFileId,
+						)?.subtitles ?? []
+					}
+				/>
+			)}
 		</aside>
 	);
 }
@@ -85,11 +119,13 @@ function ConcertFileRow({
 	isCurrent,
 	isPlaying,
 	onSelect,
+	onEditSubtitles,
 }: {
 	file: ConcertFile;
 	isCurrent: boolean;
 	isPlaying: boolean;
 	onSelect: () => void;
+	onEditSubtitles?: () => void;
 }) {
 	const [copied, setCopied] = useState(false);
 	const original = file.file.original;
@@ -206,6 +242,17 @@ function ConcertFileRow({
 						<DownloadIcon aria-hidden="true" />
 						Download
 					</Button>
+					{onEditSubtitles && (
+						<Button
+							className="flex-1"
+							onClick={onEditSubtitles}
+							size="xs"
+							variant="secondary"
+						>
+							<CaptionsIcon aria-hidden="true" />
+							Subtitles
+						</Button>
+					)}
 				</div>
 			</div>
 		</div>

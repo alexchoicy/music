@@ -1,3 +1,5 @@
+import type { KeyboardEvent } from "react";
+
 export function isProbablyPhone(): boolean {
 	const hasTouch = navigator.maxTouchPoints > 0;
 
@@ -28,4 +30,21 @@ export async function shareUrl({ title, text, url }: ShareUrlOptions) {
 
 	await navigator.clipboard.writeText(url);
 	return "copied";
+}
+
+export function handlePlayerSpace(
+	event: KeyboardEvent<HTMLElement>,
+	togglePlayback: () => void,
+) {
+	if (event.key !== " " || event.defaultPrevented) return;
+	const target = event.target;
+	if (
+		!(target instanceof HTMLElement) ||
+		!target.closest("button, [role='button']") ||
+		target.closest("[role='menu'], [role='listbox'], [role='slider']")
+	)
+		return;
+	event.preventDefault();
+	target.blur();
+	if (!event.repeat) togglePlayback();
 }

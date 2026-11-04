@@ -13,6 +13,7 @@ using Music.Core.Services.Concerts.Requests;
 using Music.Core.Services.Concerts.Results;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Files.Requests;
+using Music.Core.Services.Subtitles;
 using Music.Core.Storage;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Mappers;
@@ -24,6 +25,7 @@ public class ConcertService(
     AppDbContext dbContext,
     IContentService contentService,
     IAssetsService assetsService,
+    ISubtitleService subtitleService,
     IOptions<BaseOptions> baseOptions,
     ILogger<ConcertService> logger
 ) : IConcertService
@@ -371,10 +373,17 @@ public class ConcertService(
         if (concert is null)
             throw new EntityNotFoundException($"Concert {concertId} not found");
 
+        Dictionary<int, IReadOnlyList<SubtitleSummary>> subtitles =
+            await subtitleService.GetSummariesByConcertFileAsync(
+                concert.ConcertFiles.Select(concertFile => concertFile.Id).ToList(),
+                cancellationToken
+            );
+
         return concert.ToDetails(
             contentService,
             assetsService,
-            ShareLinks.Concert(baseOptions.Value, concert.Id)
+            ShareLinks.Concert(baseOptions.Value, concert.Id),
+            subtitles
         );
     }
 }

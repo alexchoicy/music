@@ -36,6 +36,7 @@ type AudioPlayerPersistedState = Pick<
 	| "playbackQuality"
 	| "playTalkTrack"
 	| "playInstrumental"
+	| "captionsOn"
 	| "queue"
 	| "index"
 >;
@@ -70,6 +71,7 @@ const initialState: AudioPlayerState = {
 	playTalkTrack: false,
 	playInstrumental: false,
 	stopAfterMusicCount: null,
+	captionsOn: false,
 };
 
 function createQueueEntries(
@@ -1016,6 +1018,9 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 				setStopAfterMusicCount: (stopAfterMusicCount) => {
 					set({ stopAfterMusicCount });
 				},
+				setCaptionsOn: (captionsOn) => {
+					set({ captionsOn });
+				},
 				markReady: () => {
 					if (isLoadPending()) return;
 
@@ -1200,6 +1205,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>()(
 					playbackQuality: state.playbackQuality,
 					playTalkTrack: state.playTalkTrack,
 					playInstrumental: state.playInstrumental,
+					captionsOn: state.captionsOn,
 					queue: state.queue,
 					index: state.index,
 				}),

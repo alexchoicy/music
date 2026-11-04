@@ -9,6 +9,7 @@ import {
 	ConcertPerformers,
 } from "#/components/concert/detail/ConcertInfo";
 import { ConcertVideoPlayer } from "#/components/concert/detail/ConcertVideoPlayer";
+import { CONCERT_FILE_TYPE_ORDER } from "#/enums/concertEnums";
 import { concertQueries } from "#/lib/queries/concert.queries";
 import { getConcertCoverUrl } from "#/lib/utils/concert";
 import { rethrowNotFound } from "#/lib/utils/routing";
@@ -35,7 +36,10 @@ function RouteComponent() {
 		(typeof concert.files)[number]["concertFileId"] | null
 	>(null);
 	const files = [...concert.files].sort(
-		(a, b) => Number(a.order) - Number(b.order),
+		(a, b) =>
+			CONCERT_FILE_TYPE_ORDER.indexOf(a.type) -
+				CONCERT_FILE_TYPE_ORDER.indexOf(b.type) ||
+			Number(a.order) - Number(b.order),
 	);
 	const currentFile =
 		files.find((file) => file.concertFileId === currentFileId) ?? null;
@@ -77,6 +81,7 @@ function RouteComponent() {
 					)}
 				>
 					<ConcertFileList
+						concertId={concert.concertId}
 						currentFileId={currentFile?.concertFileId ?? null}
 						files={files}
 						isPlaying={isPlaying}

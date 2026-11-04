@@ -99,6 +99,7 @@ export type AlbumEditTrack = {
     languageId?: null | number | string;
     artistIds: Array<number | string>;
     otherAlbumCount: number | string;
+    subtitles: Array<SubtitleSummary>;
     audios: Array<AlbumEditTrackAudio>;
 };
 
@@ -199,6 +200,7 @@ export type AlbumTrackDetails = {
     basedOnTrackId?: null | number | string;
     credits: Array<TrackPartyCredit>;
     audios: Array<TrackAudioDetails>;
+    subtitles: Array<SubtitleSummary>;
 };
 
 export type AlbumTrackRequest = {
@@ -275,6 +277,7 @@ export type ConcertFileDetails = {
     source: MediaSource;
     sourceUrl?: null | string;
     file: ConcertFileVariants;
+    subtitles: Array<SubtitleSummary>;
 };
 
 export type ConcertFileRequest = {
@@ -471,6 +474,14 @@ export type CreatePartyResult = {
 
 export type CreatePlaylistRequest = {
     name: string;
+};
+
+export type CreateSubtitleRequest = {
+    title?: null | string;
+    format: SubtitleFormat;
+    languageId?: null | number | string;
+    content: string;
+    parsed?: null | ParsedLyrics;
 };
 
 export type CreateUploadRequest = {
@@ -686,6 +697,36 @@ export type LoginResult = {
     user: UserInfo;
 };
 
+export type LyricLine = {
+    start: number | string;
+    end: number | string;
+    text: string;
+    singers?: Array<string>;
+    words?: Array<LyricWord>;
+    background?: null | string;
+    translations?: Array<LyricText>;
+    romanizations?: Array<LyricText>;
+};
+
+export type LyricSinger = {
+    id: string;
+    name?: null | string;
+    kind: LyricSingerKind;
+};
+
+export type LyricSingerKind = 'Person' | 'Group' | 'Other';
+
+export type LyricText = {
+    text: string;
+    lang?: null | string;
+};
+
+export type LyricWord = {
+    start: number | string;
+    end?: null | number | string;
+    text: string;
+};
+
 export type MediaSource = 'Unknown' | 'UserUpload' | 'MORA' | 'OTOTOY' | 'CD' | 'BluRay' | 'Vinyl' | 'YouTube' | 'SoundCloud' | 'Spotify' | 'Twitter' | 'Other';
 
 export type MultipartUploadPartInfo = {
@@ -697,6 +738,11 @@ export type MultipartUploadResults = {
     uploadId: string;
     partSizeInBytes: number | string;
     parts: Array<MultipartUploadPartInfo>;
+};
+
+export type ParsedLyrics = {
+    singers?: Array<LyricSinger>;
+    lines: Array<LyricLine>;
 };
 
 export type PartyAlias = {
@@ -979,6 +1025,39 @@ export type StartUploadResult = {
     multipartUpload: MultipartUploadResults;
 };
 
+export type SubtitleDetails = {
+    subtitleId: number | string;
+    title?: null | string;
+    format: SubtitleFormat;
+    languageId?: null | number | string;
+    languageName?: null | string;
+    content: string;
+    parsed?: null | ParsedLyrics;
+    order: number | string;
+    version: number | string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type SubtitleFormat = 'PlainText' | 'Vtt' | 'Srt' | 'Lrc' | 'Ass' | 'Ttml';
+
+export type SubtitleLyrics = {
+    subtitleId: number | string;
+    format: SubtitleFormat;
+    languageId?: null | number | string;
+    parsed?: null | ParsedLyrics;
+    plainText?: null | string;
+};
+
+export type SubtitleSummary = {
+    subtitleId: number | string;
+    title?: null | string;
+    format: SubtitleFormat;
+    languageId?: null | number | string;
+    languageName?: null | string;
+    order: number | string;
+};
+
 export type TrackAudioDetails = {
     rank: number | string;
     pinned: boolean;
@@ -1086,6 +1165,15 @@ export type UpdatePartyRequest = {
 export type UpdatePartyResult = {
     partyId: number | string;
     images?: Array<PartyImageUploadResult>;
+};
+
+export type UpdateSubtitleRequest = {
+    title?: null | string;
+    format: SubtitleFormat;
+    languageId?: null | number | string;
+    content: string;
+    parsed?: null | ParsedLyrics;
+    version: number | string;
 };
 
 export type UpdateTrackAudiosRequest = {
@@ -2698,6 +2786,174 @@ export type GetStatsResponses = {
 };
 
 export type GetStatsResponse = GetStatsResponses[keyof GetStatsResponses];
+
+export type DeleteSubtitlesByIdData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/subtitles/{id}';
+};
+
+export type DeleteSubtitlesByIdErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type DeleteSubtitlesByIdError = DeleteSubtitlesByIdErrors[keyof DeleteSubtitlesByIdErrors];
+
+export type DeleteSubtitlesByIdResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type DeleteSubtitlesByIdResponse = DeleteSubtitlesByIdResponses[keyof DeleteSubtitlesByIdResponses];
+
+export type GetSubtitlesByIdData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/subtitles/{id}';
+};
+
+export type GetSubtitlesByIdErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type GetSubtitlesByIdError = GetSubtitlesByIdErrors[keyof GetSubtitlesByIdErrors];
+
+export type GetSubtitlesByIdResponses = {
+    /**
+     * OK
+     */
+    200: SubtitleDetails;
+};
+
+export type GetSubtitlesByIdResponse = GetSubtitlesByIdResponses[keyof GetSubtitlesByIdResponses];
+
+export type PutSubtitlesByIdData = {
+    body: UpdateSubtitleRequest;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/subtitles/{id}';
+};
+
+export type PutSubtitlesByIdErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+    /**
+     * Conflict
+     */
+    409: ProblemDetails;
+};
+
+export type PutSubtitlesByIdError = PutSubtitlesByIdErrors[keyof PutSubtitlesByIdErrors];
+
+export type PutSubtitlesByIdResponses = {
+    /**
+     * OK
+     */
+    200: SubtitleDetails;
+};
+
+export type PutSubtitlesByIdResponse = PutSubtitlesByIdResponses[keyof PutSubtitlesByIdResponses];
+
+export type GetSubtitlesByIdLyricsData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/subtitles/{id}/lyrics';
+};
+
+export type GetSubtitlesByIdLyricsErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type GetSubtitlesByIdLyricsError = GetSubtitlesByIdLyricsErrors[keyof GetSubtitlesByIdLyricsErrors];
+
+export type GetSubtitlesByIdLyricsResponses = {
+    /**
+     * OK
+     */
+    200: SubtitleLyrics;
+};
+
+export type GetSubtitlesByIdLyricsResponse = GetSubtitlesByIdLyricsResponses[keyof GetSubtitlesByIdLyricsResponses];
+
+export type PostAlbumsByAlbumIdTracksByTrackIdSubtitlesData = {
+    body: CreateSubtitleRequest;
+    path: {
+        albumId: number;
+        trackId: number;
+    };
+    query?: never;
+    url: '/albums/{albumId}/tracks/{trackId}/subtitles';
+};
+
+export type PostAlbumsByAlbumIdTracksByTrackIdSubtitlesErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type PostAlbumsByAlbumIdTracksByTrackIdSubtitlesError = PostAlbumsByAlbumIdTracksByTrackIdSubtitlesErrors[keyof PostAlbumsByAlbumIdTracksByTrackIdSubtitlesErrors];
+
+export type PostAlbumsByAlbumIdTracksByTrackIdSubtitlesResponses = {
+    /**
+     * OK
+     */
+    200: SubtitleDetails;
+};
+
+export type PostAlbumsByAlbumIdTracksByTrackIdSubtitlesResponse = PostAlbumsByAlbumIdTracksByTrackIdSubtitlesResponses[keyof PostAlbumsByAlbumIdTracksByTrackIdSubtitlesResponses];
+
+export type PostConcertsByConcertIdFilesByConcertFileIdSubtitlesData = {
+    body: CreateSubtitleRequest;
+    path: {
+        concertId: number;
+        concertFileId: number;
+    };
+    query?: never;
+    url: '/concerts/{concertId}/files/{concertFileId}/subtitles';
+};
+
+export type PostConcertsByConcertIdFilesByConcertFileIdSubtitlesErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type PostConcertsByConcertIdFilesByConcertFileIdSubtitlesError = PostConcertsByConcertIdFilesByConcertFileIdSubtitlesErrors[keyof PostConcertsByConcertIdFilesByConcertFileIdSubtitlesErrors];
+
+export type PostConcertsByConcertIdFilesByConcertFileIdSubtitlesResponses = {
+    /**
+     * OK
+     */
+    200: SubtitleDetails;
+};
+
+export type PostConcertsByConcertIdFilesByConcertFileIdSubtitlesResponse = PostConcertsByConcertIdFilesByConcertFileIdSubtitlesResponses[keyof PostConcertsByConcertIdFilesByConcertFileIdSubtitlesResponses];
 
 export type PostTracksRadioData = {
     body: RadioTrackRequest;

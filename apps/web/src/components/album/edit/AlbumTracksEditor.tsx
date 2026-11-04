@@ -2,7 +2,12 @@ import { move } from "@dnd-kit/helpers";
 import { DragDropProvider, useDroppable } from "@dnd-kit/react";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AudioLinesIcon, GripVerticalIcon, PencilIcon } from "lucide-react";
+import {
+	AudioLinesIcon,
+	CaptionsIcon,
+	GripVerticalIcon,
+	PencilIcon,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Alert, AlertDescription } from "#/components/base/alert";
@@ -15,6 +20,7 @@ import {
 	TooltipPopup,
 	TooltipTrigger,
 } from "#/components/base/tooltip";
+import { SubtitlesDialog } from "#/components/subtitle/SubtitlesDialog";
 import {
 	albumEditActions,
 	applyAlbumEdit,
@@ -35,20 +41,24 @@ function TrackRow({
 	group,
 	artistNames,
 	audioCount,
+	subtitleCount,
 	disabled,
 	onTitleChange,
 	onEdit,
 	onEditAudios,
+	onEditSubtitles,
 }: {
 	track: TrackDraft;
 	index: number;
 	group: string;
 	artistNames: string;
 	audioCount: number;
+	subtitleCount: number;
 	disabled: boolean;
 	onTitleChange: (title: string) => void;
 	onEdit: () => void;
 	onEditAudios: () => void;
+	onEditSubtitles: () => void;
 }) {
 	const { handleRef, isDragging, ref } = useSortable({
 		id: track.id,
@@ -131,6 +141,22 @@ function TrackRow({
 					<TooltipTrigger
 						render={
 							<Button
+								aria-label={`Subtitles of ${track.title}`}
+								onClick={onEditSubtitles}
+								size="xs"
+								variant="ghost"
+							/>
+						}
+					>
+						<CaptionsIcon aria-hidden="true" />
+						<span className="tabular-nums">{subtitleCount}</span>
+					</TooltipTrigger>
+					<TooltipPopup>Subtitles</TooltipPopup>
+				</Tooltip>
+				<Tooltip>
+					<TooltipTrigger
+						render={
+							<Button
 								aria-label={`Edit ${track.title}`}
 								disabled={disabled}
 								onClick={onEdit}
@@ -195,6 +221,7 @@ export function AlbumTracksEditor({
 	const [draft, setDraft] = useState<TracksDraft>(initial);
 	const [editing, setEditing] = useState<TrackDraft | null>(null);
 	const [audioTrackId, setAudioTrackId] = useState<number | null>(null);
+	const [subtitleTrack, setSubtitleTrack] = useState<TrackDraft | null>(null);
 	const beforeDrag = useRef<TracksDraft["tracksByDisc"] | null>(null);
 	const isDirty = JSON.stringify(draft) !== JSON.stringify(initial);
 
@@ -207,10 +234,12 @@ export function AlbumTracksEditor({
 	const partyNames = new Map(
 		parties.map((party) => [Number(party.partyId), party.name]),
 	);
+	const albumTracks = album.discs.flatMap((disc) => disc.tracks);
 	const audioCounts = new Map(
-		album.discs.flatMap((disc) =>
-			disc.tracks.map((track) => [Number(track.trackId), track.audios.length]),
-		),
+		albumTracks.map((track) => [Number(track.trackId), track.audios.length]),
+	);
+	const subtitlesByTrack = new Map(
+		albumTracks.map((track) => [Number(track.trackId), track.subtitles]),
 	);
 
 	const mutation = useMutation({
@@ -304,12 +333,16 @@ export function AlbumTracksEditor({
 											.map((id) => partyNames.get(id) ?? "Unknown artist")
 											.join(", ")}
 										audioCount={audioCounts.get(track.trackId) ?? 0}
+										subtitleCount={
+											subtitlesByTrack.get(track.trackId)?.length ?? 0
+										}
 										disabled={mutation.isPending}
 										group={group}
 										index={index}
 										key={track.id}
 										onEdit={() => setEditing(track)}
 										onEditAudios={() => setAudioTrackId(track.trackId)}
+										onEditSubtitles={() => setSubtitleTrack(track)}
 										onTitleChange={(title) => updateTrack({ ...track, title })}
 										track={track}
 									/>
@@ -357,6 +390,23 @@ export function AlbumTracksEditor({
 					key={audioTrackId}
 					onClose={() => setAudioTrackId(null)}
 					trackId={audioTrackId}
+				/>
+			)}
+
+			{subtitleTrack && (
+				<SubtitlesDialog
+					key={subtitleTrack.trackId}
+					onChange={() =>
+						void queryClient.invalidateQueries({ queryKey: ["albums"] })
+					}
+					onClose={() => setSubtitleTrack(null)}
+					owner={{
+						kind: "track",
+						albumId: album.albumId,
+						id: subtitleTrack.trackId,
+					}}
+					ownerTitle={subtitleTrack.title}
+					subtitles={subtitlesByTrack.get(subtitleTrack.trackId) ?? []}
 				/>
 			)}
 		</div>

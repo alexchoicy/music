@@ -2,6 +2,7 @@ using Music.Core.Services.Albums.Enums;
 using Music.Core.Services.Files;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Files.Requests;
+using Music.Core.Services.Subtitles;
 using Music.Core.Services.Tracks.Enums;
 
 namespace Music.Core.Services.Albums;
@@ -57,6 +58,8 @@ public sealed class AlbumEditTrack
 
     // Tracks are shared, edits also show up on these other albums
     public required int OtherAlbumCount { get; init; }
+
+    public required IReadOnlyList<SubtitleSummary> Subtitles { get; init; } = [];
 
     public required IReadOnlyList<AlbumEditTrackAudio> Audios { get; init; } = [];
 }

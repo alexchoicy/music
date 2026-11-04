@@ -373,3 +373,27 @@
 		font-family: var(--font-sans);
 	}
 }
+
+[data-slot="concert-player"] {
+	container-type: inline-size;
+}
+[data-slot="concert-player"] .shaka-text-container {
+	position: absolute;
+	inset-inline: 0;
+	top: 0;
+	bottom: calc(var(--controls-height) + 0.5rem);
+	pointer-events: none;
+	font-size: clamp(14px, 2.6cqi, 44px);
+	line-height: 1.4;
+	transition: bottom 200ms ease-out;
+}
+@media (pointer: fine) {
+	[data-slot="concert-player"][data-playing]:not(:hover):not(:has(:focus-visible)) .shaka-text-container {
+		bottom: 1rem;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	[data-slot="concert-player"] .shaka-text-container {
+		transition: none;
+	}
+}

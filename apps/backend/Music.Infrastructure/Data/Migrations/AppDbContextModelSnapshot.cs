@@ -17,7 +17,7 @@ namespace Music.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -1390,6 +1390,73 @@ namespace Music.Infrastructure.Migrations
                     b.ToTable("StoredFiles", (string)null);
                 });
 
+            modelBuilder.Entity("Music.Core.Entities.Subtitle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ConcertFileId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedByUserId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Format")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("LanguageId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Parsed")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<int?>("TrackId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("LanguageId");
+
+                    b.HasIndex("ConcertFileId", "Order");
+
+                    b.HasIndex("TrackId", "Order");
+
+                    b.ToTable("Subtitles", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Subtitles_SingleOwner", "(\"TrackId\" IS NULL) <> (\"ConcertFileId\" IS NULL)");
+                        });
+                });
+
             modelBuilder.Entity("Music.Core.Entities.Track", b =>
                 {
                     b.Property<int>("Id")
@@ -2193,6 +2260,35 @@ namespace Music.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
+            modelBuilder.Entity("Music.Core.Entities.Subtitle", b =>
+                {
+                    b.HasOne("Music.Core.Entities.ConcertFile", "ConcertFile")
+                        .WithMany("Subtitles")
+                        .HasForeignKey("ConcertFileId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Music.Infrastructure.Entities.User", null)
+                        .WithMany("CreatedSubtitles")
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Music.Core.Entities.Language", "Language")
+                        .WithMany("Subtitles")
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Music.Core.Entities.Track", "Track")
+                        .WithMany("Subtitles")
+                        .HasForeignKey("TrackId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("ConcertFile");
+
+                    b.Navigation("Language");
+
+                    b.Navigation("Track");
+                });
+
             modelBuilder.Entity("Music.Core.Entities.Track", b =>
                 {
                     b.HasOne("Music.Core.Entities.Track", "BasedOnTrack")
@@ -2285,6 +2381,11 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Images");
                 });
 
+            modelBuilder.Entity("Music.Core.Entities.ConcertFile", b =>
+                {
+                    b.Navigation("Subtitles");
+                });
+
             modelBuilder.Entity("Music.Core.Entities.Extra", b =>
                 {
                     b.Navigation("Assets");
@@ -2299,6 +2400,8 @@ namespace Music.Infrastructure.Migrations
             modelBuilder.Entity("Music.Core.Entities.Language", b =>
                 {
                     b.Navigation("Albums");
+
+                    b.Navigation("Subtitles");
 
                     b.Navigation("Tracks");
                 });
@@ -2351,6 +2454,8 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("Credits");
 
                     b.Navigation("DerivedTracks");
+
+                    b.Navigation("Subtitles");
                 });
 
             modelBuilder.Entity("Music.Infrastructure.Entities.User", b =>
@@ -2362,6 +2467,8 @@ namespace Music.Infrastructure.Migrations
                     b.Navigation("CreatedConcerts");
 
                     b.Navigation("CreatedExtras");
+
+                    b.Navigation("CreatedSubtitles");
 
                     b.Navigation("CreatedTracks");
 

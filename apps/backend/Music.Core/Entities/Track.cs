@@ -36,6 +36,8 @@ public class Track
 
     public ICollection<TrackAudio> Audios { get; set; } = [];
     public ICollection<Track> DerivedTracks { get; set; } = [];
+
+    public ICollection<Subtitle> Subtitles { get; set; } = [];
 }
 
 // Tracks -> TrackAudios -> File a file in the system

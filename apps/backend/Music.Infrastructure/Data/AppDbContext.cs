@@ -30,6 +30,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<AlbumTrack> AlbumTracks { get; set; }
     public DbSet<TrackAudio> TrackAudios { get; set; }
     public DbSet<TrackCredit> TrackCredits { get; set; }
+    public DbSet<Subtitle> Subtitles { get; set; }
     public DbSet<StoredFile> StoredFiles { get; set; }
     public DbSet<FileObject> FileObjects { get; set; }
     public DbSet<Concert> Concerts { get; set; }

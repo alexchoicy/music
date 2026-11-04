@@ -10,6 +10,7 @@ public class User : IdentityUser
     public ICollection<Concert> CreatedConcerts { get; set; } = [];
     public ICollection<Extra> CreatedExtras { get; set; } = [];
     public ICollection<TrackAudio> UploadedTrackAudios { get; set; } = [];
+    public ICollection<Subtitle> CreatedSubtitles { get; set; } = [];
 
     public ICollection<StoredFile> UploadedFiles { get; set; } = [];
 

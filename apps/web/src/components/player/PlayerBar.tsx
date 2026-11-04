@@ -2,6 +2,7 @@ import { useHotkey } from "@tanstack/react-hotkeys";
 import type { UseHotkeyOptions } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+	CaptionsIcon,
 	ChevronDownIcon,
 	ChevronUpIcon,
 	PauseIcon,
@@ -9,6 +10,7 @@ import {
 	RadioIcon,
 	Repeat1Icon,
 	RepeatIcon,
+	ScrollTextIcon,
 	Share2Icon,
 	ShuffleIcon,
 	SkipBackIcon,
@@ -30,12 +32,18 @@ import { Toggle } from "#/components/base/toggle";
 import { PlaybackDevices } from "#/components/player/PlaybackDevices";
 import { getNowPlayingQuality } from "#/components/player/playbackQuality";
 import { PlaybackQualitySettings } from "#/components/player/PlaybackSettings";
+import {
+	PlayerCaption,
+	PlayerSubtitlePanel,
+	usePlayerSubtitles,
+} from "#/components/player/PlayerSubtitles";
 import { PlayerTrackInfo } from "#/components/player/PlayerTrackInfo";
 import { QualityBadge } from "#/components/player/QualityBadge";
 import { QueueSheet } from "#/components/player/QueueSheet";
 import { VolumeControl } from "#/components/player/VolumeControl";
+import { SYNCED_LYRICS_FORMATS } from "#/enums/subtitleEnums";
 import { albumQueries } from "#/lib/queries/album.queries";
-import { shareUrl } from "#/lib/utils/browser";
+import { handlePlayerSpace, shareUrl } from "#/lib/utils/browser";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
 import { cn } from "#/lib/utils/styles";
 import {
@@ -51,13 +59,10 @@ function readWaveformColors() {
 	const styles = getComputedStyle(document.documentElement);
 	const read = (name: string) => styles.getPropertyValue(name).trim();
 	const foreground = read("--foreground");
-	const withAlpha = (hex: string, alpha: string) =>
-		/^#[0-9a-f]{6}$/i.test(hex) ? `${hex}${alpha}` : hex;
 	return {
 		popover: read("--popover"),
 		primary: read("--primary"),
 		foreground,
-		unplayed: withAlpha(foreground, "33"),
 	};
 }
 
@@ -70,6 +75,7 @@ export function PlayerBar() {
 
 	const [isQueueOpen, setIsQueueOpen] = useState(false);
 	const [isExpanded, setIsExpanded] = useState(false);
+	const [isSubtitlesOpen, setIsSubtitlesOpen] = useState(false);
 
 	const bindWaveSurfer = useAudioPlayerStore((state) => state.bindWaveSurfer);
 	const reloadAudio = useAudioPlayerStore((state) => state.reloadAudio);
@@ -142,6 +148,11 @@ export function PlayerBar() {
 	);
 	const isLoading = status === "loading";
 	const isPlaying = status === "playing";
+	const subtitles = usePlayerSubtitles(currentTrack, isSubtitlesOpen);
+	const hasSubtitles = subtitles.subtitles.length > 0;
+	const hasSyncedLyrics = subtitles.subtitles.some((subtitle) =>
+		SYNCED_LYRICS_FORMATS.includes(subtitle.format),
+	);
 
 	const onReady = useEffectEvent(() => markReady());
 	const onPlay = useEffectEvent(() => markPlaying(true));
@@ -265,7 +276,7 @@ export function PlayerBar() {
 			barWidth: 2,
 			barGap: 2,
 			barRadius: 1,
-			waveColor: colors.unplayed,
+			waveColor: colors.foreground,
 			progressColor: colors.primary,
 			plugins: [
 				Hover.create({
@@ -460,134 +471,186 @@ export function PlayerBar() {
 	);
 
 	return (
-		<div className={cn("px-2 pb-2 sm:px-4 sm:pb-4", hidden && "hidden")}>
+		<div
+			className={cn("px-2 pb-2 sm:px-4 sm:pb-4", hidden && "hidden")}
+			onKeyDown={(event) => handlePlayerSpace(event, () => void togglePlay())}
+		>
 			<audio className="hidden" preload="metadata" ref={audioRef} />
-			<div
-				aria-label="Player"
-				className="rounded-4xl bg-popover/85 shadow-player backdrop-blur-xl backdrop-saturate-150"
-				role="region"
-				data-slot="player-bar"
-			>
-				<div className="flex items-center gap-1 px-2 py-1.5 sm:hidden">
-					<div className="min-w-0 flex-1">
-						<PlayerTrackInfo track={currentTrack} />
-					</div>
-					{!isExpanded && playButton()}
-					<PlaybackDevices />
-					<Button
-						aria-controls="player-controls"
-						aria-expanded={isExpanded}
-						aria-label={isExpanded ? "Collapse player" : "Expand player"}
-						onClick={() => setIsExpanded((expanded) => !expanded)}
-						size="icon-lg"
-						variant="player"
-					>
-						{isExpanded ? (
-							<ChevronDownIcon aria-hidden="true" />
-						) : (
-							<ChevronUpIcon aria-hidden="true" />
-						)}
-					</Button>
-				</div>
-
+			<div className="relative flex flex-col gap-2">
+				{currentTrack && subtitles.captionsOn && (
+					<PlayerCaption audioRef={audioRef} subtitles={subtitles} />
+				)}
+				{currentTrack && isSubtitlesOpen && !hidden && (
+					<PlayerSubtitlePanel
+						audioRef={audioRef}
+						onClose={() => setIsSubtitlesOpen(false)}
+						subtitles={subtitles}
+					/>
+				)}
 				<div
-					className={cn(
-						"grid min-h-16 grid-cols-1 items-center gap-x-2 gap-y-1 px-3 py-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-3 sm:px-4 lg:min-h-20 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,2fr)_minmax(8rem,1fr)]",
-						!isExpanded && "max-sm:hidden",
-					)}
-					id="player-controls"
+					aria-label="Player"
+					className="rounded-4xl bg-popover/85 shadow-player backdrop-blur-xl backdrop-saturate-150"
+					role="region"
+					data-slot="player-bar"
 				>
-					<div className="hidden min-w-0 sm:block">
-						<PlayerTrackInfo track={currentTrack} />
-					</div>
-
-					<div className="flex min-w-0 flex-col gap-1 sm:col-span-2 lg:col-span-1">
-						<div className="hidden grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:grid">
-							<div />
-							<div className="flex items-center justify-center gap-1">
-								{transportControls()}
-							</div>
-							<div className="hidden justify-end lg:flex">
-								{nowPlaying && <QualityBadge tier={nowPlaying.tier} />}
-							</div>
+					<div className="flex items-center gap-1 px-2 py-1.5 sm:hidden">
+						<div className="min-w-0 flex-1">
+							<PlayerTrackInfo track={currentTrack} />
 						</div>
-						<div className="flex min-h-8 w-full items-center gap-2">
-							<button
-								aria-label="Toggle elapsed and remaining time"
-								className="min-w-10 shrink-0 cursor-pointer rounded-xs text-right text-xs text-muted-foreground tabular-nums outline-none select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover"
-								disabled={!currentTrack}
-								onClick={() => {
-									showRemainingRef.current = !showRemainingRef.current;
-									refreshTimeLabel();
-								}}
-								type="button"
-							>
-								<span ref={elapsedLabelRef}>{formatMsToMMSSOrHMMSS(0)}</span>
-							</button>
-							<div className="relative h-8 min-w-0 flex-1">
-								{status === "idle" && (
-									<div
-										aria-hidden="true"
-										className="pointer-events-none absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border"
-									/>
-								)}
-								<div
-									className={cn("w-full", status === "idle" && "opacity-0")}
-									ref={waveContainerRef}
-								/>
-							</div>
-							<span className="min-w-10 shrink-0 text-xs text-muted-foreground tabular-nums">
-								{formatMsToMMSSOrHMMSS(currentTrack?.durationInMs ?? 0)}
-							</span>
-						</div>
-					</div>
-
-					<div className="flex flex-wrap items-center justify-center gap-1 sm:col-start-2 sm:row-start-1 sm:flex-nowrap sm:justify-end lg:col-start-auto lg:row-start-auto">
-						<div className="me-auto hidden ps-2 sm:flex lg:hidden">
-							{nowPlaying && <QualityBadge tier={nowPlaying.tier} />}
-						</div>
-						{transportControls("sm:hidden")}
-						<VolumeControl
-							buttonClassName="hidden sm:inline-flex"
-							muted={muted}
-							setVolume={setVolume}
-							toggleMute={toggleMute}
-							volume={volume}
-						/>
-						<QueueSheet
-							clearQueue={clearQueue}
-							index={index}
-							isOpen={isQueueOpen}
-							moveQueueTrack={moveQueueTrack}
-							onOpenChange={setIsQueueOpen}
-							playQueueTrack={playQueueTrack}
-							queue={queue}
-							queueLength={queueLength}
-							removeFromQueue={removeFromQueue}
-						/>
-						<PlaybackDevices className="max-sm:hidden" />
+						{!isExpanded && playButton()}
+						<PlaybackDevices />
 						<Button
-							aria-label="Share current track"
-							disabled={!currentTrack}
-							onClick={() => void shareCurrentTrack()}
+							aria-controls="player-controls"
+							aria-expanded={isExpanded}
+							aria-label={isExpanded ? "Collapse player" : "Expand player"}
+							onClick={() => setIsExpanded((expanded) => !expanded)}
 							size="icon-lg"
 							variant="player"
 						>
-							<Share2Icon aria-hidden="true" />
+							{isExpanded ? (
+								<ChevronDownIcon aria-hidden="true" />
+							) : (
+								<ChevronUpIcon aria-hidden="true" />
+							)}
 						</Button>
-						<PlaybackQualitySettings
-							index={index}
-							nowPlaying={nowPlaying}
-							playInstrumental={playInstrumental}
-							playTalkTrack={playTalkTrack}
-							playbackQuality={playbackQuality}
-							queue={queue}
-							setPlayInstrumental={setPlayInstrumental}
-							setPlayTalkTrack={setPlayTalkTrack}
-							setPlaybackQuality={setPlaybackQuality}
-							setStopAfterMusicCount={setStopAfterMusicCount}
-							stopAfterMusicCount={stopAfterMusicCount}
-						/>
+					</div>
+
+					<div
+						className={cn(
+							"grid min-h-16 grid-cols-1 items-center gap-x-2 gap-y-1 px-3 py-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-3 sm:px-4 lg:min-h-20 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,2fr)_minmax(max-content,1fr)]",
+							!isExpanded && "max-sm:hidden",
+						)}
+						id="player-controls"
+					>
+						<div className="hidden min-w-0 sm:block">
+							<PlayerTrackInfo track={currentTrack} />
+						</div>
+
+						<div className="flex min-w-0 flex-col gap-1 sm:col-span-2 lg:col-span-1">
+							<div className="hidden grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:grid">
+								<div />
+								<div className="flex items-center justify-center gap-1">
+									{transportControls()}
+								</div>
+								<div className="hidden justify-end lg:flex">
+									{nowPlaying && <QualityBadge tier={nowPlaying.tier} />}
+								</div>
+							</div>
+							<div className="flex min-h-8 w-full items-center gap-2">
+								<button
+									aria-label="Toggle elapsed and remaining time"
+									className="min-w-10 shrink-0 cursor-pointer rounded-xs text-right text-xs text-muted-foreground tabular-nums outline-none select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover"
+									disabled={!currentTrack}
+									onClick={() => {
+										showRemainingRef.current = !showRemainingRef.current;
+										refreshTimeLabel();
+									}}
+									type="button"
+								>
+									<span ref={elapsedLabelRef}>{formatMsToMMSSOrHMMSS(0)}</span>
+								</button>
+								<div className="relative h-8 min-w-0 flex-1">
+									{status === "idle" && (
+										<div
+											aria-hidden="true"
+											className="pointer-events-none absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border"
+										/>
+									)}
+									<div
+										className={cn(
+											"w-full [&_*::part(canvases)]:opacity-20",
+											status === "idle" && "opacity-0",
+										)}
+										ref={waveContainerRef}
+									/>
+								</div>
+								<span className="min-w-10 shrink-0 text-xs text-muted-foreground tabular-nums">
+									{formatMsToMMSSOrHMMSS(currentTrack?.durationInMs ?? 0)}
+								</span>
+							</div>
+						</div>
+
+						<div className="flex flex-wrap items-center justify-center gap-1 sm:col-start-2 sm:row-start-1 sm:flex-nowrap sm:justify-end lg:col-start-auto lg:row-start-auto">
+							<div className="me-auto hidden ps-2 sm:flex lg:hidden">
+								{nowPlaying && <QualityBadge tier={nowPlaying.tier} />}
+							</div>
+							{transportControls("sm:hidden")}
+							<VolumeControl
+								buttonClassName="hidden sm:inline-flex"
+								muted={muted}
+								setVolume={setVolume}
+								toggleMute={toggleMute}
+								volume={volume}
+							/>
+							<Toggle
+								aria-label={
+									hasSyncedLyrics
+										? "Captions above player"
+										: "No synced lyrics for this track"
+								}
+								disabled={!subtitles.captionsOn && !hasSyncedLyrics}
+								onPressedChange={(pressed) => subtitles.setCaptionsOn(pressed)}
+								pressed={subtitles.captionsOn}
+								size="player"
+								title={
+									hasSyncedLyrics
+										? "Captions above player"
+										: "No synced lyrics for this track"
+								}
+								variant="player"
+							>
+								<CaptionsIcon aria-hidden="true" />
+							</Toggle>
+							<Toggle
+								aria-label={
+									hasSubtitles ? "Subtitles" : "No subtitles for this track"
+								}
+								disabled={!isSubtitlesOpen && !hasSubtitles}
+								onPressedChange={setIsSubtitlesOpen}
+								pressed={isSubtitlesOpen}
+								size="player"
+								title={
+									hasSubtitles ? "Subtitles" : "No subtitles for this track"
+								}
+								variant="player"
+							>
+								<ScrollTextIcon aria-hidden="true" />
+							</Toggle>
+							<QueueSheet
+								clearQueue={clearQueue}
+								index={index}
+								isOpen={isQueueOpen}
+								moveQueueTrack={moveQueueTrack}
+								onOpenChange={setIsQueueOpen}
+								playQueueTrack={playQueueTrack}
+								queue={queue}
+								queueLength={queueLength}
+								removeFromQueue={removeFromQueue}
+							/>
+							<PlaybackDevices className="max-sm:hidden" />
+							<Button
+								aria-label="Share current track"
+								disabled={!currentTrack}
+								onClick={() => void shareCurrentTrack()}
+								size="icon-lg"
+								variant="player"
+							>
+								<Share2Icon aria-hidden="true" />
+							</Button>
+							<PlaybackQualitySettings
+								index={index}
+								nowPlaying={nowPlaying}
+								playInstrumental={playInstrumental}
+								playTalkTrack={playTalkTrack}
+								playbackQuality={playbackQuality}
+								queue={queue}
+								setPlayInstrumental={setPlayInstrumental}
+								setPlayTalkTrack={setPlayTalkTrack}
+								setPlaybackQuality={setPlaybackQuality}
+								setStopAfterMusicCount={setStopAfterMusicCount}
+								stopAfterMusicCount={stopAfterMusicCount}
+							/>
+						</div>
 					</div>
 				</div>
 			</div>

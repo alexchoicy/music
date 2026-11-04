@@ -16,6 +16,7 @@ using Music.Core.Services.Extras.Results;
 using Music.Core.Services.Files;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Files.Requests;
+using Music.Core.Services.Subtitles;
 using Music.Core.Storage;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Mappers;
@@ -28,6 +29,7 @@ public class AlbumService(
     IContentService contentService,
     IAssetsService assetsService,
     IExtraService extraService,
+    ISubtitleService subtitleService,
     IOptions<BaseOptions> baseOptions,
     ILogger<AlbumService> logger
 ) : IAlbumService
@@ -293,6 +295,12 @@ public class AlbumService(
         if (album is null)
             throw new EntityNotFoundException($"Album {albumId} not found");
 
+        Dictionary<int, IReadOnlyList<SubtitleSummary>> subtitles =
+            await subtitleService.GetSummariesByTrackAsync(
+                album.Discs.SelectMany(d => d.Tracks).Select(at => at.TrackId).ToList(),
+                cancellationToken
+            );
+
         List<AlbumDiscDetails> discs = album
             .Discs.OrderBy(d => d.DiscNumber)
             .Select(d => new AlbumDiscDetails
@@ -317,6 +325,7 @@ public class AlbumService(
                             BasedOnTrackId = track.BasedOnTrackId,
                             Credits = track.ToPartyCredits(_assetsService),
                             Audios = track.ToAudioDetails(_contentService, _assetsService),
+                            Subtitles = subtitles.GetValueOrDefault(track.Id) ?? [],
                         };
                     })
                     .ToList(),

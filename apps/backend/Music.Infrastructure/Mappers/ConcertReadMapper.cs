@@ -2,6 +2,7 @@ using Music.Core.Entities;
 using Music.Core.Services.Concerts;
 using Music.Core.Services.Files;
 using Music.Core.Services.Files.Enums;
+using Music.Core.Services.Subtitles;
 using Music.Core.Storage;
 
 namespace Music.Infrastructure.Mappers;
@@ -30,7 +31,8 @@ internal static class ConcertReadMapper
         this Concert concert,
         IContentService contentService,
         IAssetsService assetsService,
-        string shareUrl
+        string shareUrl,
+        IReadOnlyDictionary<int, IReadOnlyList<SubtitleSummary>> subtitles
     )
     {
         return new ConcertDetails
@@ -59,6 +61,7 @@ internal static class ConcertReadMapper
                     Source = concertFile.File!.Source,
                     SourceUrl = concertFile.File.SourceUrl,
                     File = concertFile.File.ToConcertFileVariants(contentService, assetsService),
+                    Subtitles = subtitles.GetValueOrDefault(concertFile.Id) ?? [],
                 })
                 .ToList(),
             TotalDurationInMs = concert.ConcertFiles.TotalDurationInMs(),

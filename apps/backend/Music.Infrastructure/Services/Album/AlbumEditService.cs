@@ -10,6 +10,7 @@ using Music.Core.Services.Albums.Requests;
 using Music.Core.Services.Albums.Results;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Files.Requests;
+using Music.Core.Services.Subtitles;
 using Music.Core.Services.Uploads.Results;
 using Music.Core.Storage;
 using Music.Core.Workers;
@@ -21,7 +22,8 @@ namespace Music.Infrastructure.Services.Album;
 public class AlbumEditService(
     AppDbContext dbContext,
     IAssetsService assetsService,
-    IContentService contentService
+    IContentService contentService,
+    ISubtitleService subtitleService
 ) : IAlbumEditService
 {
     // Seeded "Unknown" party, used when an album has no artists
@@ -58,6 +60,9 @@ public class AlbumEditService(
                     .Count(),
             })
             .ToDictionaryAsync(item => item.TrackId, item => item.Count, cancellationToken);
+
+        Dictionary<int, IReadOnlyList<SubtitleSummary>> subtitles =
+            await subtitleService.GetSummariesByTrackAsync(trackIds, cancellationToken);
 
         return new AlbumEditDetails
         {
@@ -100,6 +105,7 @@ public class AlbumEditService(
                             OtherAlbumCount = otherAlbumCounts.GetValueOrDefault(
                                 albumTrack.TrackId
                             ),
+                            Subtitles = subtitles.GetValueOrDefault(albumTrack.TrackId) ?? [],
                             Audios = albumTrack
                                 .Track.Audios.OrderByDescending(audio => audio.Pinned)
                                 .ThenBy(audio => audio.Rank)

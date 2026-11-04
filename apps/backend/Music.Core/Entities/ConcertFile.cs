@@ -19,5 +19,7 @@ public class ConcertFile
     public ConcertFileType Type { get; set; } = ConcertFileType.Performance;
     public int Order { get; set; } = 0;
 
+    public ICollection<Subtitle> Subtitles { get; set; } = [];
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
