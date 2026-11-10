@@ -284,7 +284,8 @@ class MusicPlayer(
             snapshotFlow { settings.savePlayedTracks }.drop(1).collect { if (it) savePlayed() }
         }
         scope.launch {
-            snapshotFlow { settings.radio }.drop(1).collect { if (it) prefetchRadio() else dropRadioEntries() }
+            snapshotFlow { settings.radio }.drop(1)
+                .collect { if (it) prefetchRadio() else dropRadioEntries() }
         }
         scope.launch {
             snapshotFlow {
@@ -293,7 +294,7 @@ class MusicPlayer(
                     settings.playTalkTracks,
                     settings.playInstrumentals,
                     network.online,
-                    downloads.tracks,
+                    downloads.playableFiles,
                 )
             }.drop(1).collect { syncPlaylist() }
         }
@@ -313,7 +314,8 @@ class MusicPlayer(
     ) = current?.track?.let { it.albumId == albumId && it.trackId == trackId } == true
 
     // Whether an entry can be picked now: downloaded, or online to stream it.
-    fun isAvailable(entry: QueueEntry) = network.online || downloads.isDownloaded(entry.track.trackId)
+    fun isAvailable(entry: QueueEntry) =
+        network.online || downloads.isDownloaded(entry.track.trackId)
 
     // Talk and Instrumental tracks are skipped automatically unless enabled, like the web player.
     fun isAutoPlayable(entry: QueueEntry) =
@@ -390,7 +392,8 @@ class MusicPlayer(
         if (tracks.isEmpty()) return
         val entries = tracks.toQueueEntries()
         val current = queue.indexOfFirst { it.entryId == currentId }
-        val at = queue.withIndex().firstOrNull { (i, entry) -> i > current && entry.radio }?.index ?: queue.size
+        val at = queue.withIndex().firstOrNull { (i, entry) -> i > current && entry.radio }?.index
+            ?: queue.size
         queue = queue.toMutableList().apply { addAll(at, entries) }
         if (currentId == null) currentId = entries.first().entryId
         syncPlaylist()
@@ -519,7 +522,7 @@ class MusicPlayer(
 
     fun seekTo(positionMs: Long) {
         if (exo.mediaItemCount == 0) return
-        if (!useDownload(positionMs)) exo.seekTo(positionMs)
+        if (!reloadSource(positionMs)) exo.seekTo(positionMs)
         savePosition(positionMs)
         seekEvents.tryEmit(Unit)
     }
@@ -601,6 +604,7 @@ class MusicPlayer(
                 snapshot.index,
                 shuffle,
                 snapshot.positionMs,
+                play = snapshot.playing,
             )
         val id = requestId
         // Another queue may have replaced this one meanwhile, e.g. an album played here.
@@ -681,6 +685,7 @@ class MusicPlayer(
         start: Int,
         shuffle: Boolean,
         positionMs: Long,
+        play: Boolean = true,
     ): Boolean {
         val entry = entries[start]
         try {
@@ -701,7 +706,7 @@ class MusicPlayer(
         // The first entry starts the shuffle order, so the rest are all still to come.
         if (shuffle) applyPlayOrder(listOf(entry.entryId) + playOrder.shuffled())
         exo.seekTo(index, positionMs)
-        exo.playWhenReady = true
+        exo.playWhenReady = play
         exo.prepare()
         listening = ListeningSession(entry.track)
         return true
@@ -923,11 +928,11 @@ class MusicPlayer(
 
     private fun failed(playbackError: PlaybackException) {
         val entry = current ?: return
-        if (source?.local == true || network.online) report(playbackError, entry)
-        if (useDownload(exo.currentPosition)) {
+        if (reloadSource(exo.currentPosition)) {
             exo.prepare()
             return
         }
+        if (source?.local == true || network.online) report(playbackError, entry)
         val message =
             if (source?.local == false && !network.online) {
                 "Couldn't play ${entry.track.title}. It isn't downloaded."
@@ -959,18 +964,16 @@ class MusicPlayer(
         }
     }
 
-    // A current entry downloaded while it streamed moves to the file when it reloads anyway,
-    // on a seek or a stream error, so playback doesn't skip when the download finishes.
-    private fun useDownload(positionMs: Long): Boolean {
+    private fun reloadSource(positionMs: Long): Boolean {
         val entry = current ?: return false
-        if (source?.local == true) return false
-        val local =
-            runCatching { resolveSource(entry.track) }.getOrNull()?.takeIf { it.local }
-                ?: return false
+        val playing = source
+        val resolved = runCatching { resolveSource(entry.track) }.getOrNull() ?: return false
+        val wasLocal = playing?.local == true
+        if (resolved.local == wasLocal && (!wasLocal || resolved.file.id == playing.file.id)) return false
         val index = exoIndex(entry.entryId)
         if (index < 0) return false
-        replaceCurrent(index, entry.toMediaItem(local), positionMs)
-        source = local
+        replaceCurrent(index, entry.toMediaItem(resolved), positionMs)
+        source = resolved
         return true
     }
 
@@ -1066,7 +1069,8 @@ class MusicPlayer(
         return api
             .radioTracks(
                 baseTrackIds = queue.filter { !it.radio }.map { it.track.trackId },
-                playedRadioTrackIds = queue.filter { it.radio && it.entryId !in upcomingIds }.map { it.track.trackId },
+                playedRadioTrackIds = queue.filter { it.radio && it.entryId !in upcomingIds }
+                    .map { it.track.trackId },
                 upcomingTrackIds = upcoming.map { it.track.trackId },
                 includeInstrumental = settings.playInstrumentals,
             ).valueOrNull()
@@ -1118,11 +1122,16 @@ class MusicPlayer(
             if (network.online) scope.launch { fetchAlbum(albumId) }
             return tracks
         }
-        if (network.online) {
-            withTimeoutOrNull(ALBUM_FETCH_TIMEOUT_MS.milliseconds) { fetchAlbum(albumId) }?.let { return it }
-        }
         // Without the server, downloaded tracks still play.
-        return downloads.albumTracks(albumId)
+        val downloaded = downloads.albumTracks(albumId)
+        if (!network.online) return downloaded
+        val fetched =
+            if (downloaded.isEmpty()) {
+                fetchAlbum(albumId)
+            } else {
+                withTimeoutOrNull(ALBUM_FETCH_TIMEOUT_MS.milliseconds) { fetchAlbum(albumId) }
+            }
+        return fetched ?: downloaded
     }
 
     private suspend fun fetchAlbum(albumId: Long): List<PlaybackTrack>? {
@@ -1135,11 +1144,15 @@ class MusicPlayer(
     private suspend fun albumsTracks(albumIds: List<Long>): List<PlaybackTrack> {
         val complete = albumIds.associateWith { downloads.completeAlbumTracks(it) }
         if (complete.values.all { it != null }) return complete.values.flatMap { it.orEmpty() }
-        if (network.online) {
-            val albums = withTimeoutOrNull(ALBUM_FETCH_TIMEOUT_MS.milliseconds) { api.fetchAlbums(albumIds) }?.valueOrNull()
-            if (albums != null) return albums.flatMap { it.tracks }
-        }
-        return albumIds.flatMap { complete[it] ?: downloads.albumTracks(it) }
+        val downloaded = albumIds.flatMap { complete[it] ?: downloads.albumTracks(it) }
+        if (!network.online) return downloaded
+        val albums =
+            if (downloaded.isEmpty()) {
+                api.fetchAlbums(albumIds)
+            } else {
+                withTimeoutOrNull(ALBUM_FETCH_TIMEOUT_MS.milliseconds) { api.fetchAlbums(albumIds) }
+            }?.valueOrNull()
+        return albums?.flatMap { it.tracks } ?: downloaded
     }
 
     private fun canPlay(track: PlaybackTrack) =
@@ -1196,7 +1209,8 @@ class MusicPlayer(
 
     private fun QueueEntry.toMediaItem(source: PlaybackSource): MediaItem {
         val uri =
-            downloads.playableFile(track.trackId)?.takeIf { source.local }?.let(Uri::fromFile)
+            downloads.playableFile(track.trackId)
+                ?.takeIf { source.local }?.let(Uri::fromFile)
                 ?: Uri
                     .Builder()
                     .scheme(FILE_SCHEME)

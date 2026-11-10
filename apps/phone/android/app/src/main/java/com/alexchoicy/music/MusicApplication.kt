@@ -66,6 +66,7 @@ class MusicApplication :
             api = playbackApi,
             details = detailRepository,
             settings = playbackSettings,
+            session = session,
             http = httpClient,
             scope = scope,
         )

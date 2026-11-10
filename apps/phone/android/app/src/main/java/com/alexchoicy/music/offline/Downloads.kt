@@ -13,18 +13,21 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.alexchoicy.music.api.AudioFile
+import com.alexchoicy.music.api.HttpStatusException
 import com.alexchoicy.music.api.PlaybackAlbum
 import com.alexchoicy.music.api.PlaybackApi
 import com.alexchoicy.music.api.PlaybackTrack
 import com.alexchoicy.music.api.PlaylistDetail
 import com.alexchoicy.music.api.PlaylistEntry
 import com.alexchoicy.music.api.TrackArtist
+import com.alexchoicy.music.api.UnauthorizedException
 import com.alexchoicy.music.api.valueOrNull
 import com.alexchoicy.music.data.detail.DetailRepository
 import com.alexchoicy.music.data.toPlaybackTrack
 import com.alexchoicy.music.data.toStored
 import com.alexchoicy.music.playback.AudioQuality
 import com.alexchoicy.music.playback.PlaybackSettings
+import com.alexchoicy.music.session.SessionStore
 import io.ktor.client.HttpClient
 import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsChannel
@@ -40,6 +43,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -95,6 +100,7 @@ class Downloads(
     private val api: PlaybackApi,
     private val details: DetailRepository,
     private val settings: PlaybackSettings,
+    private val session: SessionStore,
     private val http: HttpClient,
     private val scope: CoroutineScope,
 ) {
@@ -109,6 +115,10 @@ class Downloads(
         private set
     var playlists by mutableStateOf<List<OfflinePlaylist>>(emptyList())
         private set
+
+    val playableFiles by derivedStateOf {
+        tracks.values.filter { it.playable }.associate { it.trackId to it.fileId }
+    }
 
     val downloadedAlbums by derivedStateOf {
         tracks.values.filter { it.status == DownloadStatus.Downloaded }.mapTo(HashSet()) { it.albumId }
@@ -136,10 +146,14 @@ class Downloads(
 
     init {
         scope.launch {
-            dao.observeTracks().collect { rows ->
-                tracks = rows.map { it.toDownload() }.associateBy { it.trackId }
-                loaded.complete(Unit)
-            }
+            dao
+                .observeTracks()
+                .map { rows -> rows.map { it.toDownload() }.associateBy { it.trackId } }
+                .flowOn(Dispatchers.Default)
+                .collect {
+                    tracks = it
+                    loaded.complete(Unit)
+                }
         }
         scope.launch {
             dao.observeAlbums().collect { rows ->
@@ -175,6 +189,9 @@ class Downloads(
         }
         scope.launch {
             snapshotFlow { settings.upgradeOnWifi }.collect { if (it) scheduleUpgrades() }
+        }
+        scope.launch {
+            snapshotFlow { session.token }.drop(1).collect { if (it != null) schedule(replace = true) }
         }
         schedule()
     }
@@ -348,7 +365,7 @@ class Downloads(
             saved.name == playlist.name &&
                 saved.coverUrl == playlist.coverUrls.firstOrNull() &&
                 saved.trackIds == trackIds &&
-                trackIds.all { it in tracks }
+                playlist.tracks.all { it.trackId in tracks || downloadFile(it, settings.downloadQuality) == null }
         if (!unchanged) scope.launch { savePlaylist(playlist, keepEmpty = true) }
     }
 
@@ -489,7 +506,7 @@ class Downloads(
         workManager.enqueueUniqueWork(name, policy, request)
     }
 
-    internal suspend fun runPending(onTrack: suspend (PlaybackTrack, Int) -> Unit) {
+    internal suspend fun runPending(onTrack: suspend (PlaybackTrack, Int) -> Unit): Boolean {
         awaitLoaded()
         var playedSaved = false
         while (true) {
@@ -509,6 +526,10 @@ class Downloads(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                if (e.isOutage()) {
+                    dao.updateStatus(row.trackId, row.fileId, DownloadStatus.Queued, null)
+                    return false
+                }
                 dao.updateStatus(row.trackId, row.fileId, DownloadStatus.Failed, e.message ?: "Download failed")
             } finally {
                 progress = progress - row.trackId
@@ -517,6 +538,7 @@ class Downloads(
         fetchArtwork()
         cleanUp()
         if (playedSaved) scheduleUpgrades()
+        return true
     }
 
     // Replaces played tracks saved below Original with the original, keeping the saved
@@ -624,7 +646,7 @@ class Downloads(
         withContext(Dispatchers.IO) { target.parentFile?.mkdirs() }
         try {
             http.prepareGet(url).execute { response ->
-                if (!response.status.isSuccess()) throw IOException("Server returned ${response.status.value}")
+                if (!response.status.isSuccess()) throw RejectedException(response.status.value)
                 val total = response.headers["Content-Length"]?.toLongOrNull() ?: 0L
                 val channel = response.bodyAsChannel()
                 val buffer = ByteArray(BUFFER_SIZE)
@@ -634,7 +656,11 @@ class Downloads(
                         while (true) {
                             val read = channel.readAvailable(buffer, 0, buffer.size)
                             if (read == -1) break
-                            output.write(buffer, 0, read)
+                            try {
+                                output.write(buffer, 0, read)
+                            } catch (e: IOException) {
+                                throw IllegalStateException("Couldn't save the download", e)
+                            }
                             written += read
                             if (total > 0) onProgress(written.toFloat() / total)
                         }
@@ -642,7 +668,7 @@ class Downloads(
                 }
             }
             withContext(Dispatchers.IO) {
-                if (!partial.renameTo(target)) throw IOException("Couldn't save the download")
+                if (!partial.renameTo(target)) throw IllegalStateException("Couldn't save the download")
             }
         } finally {
             withContext(Dispatchers.IO) { partial.delete() }
@@ -713,6 +739,17 @@ class Downloads(
         const val PROGRESS_STEP = 0.01f
     }
 }
+
+private class RejectedException(
+    val status: Int,
+) : Exception("Server returned $status")
+
+private fun Exception.isOutage() =
+    when (this) {
+        is RejectedException -> status >= 500
+        is HttpStatusException -> status >= 500
+        else -> this is UnauthorizedException || this is IOException
+    }
 
 private fun AudioFile.fileName() = "$id.${extension.trimStart('.').lowercase()}"
 

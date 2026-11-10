@@ -1,5 +1,8 @@
 package com.alexchoicy.music.ui.components
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -38,6 +41,7 @@ fun DownloadButton(
 ) {
     val colors = MusicTheme.colors
     var confirmRemove by remember { mutableStateOf(false) }
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
     val active = downloaded && stats.active
     val failed = downloaded && !active && stats.failed > 0
     // Its tracks were removed, or none can download; new ones download as they are added.
@@ -47,7 +51,11 @@ fun DownloadButton(
             onClick = {
                 when {
                     starting -> Unit
-                    !downloaded -> onDownload()
+                    !downloaded -> {
+                        notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        onDownload()
+                    }
+
                     failed -> onRetry()
                     else -> confirmRemove = true
                 }

@@ -22,15 +22,16 @@ class DownloadWorker(
         if (inputData.getBoolean(UPGRADE_KEY, false)) {
             downloads.runUpgrades()
         } else {
-            downloads.runPending { track, remaining ->
-                // Keeps long downloads running; the system may refuse while the app is in the background.
-                try {
-                    setForeground(foregroundInfo(track.title, remaining))
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (_: Exception) {
+            val finished =
+                downloads.runPending { track, remaining ->
+                    try {
+                        setForeground(foregroundInfo(track.title, remaining))
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (_: Exception) {
+                    }
                 }
-            }
+            if (!finished) return Result.retry()
         }
         return Result.success()
     }

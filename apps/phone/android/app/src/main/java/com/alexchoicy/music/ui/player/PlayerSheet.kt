@@ -99,6 +99,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.lerp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import coil3.compose.AsyncImage
@@ -222,11 +225,14 @@ fun PlayerSheet(
     LaunchedEffect(player.current == null) {
         if (player.current == null) sheet.hide()
     }
-    LaunchedEffect(player.status, player.current?.entryId, player.positionJumps) {
-        do {
-            positionMs = player.positionMs
-            delay(POSITION_TICK_MS.milliseconds)
-        } while (player.status == PlayerStatus.Playing)
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(lifecycle, player.status, player.current?.entryId, player.positionJumps) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            do {
+                positionMs = player.positionMs
+                delay(POSITION_TICK_MS.milliseconds)
+            } while (player.status == PlayerStatus.Playing)
+        }
     }
 
     AnimatedVisibility(
