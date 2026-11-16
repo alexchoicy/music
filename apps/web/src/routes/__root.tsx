@@ -8,12 +8,8 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
-import {
-	AnchoredToastProvider,
-	ToastProvider as BaseToastProvider,
-} from "#/components/base/toast";
-import { ToastProvider } from "#/old-components/coss/toast";
-import { TooltipProvider } from "#/old-components/coss/tooltip";
+import { AnchoredToastProvider, ToastProvider } from "#/components/base/toast";
+import { TooltipProvider } from "#/components/base/tooltip";
 
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 
@@ -64,13 +60,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<body className="relative font-sans">
 				<TooltipProvider>
 					<ToastProvider position="top-right">
-						<BaseToastProvider position="top-right">
-							<AnchoredToastProvider>
-								<div className="relative isolate flex min-h-svh flex-col">
-									{children}
-								</div>
-							</AnchoredToastProvider>
-						</BaseToastProvider>
+						<AnchoredToastProvider>
+							<div className="relative isolate flex min-h-svh flex-col">
+								{children}
+							</div>
+						</AnchoredToastProvider>
 					</ToastProvider>
 				</TooltipProvider>
 				<TanStackDevtools

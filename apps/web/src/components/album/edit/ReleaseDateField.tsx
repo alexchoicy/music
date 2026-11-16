@@ -1,6 +1,6 @@
+import type { DropdownProps } from "@daypicker/react";
 import { CalendarIcon, XIcon } from "lucide-react";
 import type * as React from "react";
-import type { DropdownProps } from "react-day-picker";
 
 import { Button } from "#/components/base/button";
 import { Calendar } from "#/components/base/calendar";

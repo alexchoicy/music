@@ -1,43 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AlbumIcon, MicVocalIcon, UsersIcon, PlayIcon } from "lucide-react";
-import { lazy, Suspense } from "react";
+import { AlbumIcon, MicVocalIcon, PlayIcon, UsersIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { z } from "zod";
 
+import { Tabs, TabsList, TabsPanel, TabsTab } from "#/components/base/tabs";
+import { AlbumCreate } from "#/components/create/album/AlbumCreate";
+import { ConcertCreate } from "#/components/create/concert/ConcertCreate";
+import { PartyCreate } from "#/components/create/party/PartyCreate";
+import { YouTubeCoverImport } from "#/components/create/youtube/YouTubeCoverImport";
 import { albumQueries } from "#/lib/queries/album.queries";
 import { languageQueries } from "#/lib/queries/language.queries";
 import { partyQueries } from "#/lib/queries/party.queries";
-import {
-	Tabs,
-	TabsContent,
-	TabsList,
-	TabsTrigger,
-} from "#/old-components/coss/tabs";
-
-const AlbumCreate = lazy(() =>
-	import("#/components/create/album/AlbumCreate").then((module) => ({
-		default: module.AlbumCreate,
-	})),
-);
-
-const ConcertTabContent = lazy(() =>
-	import("#/old-components/create/concertTabContent").then((module) => ({
-		default: module.ConcertTabContent,
-	})),
-);
-
-const YouTubeCoverImport = lazy(() =>
-	import("#/components/create/youtube/YouTubeCoverImport").then((module) => ({
-		default: module.YouTubeCoverImport,
-	})),
-);
-
-const PartyTabContent = lazy(() =>
-	import("#/old-components/create/partyTabContent").then((module) => ({
-		default: module.PartyTabContent,
-	})),
-);
 
 const CREATE_TABS = ["album", "concert", "cover", "party"] as const;
+
+const TAB_ITEMS: Record<
+	(typeof CREATE_TABS)[number],
+	{ icon: LucideIcon; label: string }
+> = {
+	album: { icon: AlbumIcon, label: "Album" },
+	concert: { icon: MicVocalIcon, label: "Concert" },
+	cover: { icon: PlayIcon, label: "Cover" },
+	party: { icon: UsersIcon, label: "Party" },
+};
 
 export const Route = createFileRoute("/_authed/create/")({
 	validateSearch: z.object({
@@ -56,82 +41,40 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 
 	return (
-		<main className="flex min-h-full w-full flex-col p-4 sm:p-6">
+		<main className="flex min-h-full w-full min-w-0 flex-col p-4 sm:p-6">
 			<Tabs
-				className="min-h-0 flex-1 gap-4"
 				onValueChange={(value) =>
-					navigate({
-						search: {
-							tab:
-								value === "album"
-									? undefined
-									: (value as (typeof CREATE_TABS)[number]),
-						},
+					void navigate({
+						search: { tab: value === "album" ? undefined : value },
 						replace: true,
 					})
 				}
 				value={tab}
 			>
-				<TabsList className="mx-auto">
-					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="album">
-						<AlbumIcon />
-						Album
-					</TabsTrigger>
-					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="concert">
-						<MicVocalIcon />
-						Concert
-					</TabsTrigger>
-					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="cover">
-						<PlayIcon />
-						Cover
-					</TabsTrigger>
-					<TabsTrigger className="h-11 px-6 sm:h-10 sm:px-6" value="party">
-						<UsersIcon />
-						Party
-					</TabsTrigger>
+				<TabsList aria-label="Create" className="mx-auto mb-4" size="lg">
+					{CREATE_TABS.map((value) => {
+						const { icon: Icon, label } = TAB_ITEMS[value];
+						return (
+							<TabsTab key={value} value={value}>
+								<Icon aria-hidden="true" />
+								{label}
+							</TabsTab>
+						);
+					})}
 				</TabsList>
-
-				<TabsContent
-					className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
-					value="album"
-				>
-					<Suspense fallback={<CreateTabFallback label="album" />}>
-						<AlbumCreate />
-					</Suspense>
-				</TabsContent>
-				<TabsContent
-					className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
-					value="concert"
-				>
-					<Suspense fallback={<CreateTabFallback label="concert" />}>
-						<ConcertTabContent />
-					</Suspense>
-				</TabsContent>
-				<TabsContent
-					className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
-					value="cover"
-				>
-					<Suspense fallback={<CreateTabFallback label="cover" />}>
-						<YouTubeCoverImport />
-					</Suspense>
-				</TabsContent>
-				<TabsContent
-					className="min-h-0 flex-1 border-t pt-4 sm:pt-6"
-					value="party"
-				>
-					<Suspense fallback={<CreateTabFallback label="party" />}>
-						<PartyTabContent />
-					</Suspense>
-				</TabsContent>
+				<TabsPanel value="album">
+					<AlbumCreate />
+				</TabsPanel>
+				<TabsPanel value="concert">
+					<ConcertCreate />
+				</TabsPanel>
+				<TabsPanel value="cover">
+					<YouTubeCoverImport />
+				</TabsPanel>
+				<TabsPanel value="party">
+					<PartyCreate />
+				</TabsPanel>
 			</Tabs>
 		</main>
-	);
-}
-
-function CreateTabFallback({ label }: { label: string }) {
-	return (
-		<section className="rounded-lg border bg-card p-4 text-sm text-muted-foreground shadow-sm">
-			Loading {label} tools...
-		</section>
 	);
 }

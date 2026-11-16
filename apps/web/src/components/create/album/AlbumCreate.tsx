@@ -1,4 +1,4 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { ListChecksIcon, Trash2Icon, UploadIcon } from "lucide-react";
 import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -27,7 +27,7 @@ type OpenDialog =
 	| { kind: "bulk"; trackIds: TrackLocalId[] };
 
 export function AlbumCreate() {
-	const { data: parties } = useSuspenseQuery(partyQueries.getParties());
+	const queryClient = useQueryClient();
 	const addDroppedFiles = useAlbumUploadStore((state) => state.addDroppedFiles);
 	const submitAlbums = useAlbumUploadStore((state) => state.submitAlbums);
 	const removeTracks = useAlbumUploadStore((state) => state.removeTracks);
@@ -67,12 +67,21 @@ export function AlbumCreate() {
 	}
 
 	async function handleDrop(acceptedFiles: File[]) {
-		const result = await addDroppedFiles(acceptedFiles, parties);
+		try {
+			const parties = await queryClient.query(partyQueries.getParties());
+			const result = await addDroppedFiles(acceptedFiles, parties);
 
-		if (result.ignoredFileNames.length > 0) {
+			if (result.ignoredFileNames.length > 0) {
+				toastManager.add({
+					title: "Some files could not be added",
+					description: result.ignoredFileNames.join(", "),
+					type: "error",
+				});
+			}
+		} catch (error) {
 			toastManager.add({
-				title: "Some files could not be added",
-				description: result.ignoredFileNames.join(", "),
+				title: "Could not add files",
+				description: error instanceof Error ? error.message : undefined,
 				type: "error",
 			});
 		}
@@ -107,7 +116,20 @@ export function AlbumCreate() {
 	}
 
 	return (
-		<section className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+		<section className="flex w-full flex-col gap-6">
+			<div className="flex flex-wrap items-center justify-between gap-4">
+				<h1 className="text-xl font-semibold tracking-tight">Album</h1>
+				<Button
+					disabled={albumCount === 0 || isProcessing || issueCount > 0}
+					loading={isUploading}
+					onClick={handleSubmit}
+				>
+					<UploadIcon aria-hidden="true" />
+					{albumCount === 0
+						? "Create albums"
+						: `Create ${albumCount} album${albumCount === 1 ? "" : "s"}`}
+				</Button>
+			</div>
 			<UploadDropZone
 				accept={AUDIO_FILE_ACCEPT}
 				description="FLAC, MP3, WAV, or DSF. Files are grouped into albums by their tags."
@@ -164,14 +186,6 @@ export function AlbumCreate() {
 								{selectedIds.length > 0
 									? "Bulk edit selected"
 									: "Bulk edit all"}
-							</Button>
-							<Button
-								disabled={isProcessing || issueCount > 0}
-								loading={isUploading}
-								onClick={handleSubmit}
-							>
-								<UploadIcon aria-hidden="true" />
-								Create {albumCount} album{albumCount === 1 ? "" : "s"}
 							</Button>
 						</div>
 					</div>
