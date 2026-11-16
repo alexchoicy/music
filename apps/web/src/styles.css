@@ -388,7 +388,7 @@
 	transition: bottom 200ms ease-out;
 }
 @media (pointer: fine) {
-	[data-slot="concert-player"][data-playing]:not(:hover):not(:has(:focus-visible)) .shaka-text-container {
+	[data-slot="concert-player"][data-controls-hidden] .shaka-text-container {
 		bottom: 1rem;
 	}
 }

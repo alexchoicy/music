@@ -34,7 +34,7 @@ export function Slider({
 		>
 			{children}
 			<SliderPrimitive.Control
-				className="flex touch-none select-none data-disabled:pointer-events-none data-disabled:opacity-64 data-[orientation=horizontal]:w-full data-[orientation=horizontal]:min-w-44 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:flex-col"
+				className="relative flex touch-none select-none before:absolute data-disabled:pointer-events-none data-[orientation=horizontal]:before:inset-x-0 data-[orientation=horizontal]:before:-inset-y-2 data-[orientation=vertical]:before:inset-y-0 data-[orientation=vertical]:before:-inset-x-2 data-disabled:opacity-64 data-[orientation=horizontal]:w-full data-[orientation=horizontal]:min-w-44 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:flex-col"
 				data-slot="slider-control"
 			>
 				<SliderPrimitive.Track

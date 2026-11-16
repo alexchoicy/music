@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_authed/concerts/$id")({
 			})
 			.catch(rethrowNotFound);
 	},
+	remountDeps: ({ params }) => params,
 	component: RouteComponent,
 });
 
