@@ -79,6 +79,7 @@ export function AlbumTrackList({
 	const listRef = useRef<HTMLDivElement>(null);
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const addNextToQueue = useAudioPlayerStore((state) => state.addNextToQueue);
+	const togglePlay = useAudioPlayerStore((state) => state.togglePlay);
 	const audioPlayerTracks = albumDetailsToAudioPlayerTracks(album);
 	const showDiscBands = album.discs.length > 1;
 	const titleLang = useTitleLang();
@@ -145,7 +146,21 @@ export function AlbumTrackList({
 	useHotkey("D", () => focusTrack(1));
 
 	return (
-		<div className="flex flex-col gap-8" ref={listRef}>
+		<div
+			className="flex flex-col gap-8"
+			onKeyDown={(event) => {
+				if (
+					event.key !== " " ||
+					event.defaultPrevented ||
+					!(event.target instanceof HTMLElement) ||
+					!event.target.matches('[data-slot="track-play"]')
+				)
+					return;
+				event.preventDefault();
+				if (!event.repeat) void togglePlay();
+			}}
+			ref={listRef}
+		>
 			{album.discs.map((disc) => (
 				<section
 					aria-label={showDiscBands ? `Disc ${disc.discNumber}` : "Tracks"}

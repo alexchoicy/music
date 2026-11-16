@@ -8,11 +8,11 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
-import { ToastProvider as BaseToastProvider } from "#/components/base/toast";
 import {
 	AnchoredToastProvider,
-	ToastProvider,
-} from "#/old-components/coss/toast";
+	ToastProvider as BaseToastProvider,
+} from "#/components/base/toast";
+import { ToastProvider } from "#/old-components/coss/toast";
 import { TooltipProvider } from "#/old-components/coss/tooltip";
 
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";

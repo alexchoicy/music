@@ -13,9 +13,9 @@ import {
 	TabsTrigger,
 } from "#/old-components/coss/tabs";
 
-const AlbumTabContent = lazy(() =>
-	import("#/old-components/create/albumTabContent").then((module) => ({
-		default: module.AlbumTabContent,
+const AlbumCreate = lazy(() =>
+	import("#/components/create/album/AlbumCreate").then((module) => ({
+		default: module.AlbumCreate,
 	})),
 );
 
@@ -96,7 +96,7 @@ function RouteComponent() {
 					value="album"
 				>
 					<Suspense fallback={<CreateTabFallback label="album" />}>
-						<AlbumTabContent />
+						<AlbumCreate />
 					</Suspense>
 				</TabsContent>
 				<TabsContent

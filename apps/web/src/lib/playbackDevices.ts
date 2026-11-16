@@ -1,3 +1,4 @@
+import { toastManager } from "#/components/base/toast";
 import { transferSnapshotSchema } from "#/data/webSocket";
 import type {
 	DeviceControlAction,
@@ -6,7 +7,6 @@ import type {
 	WebSocketServerMessage,
 } from "#/data/webSocket";
 import { connectMusicWebSocket, sendWebSocketMessage } from "#/lib/webSocket";
-import { toastManager } from "#/old-components/coss/toast";
 import {
 	getPlaybackPositionMs,
 	onPlaybackSeek,

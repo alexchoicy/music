@@ -19,6 +19,7 @@ import type {
 	AlbumDraft,
 	AlbumLocalId,
 	AlbumUploadState,
+	BulkUpdateTracksInput,
 	CoverAsset,
 	CoverAssetBlake3Hash,
 	CreateAlbumRequest,
@@ -562,20 +563,18 @@ export function removeCreatedAlbumDraft(
 	}
 }
 
-export function updateTrackDraft(
+function moveTrackToDiscNumber(
 	state: AlbumUploadState,
 	trackId: TrackLocalId,
-	input: UpdateTrackDraftInput,
+	discNumber: number,
 ) {
-	if (!Object.hasOwn(state.tracksById, trackId)) return;
-
 	const track = state.tracksById[trackId];
 	const album = state.albumsById[track.albumId];
 	const currentDisc = state.discsById[track.discId];
-	let targetDiscId = findDiscByNumber(state, album, input.discNumber);
+	let targetDiscId = findDiscByNumber(state, album, discNumber);
 
 	if (!targetDiscId && currentDisc.trackIds.length === 1) {
-		currentDisc.discNumber = input.discNumber;
+		currentDisc.discNumber = discNumber;
 		targetDiscId = currentDisc.localId;
 	}
 
@@ -585,29 +584,48 @@ export function updateTrackDraft(
 		state.discsById[targetDiscId] = {
 			localId: targetDiscId,
 			albumId: album.localId,
-			discNumber: input.discNumber,
+			discNumber,
 			subtitle: "",
 			coverAssetIdByHash: null,
 			trackIds: [],
 		};
 	}
 
-	if (targetDiscId !== track.discId) {
-		const sourceDisc = state.discsById[track.discId];
-		const sourceDiscCoverAssetIdByHash = sourceDisc.coverAssetIdByHash;
+	if (targetDiscId === track.discId) return;
 
-		sourceDisc.trackIds = sourceDisc.trackIds.filter((id) => id !== trackId);
-		moveTrackToDisc(state, trackId, album.localId, targetDiscId);
+	const sourceDisc = state.discsById[track.discId];
+	const sourceDiscCoverAssetIdByHash = sourceDisc.coverAssetIdByHash;
 
-		if (sourceDisc.trackIds.length === 0) {
-			delete state.discsById[sourceDisc.localId];
-			album.discIds = album.discIds.filter((id) => id !== sourceDisc.localId);
+	sourceDisc.trackIds = sourceDisc.trackIds.filter((id) => id !== trackId);
+	moveTrackToDisc(state, trackId, album.localId, targetDiscId);
 
-			if (sourceDiscCoverAssetIdByHash) {
-				cleanNewCoverAssets(state, sourceDiscCoverAssetIdByHash);
-			}
+	if (sourceDisc.trackIds.length === 0) {
+		delete state.discsById[sourceDisc.localId];
+		album.discIds = album.discIds.filter((id) => id !== sourceDisc.localId);
+
+		if (sourceDiscCoverAssetIdByHash) {
+			cleanNewCoverAssets(state, sourceDiscCoverAssetIdByHash);
 		}
 	}
+}
+
+function sortAlbum(state: AlbumUploadState, albumId: AlbumLocalId) {
+	sortAlbumDiscs(state, albumId);
+	for (const discId of state.albumsById[albumId].discIds) {
+		sortDiscTracks(state, discId);
+	}
+}
+
+export function updateTrackDraft(
+	state: AlbumUploadState,
+	trackId: TrackLocalId,
+	input: UpdateTrackDraftInput,
+) {
+	if (!Object.hasOwn(state.tracksById, trackId)) return;
+
+	const track = state.tracksById[trackId];
+
+	moveTrackToDiscNumber(state, trackId, input.discNumber);
 
 	track.title = input.title;
 	track.trackNumber = input.trackNumber;
@@ -620,22 +638,117 @@ export function updateTrackDraft(
 		track.unsolvedCredits = [];
 	}
 
-	for (const audioInput of input.audios) {
-		const audio = track.audios.find(
-			(item) => item.file.blake3Hash === audioInput.blake3Hash,
-		);
-
-		if (!audio) continue;
-
-		audio.rank = audioInput.rank;
-		audio.pinned = audioInput.pinned;
-		audio.source = audioInput.source;
-		audio.sourceUrl = audioInput.sourceUrl ?? null;
+	for (const audio of track.audios) {
+		audio.source = input.source;
+		audio.sourceUrl = input.sourceUrl ?? null;
 	}
 
-	sortAlbumDiscs(state, album.localId);
-	for (const discId of album.discIds) {
-		sortDiscTracks(state, discId);
+	sortAlbum(state, track.albumId);
+}
+
+export function bulkUpdateTracks(
+	state: AlbumUploadState,
+	trackIds: TrackLocalId[],
+	input: BulkUpdateTracksInput,
+) {
+	const albumIds = new Set<AlbumLocalId>();
+
+	for (const trackId of trackIds) {
+		if (!Object.hasOwn(state.tracksById, trackId)) continue;
+
+		const track = state.tracksById[trackId];
+		albumIds.add(track.albumId);
+
+		if (input.credits.mode === "replace") {
+			track.credits = input.credits.credits;
+		} else if (input.credits.mode === "add") {
+			const existingPartyIds = new Set(
+				track.credits.map((credit) => Number(credit.partyId)),
+			);
+			track.credits = [
+				...track.credits,
+				...input.credits.credits.filter(
+					(credit) => !existingPartyIds.has(Number(credit.partyId)),
+				),
+			];
+		} else if (input.credits.mode === "album") {
+			track.credits = state.albumsById[track.albumId].credits;
+		} else if (input.credits.mode === "clear") {
+			track.credits = [];
+		}
+
+		if (input.clearUnsolvedCredits) track.unsolvedCredits = [];
+
+		if (input.titleFind) {
+			const title = track.title
+				.replaceAll(input.titleFind, input.titleReplace)
+				.trim();
+			if (title) track.title = title;
+		}
+
+		if (input.languageId !== undefined) track.languageId = input.languageId;
+		if (input.contentType !== undefined) track.contentType = input.contentType;
+		if (input.versionType !== undefined) track.versionType = input.versionType;
+
+		for (const audio of track.audios) {
+			if (input.source !== undefined) audio.source = input.source;
+			if (input.sourceUrl !== undefined) audio.sourceUrl = input.sourceUrl;
+		}
+
+		if (input.discNumber !== undefined) {
+			moveTrackToDiscNumber(state, trackId, input.discNumber);
+		}
+	}
+
+	if (!input.renumber) {
+		for (const albumId of albumIds) sortAlbum(state, albumId);
+		return;
+	}
+
+	// Moved tracks stay appended after the disc's own tracks, so numbering follows the list order
+	for (const albumId of albumIds) sortAlbumDiscs(state, albumId);
+
+	const discIds = new Set<DiscLocalId>();
+	for (const trackId of trackIds) {
+		if (Object.hasOwn(state.tracksById, trackId)) {
+			discIds.add(state.tracksById[trackId].discId);
+		}
+	}
+
+	for (const discId of discIds) {
+		state.discsById[discId].trackIds.forEach((trackId, index) => {
+			state.tracksById[trackId].trackNumber = index + 1;
+		});
+	}
+}
+
+export function removeTracks(
+	state: AlbumUploadState,
+	trackIds: TrackLocalId[],
+) {
+	for (const trackId of trackIds) {
+		if (!Object.hasOwn(state.tracksById, trackId)) continue;
+
+		const track = state.tracksById[trackId];
+		const disc = state.discsById[track.discId];
+		const album = state.albumsById[track.albumId];
+
+		disc.trackIds = disc.trackIds.filter((id) => id !== trackId);
+		delete state.tracksById[trackId];
+
+		if (disc.trackIds.length > 0) continue;
+
+		if (album.discIds.length === 1) {
+			removeAlbumDraft(state, album.localId);
+			continue;
+		}
+
+		const discCoverAssetIdByHash = disc.coverAssetIdByHash;
+		album.discIds = album.discIds.filter((id) => id !== disc.localId);
+		delete state.discsById[disc.localId];
+		if (discCoverAssetIdByHash) {
+			cleanNewCoverAssets(state, discCoverAssetIdByHash);
+		}
 	}
 }
 
@@ -714,33 +827,26 @@ export function updateAlbumDraft(
 		const disc = state.discsById[discId];
 		if (disc.albumId === albumId) disc.subtitle = subtitle;
 	}
+}
 
-	for (const discId of album.discIds) {
-		const disc = state.discsById[discId];
+export function getTrackIssues(state: AlbumUploadState) {
+	const issues: Record<TrackLocalId, string> = {};
+
+	for (const disc of Object.values(state.discsById)) {
+		const countByNumber = new Map<number, number>();
+
+		for (const trackId of disc.trackIds) {
+			const trackNumber = Number(state.tracksById[trackId].trackNumber);
+			countByNumber.set(trackNumber, (countByNumber.get(trackNumber) ?? 0) + 1);
+		}
 
 		for (const trackId of disc.trackIds) {
 			const track = state.tracksById[trackId];
-
-			if (input.replaceTrackCredits.length > 0) {
-				track.credits = input.replaceTrackCredits;
-				track.unsolvedCredits = [];
-			}
-
-			if (input.replaceTrackLanguageId !== null) {
-				track.languageId = input.replaceTrackLanguageId;
-			}
-
-			if (input.replaceAudioSource !== null) {
-				for (const audio of track.audios) {
-					audio.source = input.replaceAudioSource;
-				}
-			}
-
-			if (input.replaceAudioSourceUrl !== null) {
-				for (const audio of track.audios) {
-					audio.sourceUrl = input.replaceAudioSourceUrl;
-				}
+			if ((countByNumber.get(Number(track.trackNumber)) ?? 0) > 1) {
+				issues[trackId] = "Duplicate number";
 			}
 		}
 	}
+
+	return issues;
 }

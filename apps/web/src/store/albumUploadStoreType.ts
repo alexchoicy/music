@@ -80,18 +80,6 @@ export type UpdateAlbumDraftInput = {
 	credits: CreditRequest[];
 	discCoversById: Partial<Record<DiscLocalId, CoverAsset | null>>;
 	discSubtitlesById: Partial<Record<DiscLocalId, string>>;
-	replaceAudioSource: TrackAudioRequest["source"] | null;
-	replaceAudioSourceUrl: TrackAudioRequest["sourceUrl"] | null;
-	replaceTrackCredits: CreditRequest[];
-	replaceTrackLanguageId: AlbumTrackRequest["languageId"] | null;
-};
-
-export type UpdateTrackDraftAudioInput = {
-	blake3Hash: API.TrackAudioRequest["file"]["blake3Hash"];
-	rank: NonNullable<TrackAudioRequest["rank"]>;
-	pinned: NonNullable<TrackAudioRequest["pinned"]>;
-	source: NonNullable<TrackAudioRequest["source"]>;
-	sourceUrl: TrackAudioRequest["sourceUrl"];
 };
 
 export type UpdateTrackDraftInput = {
@@ -103,7 +91,32 @@ export type UpdateTrackDraftInput = {
 	versionType: NonNullable<AlbumTrackRequest["versionType"]>;
 	clearUnsolvedTrackCredits: boolean;
 	credits: CreditRequest[];
-	audios: UpdateTrackDraftAudioInput[];
+	source: NonNullable<TrackAudioRequest["source"]>;
+	sourceUrl: TrackAudioRequest["sourceUrl"];
+};
+
+export type BulkCreditsChange =
+	| { mode: "keep" | "album" | "clear" }
+	| { mode: "replace" | "add"; credits: CreditRequest[] };
+
+// Optional fields are left unchanged when undefined
+export type BulkUpdateTracksInput = {
+	credits: BulkCreditsChange;
+	clearUnsolvedCredits: boolean;
+	titleFind: string;
+	titleReplace: string;
+	languageId?: AlbumTrackRequest["languageId"];
+	contentType?: NonNullable<AlbumTrackRequest["contentType"]>;
+	versionType?: NonNullable<AlbumTrackRequest["versionType"]>;
+	source?: NonNullable<TrackAudioRequest["source"]>;
+	sourceUrl?: TrackAudioRequest["sourceUrl"];
+	discNumber?: number;
+	renumber: boolean;
+};
+
+export type SubmitAlbumsResult = {
+	createdCount: number;
+	failed: { title: string; message: string }[];
 };
 
 export type MergeAlbumDraftInput = {
@@ -134,7 +147,7 @@ export type AlbumUploadActions = {
 		files: File[],
 		parties: PartyItem[],
 	) => Promise<AddDroppedFilesResult>;
-	submitAlbums: () => Promise<void>;
+	submitAlbums: () => Promise<SubmitAlbumsResult>;
 	clear: () => void;
 	removeAlbumDraft: (albumId: AlbumLocalId) => void;
 	mergeAlbumDraft: (albumId: AlbumLocalId, input: MergeAlbumDraftInput) => void;
@@ -146,4 +159,9 @@ export type AlbumUploadActions = {
 		trackId: TrackLocalId,
 		input: UpdateTrackDraftInput,
 	) => void;
+	bulkUpdateTracks: (
+		trackIds: TrackLocalId[],
+		input: BulkUpdateTracksInput,
+	) => void;
+	removeTracks: (trackIds: TrackLocalId[]) => void;
 };

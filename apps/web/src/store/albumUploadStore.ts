@@ -8,10 +8,12 @@ import { processDroppedFiles } from "#/lib/utils/upload";
 
 import {
 	buildAlbumRequests,
+	bulkUpdateTracks,
 	insertPreparedFile,
 	mergeAlbumDraft,
 	removeCreatedAlbumDraft,
 	removeAlbumDraft,
+	removeTracks,
 	updateAlbumDraft,
 	updateTrackDraft,
 } from "./albumUploadStoreFunction";
@@ -160,7 +162,7 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 					currentState.isProcessing ||
 					currentState.submitStatus === "uploading"
 				) {
-					return;
+					return { createdCount: 0, failed: [] };
 				}
 
 				set((state) => {
@@ -174,16 +176,17 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 					const successfulResults = results.filter(
 						(result) => result.isSuccess === true && result.upload,
 					);
+					const failed = results
+						.filter((result) => !successfulResults.includes(result))
+						.map((result) => ({
+							title: result.albumTitle,
+							message: result.errorMessage ?? "Album was not created",
+						}));
+
 					if (successfulResults.length === 0) {
-						const errorMessage =
-							results.find((result) => result.errorMessage)?.errorMessage ??
-							"No albums were created";
-						throw new Error(errorMessage);
+						throw new Error(failed[0]?.message ?? "No albums were created");
 					}
 
-					const successfulAlbumIds = new Set(
-						successfulResults.map((result) => result.clientTempAlbumId),
-					);
 					const trackUploads: TrackUploadResult[] = [];
 
 					for (const result of successfulResults) {
@@ -193,16 +196,17 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 					}
 
 					set((state) => {
-						state.submitStatus = "completed";
-
-						for (const albumId of successfulAlbumIds) {
-							removeCreatedAlbumDraft(state, albumId);
+						for (const result of successfulResults) {
+							removeCreatedAlbumDraft(state, result.clientTempAlbumId);
 						}
+
+						state.submitStatus =
+							state.albumOrder.length > 0 ? "creating" : "completed";
 					});
 
 					useUploadStore.getState().startUpload(trackUploads);
 
-					get().clear();
+					return { createdCount: successfulResults.length, failed };
 				} catch (error) {
 					const errorMessage =
 						error instanceof Error ? error.message : "Failed to upload album";
@@ -246,6 +250,24 @@ export const useAlbumUploadStore = create<AlbumUploadStore>()(
 			},
 			updateTrackDraft: (trackId, input) => {
 				set((state) => updateTrackDraft(state, trackId, input));
+			},
+			bulkUpdateTracks: (trackIds, input) => {
+				set((state) => bulkUpdateTracks(state, trackIds, input));
+			},
+			removeTracks: (trackIds) => {
+				const fileHashes = trackIds.flatMap((trackId) =>
+					Object.hasOwn(get().tracksById, trackId)
+						? get().tracksById[trackId].audios.map(
+								(audio) => audio.file.blake3Hash,
+							)
+						: [],
+				);
+
+				set((state) => removeTracks(state, trackIds));
+
+				for (const fileHash of fileHashes) {
+					useUploadStore.getState().removeFile(fileHash);
+				}
 			},
 		})),
 	),

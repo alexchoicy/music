@@ -17,13 +17,14 @@ import { Field, FieldDescription, FieldLabel } from "#/components/base/field";
 import { Input } from "#/components/base/input";
 import { Label } from "#/components/base/label";
 import { toastManager } from "#/components/base/toast";
+import { CroppedImagePreview } from "#/components/image/CroppedImagePreview";
+import { ImageCropDialog } from "#/components/image/ImageCropDialog";
+import { PartyCombobox } from "#/components/party/PartyCombobox";
+import { ALBUM_COVER_ASPECT_RATIO } from "#/constant/album";
 import { createYouTubeCover, retryYouTubeImportJob } from "#/lib/api/youtube";
 import { youtubeQueries } from "#/lib/queries/youtube.queries";
 import { formatDate } from "#/lib/utils/date";
 import { formatMsToMMSSOrHMMSS } from "#/lib/utils/music";
-import { CroppedImagePreview } from "#/old-components/croppedImagePreview";
-import { ImageCropDialog } from "#/old-components/imageCropDialog";
-import { PartyCombobox } from "#/old-components/PartyCombobox";
 import type { CroppedArea } from "#/store/albumUploadStoreType";
 
 import {
@@ -33,8 +34,6 @@ import {
 	useImageSize,
 } from "./youtubeCover";
 import { YouTubeImportStatus } from "./YouTubeImportStatus";
-
-const COVER_ASPECT_RATIO = 1;
 
 export function YouTubeCoverImport() {
 	const urlId = useId();
@@ -366,7 +365,7 @@ export function YouTubeCoverImport() {
 			)}
 
 			<ImageCropDialog
-				aspectRatio={COVER_ASPECT_RATIO}
+				aspectRatio={ALBUM_COVER_ASPECT_RATIO}
 				description="Choose the square area of the thumbnail used as the cover."
 				imageAlt="YouTube thumbnail"
 				imageSrc={thumbnailUrl}

@@ -692,13 +692,15 @@ public class AlbumService(
 
         if (album.Image is not null)
         {
-            (albumImage, CreateAlbumImageUploadItemResult imageUpload) = await CreateAlbumImage(
+            (albumImage, CreateAlbumImageUploadItemResult? imageUpload) = await CreateAlbumImage(
                 album.Image,
                 newAlbum,
                 userId,
                 cancellationToken
             );
-            uploadResults.Images.Add(imageUpload);
+
+            if (imageUpload is not null)
+                uploadResults.Images.Add(imageUpload);
         }
 
         foreach (AlbumDiscRequest albumDisc in album.Discs)
@@ -882,7 +884,7 @@ public class AlbumService(
 
     private async Task<(
         AlbumImage Image,
-        CreateAlbumImageUploadItemResult Upload
+        CreateAlbumImageUploadItemResult? Upload
     )> CreateAlbumImage(
         AlbumImageRequest imageModel,
         Core.Entities.Album album,
@@ -891,24 +893,48 @@ public class AlbumService(
         AlbumDisc? albumDisc = null
     )
     {
-        string imagePath = _assetsService.GetStoragePath(
-            MediaFolderOptions.AssetsCover,
-            imageModel.File.Blake3Hash,
-            imageModel.File.MimeType
+        StoredFile? storedFile = _dbContext.StoredFiles.Local.FirstOrDefault(file =>
+            file.OriginalBlake3Hash == imageModel.File.Blake3Hash
         );
+        FileObject? uploadTarget = null;
 
-        (StoredFile? storedFile, FileObject? fileObject) =
-            _assetsService.CreateStoredFileWithObject(
-                imageModel.File,
-                FileType.Image,
-                imagePath,
-                StorageArea.Assets,
-                FileObjectVariant.Original,
-                userId
-            );
+        if (storedFile is null)
+        {
+            storedFile = await _dbContext
+                .StoredFiles.Include(file => file.FileObjects)
+                .FirstOrDefaultAsync(
+                    file => file.OriginalBlake3Hash == imageModel.File.Blake3Hash,
+                    cancellationToken
+                );
 
-        _dbContext.StoredFiles.Add(storedFile);
-        _dbContext.FileObjects.Add(fileObject);
+            if (storedFile is null)
+            {
+                string imagePath = _assetsService.GetStoragePath(
+                    MediaFolderOptions.AssetsCover,
+                    imageModel.File.Blake3Hash,
+                    imageModel.File.MimeType
+                );
+
+                (storedFile, uploadTarget) = _assetsService.CreateStoredFileWithObject(
+                    imageModel.File,
+                    FileType.Image,
+                    imagePath,
+                    StorageArea.Assets,
+                    FileObjectVariant.Original,
+                    userId
+                );
+
+                _dbContext.StoredFiles.Add(storedFile);
+                _dbContext.FileObjects.Add(uploadTarget);
+            }
+            else if (storedFile.UploadedByUserId == userId)
+            {
+                uploadTarget = storedFile.FileObjects.FirstOrDefault(fileObject =>
+                    fileObject.FileObjectVariant == FileObjectVariant.Original
+                    && fileObject.ProcessingStatus == FileProcessingStatus.Pending
+                );
+            }
+        }
 
         AlbumImage albumImage = new()
         {
@@ -924,16 +950,19 @@ public class AlbumService(
 
         _dbContext.AlbumImages.Add(albumImage);
 
+        if (uploadTarget is null)
+            return (albumImage, null);
+
         CreateAlbumImageUploadItemResult upload = new()
         {
             ClientReferenceId = imageModel.ClientReferenceId,
             DiscNumber = albumDisc?.DiscNumber,
-            FileObjectId = fileObject.Id,
+            FileObjectId = uploadTarget.Id,
             Blake3Hash = imageModel.File.Blake3Hash,
             FileName = imageModel.File.OriginalFileName,
             UploadUrl = _assetsService.CreateUploadUrlAsync(
-                imagePath,
-                fileObject.MimeType,
+                uploadTarget.StoragePath,
+                uploadTarget.MimeType,
                 cancellationToken
             ),
         };
