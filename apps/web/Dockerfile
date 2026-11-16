@@ -1,4 +1,4 @@
-FROM ghcr.io/pnpm/pnpm:12.17.0 AS deps
+FROM ghcr.io/pnpm/pnpm:12.21.0 AS deps
 ENV CI=true
 
 WORKDIR /app
