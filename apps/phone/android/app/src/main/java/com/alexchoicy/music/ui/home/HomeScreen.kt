@@ -70,7 +70,7 @@ fun HomeScreen(
     onOpenAlbum: (Long) -> Unit,
     onOpenParty: (Long) -> Unit,
     onOpenSettings: () -> Unit,
-    viewModel: HomeViewModel = viewModel { HomeViewModel(musicApplication().homeRepository) },
+    viewModel: HomeViewModel = viewModel { HomeViewModel(musicApplication().homeRepository, musicApplication().network) },
 ) {
     val feed = viewModel.feed
     val snackbarHostState = remember { SnackbarHostState() }

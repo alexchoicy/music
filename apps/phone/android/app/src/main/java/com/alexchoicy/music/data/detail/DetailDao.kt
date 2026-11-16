@@ -213,6 +213,15 @@ abstract class DetailDao(
         )
     }
 
+    @Query("SELECT id FROM album_detail")
+    abstract suspend fun albumIds(): List<Long>
+
+    @Query("SELECT id FROM party_detail")
+    abstract suspend fun partyIds(): List<Long>
+
+    @Query("SELECT DISTINCT partyId FROM album_credit WHERE albumId IN (:albumIds)")
+    abstract suspend fun albumArtistIds(albumIds: List<Long>): List<Long>
+
     @Query("SELECT * FROM album_detail WHERE id = :id")
     protected abstract suspend fun albumDetail(id: Long): AlbumDetailEntity?
 

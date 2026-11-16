@@ -65,6 +65,7 @@ class SearchViewModel(
                 if (online) {
                     val results = repository.search(query)
                     retrying = false
+                    if (results == null && !network.online) return@collectLatest
                     state =
                         if (results != null) {
                             SearchState.Loaded(

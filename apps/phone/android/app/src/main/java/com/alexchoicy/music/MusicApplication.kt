@@ -29,7 +29,9 @@ import com.alexchoicy.music.devices.PlaybackDevices
 import com.alexchoicy.music.offline.Downloads
 import com.alexchoicy.music.playback.MusicPlayer
 import com.alexchoicy.music.playback.NetworkMonitor
+import com.alexchoicy.music.playback.PendingListens
 import com.alexchoicy.music.playback.PlaybackSettings
+import com.alexchoicy.music.playback.StreamCache
 import com.alexchoicy.music.session.SessionStore
 import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.MainScope
@@ -45,7 +47,7 @@ class MusicApplication :
     }
 
     val session by lazy { SessionStore(this) }
-    private val apiClient by lazy { ApiClient(httpClient, session) }
+    private val apiClient by lazy { ApiClient(httpClient, session, network) }
     val authApi by lazy { AuthApi(httpClient) }
     val homeRepository by lazy {
         HomeRepository(session, HomeApi(apiClient), database.homeDao(), devices.deviceId)
@@ -56,18 +58,19 @@ class MusicApplication :
     val searchRepository by lazy { SearchRepository(SearchApi(apiClient), database.libraryDao()) }
     val detailRepository by lazy { DetailRepository(DetailApi(apiClient), database.detailDao()) }
     val notices = Notices()
-    val network by lazy { NetworkMonitor(this) }
+    val network by lazy { NetworkMonitor(this, session, httpClient, scope) }
     private val playbackApi by lazy { PlaybackApi(apiClient) }
     val playbackSettings by lazy { PlaybackSettings(this, network) }
+    private val streamCache by lazy { StreamCache(this, playbackApi, network) }
     val downloads by lazy {
         Downloads(
             context = this,
             dao = database.offlineDao(),
             api = playbackApi,
+            streams = streamCache,
             details = detailRepository,
             settings = playbackSettings,
             session = session,
-            http = httpClient,
             scope = scope,
         )
     }
@@ -76,7 +79,18 @@ class MusicApplication :
     }
     private val playerLazy =
         lazy {
-            MusicPlayer(this, playbackApi, playbackSettings, network, downloads, database.queueDao(), notices, scope)
+            MusicPlayer(
+                context = this,
+                api = playbackApi,
+                settings = playbackSettings,
+                network = network,
+                downloads = downloads,
+                streams = streamCache,
+                queueDao = database.queueDao(),
+                listens = PendingListens(database.pendingListenDao(), playbackApi, network, scope),
+                notices = notices,
+                scope = scope,
+            )
         }
     val player by playerLazy
     val devices by lazy { PlaybackDevices(this, session, player, network, notices, scope) }

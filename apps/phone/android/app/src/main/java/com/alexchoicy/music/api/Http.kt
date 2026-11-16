@@ -1,5 +1,6 @@
 package com.alexchoicy.music.api
 
+import com.alexchoicy.music.playback.NetworkMonitor
 import com.alexchoicy.music.session.SessionStore
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -22,6 +23,7 @@ import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
+import java.io.IOException
 
 private const val TIMEOUT_MS = 10_000L
 
@@ -64,6 +66,10 @@ internal class HttpStatusException(
     val status: Int,
 ) : Exception("$path returned $status")
 
+internal fun isGatewayError(status: Int) = status in 502..504
+
+internal fun Exception.isOutage() = this is UnauthorizedException || this is IOException || this is HttpStatusException && status >= 500
+
 internal suspend fun <T> apiOutcome(block: suspend () -> T): ApiOutcome<T> =
     try {
         ApiOutcome.Loaded(block())
@@ -78,6 +84,7 @@ internal suspend fun <T> apiOutcome(block: suspend () -> T): ApiOutcome<T> =
 class ApiClient(
     private val http: HttpClient,
     private val session: SessionStore,
+    private val network: NetworkMonitor,
 ) {
     internal suspend inline fun <reified T> get(
         path: String,
@@ -140,10 +147,16 @@ class ApiClient(
         val serverUrl = session.serverUrl ?: throw UnauthorizedException()
         val token = session.token ?: throw UnauthorizedException()
         val response =
-            http.request("${serverHttpUrl(serverUrl)}$path") {
-                bearerAuth(token)
-                block()
+            try {
+                http.request("${serverHttpUrl(serverUrl)}$path") {
+                    bearerAuth(token)
+                    block()
+                }
+            } catch (e: IOException) {
+                network.serverFailed()
+                throw e
             }
+        if (isGatewayError(response.status.value)) network.serverFailed() else network.serverResponded()
         when {
             response.status.value == 401 -> {
                 if (session.serverUrl == serverUrl && session.token == token) {

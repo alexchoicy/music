@@ -17,8 +17,6 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultDataSource
-import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
@@ -30,7 +28,6 @@ import com.alexchoicy.music.api.valueOrNull
 import com.alexchoicy.music.offline.DownloadStatus
 import com.alexchoicy.music.offline.Downloads
 import io.sentry.Sentry
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -40,10 +37,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
-import java.io.IOException
 import kotlin.coroutines.resume
 import kotlin.math.min
 import kotlin.random.Random
@@ -60,8 +55,8 @@ private class UnplayableException(
     message: String,
 ) : Exception(message)
 
-private const val FILE_SCHEME = "musicfile"
 private const val TICK_MS = 1_000L
+private const val PRELOAD_NEXT_MS = 30_000L
 private const val POSITION_SAVE_MS = 15_000L
 
 private const val RESTART_THRESHOLD_MS = 3_000L
@@ -75,6 +70,12 @@ private const val ALBUM_FETCH_TIMEOUT_MS = 3_000L
 private const val PREVIOUS_LIMIT = 50
 private const val RADIO_REFILL_REMAINING = 3
 
+private val NetworkErrorCodes =
+    setOf(
+        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
+    )
+
 @androidx.annotation.OptIn(UnstableApi::class)
 class MusicPlayer(
     context: Context,
@@ -82,7 +83,9 @@ class MusicPlayer(
     val settings: PlaybackSettings,
     private val network: NetworkMonitor,
     private val downloads: Downloads,
+    private val streams: StreamCache,
     private val queueDao: QueueDao,
+    private val listens: PendingListens,
     private val notices: Notices,
     private val scope: CoroutineScope,
 ) {
@@ -176,22 +179,7 @@ class MusicPlayer(
         ExoPlayer
             .Builder(context)
             .setMediaSourceFactory(
-                DefaultMediaSourceFactory(
-                    ResolvingDataSource.Factory(DefaultDataSource.Factory(context)) { spec ->
-                        if (spec.uri.scheme != FILE_SCHEME) return@Factory spec
-                        val fileId =
-                            spec.uri.lastPathSegment
-                                ?: throw IOException("Couldn't resolve ${spec.uri}")
-                        // Streaming URLs are short-lived, so they are fetched when the file opens.
-                        val url =
-                            try {
-                                runBlocking { api.fileUrl(fileId) }
-                            } catch (e: Exception) {
-                                throw IOException("Couldn't resolve ${spec.uri}", e)
-                            }
-                        spec.withUri(url.toUri())
-                    },
-                ),
+                DefaultMediaSourceFactory(streams.playback),
             ).setAudioAttributes(
                 AudioAttributes
                     .Builder()
@@ -202,6 +190,7 @@ class MusicPlayer(
             ).setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_NETWORK)
             .build()
+            .apply { preloadConfiguration = ExoPlayer.PreloadConfiguration(PRELOAD_NEXT_MS * 1_000L) }
 
     init {
         exo.addListener(
@@ -284,7 +273,13 @@ class MusicPlayer(
             snapshotFlow { settings.savePlayedTracks }.drop(1).collect { if (it) savePlayed() }
         }
         scope.launch {
-            snapshotFlow { settings.radio }.drop(1)
+            snapshotFlow {
+                current?.track?.trackId?.takeIf { source?.local == false && status == PlayerStatus.Playing }
+            }.collect { downloads.updateStreaming(it) }
+        }
+        scope.launch {
+            snapshotFlow { settings.radio }
+                .drop(1)
                 .collect { if (it) prefetchRadio() else dropRadioEntries() }
         }
         scope.launch {
@@ -314,8 +309,7 @@ class MusicPlayer(
     ) = current?.track?.let { it.albumId == albumId && it.trackId == trackId } == true
 
     // Whether an entry can be picked now: downloaded, or online to stream it.
-    fun isAvailable(entry: QueueEntry) =
-        network.online || downloads.isDownloaded(entry.track.trackId)
+    fun isAvailable(entry: QueueEntry) = network.online || downloads.isDownloaded(entry.track.trackId)
 
     // Talk and Instrumental tracks are skipped automatically unless enabled, like the web player.
     fun isAutoPlayable(entry: QueueEntry) =
@@ -392,8 +386,9 @@ class MusicPlayer(
         if (tracks.isEmpty()) return
         val entries = tracks.toQueueEntries()
         val current = queue.indexOfFirst { it.entryId == currentId }
-        val at = queue.withIndex().firstOrNull { (i, entry) -> i > current && entry.radio }?.index
-            ?: queue.size
+        val at =
+            queue.withIndex().firstOrNull { (i, entry) -> i > current && entry.radio }?.index
+                ?: queue.size
         queue = queue.toMutableList().apply { addAll(at, entries) }
         if (currentId == null) currentId = entries.first().entryId
         syncPlaylist()
@@ -932,6 +927,8 @@ class MusicPlayer(
             exo.prepare()
             return
         }
+        val unreachable = !network.online || playbackError.errorCode in NetworkErrorCodes
+        if (source?.local == false && unreachable && skipToDownloaded()) return
         if (source?.local == true || network.online) report(playbackError, entry)
         val message =
             if (source?.local == false && !network.online) {
@@ -943,6 +940,28 @@ class MusicPlayer(
         error = message
         notices.show(message)
         sync()
+    }
+
+    private fun skipToDownloaded(): Boolean {
+        if (!exo.playWhenReady) return false
+        syncPlaylist()
+        val timeline = exo.currentTimeline
+        if (timeline.isEmpty) return false
+        val mode = if (exo.repeatMode == Player.REPEAT_MODE_ALL) Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF
+        val entries = queue.associateBy { it.entryId }
+        var index = exo.currentMediaItemIndex
+        repeat(timeline.windowCount - 1) {
+            index = timeline.getNextWindowIndex(index, mode, exo.shuffleModeEnabled)
+            if (index == C.INDEX_UNSET) return false
+            val track = entries[exo.getMediaItemAt(index).mediaId]?.track
+            if (track != null && downloads.playableFile(track.trackId) != null) {
+                exo.seekTo(index, 0)
+                exo.prepare()
+                notices.show("Can't reach the server. Playing downloaded tracks.")
+                return true
+            }
+        }
+        return false
     }
 
     private fun report(
@@ -1069,8 +1088,10 @@ class MusicPlayer(
         return api
             .radioTracks(
                 baseTrackIds = queue.filter { !it.radio }.map { it.track.trackId },
-                playedRadioTrackIds = queue.filter { it.radio && it.entryId !in upcomingIds }
-                    .map { it.track.trackId },
+                playedRadioTrackIds =
+                    queue
+                        .filter { it.radio && it.entryId !in upcomingIds }
+                        .map { it.track.trackId },
                 upcomingTrackIds = upcoming.map { it.track.trackId },
                 includeInstrumental = settings.playInstrumentals,
             ).valueOrNull()
@@ -1209,14 +1230,11 @@ class MusicPlayer(
 
     private fun QueueEntry.toMediaItem(source: PlaybackSource): MediaItem {
         val uri =
-            downloads.playableFile(track.trackId)
-                ?.takeIf { source.local }?.let(Uri::fromFile)
-                ?: Uri
-                    .Builder()
-                    .scheme(FILE_SCHEME)
-                    .authority("audio")
-                    .appendPath(source.file.id)
-                    .build()
+            downloads
+                .playableFile(track.trackId)
+                ?.takeIf { source.local }
+                ?.let(Uri::fromFile)
+                ?: streams.uri(source.file.id)
         return MediaItem
             .Builder()
             .setMediaId(entryId)
@@ -1263,14 +1281,7 @@ class MusicPlayer(
         session.listenedMs += step
         if (session.listenedMs < min(session.track.durationMs / 2, MAX_LISTEN_THRESHOLD_MS)) return
         session.recorded = true
-        scope.launch {
-            try {
-                api.recordListen(session.track.albumId, session.track.trackId)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (_: Exception) {
-            }
-        }
+        listens.record(session.track)
     }
 
     private class ListeningSession(

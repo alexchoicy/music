@@ -3,17 +3,21 @@ package com.alexchoicy.music.ui.home
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alexchoicy.music.api.ContinueListeningItem
 import com.alexchoicy.music.api.HomeFeed
 import com.alexchoicy.music.data.home.HomeRepository
 import com.alexchoicy.music.data.home.RefreshResult
+import com.alexchoicy.music.playback.NetworkMonitor
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
     private val repository: HomeRepository,
+    network: NetworkMonitor,
 ) : ViewModel() {
     var feed by mutableStateOf<HomeFeed?>(null)
         private set
@@ -43,6 +47,9 @@ class HomeViewModel(
                 refresh()
             }
         }
+        viewModelScope.launch {
+            snapshotFlow { network.online }.filter { it }.collect { if (syncFailed) refresh() }
+        }
     }
 
     fun refresh() {
@@ -51,7 +58,7 @@ class HomeViewModel(
         syncFailed = false
         request =
             viewModelScope.launch {
-                syncFailed = repository.refresh() == RefreshResult.Failed
+                syncFailed = repository.refresh() != RefreshResult.Refreshed
                 loading = false
             }
     }

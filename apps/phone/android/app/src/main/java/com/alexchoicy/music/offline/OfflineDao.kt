@@ -127,9 +127,9 @@ abstract class OfflineDao {
     @Transaction
     @Query(
         "SELECT * FROM track_download WHERE status IN ('Queued', 'Downloading') " +
-            "ORDER BY albumId, position LIMIT 1",
+            "AND trackId IS NOT :exceptTrackId ORDER BY albumId, position LIMIT 1",
     )
-    abstract suspend fun nextPending(): StoredDownload?
+    abstract suspend fun nextPending(exceptTrackId: Long?): StoredDownload?
 
     @Query("SELECT COUNT(*) FROM track_download WHERE status IN ('Queued', 'Downloading')")
     abstract suspend fun pendingCount(): Int

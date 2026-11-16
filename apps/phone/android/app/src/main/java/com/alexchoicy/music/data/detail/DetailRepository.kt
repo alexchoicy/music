@@ -20,6 +20,12 @@ class DetailRepository(
 
     suspend fun albumShareUrl(id: Long): String? = album(id).first()?.shareUrl ?: api.fetchAlbum(id).valueOrNull()?.shareUrl
 
+    suspend fun cachedAlbumIds(): Set<Long> = dao.albumIds().toSet()
+
+    suspend fun cachedPartyIds(): Set<Long> = dao.partyIds().toSet()
+
+    suspend fun albumArtistIds(albumIds: Collection<Long>): Set<Long> = dao.albumArtistIds(albumIds.toList()).toSet()
+
     suspend fun syncAlbum(id: Long): Boolean = sync({ api.fetchAlbum(id) }, dao::replaceAlbum)
 
     suspend fun syncParty(id: Long): Boolean = sync({ api.fetchParty(id) }, dao::replaceParty)

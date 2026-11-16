@@ -10,6 +10,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -82,7 +83,7 @@ class CollectionLoader<Q, T>(
         }
     }
 
-    fun downloadedWhileOffline(
+    fun followNetwork(
         network: NetworkMonitor,
         downloaded: (Q) -> Boolean,
         withDownloaded: (Q, Boolean) -> Q,
@@ -90,6 +91,11 @@ class CollectionLoader<Q, T>(
         scope.launch {
             downloadedWhileOffline(network, { downloaded(query) }) {
                 query = withDownloaded(query, it)
+            }
+        }
+        scope.launch {
+            snapshotFlow { network.online }.filter { it }.collect {
+                if (syncFailed && syncRequest?.isActive != true) startSync()
             }
         }
     }

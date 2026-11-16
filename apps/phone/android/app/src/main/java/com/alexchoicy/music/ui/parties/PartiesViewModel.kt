@@ -22,6 +22,6 @@ class PartiesViewModel(
         )
 
     init {
-        parties.downloadedWhileOffline(network, { it.downloaded }, { query, on -> query.copy(downloaded = on) })
+        parties.followNetwork(network, { it.downloaded }, { query, on -> query.copy(downloaded = on) })
     }
 }

@@ -1,5 +1,6 @@
 package com.alexchoicy.music.data
 
+import androidx.room3.AutoMigration
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
 import com.alexchoicy.music.data.detail.AlbumCreditEntity
@@ -31,6 +32,8 @@ import com.alexchoicy.music.offline.OfflinePlaylistEntity
 import com.alexchoicy.music.offline.OfflinePlaylistTrackEntity
 import com.alexchoicy.music.offline.TrackDownloadArtistEntity
 import com.alexchoicy.music.offline.TrackDownloadEntity
+import com.alexchoicy.music.playback.PendingListenDao
+import com.alexchoicy.music.playback.PendingListenEntity
 import com.alexchoicy.music.playback.QueueDao
 import com.alexchoicy.music.playback.QueueEntryArtistEntity
 import com.alexchoicy.music.playback.QueueEntryEntity
@@ -68,8 +71,10 @@ import com.alexchoicy.music.playback.QueueStateEntity
         QueueEntryArtistEntity::class,
         QueuePlayOrderEntity::class,
         QueueStateEntity::class,
+        PendingListenEntity::class,
     ],
-    version = 1,
+    version = 2,
+    autoMigrations = [AutoMigration(from = 1, to = 2)],
 )
 abstract class MusicDatabase : RoomDatabase() {
     abstract fun homeDao(): HomeDao
@@ -81,4 +86,6 @@ abstract class MusicDatabase : RoomDatabase() {
     abstract fun offlineDao(): OfflineDao
 
     abstract fun queueDao(): QueueDao
+
+    abstract fun pendingListenDao(): PendingListenDao
 }

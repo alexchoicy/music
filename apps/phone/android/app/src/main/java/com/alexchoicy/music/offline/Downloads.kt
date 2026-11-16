@@ -1,11 +1,20 @@
 package com.alexchoicy.music.offline
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.core.net.toUri
+import androidx.media3.common.C
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DataSourceException
+import androidx.media3.datasource.DataSpec
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.HttpDataSource
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
@@ -20,19 +29,15 @@ import com.alexchoicy.music.api.PlaybackTrack
 import com.alexchoicy.music.api.PlaylistDetail
 import com.alexchoicy.music.api.PlaylistEntry
 import com.alexchoicy.music.api.TrackArtist
-import com.alexchoicy.music.api.UnauthorizedException
+import com.alexchoicy.music.api.isOutage
 import com.alexchoicy.music.api.valueOrNull
 import com.alexchoicy.music.data.detail.DetailRepository
 import com.alexchoicy.music.data.toPlaybackTrack
 import com.alexchoicy.music.data.toStored
 import com.alexchoicy.music.playback.AudioQuality
 import com.alexchoicy.music.playback.PlaybackSettings
+import com.alexchoicy.music.playback.StreamCache
 import com.alexchoicy.music.session.SessionStore
-import io.ktor.client.HttpClient
-import io.ktor.client.request.prepareGet
-import io.ktor.client.statement.bodyAsChannel
-import io.ktor.http.isSuccess
-import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -46,8 +51,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
@@ -94,17 +101,19 @@ data class DownloadStats(
     val active get() = downloaded + failed < total
 }
 
+@androidx.annotation.OptIn(UnstableApi::class)
 class Downloads(
     context: Context,
     private val dao: OfflineDao,
     private val api: PlaybackApi,
+    private val streams: StreamCache,
     private val details: DetailRepository,
     private val settings: PlaybackSettings,
     private val session: SessionStore,
-    private val http: HttpClient,
     private val scope: CoroutineScope,
 ) {
     private val workManager = WorkManager.getInstance(context)
+    private val covers = DefaultDataSource.Factory(context)
     private val audioDirectory = File(context.filesDir, "offline/audio")
     private val artworkDirectory = File(context.filesDir, "offline/artwork")
     private val loaded = CompletableDeferred<Unit>()
@@ -194,6 +203,16 @@ class Downloads(
             snapshotFlow { session.token }.drop(1).collect { if (it != null) schedule(replace = true) }
         }
         schedule()
+    }
+
+    @Volatile
+    private var streamingTrackId: Long? = null
+
+    fun updateStreaming(trackId: Long?) {
+        val previous = streamingTrackId
+        if (previous == trackId) return
+        streamingTrackId = trackId
+        if (previous?.let { tracks[it] }?.status == DownloadStatus.Queued) schedule()
     }
 
     suspend fun awaitLoaded() = loaded.await()
@@ -473,11 +492,11 @@ class Downloads(
         withContext(Dispatchers.IO) {
             audioDirectory
                 .listFiles()
-                ?.filter { it.name !in audio && it.name !in activeFiles }
+                ?.filter { it.name.removeSuffix(PARTIAL_SUFFIX) !in audio && it.name !in activeFiles }
                 ?.forEach { it.delete() }
             artworkDirectory
                 .listFiles()
-                ?.filter { it.name !in artwork && it.name !in activeFiles }
+                ?.filter { it.name.removeSuffix(PARTIAL_SUFFIX) !in artwork && it.name !in activeFiles }
                 ?.forEach { it.delete() }
         }
     }
@@ -508,9 +527,10 @@ class Downloads(
 
     internal suspend fun runPending(onTrack: suspend (PlaybackTrack, Int) -> Unit): Boolean {
         awaitLoaded()
+        fetchArtwork()
         var playedSaved = false
         while (true) {
-            val pending = dao.nextPending() ?: break
+            val pending = dao.nextPending(streamingTrackId) ?: break
             val row = pending.download
             val download = pending.toDownload()
             onTrack(download.track, dao.pendingCount())
@@ -537,8 +557,36 @@ class Downloads(
         }
         fetchArtwork()
         cleanUp()
+        cachePages()
         if (playedSaved) scheduleUpgrades()
         return true
+    }
+
+    private var pages: Job? = null
+
+    private fun cachePages() {
+        if (pages?.isActive == true) return
+        pages =
+            scope.launch {
+                var failures = 0
+
+                suspend fun cache(
+                    ids: Collection<Long>,
+                    sync: suspend (Long) -> Boolean,
+                ) {
+                    for (id in ids) {
+                        if (failures >= PAGE_FAILURE_LIMIT) return
+                        if (!sync(id)) failures++
+                    }
+                }
+                val downloaded = tracks.values.filter { it.status == DownloadStatus.Downloaded }
+                val albumIds = downloaded.mapTo(LinkedHashSet()) { it.albumId }
+                cache(albumIds - details.cachedAlbumIds(), details::syncAlbum)
+                val partyIds =
+                    downloaded.flatMapTo(LinkedHashSet()) { download -> download.track.artists.map { it.partyId } } +
+                        details.albumArtistIds(albumIds)
+                cache(partyIds - details.cachedPartyIds(), details::syncParty)
+            }
     }
 
     // Replaces played tracks saved below Original with the original, keeping the saved
@@ -578,12 +626,13 @@ class Downloads(
             val target = File(artworkDirectory, url.sha1())
             try {
                 holding(target) {
-                    download(url, target) {}
+                    copy(covers.createDataSource(), url.toUri(), target) {}
                     dao.upsertArtwork(OfflineArtworkEntity(url, target.name))
                 }
             } catch (e: CancellationException) {
                 throw e
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                if (e.isOutage()) return
             }
         }
     }
@@ -592,7 +641,7 @@ class Downloads(
         target: File,
         block: suspend () -> T,
     ): T {
-        val names = listOf(target.name, "${target.name}.part")
+        val names = listOf(target.name, "${target.name}$PARTIAL_SUFFIX")
         activeFiles += names
         try {
             return block()
@@ -626,9 +675,8 @@ class Downloads(
         showProgress: Boolean,
     ): Long {
         if (target.exists()) return target.length()
-        val url = api.fileUrl(fileId)
         var lastFraction = 0f
-        download(url, target) { fraction ->
+        copy(streams.reader(), streams.uri(fileId), target) { fraction ->
             if (showProgress && fraction - lastFraction >= PROGRESS_STEP) {
                 lastFraction = fraction
                 progress = progress + (trackId to fraction)
@@ -637,25 +685,34 @@ class Downloads(
         return target.length()
     }
 
-    private suspend fun download(
-        url: String,
+    private suspend fun copy(
+        source: DataSource,
+        uri: Uri,
         target: File,
-        onProgress: suspend (Float) -> Unit,
+        onProgress: (Float) -> Unit,
     ) {
-        val partial = File(target.parentFile, "${target.name}.part")
-        withContext(Dispatchers.IO) { target.parentFile?.mkdirs() }
+        val partial = File(target.parentFile, "${target.name}$PARTIAL_SUFFIX")
         try {
-            http.prepareGet(url).execute { response ->
-                if (!response.status.isSuccess()) throw RejectedException(response.status.value)
-                val total = response.headers["Content-Length"]?.toLongOrNull() ?: 0L
-                val channel = response.bodyAsChannel()
-                val buffer = ByteArray(BUFFER_SIZE)
-                var written = 0L
-                withContext(Dispatchers.IO) {
-                    partial.outputStream().use { output ->
+            runInterruptible(Dispatchers.IO) {
+                target.parentFile?.mkdirs()
+                val resumeFrom = partial.length()
+                try {
+                    val length =
+                        source.open(
+                            DataSpec
+                                .Builder()
+                                .setUri(uri)
+                                .setPosition(resumeFrom)
+                                .build(),
+                        )
+                    val total = if (length == C.LENGTH_UNSET.toLong()) 0L else resumeFrom + length
+                    var written = resumeFrom
+                    val buffer = ByteArray(BUFFER_SIZE)
+                    FileOutputStream(partial, true).use { output ->
                         while (true) {
-                            val read = channel.readAvailable(buffer, 0, buffer.size)
-                            if (read == -1) break
+                            if (Thread.interrupted()) throw InterruptedException()
+                            val read = source.read(buffer, 0, buffer.size)
+                            if (read == C.RESULT_END_OF_INPUT) break
                             try {
                                 output.write(buffer, 0, read)
                             } catch (e: IOException) {
@@ -665,13 +722,18 @@ class Downloads(
                             if (total > 0) onProgress(written.toFloat() / total)
                         }
                     }
+                } finally {
+                    source.close()
                 }
-            }
-            withContext(Dispatchers.IO) {
                 if (!partial.renameTo(target)) throw IllegalStateException("Couldn't save the download")
             }
-        } finally {
-            withContext(Dispatchers.IO) { partial.delete() }
+        } catch (e: IOException) {
+            if (DataSourceException.isCausedByPositionOutOfRange(e)) {
+                withContext(Dispatchers.IO) { partial.delete() }
+                throw IOException("Couldn't resume the download", e)
+            }
+            if (e is HttpDataSource.InvalidResponseCodeException) throw HttpStatusException("Server", e.responseCode)
+            throw (e.cause as? HttpStatusException) ?: e
         }
     }
 
@@ -737,19 +799,10 @@ class Downloads(
         const val UPGRADE_WORK = "downloadUpgrades"
         const val BUFFER_SIZE = 64 * 1024
         const val PROGRESS_STEP = 0.01f
+        const val PARTIAL_SUFFIX = ".part"
+        const val PAGE_FAILURE_LIMIT = 3
     }
 }
-
-private class RejectedException(
-    val status: Int,
-) : Exception("Server returned $status")
-
-private fun Exception.isOutage() =
-    when (this) {
-        is RejectedException -> status >= 500
-        is HttpStatusException -> status >= 500
-        else -> this is UnauthorizedException || this is IOException
-    }
 
 private fun AudioFile.fileName() = "$id.${extension.trimStart('.').lowercase()}"
 

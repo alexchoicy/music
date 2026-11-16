@@ -31,6 +31,6 @@ class AlbumsViewModel(
 
     init {
         viewModelScope.launch { repository.languages.collect { languages = it } }
-        albums.downloadedWhileOffline(network, { it.downloaded }, { query, on -> query.copy(downloaded = on) })
+        albums.followNetwork(network, { it.downloaded }, { query, on -> query.copy(downloaded = on) })
     }
 }
