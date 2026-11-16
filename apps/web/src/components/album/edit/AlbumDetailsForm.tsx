@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useId, useState } from "react";
 
+import { ReleaseDateField } from "#/components/album/edit/ReleaseDateField";
 import { Alert, AlertDescription } from "#/components/base/alert";
 import { Button } from "#/components/base/button";
 import { Field, FieldDescription, FieldLabel } from "#/components/base/field";
@@ -8,6 +9,7 @@ import { Input } from "#/components/base/input";
 import { Textarea } from "#/components/base/textarea";
 import { toastManager } from "#/components/base/toast";
 import { FilterSelect } from "#/components/library/FilterSelect";
+import { PartyCombobox } from "#/components/party/PartyCombobox";
 import { ALBUM_TYPE_OPTIONS } from "#/enums/albumEnums";
 import {
 	albumEditActions,
@@ -17,8 +19,6 @@ import type {
 	AlbumEditDetails,
 	UpdateAlbumDetailsRequest,
 } from "#/lib/queries/albumEdit.queries";
-import { PartyCombobox } from "#/old-components/PartyCombobox";
-import { ReleaseDateField } from "#/old-components/ReleaseDateField";
 
 import { LanguageSelect } from "./LanguageSelect";
 

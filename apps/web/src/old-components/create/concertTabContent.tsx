@@ -20,8 +20,8 @@ import { ConcertFileDraftItem } from "#/old-components/create/concert/concertFil
 import { ConcertImageField } from "#/old-components/create/concert/concertImageField";
 import { DropBox } from "#/old-components/dropBox";
 import { LinkedAlbumsCombobox } from "#/old-components/linkedAlbumsCombobox";
-import { PartyCombobox } from "#/old-components/PartyCombobox";
-import { ReleaseDateField } from "#/old-components/ReleaseDateField";
+import { PartyCombobox } from "#/components/party/PartyCombobox";
+import { ReleaseDateField } from "#/components/album/edit/ReleaseDateField";
 import { useConcertUploadStore } from "#/store/concertUploadStore";
 
 const concertFileAccept: Accept = {

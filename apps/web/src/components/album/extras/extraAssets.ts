@@ -91,3 +91,17 @@ export function getExtraStatusLabel(extra: ExtraDetails) {
 export function formatFileCount(count: number) {
 	return `${count} file${count === 1 ? "" : "s"}`;
 }
+
+export function isAssetUnfinished(asset: ExtraAssetDetails) {
+	return (
+		asset.processingStatus !== "Completed" &&
+		asset.processingStatus !== "Failed"
+	);
+}
+
+export function hasUnfinishedAssets(extras: ExtraDetails[] | undefined) {
+	return (
+		extras?.some((extra) => (extra.assets ?? []).some(isAssetUnfinished)) ??
+		false
+	);
+}

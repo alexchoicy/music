@@ -1,42 +1,47 @@
 import type * as API from "@music/api";
 import { useQuery } from "@tanstack/react-query";
-import { GitForkIcon, PlusIcon } from "lucide-react";
+import { GitForkIcon, NetworkIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "#/components/base/alert";
 import { Button } from "#/components/base/button";
 import { Spinner } from "#/components/base/spinner";
-import { toastManager } from "#/components/base/toast";
+import { Toggle } from "#/components/base/toggle";
+import {
+	Tooltip,
+	TooltipPopup,
+	TooltipTrigger,
+} from "#/components/base/tooltip";
 import { LibraryEmptyState } from "#/components/library/LibraryStates";
 import { partyRelationshipQueries } from "#/lib/queries/party-relationships.queries";
-import type { RelationshipType } from "#/lib/queries/party-relationships.queries";
-import { AddRelationshipDialog } from "#/old-components/parties/AddRelationshipDialog";
-import { ManageRelationshipsDialog } from "#/old-components/parties/ManageRelationshipsDialog";
 
-import {
-	RELATIONSHIP_COLOR,
-	RELATIONSHIP_LABEL,
-	RelationshipGraphView,
-} from "./RelationshipGraphView";
+import { AddRelationshipDialog } from "./AddRelationshipDialog";
+import { ManageRelationshipsDialog } from "./ManageRelationshipsDialog";
+import { RelationshipGraphView } from "./RelationshipGraphView";
+import { directRelationships } from "./relationshipLayout";
+import { RELATIONSHIP_LABEL } from "./relationshipTypes";
 
 function plural(count: number, noun: string, nouns = `${noun}s`) {
 	return `${count} ${count === 1 ? noun : nouns}`;
 }
 
 export function PartyRelationships({ party }: { party: API.PartyDetails }) {
-	const [anchorId, setAnchorId] = useState(Number(party.partyId));
-	const [adding, setAdding] = useState(false);
-	const query = useQuery(partyRelationshipQueries.graph(anchorId));
+	const focusId = Number(party.partyId);
+	const query = useQuery(partyRelationshipQueries.graph(focusId));
 	const graph = query.data;
-	const anchor = graph?.parties.find(
-		(item) => Number(item.partyId) === anchorId,
+	const [directOnly, setDirectOnly] = useState(false);
+
+	const all = graph?.relationships ?? [];
+	const hasIndirect = all.some(
+		(edge) =>
+			Number(edge.sourcePartyId) !== focusId &&
+			Number(edge.targetPartyId) !== focusId,
 	);
+	const visible =
+		graph && directOnly && hasIndirect ? directRelationships(graph) : graph;
 	const names = new Map(
 		graph?.parties.map((item) => [Number(item.partyId), item.name]),
 	);
-	const types = [
-		...new Set(graph?.relationships.map((edge) => edge.type) ?? []),
-	] as RelationshipType[];
 
 	return (
 		<section
@@ -51,38 +56,17 @@ export function PartyRelationships({ party }: { party: API.PartyDetails }) {
 					>
 						Relationships
 					</h2>
-					{graph && graph.relationships.length > 0 && (
-						<div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-							<span>
-								{plural(graph.parties.length, "party", "parties")} ·{" "}
-								{plural(graph.relationships.length, "relationship")}
-							</span>
-							<ul
-								aria-label="Legend"
-								className="flex flex-wrap gap-x-3 gap-y-1"
-							>
-								{types.map((type) => (
-									<li className="flex items-center gap-1.5" key={type}>
-										<span
-											aria-hidden="true"
-											className="h-0.5 w-3 rounded-full"
-											style={{ background: RELATIONSHIP_COLOR[type] }}
-										/>
-										{RELATIONSHIP_LABEL[type]}
-									</li>
-								))}
-							</ul>
-						</div>
+					{visible && all.length > 0 && (
+						<p className="text-xs text-muted-foreground">
+							{plural(visible.parties.length, "party", "parties")} ·{" "}
+							{plural(visible.relationships.length, "relationship")}
+							{visible.relationships.length < all.length && ` of ${all.length}`}
+						</p>
 					)}
 				</div>
 				<div className="flex flex-wrap gap-2">
-					{graph && graph.relationships.length > 0 && (
-						<ManageRelationshipsDialog graph={graph} />
-					)}
-					<Button onClick={() => setAdding(true)}>
-						<PlusIcon aria-hidden="true" />
-						Add relationship
-					</Button>
+					{graph && <ManageRelationshipsDialog graph={graph} />}
+					<AddRelationshipDialog graph={graph} party={party} />
 				</div>
 			</div>
 
@@ -110,8 +94,8 @@ export function PartyRelationships({ party }: { party: API.PartyDetails }) {
 					</AlertDescription>
 				</Alert>
 			)}
-			{graph &&
-				(graph.relationships.length === 0 ? (
+			{visible &&
+				(all.length === 0 ? (
 					<LibraryEmptyState
 						description={`Add groups, members or voice roles to map how ${party.name} connects to other parties.`}
 						icon={<GitForkIcon aria-hidden="true" />}
@@ -119,9 +103,30 @@ export function PartyRelationships({ party }: { party: API.PartyDetails }) {
 					/>
 				) : (
 					<>
-						<RelationshipGraphView graph={graph} />
+						<RelationshipGraphView
+							controls={
+								hasIndirect && (
+									<Tooltip>
+										<TooltipTrigger
+											render={
+												<Toggle
+													aria-label="Direct relationships only"
+													onPressedChange={setDirectOnly}
+													pressed={directOnly}
+													size="sm"
+												/>
+											}
+										>
+											<NetworkIcon aria-hidden="true" />
+										</TooltipTrigger>
+										<TooltipPopup>Direct relationships only</TooltipPopup>
+									</Tooltip>
+								)
+							}
+							graph={visible}
+						/>
 						<ul aria-label="All relationships" className="sr-only">
-							{graph.relationships.map((edge) => (
+							{visible.relationships.map((edge) => (
 								<li key={edge.relationshipId}>
 									{names.get(Number(edge.sourcePartyId))}{" "}
 									{RELATIONSHIP_LABEL[edge.type].toLowerCase()}{" "}
@@ -131,18 +136,6 @@ export function PartyRelationships({ party }: { party: API.PartyDetails }) {
 						</ul>
 					</>
 				))}
-
-			{adding && (
-				<AddRelationshipDialog
-					initialParty={{ partyId: anchorId, name: anchor?.name ?? party.name }}
-					onClose={() => setAdding(false)}
-					onCreated={(sourceId) => {
-						setAnchorId(sourceId);
-						setAdding(false);
-						toastManager.add({ title: "Relationship added", type: "success" });
-					}}
-				/>
-			)}
 		</section>
 	);
 }

@@ -100,7 +100,7 @@ function getCountIcon(extra: ExtraDetails) {
 	return FileIcon;
 }
 
-function ExtraTile({
+export function ExtraTile({
 	extra,
 	onOpen,
 }: {

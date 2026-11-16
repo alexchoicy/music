@@ -1,4 +1,5 @@
 import { useSortable } from "@dnd-kit/react/sortable";
+import type * as API from "@music/api";
 import {
 	CropIcon,
 	ExternalLinkIcon,
@@ -10,13 +11,12 @@ import {
 	Trash2Icon,
 } from "lucide-react";
 
-import type * as API from "@music/api";
+import { Badge } from "#/components/base/badge";
+import { Button } from "#/components/base/button";
+import { Input } from "#/components/base/input";
 import type { PreparedExtraFile } from "#/lib/upload/extraUpload";
 import { formatFileSize } from "#/lib/utils/file";
 import { cn } from "#/lib/utils/styles";
-import { Badge } from "#/old-components/coss/badge";
-import { Button } from "#/old-components/coss/button";
-import { Input } from "#/old-components/coss/input";
 
 type FileType = API.FileType;
 
@@ -98,7 +98,7 @@ export function ExtraAssetRow({
 				<GripVerticalIcon aria-hidden="true" />
 			</Button>
 
-			<div className="flex size-14 items-center justify-center overflow-hidden rounded-lg border bg-muted text-muted-foreground">
+			<div className="flex size-14 items-center justify-center overflow-hidden rounded-lg bg-muted text-muted-foreground">
 				{asset.thumbnailUrl ? (
 					<img
 						alt=""
@@ -157,7 +157,7 @@ export function ExtraAssetRow({
 					>
 						<StarIcon
 							aria-hidden="true"
-							className={cn(isCover && "fill-current text-amber-500")}
+							className={cn(isCover && "fill-current text-primary")}
 						/>
 					</Button>
 				)}

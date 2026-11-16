@@ -76,6 +76,29 @@ function labelHeight(count: number) {
 	return count * LABEL_ROW_HEIGHT + (count > 1 ? STACKED_LABEL_PADDING : 0);
 }
 
+// Keeps only the relationships that touch the focus party.
+export function directRelationships(
+	graph: RelationshipGraph,
+): RelationshipGraph {
+	const focusId = Number(graph.focusPartyId);
+	const relationships = graph.relationships.filter(
+		(edge) =>
+			Number(edge.sourcePartyId) === focusId ||
+			Number(edge.targetPartyId) === focusId,
+	);
+	const kept = new Set(
+		relationships.flatMap((edge) => [
+			Number(edge.sourcePartyId),
+			Number(edge.targetPartyId),
+		]),
+	);
+	return {
+		...graph,
+		parties: graph.parties.filter((party) => kept.has(Number(party.partyId))),
+		relationships,
+	};
+}
+
 // Lays the graph out top to bottom: a relationship's target (the group, or the
 // character voiced) sits above its source.
 export function layoutRelationships(graph: RelationshipGraph) {

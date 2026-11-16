@@ -7,9 +7,11 @@ import { z } from "zod";
 import { AlbumCoversEditor } from "#/components/album/edit/AlbumCoversEditor";
 import { AlbumDetailsForm } from "#/components/album/edit/AlbumDetailsForm";
 import { AlbumTracksEditor } from "#/components/album/edit/AlbumTracksEditor";
+import { AlbumExtrasEditor } from "#/components/album/extras/edit/AlbumExtrasEditor";
 import { Button } from "#/components/base/button";
 import { Skeleton } from "#/components/base/skeleton";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "#/components/base/tabs";
+import { LibraryEmptyState } from "#/components/library/LibraryStates";
 import { useUserInfo } from "#/context/UserInfoContext";
 import { albumQueries } from "#/lib/queries/album.queries";
 import { albumEditQueries } from "#/lib/queries/albumEdit.queries";
@@ -17,8 +19,6 @@ import type { AlbumEditDetails } from "#/lib/queries/albumEdit.queries";
 import { getAlbumCoverUrl } from "#/lib/utils/album";
 import { canEditContent } from "#/lib/utils/roles";
 import { rethrowNotFound } from "#/lib/utils/routing";
-import { AlbumExtrasTab } from "#/old-components/albums/extras/AlbumExtrasTab";
-import { LibraryEmptyState } from "#/old-components/LibraryEmptyState";
 
 const editTabs = ["details", "cover", "tracks", "extras"] as const;
 
@@ -155,7 +155,7 @@ function RouteComponent() {
 					)}
 					<TabsPanel value="extras">
 						<div>
-							<AlbumExtrasTab albumId={Number(album.albumId)} />
+							<AlbumExtrasEditor albumId={Number(album.albumId)} />
 						</div>
 					</TabsPanel>
 				</Tabs>

@@ -8,16 +8,6 @@ export type RelationshipGraph = API.PartyRelationshipGraph;
 export type Relationship = API.PartyRelationshipDetails;
 export type RelationshipParty = API.PartySummary;
 
-export const relationshipLabels: Record<RelationshipType, string> = {
-	MemberOf: "Member of",
-	VoiceActorOf: "Voice actor for (声優)",
-	AffiliatedWith: "Affiliated with",
-};
-
-export const relationshipOptions = Object.entries(relationshipLabels).map(
-	([value, label]) => ({ value: value as RelationshipType, label }),
-);
-
 export const partyRelationshipQueries = {
 	graph: (partyId: number) =>
 		queryOptions({

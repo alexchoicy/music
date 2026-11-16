@@ -2,19 +2,23 @@ import { useQuery } from "@tanstack/react-query";
 import { BookImageIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 
+import { ExtraTile } from "#/components/album/extras/AlbumExtras";
+import { hasUnfinishedAssets } from "#/components/album/extras/extraAssets";
+import { Button } from "#/components/base/button";
+import { Skeleton } from "#/components/base/skeleton";
+import { LibraryEmptyState } from "#/components/library/LibraryStates";
 import { extraQueries } from "#/lib/queries/extra.queries";
 import type { ExtraDetails } from "#/lib/queries/extra.queries";
-import { Button } from "#/old-components/coss/button";
-import { Skeleton } from "#/old-components/coss/skeleton";
-import { LibraryEmptyState } from "#/old-components/LibraryEmptyState";
 
-import { ExtraCard } from "./ExtraCard";
 import { ExtraEditDialog } from "./ExtraEditDialog";
-import { hasUnfinishedAssets } from "./extraUtils";
 
+// The dialog keeps the extra as it was opened, so its version check still catches outside changes
 type DialogState = { mode: "create" } | { mode: "edit"; extra: ExtraDetails };
 
-export function AlbumExtrasTab({ albumId }: { albumId: number }) {
+const GRID_CLASS =
+	"-mx-2 grid grid-cols-2 gap-x-2 gap-y-1 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]";
+
+export function AlbumExtrasEditor({ albumId }: { albumId: number }) {
 	const [dialog, setDialog] = useState<DialogState | null>(null);
 	const { data: extras, isPending } = useQuery({
 		...extraQueries.getAlbumExtras(albumId),
@@ -24,10 +28,12 @@ export function AlbumExtrasTab({ albumId }: { albumId: number }) {
 	});
 
 	return (
-		<section className="grid gap-4">
+		<section aria-labelledby="edit-extras" className="flex flex-col gap-4">
 			<div className="flex flex-wrap items-end justify-between gap-3">
-				<div>
-					<h2 className="text-lg font-semibold">Extras</h2>
+				<div className="flex flex-col gap-1">
+					<h2 className="text-xl font-semibold tracking-tight" id="edit-extras">
+						Extras
+					</h2>
 					<p className="text-sm text-muted-foreground">
 						Booklet scans, packaging, inserts and bonus content for this album.
 					</p>
@@ -39,21 +45,28 @@ export function AlbumExtrasTab({ albumId }: { albumId: number }) {
 			</div>
 
 			{isPending ? (
-				<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+				<div aria-hidden="true" className={GRID_CLASS}>
 					{Array.from({ length: 4 }, (_, index) => (
-						<Skeleton className="aspect-square" key={index} />
+						<div className="p-2" key={index}>
+							<Skeleton className="aspect-square w-full" shape="tile" />
+						</div>
 					))}
 				</div>
 			) : extras && extras.length > 0 ? (
-				<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+				<ul className={GRID_CLASS}>
 					{extras.map((extra) => (
-						<ExtraCard
-							extra={extra}
+						<li
+							className="min-w-0"
+							data-testid="extra-card"
 							key={extra.extraId}
-							onOpen={() => setDialog({ mode: "edit", extra })}
-						/>
+						>
+							<ExtraTile
+								extra={extra}
+								onOpen={() => setDialog({ mode: "edit", extra })}
+							/>
+						</li>
 					))}
-				</div>
+				</ul>
 			) : (
 				<LibraryEmptyState
 					description="Add a booklet, packaging scan or bonus file to get started."

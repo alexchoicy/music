@@ -45,3 +45,22 @@ export const PARTY_TYPE: Record<PartyType, string> = {
 } as const;
 
 export const PARTY_TYPE_OPTIONS = enumOptions(PARTY_TYPE);
+
+export const PARTY_EXTERNAL_INFO_TYPE: Record<
+	API.PartyExternalInfoType,
+	string
+> = {
+	OfficialWebsite: "Official website",
+	Spotify: "Spotify",
+	AppleMusic: "Apple Music",
+	YouTube: "YouTube",
+	YouTubeMusic: "YouTube Music",
+	Twitter: "X (Twitter)",
+	Instagram: "Instagram",
+	Mora: "mora",
+	Ototoy: "OTOTOY",
+} as const;
+
+export const PARTY_EXTERNAL_INFO_TYPE_OPTIONS = enumOptions(
+	PARTY_EXTERNAL_INFO_TYPE,
+);

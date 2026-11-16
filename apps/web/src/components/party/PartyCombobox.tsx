@@ -64,6 +64,7 @@ type PartyComboboxProps = {
 	allowCreate?: boolean;
 	ariaLabel: string;
 	disabled?: boolean;
+	filterOutIds?: number[];
 	placeholder?: string;
 	selectedIds: number[];
 	setSelectedIds: (selectedIds: number[]) => void;
@@ -90,6 +91,7 @@ export function PartyCombobox({
 	allowCreate = false,
 	ariaLabel,
 	disabled,
+	filterOutIds = [],
 	placeholder = "Search parties...",
 	selectedIds,
 	setSelectedIds,
@@ -137,9 +139,14 @@ export function PartyCombobox({
 		.map((partyId) => optionById.get(partyId))
 		.filter((option): option is PartyOption => option !== undefined);
 	const selectedIdSet = new Set(selectedIds);
+	const excludedIdSet = new Set(filterOutIds);
 	const results = searchResults
 		.map(toOption)
-		.filter((option) => !selectedIdSet.has(option.partyId));
+		.filter(
+			(option) =>
+				!selectedIdSet.has(option.partyId) &&
+				!excludedIdSet.has(option.partyId),
+		);
 
 	const trimmedQuery = query.trim();
 	const isSearching = trimmedQuery !== debouncedQuery || isFetching;
@@ -171,6 +178,7 @@ export function PartyCombobox({
 	}
 
 	function selectParty(partyId: number) {
+		if (excludedIdSet.has(partyId)) return;
 		if (!selectedIdSet.has(partyId)) setSelectedIds([...selectedIds, partyId]);
 		setQuery("");
 		setIsCreateOpen(false);

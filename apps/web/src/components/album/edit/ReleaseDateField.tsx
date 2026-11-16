@@ -126,7 +126,7 @@ export function ReleaseDateField({
 				</Popover>
 				{selectedDate && (
 					<Button
-						aria-label="Clear release date"
+						aria-label={`Clear ${label.toLowerCase()}`}
 						onClick={() => onChange(null)}
 						size="icon"
 						variant="outline"

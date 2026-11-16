@@ -5,8 +5,8 @@ import type { ChangeEvent } from "react";
 import { COVER_IMAGE_ACCEPT } from "#/constant/album";
 import { Button } from "#/old-components/coss/button";
 import { Field, FieldLabel } from "#/old-components/coss/field";
-import { CroppedImagePreview } from "#/old-components/croppedImagePreview";
-import { ImageCropDialog } from "#/old-components/imageCropDialog";
+import { CroppedImagePreview } from "#/components/image/CroppedImagePreview";
+import { ImageCropDialog } from "#/components/image/ImageCropDialog";
 import type { CroppedArea } from "#/store/albumUploadStoreType";
 import { useConcertUploadStore } from "#/store/concertUploadStore";
 

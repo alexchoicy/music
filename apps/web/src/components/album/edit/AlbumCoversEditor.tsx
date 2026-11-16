@@ -6,6 +6,8 @@ import type { ChangeEvent } from "react";
 import { Badge } from "#/components/base/badge";
 import { Button } from "#/components/base/button";
 import { toastManager } from "#/components/base/toast";
+import { CroppedImagePreview } from "#/components/image/CroppedImagePreview";
+import { ImageCropDialog } from "#/components/image/ImageCropDialog";
 import { ALBUM_COVER_ASPECT_RATIO, COVER_IMAGE_ACCEPT } from "#/constant/album";
 import { completeUpload } from "#/lib/api/uploads";
 import {
@@ -18,8 +20,6 @@ import type {
 	UpdateAlbumCoverRequest,
 } from "#/lib/queries/albumEdit.queries";
 import { createCoverAsset } from "#/lib/utils/upload";
-import { CroppedImagePreview } from "#/old-components/croppedImagePreview";
-import { ImageCropDialog } from "#/old-components/imageCropDialog";
 import type { CroppedArea } from "#/store/albumUploadStoreType";
 
 type CropTarget =

@@ -1,13 +1,21 @@
 import type * as API from "@music/api";
-import { ExternalLinkIcon, PlayIcon, ShuffleIcon } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import {
+	ExternalLinkIcon,
+	PencilIcon,
+	PlayIcon,
+	ShuffleIcon,
+} from "lucide-react";
 import { useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/base/avatar";
 import { Badge } from "#/components/base/badge";
 import { Button } from "#/components/base/button";
 import { usePlayParty } from "#/components/party/usePlayParty";
+import { useUserInfo } from "#/context/UserInfoContext";
 import { COUNTRY_CODE, PARTY_KIND, PARTY_TYPE } from "#/enums/partyEnums";
 import { getPartyAvatarUrl } from "#/lib/utils/party";
+import { canEditContent } from "#/lib/utils/roles";
 import { getInitials } from "#/lib/utils/string";
 
 type PartyDetails = API.PartyDetails;
@@ -31,6 +39,7 @@ function plural(count: number, noun: string) {
 
 export function PartyHero({ party }: { party: PartyDetails }) {
 	const playParty = usePlayParty();
+	const canEdit = canEditContent(useUserInfo());
 	const [loading, setLoading] = useState<"play" | "shuffle" | null>(null);
 
 	const avatarUrl = getPartyAvatarUrl(party.avatarImages);
@@ -89,25 +98,44 @@ export function PartyHero({ party }: { party: PartyDetails }) {
 								{party.name}
 							</h1>
 						</div>
-						{albumCount > 0 && (
-							<div className="flex shrink-0 items-center gap-2 sm:pt-1">
-								<Button
-									loading={loading === "play"}
-									onClick={() => void play(false)}
-									size="lg"
-								>
-									<PlayIcon aria-hidden="true" />
-									Play
-								</Button>
-								<Button
-									loading={loading === "shuffle"}
-									onClick={() => void play(true)}
-									size="lg"
-									variant="outline"
-								>
-									<ShuffleIcon aria-hidden="true" />
-									Shuffle
-								</Button>
+						{(albumCount > 0 || canEdit) && (
+							<div className="flex shrink-0 flex-wrap items-center gap-2 sm:pt-1">
+								{albumCount > 0 && (
+									<>
+										<Button
+											loading={loading === "play"}
+											onClick={() => void play(false)}
+											size="lg"
+										>
+											<PlayIcon aria-hidden="true" />
+											Play
+										</Button>
+										<Button
+											loading={loading === "shuffle"}
+											onClick={() => void play(true)}
+											size="lg"
+											variant="outline"
+										>
+											<ShuffleIcon aria-hidden="true" />
+											Shuffle
+										</Button>
+									</>
+								)}
+								{canEdit && (
+									<Button
+										render={
+											<Link
+												params={{ id: String(party.partyId) }}
+												to="/parties/$id/edit"
+											/>
+										}
+										size="lg"
+										variant="outline"
+									>
+										<PencilIcon aria-hidden="true" />
+										Edit party
+									</Button>
+								)}
 							</div>
 						)}
 					</div>

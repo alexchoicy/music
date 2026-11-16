@@ -1,12 +1,34 @@
 import { move } from "@dnd-kit/helpers";
 import { DragDropProvider } from "@dnd-kit/react";
+import type * as API from "@music/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { UploadIcon } from "lucide-react";
+import { ImageIcon, UploadIcon } from "lucide-react";
 import pMap from "p-map";
 import { useEffect, useId, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
-import type * as API from "@music/api";
+import {
+	getAssetStatusLabel,
+	getAssetThumbnailUrl,
+} from "#/components/album/extras/extraAssets";
+import { Alert, AlertDescription } from "#/components/base/alert";
+import { Button } from "#/components/base/button";
+import {
+	Dialog,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogPanel,
+	DialogPopup,
+	DialogTitle,
+} from "#/components/base/dialog";
+import { Field, FieldLabel } from "#/components/base/field";
+import { Input } from "#/components/base/input";
+import { Textarea } from "#/components/base/textarea";
+import { toastManager } from "#/components/base/toast";
+import { CroppedImagePreview } from "#/components/image/CroppedImagePreview";
+import { ImageCropDialog } from "#/components/image/ImageCropDialog";
+import { FilterSelect } from "#/components/library/FilterSelect";
 import { MEDIA_SOURCE_OPTIONS } from "#/enums/albumEnums";
 import { EXTRA_CATEGORY_OPTIONS } from "#/enums/extraEnums";
 import {
@@ -19,29 +41,10 @@ import type {
 } from "#/lib/queries/extra.queries";
 import { prepareExtraFile, uploadExtraFiles } from "#/lib/upload/extraUpload";
 import { cn } from "#/lib/utils/styles";
-import { Alert, AlertDescription } from "#/old-components/coss/alert";
-import { Button } from "#/old-components/coss/button";
-import {
-	Dialog,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogPanel,
-	DialogPopup,
-	DialogTitle,
-} from "#/old-components/coss/dialog";
-import { Field, FieldLabel } from "#/old-components/coss/field";
-import { Input } from "#/old-components/coss/input";
-import { Textarea } from "#/old-components/coss/textarea";
-import { toastManager } from "#/old-components/coss/toast";
-import { EnumFieldSelect } from "#/old-components/enumFieldSelect";
-import { ImageCropDialog } from "#/old-components/imageCropDialog";
 import type { CroppedArea } from "#/store/albumUploadStoreType";
 
 import { ExtraAssetRow } from "./ExtraAssetRow";
 import type { ExtraAssetDraft } from "./ExtraAssetRow";
-import { ExtraCover } from "./ExtraCover";
-import { getAssetStatusLabel, getAssetThumbnailUrl } from "./extraUtils";
 
 type ExtraCategory = API.ExtraCategory;
 type MediaSource = API.MediaSource;
@@ -343,10 +346,11 @@ export function ExtraEditDialog({
 					<DialogPanel>
 						<div className="grid gap-5">
 							<div className="grid gap-4 sm:grid-cols-[8rem_minmax(0,1fr)]">
-								<ExtraCover
+								<CroppedImagePreview
 									alt="Extra cover"
-									className="aspect-square w-32"
+									className="size-32"
 									croppedArea={coverCrop ?? undefined}
+									fallback={<ImageIcon aria-hidden="true" className="size-8" />}
 									height={coverAsset?.height ?? 1}
 									src={coverAsset?.thumbnailUrl ?? undefined}
 									width={coverAsset?.width ?? 1}
@@ -365,13 +369,13 @@ export function ExtraEditDialog({
 										/>
 									</Field>
 									<div className="grid gap-3 sm:grid-cols-2">
-										<EnumFieldSelect
+										<FilterSelect
 											label="Category"
 											onValueChange={setCategory}
 											options={EXTRA_CATEGORY_OPTIONS}
 											value={category}
 										/>
-										<EnumFieldSelect
+										<FilterSelect
 											label="Source"
 											onValueChange={setSource}
 											options={MEDIA_SOURCE_OPTIONS}
@@ -406,8 +410,8 @@ export function ExtraEditDialog({
 								<div
 									{...getRootProps()}
 									className={cn(
-										"flex cursor-pointer items-center justify-center gap-3 rounded-xl border-2 border-dashed px-4 py-5 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:bg-muted/40",
-										isDragActive && "border-primary bg-primary/5",
+										"flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-dashed border-input px-4 py-5 text-sm text-muted-foreground transition-colors hover:bg-accent",
+										isDragActive && "border-primary bg-accent",
 										isBusy && "pointer-events-none opacity-50",
 									)}
 									data-testid="extra-dropzone"
@@ -422,14 +426,14 @@ export function ExtraEditDialog({
 								</div>
 
 								{assets.length > 0 && (
-									<div className="overflow-hidden rounded-xl border">
+									<div className="-mx-3">
 										<DragDropProvider
 											onDragEnd={(event) => {
 												if (event.canceled) return;
 												setAssets((current) => move(current, event));
 											}}
 										>
-											<div className="divide-y">
+											<div className="flex flex-col">
 												{assets.map((asset, index) => (
 													<ExtraAssetRow
 														asset={asset}

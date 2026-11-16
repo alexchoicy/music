@@ -16,11 +16,11 @@ import { Field, FieldLabel } from "#/components/base/field";
 import { Input } from "#/components/base/input";
 import { Textarea } from "#/components/base/textarea";
 import { FilterSelect } from "#/components/library/FilterSelect";
+import { PartyCombobox } from "#/components/party/PartyCombobox";
 import {
 	TRACK_CONTENT_TYPE_OPTIONS,
 	TRACK_VERSION_TYPE_OPTIONS,
 } from "#/enums/trackEnums";
-import { PartyCombobox } from "#/old-components/PartyCombobox";
 
 import { LanguageSelect } from "./LanguageSelect";
 import type { TrackDraft } from "./trackDraft";

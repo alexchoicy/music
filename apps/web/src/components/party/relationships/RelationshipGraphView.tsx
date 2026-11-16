@@ -1,12 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { useId, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/base/avatar";
 import { PARTY_KIND, PARTY_TYPE } from "#/enums/partyEnums";
-import type {
-	RelationshipGraph,
-	RelationshipType,
-} from "#/lib/queries/party-relationships.queries";
+import type { RelationshipGraph } from "#/lib/queries/party-relationships.queries";
 import { getPartyAvatarUrl } from "#/lib/utils/party";
 import { getInitials } from "#/lib/utils/string";
 import { cn } from "#/lib/utils/styles";
@@ -18,23 +16,21 @@ import {
 	NODE_HEIGHT,
 	NODE_WIDTH,
 } from "./relationshipLayout";
-
-export const RELATIONSHIP_COLOR: Record<RelationshipType, string> = {
-	MemberOf: "var(--color-primary)",
-	VoiceActorOf: "var(--color-chart-2)",
-	AffiliatedWith: "var(--color-chart-4)",
-};
-
-// Read as "<source> <label> <target>".
-export const RELATIONSHIP_LABEL: Record<RelationshipType, string> = {
-	MemberOf: "Member of",
-	VoiceActorOf: "Voice actor for",
-	AffiliatedWith: "Affiliated with",
-};
+import {
+	RELATIONSHIP_COLOR,
+	RELATIONSHIP_LABEL,
+	RelationshipSwatch,
+} from "./relationshipTypes";
 
 const MIXED_COLOR = "var(--color-muted-foreground)";
 
-export function RelationshipGraphView({ graph }: { graph: RelationshipGraph }) {
+export function RelationshipGraphView({
+	graph,
+	controls,
+}: {
+	graph: RelationshipGraph;
+	controls?: ReactNode;
+}) {
 	const markerId = useId().replaceAll(":", "");
 	const layout = useMemo(() => layoutRelationships(graph), [graph]);
 	const focusId = Number(graph.focusPartyId);
@@ -61,6 +57,7 @@ export function RelationshipGraphView({ graph }: { graph: RelationshipGraph }) {
 
 	return (
 		<RelationshipCanvas
+			controls={controls}
 			focus={
 				focusNode
 					? {
@@ -70,7 +67,8 @@ export function RelationshipGraphView({ graph }: { graph: RelationshipGraph }) {
 					: undefined
 			}
 			height={layout.height}
-			key={graph.focusPartyId}
+			// A changed layout has new coordinates, so the old view no longer fits.
+			key={`${graph.focusPartyId}-${layout.width}x${layout.height}`}
 			width={layout.width}
 		>
 			<svg
@@ -84,20 +82,14 @@ export function RelationshipGraphView({ graph }: { graph: RelationshipGraph }) {
 						<marker
 							id={`${markerId}-${index}`}
 							key={color}
-							markerHeight="8"
-							markerWidth="8"
+							markerHeight="12"
+							markerUnits="userSpaceOnUse"
+							markerWidth="12"
 							orient="auto-start-reverse"
-							refX="7"
-							refY="4"
+							refX="10"
+							refY="6"
 						>
-							<path
-								d="M 1 1 L 7 4 L 1 7"
-								fill="none"
-								stroke={color}
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="1.5"
-							/>
+							<path d="M 1 1.5 L 11 6 L 1 10.5 Z" fill={color} />
 						</marker>
 					))}
 				</defs>
@@ -125,35 +117,30 @@ export function RelationshipGraphView({ graph }: { graph: RelationshipGraph }) {
 				})}
 			</svg>
 
-			{layout.connections.map((connection) => {
-				const stacked = connection.relationships.length > 1;
-				return (
-					<div
-						className={cn(
-							"pointer-events-none absolute flex -translate-x-1/2 -translate-y-1/2 flex-col bg-popover px-2.5 shadow-pop transition-opacity duration-150 motion-reduce:transition-none",
-							stacked ? "rounded-lg py-1" : "rounded-full",
-							!isConnected(connection) && "opacity-25",
-						)}
-						key={`${connection.sourcePartyId}-${connection.targetPartyId}`}
-						style={{ left: connection.x, top: connection.y }}
-					>
-						{connection.relationships.map((edge) => (
-							<span
-								className="flex items-center gap-1.5 text-xs font-medium whitespace-nowrap"
-								key={edge.relationshipId}
-								style={{ height: LABEL_ROW_HEIGHT }}
-							>
-								<span
-									aria-hidden="true"
-									className="size-1.5 rounded-full"
-									style={{ background: RELATIONSHIP_COLOR[edge.type] }}
-								/>
-								{RELATIONSHIP_LABEL[edge.type]}
-							</span>
-						))}
-					</div>
-				);
-			})}
+			{layout.connections.map((connection) => (
+				<div
+					className={cn(
+						"pointer-events-none absolute flex -translate-x-1/2 -translate-y-1/2 flex-col bg-popover px-2.5 shadow-pop transition-opacity duration-150 motion-reduce:transition-none",
+						connection.relationships.length > 1
+							? "rounded-lg py-1"
+							: "rounded-full",
+						!isConnected(connection) && "opacity-25",
+					)}
+					key={`${connection.sourcePartyId}-${connection.targetPartyId}`}
+					style={{ left: connection.x, top: connection.y }}
+				>
+					{connection.relationships.map((edge) => (
+						<span
+							className="flex items-center gap-1.5 text-xs font-medium whitespace-nowrap"
+							key={edge.relationshipId}
+							style={{ height: LABEL_ROW_HEIGHT }}
+						>
+							<RelationshipSwatch type={edge.type} />
+							{RELATIONSHIP_LABEL[edge.type]}
+						</span>
+					))}
+				</div>
+			))}
 
 			{[...layout.nodes.entries()].map(([partyId, node]) => {
 				const avatarUrl = getPartyAvatarUrl(node.party.avatarImages);

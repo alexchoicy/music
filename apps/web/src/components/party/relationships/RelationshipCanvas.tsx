@@ -35,11 +35,13 @@ export function RelationshipCanvas({
 	width,
 	height,
 	focus,
+	controls,
 	children,
 }: {
 	width: number;
 	height: number;
 	focus?: { x: number; y: number };
+	controls?: ReactNode;
 	children: ReactNode;
 }) {
 	const viewport = useRef<HTMLDivElement>(null);
@@ -86,7 +88,7 @@ export function RelationshipCanvas({
 					container.getBoundingClientRect().top -
 					scrollViewport.getBoundingClientRect().top +
 					scrollViewport.scrollTop;
-				container.style.height = `${Math.max(360, scrollViewport.clientHeight - top - 24)}px`;
+				container.style.height = `${Math.max(360, (scrollViewport.clientHeight - top - 24) * 0.8)}px`;
 			};
 			const observer = new ResizeObserver(resize);
 			if (scrollViewport) observer.observe(scrollViewport);
@@ -273,6 +275,12 @@ export function RelationshipCanvas({
 			</p>
 
 			<div className="absolute top-3 right-3 flex items-center gap-0.5 rounded-xl bg-popover/90 p-1 shadow-pop backdrop-blur">
+				{controls && (
+					<>
+						{controls}
+						<span aria-hidden="true" className="mx-1 h-4 w-px bg-border" />
+					</>
+				)}
 				<Button
 					aria-label="Zoom out"
 					disabled={view.zoom <= MIN_ZOOM}
