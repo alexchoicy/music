@@ -402,9 +402,9 @@ private fun SectionHeader(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "See all",
+                        text = "View all",
                         style = MaterialTheme.typography.labelMedium,
-                        color = colors.foreground,
+                        color = colors.mutedForeground,
                     )
                 }
             trailing != null ->

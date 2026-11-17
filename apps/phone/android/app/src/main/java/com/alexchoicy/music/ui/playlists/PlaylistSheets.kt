@@ -1,16 +1,19 @@
 package com.alexchoicy.music.ui.playlists
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -226,7 +230,7 @@ fun AddToPlaylistSheet(
         onDismiss = { if (openCreate) creating = true else onDismiss() },
     ) { hide ->
         Column {
-            SheetAction(R.drawable.ic_plus, "New playlist…") {
+            NewPlaylistOption {
                 openCreate = true
                 hide()
             }
@@ -250,11 +254,10 @@ fun AddToPlaylistSheet(
 }
 
 @Composable
-private fun PlaylistOption(
-    playlist: PlaylistSummary,
+private fun OptionRow(
     onClick: () -> Unit,
+    content: @Composable RowScope.() -> Unit,
 ) {
-    val colors = MusicTheme.colors
     Row(
         modifier =
             Modifier
@@ -266,7 +269,43 @@ private fun PlaylistOption(
                 .padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
-    ) {
+        content = content,
+    )
+}
+
+@Composable
+private fun NewPlaylistOption(onClick: () -> Unit) {
+    val colors = MusicTheme.colors
+    OptionRow(onClick) {
+        Box(
+            modifier =
+                Modifier
+                    .size(48.dp)
+                    .background(colors.muted, MaterialTheme.shapes.small),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painterResource(R.drawable.ic_plus),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = colors.mutedForeground,
+            )
+        }
+        Text(
+            text = "New playlist…",
+            style = MaterialTheme.typography.titleSmall,
+            color = colors.foreground,
+        )
+    }
+}
+
+@Composable
+private fun PlaylistOption(
+    playlist: PlaylistSummary,
+    onClick: () -> Unit,
+) {
+    val colors = MusicTheme.colors
+    OptionRow(onClick) {
         PlaylistCover(
             urls = playlist.coverUrls,
             shape = MaterialTheme.shapes.small,

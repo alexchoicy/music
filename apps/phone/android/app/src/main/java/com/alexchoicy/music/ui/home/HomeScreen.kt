@@ -60,6 +60,7 @@ import com.alexchoicy.music.ui.musicApplication
 import com.alexchoicy.music.ui.player.LocalPlayer
 import com.alexchoicy.music.ui.theme.MusicTheme
 import com.alexchoicy.music.ui.theme.PageInset
+import com.alexchoicy.music.ui.theme.TabularNumbers
 
 private val SquareTileWidth = 150.dp
 
@@ -154,7 +155,7 @@ private fun LazyListScope.homeContent(
     if (continueListening.isNotEmpty()) {
         item {
             val player = LocalPlayer.current
-            HomeSection("Continue listening", spacing = 12.dp) {
+            HomeSection("Continue listening", spacing = 0.dp) {
                 Column(Modifier.padding(horizontal = PageInset - 12.dp)) {
                     continueListening.take(3).forEach {
                         ContinueListeningRow(
@@ -238,7 +239,7 @@ private fun LibraryCounts(
 @Composable
 private fun HomeSection(
     title: String,
-    spacing: Dp = 16.dp,
+    spacing: Dp = 8.dp,
     onViewAll: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
@@ -314,7 +315,7 @@ private fun ContinueListeningRow(
                 .fillMaxWidth()
                 .clip(MaterialTheme.shapes.large)
                 .clickable(onClick = onClick)
-                .padding(12.dp),
+                .padding(start = 12.dp, top = 12.dp, bottom = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -381,7 +382,7 @@ private fun ContinueListeningRow(
                 )
                 Text(
                     text = "${formatPlaybackTime(positionMs)} / ${formatPlaybackTime(durationMs)}",
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall.merge(TabularNumbers),
                     color = colors.mutedForeground,
                 )
             }

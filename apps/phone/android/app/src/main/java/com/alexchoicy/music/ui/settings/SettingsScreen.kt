@@ -54,12 +54,11 @@ fun SettingsScreen(
     var showDevices by remember { mutableStateOf(false) }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding =
-            PaddingValues(
-                top = contentPadding.calculateTopPadding(),
-                bottom = contentPadding.calculateBottomPadding() + PageInset,
-            ),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(top = contentPadding.calculateTopPadding()),
+        contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding() + PageInset),
         verticalArrangement = Arrangement.spacedBy(32.dp),
     ) {
         item { PageHeader("Settings", onBack) }

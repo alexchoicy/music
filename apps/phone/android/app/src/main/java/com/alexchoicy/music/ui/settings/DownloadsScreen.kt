@@ -93,10 +93,12 @@ fun DownloadsScreen(
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(top = contentPadding.calculateTopPadding()),
             contentPadding =
                 PaddingValues(
-                    top = contentPadding.calculateTopPadding(),
                     bottom = contentPadding.calculateBottomPadding() + if (selecting != null) 88.dp else PageInset,
                 ),
         ) {

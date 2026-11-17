@@ -173,25 +173,27 @@ private fun AlbumMenu(
         subtitle = album.artistNames ?: "Unknown artist",
         onDismiss = onDismiss,
     ) { hide ->
-        SheetAction(R.drawable.ic_play, "Play") {
-            player.playAlbum(album.id, shuffle = false)
-            hide()
-        }
-        SheetAction(R.drawable.ic_shuffle, "Shuffle") {
-            player.playAlbum(album.id, shuffle = true)
-            hide()
-        }
-        SheetAction(R.drawable.ic_list_start, "Play next") {
-            player.queueAlbum(album.id, next = true)
-            hide()
-        }
-        SheetAction(R.drawable.ic_list_plus, "Add to queue") {
-            player.queueAlbum(album.id, next = false)
-            hide()
-        }
-        SheetAction(R.drawable.ic_share, "Share") {
-            sharer.share(album.id, album.title)
-            hide()
+        Column {
+            SheetAction(R.drawable.ic_play, "Play") {
+                player.playAlbum(album.id, shuffle = false)
+                hide()
+            }
+            SheetAction(R.drawable.ic_shuffle, "Shuffle") {
+                player.playAlbum(album.id, shuffle = true)
+                hide()
+            }
+            SheetAction(R.drawable.ic_list_start, "Play next") {
+                player.queueAlbum(album.id, next = true)
+                hide()
+            }
+            SheetAction(R.drawable.ic_list_plus, "Add to queue") {
+                player.queueAlbum(album.id, next = false)
+                hide()
+            }
+            SheetAction(R.drawable.ic_share, "Share") {
+                sharer.share(album.id, album.title)
+                hide()
+            }
         }
     }
 }

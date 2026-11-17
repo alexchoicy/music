@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
@@ -81,6 +82,10 @@ fun SearchScreen(
         ) {
             Text(
                 text = "Search",
+                modifier =
+                    Modifier
+                        .heightIn(min = 48.dp)
+                        .wrapContentHeight(),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MusicTheme.colors.foreground,
             )
