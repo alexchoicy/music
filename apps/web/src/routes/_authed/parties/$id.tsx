@@ -1,13 +1,17 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
 import { PartyHero } from "#/components/party/detail/PartyHero";
-import { PartyTabs } from "#/components/party/detail/PartyTabs";
+import { PARTY_TABS, PartyTabs } from "#/components/party/detail/PartyTabs";
 import { partyQueries } from "#/lib/queries/party.queries";
 import { getPartyAvatarUrl } from "#/lib/utils/party";
 import { rethrowNotFound } from "#/lib/utils/routing";
 
 export const Route = createFileRoute("/_authed/parties/$id")({
+	validateSearch: z.object({
+		tab: z.enum(PARTY_TABS).optional(),
+	}),
 	loader: ({ context, params }) => {
 		return context.queryClient
 			.query({

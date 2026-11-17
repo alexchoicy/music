@@ -1,6 +1,6 @@
 import type * as API from "@music/api";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useMatch, useNavigate } from "@tanstack/react-router";
 import {
 	ArrowDownIcon,
 	ArrowUpIcon,
@@ -132,6 +132,11 @@ export function SearchCommand({
 	open,
 }: SearchCommandProps) {
 	const navigate = useNavigate();
+	const partyTab = useMatch({
+		from: "/_authed/parties/$id",
+		select: (match) => match.search.tab,
+		shouldThrow: false,
+	});
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [query, setQuery] = useState("");
 	const [highlightedKey, setHighlightedKey] = useState<string>();
@@ -199,6 +204,7 @@ export function SearchCommand({
 
 		void navigate({
 			params: { id: String(item.value.partyId) },
+			search: { tab: partyTab },
 			to: "/parties/$id",
 		});
 	}

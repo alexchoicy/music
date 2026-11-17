@@ -1,9 +1,9 @@
 import type * as API from "@music/api";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, getRouteApi } from "@tanstack/react-router";
 import { ChevronRightIcon, Disc3Icon, PlusIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 
 import { AlbumTile } from "#/components/album/AlbumTile";
@@ -28,6 +28,16 @@ import { useAudioPlayerStore } from "#/store/audioPlayer/audioPlayerStore";
 
 type PartyDetails = API.PartyDetails;
 type Album = API.AlbumListItem;
+
+export const PARTY_TABS = [
+	"overview",
+	"relationships",
+	"albums",
+	"featured-in",
+] as const;
+type PartyTab = (typeof PARTY_TABS)[number];
+
+const route = getRouteApi("/_authed/parties/$id");
 
 const ALBUM_GRID_CLASS =
 	"grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))]";
@@ -106,18 +116,27 @@ export function PartyTabs({ party }: { party: PartyDetails }) {
 	const queryClient = useQueryClient();
 	const userInfo = useUserInfo();
 	const panelsRef = useRef<HTMLDivElement>(null);
-	const [tab, setTab] = useState("overview");
+	const search = route.useSearch();
+	const navigate = route.useNavigate();
 	const playAlbum = useAudioPlayerStore((state) => state.playAlbum);
 	const addToQueue = useAudioPlayerStore((state) => state.addToQueue);
 	const hasAlbums = party.albums.length > 0;
 	const hasFeaturedIn = party.appearsOnAlbums.length > 0;
 	const canCreate = !userInfo.roles.includes(ROLE.User);
-	const tabs = [
-		"overview",
-		"relationships",
-		hasAlbums ? "albums" : null,
-		hasFeaturedIn ? "featured-in" : null,
-	].filter((value): value is string => value !== null);
+	const tabs = PARTY_TABS.filter(
+		(value) =>
+			(value !== "albums" || hasAlbums) &&
+			(value !== "featured-in" || hasFeaturedIn),
+	);
+	const tab = search.tab && tabs.includes(search.tab) ? search.tab : "overview";
+
+	function setTab(value: PartyTab) {
+		void navigate({
+			replace: true,
+			resetScroll: false,
+			search: { tab: value === "overview" ? undefined : value },
+		});
+	}
 
 	function visibleAlbumLinks() {
 		const panel = panelsRef.current?.querySelector(
@@ -234,7 +253,11 @@ export function PartyTabs({ party }: { party: PartyDetails }) {
 	}
 
 	return (
-		<Tabs onValueChange={setTab} ref={panelsRef} value={tab}>
+		<Tabs
+			onValueChange={(value: PartyTab) => setTab(value)}
+			ref={panelsRef}
+			value={tab}
+		>
 			<ScrollArea
 				className="-mx-0.5 -mt-0.5 mb-4.5 h-auto w-auto"
 				clampContentMinWidth={false}
