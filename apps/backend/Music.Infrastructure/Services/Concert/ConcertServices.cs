@@ -7,6 +7,7 @@ using Music.Core.Common.Exceptions;
 using Music.Core.Common.Utils;
 using Music.Core.Entities;
 using Music.Core.Options;
+using Music.Core.Services.Albums;
 using Music.Core.Services.Concerts;
 using Music.Core.Services.Concerts.Enums;
 using Music.Core.Services.Concerts.Requests;
@@ -354,20 +355,6 @@ public class ConcertService(
             .Include(concert => concert.ConcertFiles)
                 .ThenInclude(concertFile => concertFile.File)
                     .ThenInclude(file => file!.FileObjects)
-            .Include(concert => concert.ConcertAlbums)
-                .ThenInclude(concertAlbum => concertAlbum.Album)
-                    .ThenInclude(album => album!.Credits)
-                        .ThenInclude(credit => credit.Party)
-            .Include(concert => concert.ConcertAlbums)
-                .ThenInclude(concertAlbum => concertAlbum.Album)
-                    .ThenInclude(album => album!.Discs)
-                        .ThenInclude(disc => disc.Tracks)
-                            .ThenInclude(albumTrack => albumTrack.Track)
-            .Include(concert => concert.ConcertAlbums)
-                .ThenInclude(concertAlbum => concertAlbum.Album)
-                    .ThenInclude(album => album!.Images)
-                        .ThenInclude(image => image.File)
-                            .ThenInclude(file => file!.FileObjects)
             .FirstOrDefaultAsync(concert => concert.Id == concertId, cancellationToken);
 
         if (concert is null)
@@ -379,11 +366,22 @@ public class ConcertService(
                 cancellationToken
             );
 
+        List<AlbumListItem> linkedAlbums = await dbContext.LoadAlbumListItemsAsync(
+            dbContext.Albums.Where(album =>
+                dbContext.ConcertAlbums.Any(concertAlbum =>
+                    concertAlbum.ConcertId == concertId && concertAlbum.AlbumId == album.Id
+                )
+            ),
+            assetsService,
+            cancellationToken
+        );
+
         return concert.ToDetails(
             contentService,
             assetsService,
             ShareLinks.Concert(baseOptions.Value, concert.Id),
-            subtitles
+            subtitles,
+            linkedAlbums
         );
     }
 }

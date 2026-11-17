@@ -54,7 +54,7 @@ export function ContinueListening({
 				Continue listening
 			</h2>
 			<ul className="grid grid-cols-[repeat(auto-fit,minmax(min(380px,100%),1fr))] gap-x-6">
-				{visibleItems.slice(0, 6).map((item) => (
+				{visibleItems.slice(0, 3).map((item) => (
 					<ContinueListeningRow item={item} key={item.deviceId} />
 				))}
 			</ul>

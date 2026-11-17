@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createServerOnlyFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 
 import { getApiEndpoint } from "@/lib/ServerFunction/getApiEndpoint";
@@ -16,9 +16,7 @@ export class ApiError extends Error {
 	}
 }
 
-const getServerHeaders = createServerFn().handler(async () => {
-	return getRequestHeader("cookie");
-});
+const getServerHeaders = createServerOnlyFn(() => getRequestHeader("cookie"));
 
 const isBrowser = !import.meta.env.SSR;
 
@@ -65,7 +63,7 @@ export async function $APIFetch<T>(
 ): Promise<APIFetchResult<T>> {
 	const apiEndpoint = await getResolvedApiEndpoint();
 	const url = joinUrl(apiEndpoint, endpoint);
-	const cookieString = isBrowser ? undefined : await getServerHeaders();
+	const cookieString = isBrowser ? undefined : getServerHeaders();
 	const headers = new Headers(options.headers);
 
 	if (cookieString) {

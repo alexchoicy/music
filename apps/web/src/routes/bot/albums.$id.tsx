@@ -37,7 +37,7 @@ export const Route = createFileRoute("/bot/albums/$id")({
 		const { track } = deps;
 		const { id } = params;
 
-		const result = await getSimpleAlbum({ data: { id } });
+		const result = await getSimpleAlbum(id);
 
 		if (!result) {
 			throw notFound();

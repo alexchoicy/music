@@ -1,4 +1,5 @@
 using Music.Core.Entities;
+using Music.Core.Services.Albums;
 using Music.Core.Services.Concerts;
 using Music.Core.Services.Files;
 using Music.Core.Services.Files.Enums;
@@ -32,7 +33,8 @@ internal static class ConcertReadMapper
         IContentService contentService,
         IAssetsService assetsService,
         string shareUrl,
-        IReadOnlyDictionary<int, IReadOnlyList<SubtitleSummary>> subtitles
+        IReadOnlyDictionary<int, IReadOnlyList<SubtitleSummary>> subtitles,
+        IReadOnlyList<AlbumListItem> linkedAlbums
     )
     {
         return new ConcertDetails
@@ -44,11 +46,7 @@ internal static class ConcertReadMapper
             Date = concert.Date,
             CoverVariants = concert.ToConcertCoverVariants(assetsService),
             LinkedParties = concert.ConcertParties.ToConcertPartySummaries(assetsService),
-            LinkedAlbums = concert
-                .ConcertAlbums.Where(concertAlbum => concertAlbum.Album is not null)
-                .OrderBy(concertAlbum => concertAlbum.Album!.Title)
-                .Select(concertAlbum => concertAlbum.Album!.ToListItem(assetsService))
-                .ToList(),
+            LinkedAlbums = linkedAlbums.OrderBy(album => album.Title).ToList(),
             Files = concert
                 .ConcertFiles.OrderBy(concertFile => concertFile.Order)
                 .ThenBy(concertFile => concertFile.Title)

@@ -26,7 +26,8 @@ namespace Music.Infrastructure.Services.Upload
         {
             StoredFile? storedFile =
                 await _dbContext
-                    .StoredFiles.Include(f => f.FileObjects)
+                    .StoredFiles.AsNoTracking()
+                    .Include(f => f.FileObjects)
                     .FirstOrDefaultAsync(
                         f => f.Id == createUploadRequest.FileObjectId,
                         cancellationToken
@@ -78,7 +79,8 @@ namespace Music.Infrastructure.Services.Upload
         {
             FileObject fileObject =
                 await _dbContext
-                    .FileObjects.Include(fo => fo.File)
+                    .FileObjects.AsNoTracking()
+                    .Include(fo => fo.File)
                     .FirstOrDefaultAsync(fo => fo.Id == fileObjectID, cancellationToken)
                 ?? throw new EntityNotFoundException("File object not found");
 

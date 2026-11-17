@@ -306,8 +306,14 @@ public class AlbumEditService(
             .Discs.SelectMany(disc => disc.Tracks)
             .ToList();
 
-        foreach (int? languageId in trackRequests.Select(t => t.LanguageId).Distinct())
-            await EnsureLanguageExistsAsync(languageId is 0 ? null : languageId, cancellationToken);
+        await EnsureLanguagesExistAsync(
+            trackRequests
+                .Where(t => t.LanguageId is not (null or 0))
+                .Select(t => t.LanguageId!.Value)
+                .Distinct()
+                .ToList(),
+            cancellationToken
+        );
 
         await EnsurePartiesExistAsync(
             trackRequests.SelectMany(t => t.ArtistIds).Distinct().ToList(),
@@ -775,6 +781,24 @@ public class AlbumEditService(
         );
         if (!exists)
             throw new ValidationException($"Language {languageId} does not exist.");
+    }
+
+    private async Task EnsureLanguagesExistAsync(
+        IReadOnlyCollection<int> languageIds,
+        CancellationToken cancellationToken
+    )
+    {
+        if (languageIds.Count == 0)
+            return;
+
+        List<int> existingIds = await dbContext
+            .Languages.Where(language => languageIds.Contains(language.Id))
+            .Select(language => language.Id)
+            .ToListAsync(cancellationToken);
+
+        int[] missingIds = languageIds.Except(existingIds).ToArray();
+        if (missingIds.Length > 0)
+            throw new ValidationException($"Language {missingIds[0]} does not exist.");
     }
 
     private async Task EnsurePartiesExistAsync(

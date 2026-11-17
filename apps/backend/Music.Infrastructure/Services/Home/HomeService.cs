@@ -16,29 +16,34 @@ public class HomeService(
 ) : IHomeService
 {
     private const int SectionLimit = 10;
+    private static readonly TimeSpan ResumePointLifetime = TimeSpan.FromDays(7);
 
     public async Task<HomeFeed> GetFeedAsync(
         string userId,
         CancellationToken cancellationToken = default
     )
     {
-        var resumePoints = await dbContext
-            .PlaybackResumePoints.AsNoTracking()
-            .Where(point => point.UserId == userId)
-            .OrderByDescending(point => point.UpdatedAt)
-            .Take(SectionLimit)
-            .Select(point => new
-            {
-                point.DeviceId,
-                point.DeviceName,
-                point.PositionMs,
-                point.UpdatedAt,
-                point.AlbumTrack!.AlbumDisc!.AlbumId,
-                point.AlbumTrack.TrackId,
-                point.AlbumTrack.Track!.Title,
-                point.AlbumTrack.Track.DurationInMs,
-            })
-            .ToListAsync(cancellationToken);
+        DateTimeOffset resumePointCutoff = DateTimeOffset.UtcNow - ResumePointLifetime;
+        var resumePoints = (
+            await dbContext
+                .PlaybackResumePoints.AsNoTracking()
+                .Where(point => point.UserId == userId && point.UpdatedAt >= resumePointCutoff)
+                .OrderByDescending(point => point.UpdatedAt)
+                .Take(SectionLimit)
+                .Select(point => new
+                {
+                    point.DeviceId,
+                    point.DeviceName,
+                    point.PositionMs,
+                    point.UpdatedAt,
+                    point.AlbumTrackId,
+                    point.AlbumTrack!.AlbumDisc!.AlbumId,
+                    point.AlbumTrack.TrackId,
+                    point.AlbumTrack.Track!.Title,
+                    point.AlbumTrack.Track.DurationInMs,
+                })
+                .ToListAsync(cancellationToken)
+        ).DistinctBy(point => point.AlbumTrackId).ToList();
 
         List<int> recentlyPlayedAlbumIds = await dbContext
             .ListeningHistoryEntries.AsNoTracking()

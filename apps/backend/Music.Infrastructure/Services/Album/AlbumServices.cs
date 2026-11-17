@@ -52,8 +52,6 @@ public class AlbumService(
         IQueryable<Core.Entities.Album> query = _dbContext.Albums.AsNoTracking();
 
         string normalizedSearch = StringUtils.NormalizeString(request.Search ?? string.Empty);
-        string searchPattern = $"%{normalizedSearch}%";
-        bool hasSearch = normalizedSearch.Length > 0;
 
         if (request.Types?.Count > 0)
         {
@@ -85,8 +83,13 @@ public class AlbumService(
             );
         }
 
-        if (hasSearch)
+        if (normalizedSearch.Length > 0)
         {
+            string searchPattern = $"%{normalizedSearch}%";
+            IQueryable<int> albumIdsWithMatchedTracks = SearchTracks(normalizedSearch)
+                .SelectMany(track => track.AlbumTracks)
+                .Select(albumTrack => albumTrack.AlbumDisc!.AlbumId);
+
             query = query.Where(album =>
                 EF.Functions.Like(
                     AppDbContext.ImmutableUnaccent(album.NormalizedTitle),
@@ -96,42 +99,42 @@ public class AlbumService(
                     AppDbContext.ImmutableUnaccent(album.NormalizedTitle),
                     AppDbContext.ImmutableUnaccent(normalizedSearch)
                 )
-                || album.Discs.Any(disc =>
-                    disc.Tracks.Any(albumTrack =>
-                        albumTrack.Track != null
-                        && (
-                            EF.Functions.Like(
-                                AppDbContext.ImmutableUnaccent(albumTrack.Track.NormalizedTitle),
-                                AppDbContext.ImmutableUnaccent(searchPattern)
-                            )
-                            || EF.Functions.TrigramsAreSimilar(
-                                AppDbContext.ImmutableUnaccent(albumTrack.Track.NormalizedTitle),
-                                AppDbContext.ImmutableUnaccent(normalizedSearch)
-                            )
-                            || (
-                                albumTrack.Track.BasedOnTrack != null
-                                && (
-                                    EF.Functions.Like(
-                                        AppDbContext.ImmutableUnaccent(
-                                            albumTrack.Track.BasedOnTrack.NormalizedTitle
-                                        ),
-                                        AppDbContext.ImmutableUnaccent(searchPattern)
-                                    )
-                                    || EF.Functions.TrigramsAreSimilar(
-                                        AppDbContext.ImmutableUnaccent(
-                                            albumTrack.Track.BasedOnTrack.NormalizedTitle
-                                        ),
-                                        AppDbContext.ImmutableUnaccent(normalizedSearch)
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
+                || albumIdsWithMatchedTracks.Contains(album.Id)
             );
         }
 
         return query;
+    }
+
+    private IQueryable<Track> SearchTracks(string normalizedSearch)
+    {
+        string searchPattern = $"%{normalizedSearch}%";
+
+        return _dbContext
+            .Tracks.AsNoTracking()
+            .Where(track =>
+                EF.Functions.Like(
+                    AppDbContext.ImmutableUnaccent(track.NormalizedTitle),
+                    AppDbContext.ImmutableUnaccent(searchPattern)
+                )
+                || EF.Functions.TrigramsAreSimilar(
+                    AppDbContext.ImmutableUnaccent(track.NormalizedTitle),
+                    AppDbContext.ImmutableUnaccent(normalizedSearch)
+                )
+                || (
+                    track.BasedOnTrack != null
+                    && (
+                        EF.Functions.Like(
+                            AppDbContext.ImmutableUnaccent(track.BasedOnTrack.NormalizedTitle),
+                            AppDbContext.ImmutableUnaccent(searchPattern)
+                        )
+                        || EF.Functions.TrigramsAreSimilar(
+                            AppDbContext.ImmutableUnaccent(track.BasedOnTrack.NormalizedTitle),
+                            AppDbContext.ImmutableUnaccent(normalizedSearch)
+                        )
+                    )
+                )
+            );
     }
 
     public async Task<IReadOnlyList<AlbumListItem>> GetAllForListAsync(
@@ -140,8 +143,6 @@ public class AlbumService(
     )
     {
         string normalizedSearch = StringUtils.NormalizeString(request.Search ?? string.Empty);
-        string searchPattern = $"%{normalizedSearch}%";
-        bool hasSearch = normalizedSearch.Length > 0;
         IQueryable<Core.Entities.Album> query = FilterListQuery(request);
 
         query = request.Sort switch
@@ -157,68 +158,12 @@ public class AlbumService(
             query = query.Take(request.Limit);
         }
 
-        List<Core.Entities.Album> albums = await IncludeListItemData(query)
-            .ToListAsync(cancellationToken);
-
-        Dictionary<int, HashSet<int>> matchedTrackIdsByAlbumId = [];
-
-        if (hasSearch && albums.Count > 0)
-        {
-            int[] albumIds = albums.Select(album => album.Id).ToArray();
-
-            var matchedTracks = await _dbContext
-                .AlbumTracks.AsNoTracking()
-                .Where(albumTrack =>
-                    albumTrack.AlbumDisc != null
-                    && albumTrack.Track != null
-                    && albumIds.Contains(albumTrack.AlbumDisc.AlbumId)
-                    && (
-                        EF.Functions.Like(
-                            AppDbContext.ImmutableUnaccent(albumTrack.Track.NormalizedTitle),
-                            AppDbContext.ImmutableUnaccent(searchPattern)
-                        )
-                        || EF.Functions.TrigramsAreSimilar(
-                            AppDbContext.ImmutableUnaccent(albumTrack.Track.NormalizedTitle),
-                            AppDbContext.ImmutableUnaccent(normalizedSearch)
-                        )
-                        || (
-                            albumTrack.Track.BasedOnTrack != null
-                            && (
-                                EF.Functions.Like(
-                                    AppDbContext.ImmutableUnaccent(
-                                        albumTrack.Track.BasedOnTrack.NormalizedTitle
-                                    ),
-                                    AppDbContext.ImmutableUnaccent(searchPattern)
-                                )
-                                || EF.Functions.TrigramsAreSimilar(
-                                    AppDbContext.ImmutableUnaccent(
-                                        albumTrack.Track.BasedOnTrack.NormalizedTitle
-                                    ),
-                                    AppDbContext.ImmutableUnaccent(normalizedSearch)
-                                )
-                            )
-                        )
-                    )
-                )
-                .Select(albumTrack => new { albumTrack.AlbumDisc!.AlbumId, albumTrack.TrackId })
-                .ToListAsync(cancellationToken);
-
-            matchedTrackIdsByAlbumId = matchedTracks
-                .GroupBy(track => track.AlbumId)
-                .ToDictionary(
-                    group => group.Key,
-                    group => group.Select(track => track.TrackId).ToHashSet()
-                );
-        }
-
-        return albums
-            .Select(album =>
-                album.ToListItem(
-                    _assetsService,
-                    matchedTrackIdsByAlbumId.GetValueOrDefault(album.Id)
-                )
-            )
-            .ToList();
+        return await _dbContext.LoadAlbumListItemsAsync(
+            query,
+            _assetsService,
+            cancellationToken,
+            normalizedSearch.Length > 0 ? SearchTracks(normalizedSearch) : null
+        );
     }
 
     public async Task<IReadOnlyList<AlbumListItem>> GetListItemsByIdsAsync(
@@ -229,36 +174,19 @@ public class AlbumService(
         if (albumIds.Count == 0)
             return [];
 
-        List<Core.Entities.Album> albums = await IncludeListItemData(
-                _dbContext.Albums.AsNoTracking().Where(album => albumIds.Contains(album.Id))
+        Dictionary<int, AlbumListItem> itemsById = (
+            await _dbContext.LoadAlbumListItemsAsync(
+                _dbContext.Albums.Where(album => albumIds.Contains(album.Id)),
+                _assetsService,
+                cancellationToken
             )
-            .ToListAsync(cancellationToken);
-
-        Dictionary<int, AlbumListItem> itemsById = albums.ToDictionary(
-            album => album.Id,
-            album => album.ToListItem(_assetsService)
-        );
+        ).ToDictionary(album => album.AlbumId);
         return albumIds
             .Where(itemsById.ContainsKey)
             .Distinct()
             .Select(albumId => itemsById[albumId])
             .ToList();
     }
-
-    private static IQueryable<Core.Entities.Album> IncludeListItemData(
-        IQueryable<Core.Entities.Album> query
-    ) =>
-        query
-            .AsSplitQuery()
-            .Include(a => a.Credits)
-                .ThenInclude(c => c.Party)
-            .Include(a => a.Discs)
-                .ThenInclude(d => d.Tracks)
-                    .ThenInclude(at => at.Track)
-                        .ThenInclude(track => track!.BasedOnTrack)
-            .Include(a => a.Images)
-                .ThenInclude(i => i.File)
-                    .ThenInclude(f => f!.FileObjects);
 
     public async Task<AlbumDetails> GetByIdAsync(
         int albumId,
@@ -1009,23 +937,20 @@ public class AlbumService(
         if (inputArtistIds.Count == 0)
             inputArtistIds.Add(1);
 
-        List<Core.Entities.Album> matchingAlbums = await _dbContext
-            .Albums.Where(a => a.NormalizedTitle == normalizedTitle)
-            .Include(a => a.Credits)
+        List<List<int>> existingArtistIdSets = await _dbContext
+            .Albums.AsNoTracking()
+            .Where(a => a.NormalizedTitle == normalizedTitle)
+            .Select(a =>
+                a.Credits.Where(c => c.Credit == CreditType.Artist).Select(c => c.PartyId).ToList()
+            )
             .ToListAsync(cancellationToken);
 
-        foreach (var existingAlbum in matchingAlbums)
-        {
-            List<int> existingArtistIds = existingAlbum
-                .Credits.Where(c => c.Credit == CreditType.Artist)
-                .Select(c => c.PartyId)
-                .Distinct()
-                .OrderBy(id => id)
-                .ToList();
-
-            if (inputArtistIds.SequenceEqual(existingArtistIds))
-                return true;
-        }
+        if (
+            existingArtistIdSets.Any(existingArtistIds =>
+                inputArtistIds.SequenceEqual(existingArtistIds.Distinct().Order())
+            )
+        )
+            return true;
 
         return false;
     }

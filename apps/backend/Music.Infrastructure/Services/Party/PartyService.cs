@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Music.Core.Common.Enums;
 using Music.Core.Common.Utils;
 using Music.Core.Options;
+using Music.Core.Services.Albums;
 using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Images.Enums;
 using Music.Core.Services.Parties;
@@ -374,7 +375,7 @@ public class PartyService(
 
         if (request.ExcludeNoAlbums)
         {
-            query = query.Where(p => p.AlbumCredits.Count > 0);
+            query = query.Where(p => p.AlbumCredits.Any());
         }
 
         if (hasSearch)
@@ -542,34 +543,36 @@ public class PartyService(
             return null;
         }
 
-        List<Core.Entities.Album> albums = await IncludeAlbumListData(
-                dbContext.Albums.AsNoTracking()
-            )
-            .Where(album =>
-                album.Credits.Any(credit =>
-                    credit.PartyId == partyId && credit.Credit == CreditType.Artist
+        List<AlbumListItem> albums = await dbContext.LoadAlbumListItemsAsync(
+            dbContext
+                .Albums.Where(album =>
+                    album.Credits.Any(credit =>
+                        credit.PartyId == partyId && credit.Credit == CreditType.Artist
+                    )
                 )
-            )
-            .OrderByDescending(album => album.CreatedAt)
-            .ToListAsync(cancellationToken);
+                .OrderByDescending(album => album.CreatedAt),
+            assetsService,
+            cancellationToken
+        );
 
-        List<Core.Entities.Album> appearsOnAlbums = await IncludeAlbumListData(
-                dbContext.Albums.AsNoTracking()
-            )
-            .Where(album =>
-                !album.Credits.Any(credit =>
-                    credit.PartyId == partyId && credit.Credit == CreditType.Artist
-                )
-                && album.Discs.Any(disc =>
-                    disc.Tracks.Any(albumTrack =>
-                        albumTrack.Track!.Credits.Any(credit =>
-                            credit.PartyId == partyId && credit.Credit == CreditType.Artist
+        List<AlbumListItem> appearsOnAlbums = await dbContext.LoadAlbumListItemsAsync(
+            dbContext
+                .Albums.Where(album =>
+                    !album.Credits.Any(credit =>
+                        credit.PartyId == partyId && credit.Credit == CreditType.Artist
+                    )
+                    && album.Discs.Any(disc =>
+                        disc.Tracks.Any(albumTrack =>
+                            albumTrack.Track!.Credits.Any(credit =>
+                                credit.PartyId == partyId && credit.Credit == CreditType.Artist
+                            )
                         )
                     )
                 )
-            )
-            .OrderByDescending(album => album.CreatedAt)
-            .ToListAsync(cancellationToken);
+                .OrderByDescending(album => album.CreatedAt),
+            assetsService,
+            cancellationToken
+        );
 
         return new PartyDetails
         {
@@ -634,27 +637,9 @@ public class PartyService(
                     Url = BuildExternalInfoUrl(externalInfo.Type, externalInfo.ExternalId),
                 })
                 .ToList(),
-            Albums = albums.Select(album => album.ToListItem(assetsService)).ToList(),
-            AppearsOnAlbums = appearsOnAlbums
-                .Select(album => album.ToListItem(assetsService))
-                .ToList(),
+            Albums = albums,
+            AppearsOnAlbums = appearsOnAlbums,
         };
-    }
-
-    private static IQueryable<Core.Entities.Album> IncludeAlbumListData(
-        IQueryable<Core.Entities.Album> query
-    )
-    {
-        return query
-            .AsSplitQuery()
-            .Include(album => album.Credits)
-                .ThenInclude(credit => credit.Party)
-            .Include(album => album.Discs)
-                .ThenInclude(disc => disc.Tracks)
-                    .ThenInclude(albumTrack => albumTrack.Track)
-            .Include(album => album.Images)
-                .ThenInclude(image => image.File)
-                    .ThenInclude(file => file!.FileObjects);
     }
 
     private static string BuildExternalInfoUrl(PartyExternalInfoType type, string externalId)

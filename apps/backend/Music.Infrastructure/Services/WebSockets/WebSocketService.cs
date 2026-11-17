@@ -369,7 +369,7 @@ public sealed class WebSocketService(
             finishedDeviceId =
                 session.ActivatedAt != 0
                 && state.Status == PlaybackStatus.Idle
-                && previous?.Status == PlaybackStatus.Playing
+                && previous?.Status != PlaybackStatus.Idle
                     ? session.DeviceId
                     : null;
 

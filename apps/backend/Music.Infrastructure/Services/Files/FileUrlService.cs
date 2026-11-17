@@ -31,10 +31,9 @@ public class FileUrlService(IContentService contentService, AppDbContext context
     )
     {
         Core.Entities.FileObject fileObject =
-            await context.FileObjects.FirstOrDefaultAsync(
-                file => file.Id == fileObjectId,
-                cancellationToken
-            )
+            await context
+                .FileObjects.AsNoTracking()
+                .FirstOrDefaultAsync(file => file.Id == fileObjectId, cancellationToken)
             ?? throw new EntityNotFoundException($"File object with ID {fileObjectId} not found.");
 
         if (!IsDashVariant(fileObject.FileObjectVariant))
@@ -71,10 +70,9 @@ public class FileUrlService(IContentService contentService, AppDbContext context
     )
     {
         Core.Entities.FileObject fileObject =
-            await context.FileObjects.FirstOrDefaultAsync(
-                file => file.Id == fileObjectId,
-                cancellationToken
-            )
+            await context
+                .FileObjects.AsNoTracking()
+                .FirstOrDefaultAsync(file => file.Id == fileObjectId, cancellationToken)
             ?? throw new EntityNotFoundException($"File object with ID {fileObjectId} not found.");
 
         if (IsDashVariant(fileObject.FileObjectVariant))
@@ -96,10 +94,9 @@ public class FileUrlService(IContentService contentService, AppDbContext context
     )
     {
         Core.Entities.FileObject fileObject =
-            await context.FileObjects.FirstOrDefaultAsync(
-                file => file.Id == fileObjectId,
-                cancellationToken
-            )
+            await context
+                .FileObjects.AsNoTracking()
+                .FirstOrDefaultAsync(file => file.Id == fileObjectId, cancellationToken)
             ?? throw new EntityNotFoundException($"File object with ID {fileObjectId} not found.");
 
         var track = await context

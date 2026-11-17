@@ -208,11 +208,14 @@ public sealed class ListeningHistoryService(
         var userEntries = dbContext
             .ListeningHistoryEntries.AsNoTracking()
             .Where(entry => entry.UserId == userId);
-        int totalPlays = await userEntries.CountAsync(cancellationToken);
-        int trackCount = await userEntries
-            .Select(entry => entry.AlbumTrackId)
-            .Distinct()
-            .CountAsync(cancellationToken);
+        var totals = await userEntries
+            .GroupBy(entry => entry.UserId)
+            .Select(group => new
+            {
+                TotalPlays = group.Count(),
+                TrackCount = group.Select(entry => entry.AlbumTrackId).Distinct().Count(),
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
         var counts = await userEntries
             .GroupBy(entry => entry.AlbumTrackId)
@@ -234,8 +237,8 @@ public sealed class ListeningHistoryService(
 
         return new ListeningHistoryCounts
         {
-            TotalPlays = totalPlays,
-            TrackCount = trackCount,
+            TotalPlays = totals?.TotalPlays ?? 0,
+            TrackCount = totals?.TrackCount ?? 0,
             Tracks = counts
                 .Where(item => albumTracks.ContainsKey(item.AlbumTrackId))
                 .Select(item =>

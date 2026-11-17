@@ -24,23 +24,23 @@ public class AuthService(
 
     public async Task<List<UserInfo>> GetUsersAsync()
     {
-        List<User> users = await _userManager.Users.ToListAsync();
-
-        List<UserInfo> userInfos = new(users.Count);
-        foreach (User user in users)
-        {
-            IList<string> roles = await _userManager.GetRolesAsync(user);
-            userInfos.Add(
-                new UserInfo
-                {
-                    Id = user.Id,
-                    UserName = user.UserName!,
-                    Roles = roles,
-                }
-            );
-        }
-
-        return userInfos;
+        return await _dbContext
+            .Users.AsNoTracking()
+            .Select(user => new UserInfo
+            {
+                Id = user.Id,
+                UserName = user.UserName!,
+                Roles = _dbContext
+                    .UserRoles.Where(userRole => userRole.UserId == user.Id)
+                    .Join(
+                        _dbContext.Roles,
+                        userRole => userRole.RoleId,
+                        role => role.Id,
+                        (userRole, role) => role.Name!
+                    )
+                    .ToList(),
+            })
+            .ToListAsync();
     }
 
     public async Task<UserInfo?> GetUserAsync(string id)

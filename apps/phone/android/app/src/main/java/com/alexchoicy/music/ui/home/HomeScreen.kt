@@ -156,7 +156,7 @@ private fun LazyListScope.homeContent(
             val player = LocalPlayer.current
             HomeSection("Continue listening", spacing = 12.dp) {
                 Column(Modifier.padding(horizontal = PageInset - 12.dp)) {
-                    continueListening.take(6).forEach {
+                    continueListening.take(3).forEach {
                         ContinueListeningRow(
                             it,
                             onClick = {
