@@ -17,7 +17,7 @@ namespace Music.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.14")
+                .HasAnnotation("ProductVersion", "10.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -1422,6 +1422,9 @@ namespace Music.Infrastructure.Migrations
 
                     b.Property<string>("Parsed")
                         .HasColumnType("jsonb");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .HasMaxLength(250)

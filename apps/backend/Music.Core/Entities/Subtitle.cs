@@ -16,6 +16,8 @@ public class Subtitle
 
     public SubtitleFormat Format { get; set; } = SubtitleFormat.PlainText;
 
+    public SubtitleSource Source { get; set; } = SubtitleSource.Other;
+
     public int? LanguageId { get; set; }
     public Language? Language { get; set; }
 

@@ -45,6 +45,7 @@ public sealed class SubtitleService(AppDbContext dbContext) : ISubtitleService
             SubtitleId = subtitle.Id,
             Title = subtitle.Title,
             Format = subtitle.Format,
+            Source = subtitle.Source,
             LanguageId = subtitle.LanguageId,
             LanguageName = subtitle.Language?.Name,
             Content = subtitle.Content,
@@ -230,6 +231,7 @@ public sealed class SubtitleService(AppDbContext dbContext) : ISubtitleService
             subtitle,
             request.Title,
             request.Format,
+            request.Source,
             request.LanguageId,
             request.Content,
             request.Parsed,
@@ -262,6 +264,7 @@ public sealed class SubtitleService(AppDbContext dbContext) : ISubtitleService
             subtitle,
             request.Title,
             request.Format,
+            request.Source,
             request.LanguageId,
             request.Content,
             request.Parsed,
@@ -278,6 +281,7 @@ public sealed class SubtitleService(AppDbContext dbContext) : ISubtitleService
         Subtitle subtitle,
         string? title,
         SubtitleFormat format,
+        SubtitleSource source,
         int? languageId,
         string content,
         ParsedLyrics? parsed,
@@ -304,6 +308,7 @@ public sealed class SubtitleService(AppDbContext dbContext) : ISubtitleService
 
         subtitle.Title = string.IsNullOrWhiteSpace(title) ? null : title.Trim();
         subtitle.Format = format;
+        subtitle.Source = source;
         subtitle.LanguageId = languageId;
         subtitle.Content = content;
         subtitle.Parsed = SerializeParsed(subtitle, format, parsed);

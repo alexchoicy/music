@@ -11,6 +11,9 @@ public sealed class CreateSubtitleRequest
     [EnumDataType(typeof(SubtitleFormat))]
     public required SubtitleFormat Format { get; init; }
 
+    [EnumDataType(typeof(SubtitleSource))]
+    public SubtitleSource Source { get; init; } = SubtitleSource.Other;
+
     public int? LanguageId { get; init; }
 
     [Required(AllowEmptyStrings = false)]
@@ -26,6 +29,9 @@ public sealed class UpdateSubtitleRequest
 
     [EnumDataType(typeof(SubtitleFormat))]
     public required SubtitleFormat Format { get; init; }
+
+    [EnumDataType(typeof(SubtitleSource))]
+    public SubtitleSource Source { get; init; } = SubtitleSource.Other;
 
     public int? LanguageId { get; init; }
 

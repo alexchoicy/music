@@ -28,6 +28,7 @@ public sealed class SubtitleDetails
     public required int SubtitleId { get; init; }
     public string? Title { get; init; }
     public required SubtitleFormat Format { get; init; }
+    public required SubtitleSource Source { get; init; }
     public int? LanguageId { get; init; }
     public string? LanguageName { get; init; }
     public required string Content { get; init; }
