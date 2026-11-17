@@ -306,7 +306,7 @@ export function PlayerSubtitlePanel({
 	return (
 		<section
 			aria-label="Subtitles"
-			className="relative flex h-[min(45vh,32rem)] w-full max-w-lg flex-col self-center overflow-hidden rounded-4xl bg-popover/85 shadow-player backdrop-blur-xl backdrop-saturate-150"
+			className="pointer-events-auto relative flex h-[min(45vh,32rem)] w-full max-w-lg flex-col self-center overflow-hidden rounded-4xl bg-popover/85 shadow-player backdrop-blur-xl backdrop-saturate-150"
 		>
 			<div className="flex items-center gap-2 px-4 pt-3 pb-2">
 				{subtitles.subtitles.length > 1 ? (

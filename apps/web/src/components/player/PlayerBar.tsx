@@ -496,7 +496,7 @@ export function PlayerBar() {
 				)}
 				<div
 					aria-label="Player"
-					className="rounded-4xl bg-popover/85 shadow-player backdrop-blur-xl backdrop-saturate-150"
+					className="pointer-events-auto rounded-4xl bg-popover/85 shadow-player backdrop-blur-xl backdrop-saturate-150"
 					role="region"
 					data-slot="player-bar"
 				>

@@ -479,6 +479,7 @@ export type CreatePlaylistRequest = {
 export type CreateSubtitleRequest = {
     title?: null | string;
     format: SubtitleFormat;
+    source?: SubtitleSource;
     languageId?: null | number | string;
     content: string;
     parsed?: null | ParsedLyrics;
@@ -1029,6 +1030,7 @@ export type SubtitleDetails = {
     subtitleId: number | string;
     title?: null | string;
     format: SubtitleFormat;
+    source: SubtitleSource;
     languageId?: null | number | string;
     languageName?: null | string;
     content: string;
@@ -1048,6 +1050,8 @@ export type SubtitleLyrics = {
     parsed?: null | ParsedLyrics;
     plainText?: null | string;
 };
+
+export type SubtitleSource = 'AmllTtmlDb' | 'LrcRed' | 'SyncLrc' | 'Other';
 
 export type SubtitleSummary = {
     subtitleId: number | string;
@@ -1170,6 +1174,7 @@ export type UpdatePartyResult = {
 export type UpdateSubtitleRequest = {
     title?: null | string;
     format: SubtitleFormat;
+    source?: SubtitleSource;
     languageId?: null | number | string;
     content: string;
     parsed?: null | ParsedLyrics;

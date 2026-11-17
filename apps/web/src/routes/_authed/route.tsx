@@ -169,7 +169,7 @@ function RouteComponent() {
 							</div>
 						</ScrollArea>
 						<div
-							className="pointer-events-none absolute inset-x-0 bottom-0 z-20 *:pointer-events-auto"
+							className="pointer-events-none absolute inset-x-0 bottom-0 z-20"
 							ref={playerRef}
 						>
 							<PlayerBar />
