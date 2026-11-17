@@ -51,7 +51,7 @@ export function PartyRelationships({ party }: { party: API.PartyDetails }) {
 			<div className="flex flex-wrap items-end justify-between gap-4">
 				<div className="flex flex-col gap-1">
 					<h2
-						className="text-xl font-semibold tracking-[-.01em]"
+						className="text-xl font-semibold tracking-tight"
 						id="party-relationships"
 					>
 						Relationships

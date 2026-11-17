@@ -72,7 +72,7 @@ export function ConcertFileList({
 					className="flex flex-col gap-0.5"
 					key={group.type}
 				>
-					<h3 className="px-2 pb-1.5 text-xs font-semibold tracking-[.06em] text-muted-foreground uppercase">
+					<h3 className="pb-1.5 text-xs font-semibold tracking-[.06em] text-muted-foreground uppercase">
 						{CONCERT_FILE_TYPE[group.type]}
 					</h3>
 					{group.files.map((file) => (
@@ -169,7 +169,7 @@ function ConcertFileRow({
 	return (
 		<div
 			className={cn(
-				"group/file relative flex flex-col rounded-lg p-2 transition-colors duration-150 hover:bg-accent motion-reduce:transition-none",
+				"group/file relative -mx-2 flex flex-col rounded-lg p-2 transition-colors duration-150 hover:bg-accent motion-reduce:transition-none",
 			)}
 		>
 			<button

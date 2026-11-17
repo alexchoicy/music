@@ -60,7 +60,7 @@ export function PartyTile({
 				</Avatar>
 				{showKind && (
 					<Badge
-						className="absolute -bottom-3 left-1/2 -translate-x-1/2"
+						className="absolute bottom-0 left-1/2 -translate-x-1/2"
 						size="tag"
 						variant="artwork"
 					>
@@ -68,12 +68,7 @@ export function PartyTile({
 					</Badge>
 				)}
 			</span>
-			<span
-				className={cn(
-					"flex max-w-full min-w-0 flex-col items-center gap-0.5 text-center",
-					showKind && "mt-3",
-				)}
-			>
+			<span className="flex max-w-full min-w-0 flex-col items-center gap-0.5 text-center">
 				<span
 					className="max-w-full truncate text-sm font-semibold"
 					title={party.name}

@@ -36,12 +36,14 @@ export function SearchField({
 export function ResetFiltersButton({
 	disabled,
 	onClick,
+	size = "sm",
 }: {
 	disabled: boolean;
 	onClick: () => void;
+	size?: "sm" | "default";
 }) {
 	return (
-		<Button disabled={disabled} onClick={onClick} size="sm" variant="ghost">
+		<Button disabled={disabled} onClick={onClick} size={size} variant="ghost">
 			Reset filters
 		</Button>
 	);

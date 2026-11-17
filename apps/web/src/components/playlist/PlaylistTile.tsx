@@ -68,7 +68,7 @@ export function PlaylistTile({ playlist }: { playlist: PlaylistListItem }) {
 					</div>
 					<span className="truncate text-xs text-muted-foreground">{meta}</span>
 				</div>
-				<div className="relative z-10 -me-1 opacity-100 transition-opacity group-focus-within/tile:opacity-100 group-hover/tile:opacity-100 md:pointer-fine:opacity-0">
+				<div className="relative z-10 opacity-100 transition-opacity group-focus-within/tile:opacity-100 group-hover/tile:opacity-100 md:pointer-fine:opacity-0">
 					<PlaylistActionsMenu playlist={playlist} />
 				</div>
 			</div>

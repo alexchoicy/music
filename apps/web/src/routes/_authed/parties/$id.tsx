@@ -40,7 +40,7 @@ function RouteComponent() {
 				<div className="absolute inset-0 bg-linear-to-b from-background/20 via-background/94 via-80% to-background" />
 			</div>
 
-			<div className="relative flex w-full flex-col gap-7 px-4 py-6 sm:px-8 lg:px-14">
+			<div className="relative flex w-full flex-col gap-7 p-4 sm:p-6">
 				<PartyHero party={party} />
 				<PartyTabs party={party} />
 			</div>

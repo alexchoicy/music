@@ -53,7 +53,7 @@ export function ContinueListening({
 			<h2 className="text-xl font-semibold tracking-tight" id={headingId}>
 				Continue listening
 			</h2>
-			<ul className="grid grid-cols-[repeat(auto-fit,minmax(min(380px,100%),1fr))] gap-x-6">
+			<ul className="-mx-3 grid grid-cols-[repeat(auto-fit,minmax(min(380px,100%),1fr))] gap-x-6">
 				{visibleItems.slice(0, 3).map((item) => (
 					<ContinueListeningRow item={item} key={item.deviceId} />
 				))}

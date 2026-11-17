@@ -70,7 +70,7 @@ function RouteComponent() {
 				<div className="absolute inset-0 bg-linear-to-b from-background/20 via-background/94 via-80% to-background" />
 			</div>
 
-			<div className="relative mx-auto flex w-full max-w-[1120px] flex-col gap-12 px-4 py-8 sm:px-6 sm:py-12">
+			<div className="relative mx-auto flex w-full max-w-[1120px] flex-col gap-12 p-4 sm:p-6">
 				<AlbumHero
 					album={album}
 					canEdit={canEditContent(userInfo)}

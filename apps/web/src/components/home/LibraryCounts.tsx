@@ -16,11 +16,11 @@ export function LibraryCounts({ stats }: { stats: LibraryStats }) {
 	return (
 		<section
 			aria-label="Library counts"
-			className="grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))]"
+			className="-mx-3 grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))]"
 		>
 			{counts.map((item) => (
 				<Link
-					className="flex items-center justify-between gap-4 rounded-lg px-5 py-4 transition-colors duration-150 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset motion-reduce:transition-none"
+					className="flex items-center justify-between gap-4 rounded-lg px-3 py-4 transition-colors duration-150 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset motion-reduce:transition-none"
 					key={item.to}
 					to={item.to}
 				>

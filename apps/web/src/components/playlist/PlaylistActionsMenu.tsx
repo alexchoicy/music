@@ -114,10 +114,12 @@ export function PlaylistActionsMenu({
 	playlist,
 	disabled,
 	onDeleted,
+	prominent,
 }: {
 	playlist: ManagedPlaylist;
 	disabled?: boolean;
 	onDeleted?: () => Promise<void>;
+	prominent?: boolean;
 }) {
 	const manage = usePlaylistManagement(playlist, onDeleted);
 
@@ -131,8 +133,8 @@ export function PlaylistActionsMenu({
 								render={
 									<Button
 										type="button"
-										size="icon-sm"
-										variant="ghost"
+										size={prominent ? "icon-lg" : "icon-sm"}
+										variant={prominent ? "secondary" : "ghost"}
 										disabled={disabled || manage.isDeleting}
 										aria-label={`Playlist actions for ${playlist.name}`}
 									/>

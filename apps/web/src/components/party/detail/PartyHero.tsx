@@ -99,7 +99,7 @@ export function PartyHero({ party }: { party: PartyDetails }) {
 							</h1>
 						</div>
 						{(albumCount > 0 || canEdit) && (
-							<div className="flex shrink-0 flex-wrap items-center gap-2 sm:pt-1">
+							<div className="flex shrink-0 flex-wrap items-center gap-2">
 								{albumCount > 0 && (
 									<>
 										<Button

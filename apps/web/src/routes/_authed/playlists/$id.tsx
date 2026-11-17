@@ -236,6 +236,7 @@ function PlaylistPage() {
 							disabled={mutation.isPending}
 							onDeleted={() => navigate({ to: "/playlists" })}
 							playlist={playlist}
+							prominent
 						/>
 					</div>
 				</div>

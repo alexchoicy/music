@@ -161,6 +161,7 @@ function RouteComponent() {
 				<ResetFiltersButton
 					disabled={isDefaultSearch(filters)}
 					onClick={() => updateSearch(concertSearchDefaults)}
+					size="default"
 				/>
 			</div>
 

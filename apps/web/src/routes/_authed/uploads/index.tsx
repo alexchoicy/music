@@ -116,11 +116,8 @@ function RouteComponent() {
 	};
 
 	return (
-		<main className="flex min-h-full w-full flex-col gap-6 px-4 py-6 sm:px-6 lg:px-12">
-			<PageHeader
-				eyebrow="Resume upload"
-				title="Drop a file whose upload failed and it will upload again."
-			/>
+		<main className="flex min-h-full w-full min-w-0 flex-col gap-6 p-4 sm:p-6">
+			<PageHeader eyebrow="Uploads" title="Resume upload" />
 
 			<div className="flex flex-wrap items-center justify-between gap-4 py-4">
 				<div className="flex flex-col gap-0.5">
