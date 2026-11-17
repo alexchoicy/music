@@ -26,7 +26,7 @@ android {
         applicationId = "com.alexchoicy.music"
         minSdk = 35
         targetSdk = 36
-        versionCode = 30
+        versionCode = 40
         versionName = "1.0.0"
     }
 
