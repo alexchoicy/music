@@ -47,6 +47,8 @@ class PlaybackSettings(
         private set
     var playInstrumentals by mutableStateOf(preferences.getBoolean(PLAY_INSTRUMENTAL_KEY, false))
         private set
+    var captions by mutableStateOf(preferences.getBoolean(CAPTIONS_KEY, false))
+        private set
 
     // Auto streams originals on Wi-Fi and Efficient on mobile data.
     val resolvedStreamQuality: AudioQuality
@@ -97,6 +99,11 @@ class PlaybackSettings(
         playInstrumentals = value
     }
 
+    fun updateCaptions(value: Boolean) {
+        preferences.edit { putBoolean(CAPTIONS_KEY, value) }
+        captions = value
+    }
+
     private fun <T : Enum<T>> enumPreference(
         key: String,
         entries: List<T>,
@@ -111,5 +118,6 @@ class PlaybackSettings(
         const val RADIO_KEY = "radio"
         const val PLAY_TALK_KEY = "playTalkTracks"
         const val PLAY_INSTRUMENTAL_KEY = "playInstrumentals"
+        const val CAPTIONS_KEY = "captions"
     }
 }

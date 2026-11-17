@@ -5,7 +5,9 @@ import androidx.activity.compose.PredictiveBackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -21,6 +23,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -273,11 +276,25 @@ private fun ExpandingPlayer(
     val colors = MusicTheme.colors
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
+    val app = LocalContext.current.applicationContext as MusicApplication
     var openSheet by remember { mutableStateOf<PlayerSheetContent?>(null) }
     var artSlot by remember { mutableStateOf<Rect?>(null) }
+    var showLyrics by rememberSaveable { mutableStateOf(false) }
     val miniVisible by remember { derivedStateOf { sheet.progress < MINI_FADE_END } }
     val fullVisible by remember { derivedStateOf { sheet.progress > FULL_FADE_START } }
     val progress = { sheet.progress }
+    val captions = player.settings.captions
+    val lyrics =
+        rememberPlayerLyrics(
+            repository = app.lyrics,
+            albumId = entry.track.albumId,
+            trackId = entry.track.trackId,
+            online = app.network.online,
+            needsVersions = openSheet == PlayerSheetContent.Options,
+            needsLyrics = captions || showLyrics,
+        )
+    val lyricsPosition by rememberFramePosition(player, running = fullVisible && (captions || showLyrics))
+    val coverHidden by animateFloatAsState(if (showLyrics) 1f else 0f, tween(200), label = "cover")
 
     PredictiveBackHandler(enabled = sheet.expanded) { events ->
         try {
@@ -350,6 +367,10 @@ private fun ExpandingPlayer(
                 },
                 onOpenSheet = { openSheet = it },
                 onArtSlot = { artSlot = it },
+                lyrics = lyrics,
+                lyricsPosition = { lyricsPosition },
+                showLyrics = showLyrics,
+                onToggleLyrics = { showLyrics = !showLyrics },
                 interactive = fullVisible,
                 modifier =
                     Modifier
@@ -358,11 +379,7 @@ private fun ExpandingPlayer(
                             layout(constraints.maxWidth, constraints.maxHeight) {
                                 placeable.place(-lerp(insetPx, 0f, progress()).roundToInt(), 0)
                             }
-                        }.graphicsLayer {
-                            alpha =
-                                ((progress() - FULL_FADE_START) / (FULL_FADE_END - FULL_FADE_START))
-                                    .coerceIn(0f, 1f)
-                        },
+                        }.graphicsLayer { alpha = fullAlpha(progress()) },
             )
             if (miniVisible) {
                 MiniPlayer(
@@ -376,9 +393,18 @@ private fun ExpandingPlayer(
             SharedArtwork(
                 url = entry.track.coverUrl,
                 progress = progress,
+                hidden = { coverHidden },
                 fullSlot = artSlot,
                 insetPx = insetPx,
-            )
+            ) {
+                if (captions && fullVisible && !showLyrics) {
+                    Box(
+                        Modifier
+                            .matchParentSize()
+                            .graphicsLayer { alpha = fullAlpha(progress()) },
+                    ) { LyricsCaption(lyrics, { lyricsPosition }) }
+                }
+            }
         }
     }
 
@@ -393,6 +419,7 @@ private fun ExpandingPlayer(
         PlayerSheetContent.Options ->
             PlaybackOptionsSheet(
                 player = player,
+                lyrics = lyrics,
                 onDismiss = { openSheet = null },
             )
 
@@ -403,12 +430,16 @@ private fun ExpandingPlayer(
 
 private enum class PlayerSheetContent { Queue, Options, Devices }
 
+private fun fullAlpha(progress: Float) = ((progress - FULL_FADE_START) / (FULL_FADE_END - FULL_FADE_START)).coerceIn(0f, 1f)
+
 @Composable
 private fun SharedArtwork(
     url: String?,
     progress: () -> Float,
+    hidden: () -> Float,
     fullSlot: Rect?,
     insetPx: Float,
+    overlay: @Composable BoxScope.() -> Unit,
 ) {
     val density = LocalDensity.current
     val mini =
@@ -434,6 +465,7 @@ private fun SharedArtwork(
                 shape = RoundedCornerShape(lerp(MiniArtCorner, FullArtCorner, progress()))
                 clip = true
                 shadowElevation = 2.dp.toPx()
+                alpha = 1f - hidden() * progress()
             },
     ) {
         Artwork(
@@ -444,6 +476,7 @@ private fun SharedArtwork(
             placeholderIconSize = 24.dp,
             modifier = Modifier.fillMaxSize(),
         )
+        overlay()
     }
 }
 
@@ -559,6 +592,10 @@ private fun FullPlayer(
     onOpenParty: (Long) -> Unit,
     onOpenSheet: (PlayerSheetContent) -> Unit,
     onArtSlot: (Rect) -> Unit,
+    lyrics: PlayerLyrics,
+    lyricsPosition: () -> Long,
+    showLyrics: Boolean,
+    onToggleLyrics: () -> Unit,
     interactive: Boolean,
     modifier: Modifier,
 ) {
@@ -617,36 +654,72 @@ private fun FullPlayer(
                             .padding(vertical = 4.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Text(
-                        text = "PLAYING FROM",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 0.06.em,
-                        color = colors.mutedForeground,
-                        maxLines = 1,
-                    )
-                    Text(
-                        text = entry.track.albumTitle,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = colors.foreground,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    if (showLyrics) {
+                        Text(
+                            text = entry.track.title,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = colors.foreground,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = entry.track.artistNames ?: "Unknown artist",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.mutedForeground,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    } else {
+                        Text(
+                            text = "PLAYING FROM",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 0.06.em,
+                            color = colors.mutedForeground,
+                            maxLines = 1,
+                        )
+                        Text(
+                            text = entry.track.albumTitle,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = colors.foreground,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
-                Spacer(Modifier.width(36.dp))
+                ToggleButton(
+                    icon = R.drawable.ic_lyrics,
+                    label = "Lyrics",
+                    active = showLyrics,
+                    onClick = onToggleLyrics,
+                    modifier = Modifier.offset(x = 12.dp),
+                )
             }
             val artSlot =
                 Modifier.onPlaced { slot ->
                     root?.let { onArtSlot(it.localBoundingBoxOf(slot, clipBounds = false)) }
                 }
-            ArtSlot(
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 24.dp),
-                artSlot,
-            )
-            PlayerDetails(player, entry, positionMs, onSeek, onOpenParty, onOpenSheet)
+            if (showLyrics) {
+                LyricsView(
+                    lyrics = lyrics,
+                    position = lyricsPosition,
+                    onSeek = onSeek,
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                )
+            } else {
+                ArtSlot(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 24.dp),
+                    artSlot,
+                )
+            }
+            PlayerDetails(player, entry, positionMs, onSeek, onOpenParty, onOpenSheet, showTrackInfo = !showLyrics)
             Spacer(Modifier.height(24.dp))
         }
         if (!interactive) {
@@ -675,17 +748,11 @@ private fun ArtSlot(
 }
 
 @Composable
-private fun ColumnScope.PlayerDetails(
-    player: MusicPlayer,
+private fun TrackInfo(
     entry: QueueEntry,
-    positionMs: () -> Long,
-    onSeek: (Long) -> Unit,
     onOpenParty: (Long) -> Unit,
-    onOpenSheet: (PlayerSheetContent) -> Unit,
 ) {
     val colors = MusicTheme.colors
-    val source = player.source
-    val error = player.error
     Text(
         text = entry.track.title,
         modifier = Modifier.basicMarquee(),
@@ -715,7 +782,23 @@ private fun ColumnScope.PlayerDetails(
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
     )
-    SeekBar(player, positionMs(), onSeek, Modifier.padding(top = 24.dp))
+}
+
+@Composable
+private fun ColumnScope.PlayerDetails(
+    player: MusicPlayer,
+    entry: QueueEntry,
+    positionMs: () -> Long,
+    onSeek: (Long) -> Unit,
+    onOpenParty: (Long) -> Unit,
+    onOpenSheet: (PlayerSheetContent) -> Unit,
+    showTrackInfo: Boolean,
+) {
+    val colors = MusicTheme.colors
+    val source = player.source
+    val error = player.error
+    if (showTrackInfo) TrackInfo(entry, onOpenParty)
+    SeekBar(player, positionMs(), onSeek, Modifier.padding(top = if (showTrackInfo) 24.dp else 0.dp))
     val status =
         when {
             error != null -> error
@@ -775,6 +858,12 @@ private fun BottomActions(
             R.drawable.ic_sliders,
             "Playback options",
         ) { onOpenSheet(PlayerSheetContent.Options) }
+        ToggleButton(
+            icon = R.drawable.ic_captions,
+            label = "Captions",
+            active = settings.captions,
+            onClick = { settings.updateCaptions(!settings.captions) },
+        )
         ActionButton(R.drawable.ic_queue, "Queue") { onOpenSheet(PlayerSheetContent.Queue) }
     }
 }
@@ -953,9 +1042,10 @@ private fun ToggleButton(
     label: String,
     active: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val colors = MusicTheme.colors
-    IconButton(onClick = onClick, modifier = Modifier.size(48.dp)) {
+    IconButton(onClick = onClick, modifier = modifier.size(48.dp)) {
         Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
             Icon(
                 painterResource(icon),

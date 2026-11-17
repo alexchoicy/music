@@ -12,15 +12,18 @@ import com.alexchoicy.music.playback.MusicPlayer
 import com.alexchoicy.music.playback.StreamQuality
 import com.alexchoicy.music.ui.components.MusicBottomSheet
 import com.alexchoicy.music.ui.components.Segmented
+import com.alexchoicy.music.ui.components.SheetOption
 import com.alexchoicy.music.ui.components.SwitchRow
 import com.alexchoicy.music.ui.theme.MusicTheme
 
 @Composable
 fun PlaybackOptionsSheet(
     player: MusicPlayer,
+    lyrics: PlayerLyrics,
     onDismiss: () -> Unit,
 ) {
     val settings = player.settings
+    val versions = lyrics.versions.orEmpty()
     MusicBottomSheet(title = "Playback", onDismiss = onDismiss) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Label("Streaming quality")
@@ -49,6 +52,18 @@ fun PlaybackOptionsSheet(
                 checked = settings.playInstrumentals,
                 onCheckedChange = settings::updatePlayInstrumentals,
             )
+        }
+        if (versions.size > 1) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Label("Lyrics")
+                versions.forEach { version ->
+                    SheetOption(
+                        label = version.label,
+                        selected = version == lyrics.selected,
+                        onClick = { lyrics.select(version) },
+                    )
+                }
+            }
         }
     }
 }

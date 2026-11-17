@@ -25,6 +25,10 @@ import com.alexchoicy.music.data.library.LibraryDao
 import com.alexchoicy.music.data.library.LibraryPartyEntity
 import com.alexchoicy.music.data.library.LibrarySyncEntity
 import com.alexchoicy.music.data.library.PartyEntity
+import com.alexchoicy.music.data.lyrics.LyricVersionEntity
+import com.alexchoicy.music.data.lyrics.LyricsDao
+import com.alexchoicy.music.data.lyrics.LyricsEntity
+import com.alexchoicy.music.data.lyrics.TrackLyricsEntity
 import com.alexchoicy.music.offline.OfflineAlbumEntity
 import com.alexchoicy.music.offline.OfflineArtworkEntity
 import com.alexchoicy.music.offline.OfflineDao
@@ -72,9 +76,12 @@ import com.alexchoicy.music.playback.QueueStateEntity
         QueuePlayOrderEntity::class,
         QueueStateEntity::class,
         PendingListenEntity::class,
+        TrackLyricsEntity::class,
+        LyricVersionEntity::class,
+        LyricsEntity::class,
     ],
-    version = 2,
-    autoMigrations = [AutoMigration(from = 1, to = 2)],
+    version = 3,
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
 )
 abstract class MusicDatabase : RoomDatabase() {
     abstract fun homeDao(): HomeDao
@@ -88,4 +95,6 @@ abstract class MusicDatabase : RoomDatabase() {
     abstract fun queueDao(): QueueDao
 
     abstract fun pendingListenDao(): PendingListenDao
+
+    abstract fun lyricsDao(): LyricsDao
 }
