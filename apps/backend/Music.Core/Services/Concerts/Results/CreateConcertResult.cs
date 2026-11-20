@@ -39,6 +39,7 @@ public sealed record CreateConcertWithoutUploadResult
 
 public sealed class CreateConcertUploadImageResult
 {
+    public required Guid FileObjectId { get; init; }
     public required string Blake3Hash { get; init; }
     public required string UploadUrl { get; init; }
 }

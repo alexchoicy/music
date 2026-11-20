@@ -18,6 +18,7 @@ using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Files.Requests;
 using Music.Core.Services.Subtitles;
 using Music.Core.Storage;
+using Music.Core.Workers;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Mappers;
 using Music.Infrastructure.Services.Sharing;
@@ -38,6 +39,8 @@ public class AlbumService(
     private readonly IContentService _contentService = contentService;
     private readonly IAssetsService _assetsService = assetsService;
     private readonly ILogger<AlbumService> _logger = logger;
+
+    private readonly List<FileObject> _imagesToReprocess = [];
 
     public Task<int> CountForListAsync(
         AlbumListRequest request,
@@ -532,6 +535,8 @@ public class AlbumService(
                 continue;
             }
 
+            _imagesToReprocess.Clear();
+
             await using IDbContextTransaction transaction =
                 await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
@@ -544,6 +549,12 @@ public class AlbumService(
                 );
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
+
+                foreach (FileObject image in _imagesToReprocess)
+                    await _assetsService.RunBackgroundProcessUploadFileAsync(
+                        new ImageUploadProcessWorker { FileObjectId = image.Id },
+                        cancellationToken
+                    );
 
                 results.Add(
                     CreateAlbumResult.Success(album.ClientTempAlbumId, album.Title, uploadResults)
@@ -855,12 +866,30 @@ public class AlbumService(
                 _dbContext.StoredFiles.Add(storedFile);
                 _dbContext.FileObjects.Add(uploadTarget);
             }
-            else if (storedFile.UploadedByUserId == userId)
+            else
             {
-                uploadTarget = storedFile.FileObjects.FirstOrDefault(fileObject =>
+                FileObject? original = storedFile.FileObjects.FirstOrDefault(fileObject =>
                     fileObject.FileObjectVariant == FileObjectVariant.Original
-                    && fileObject.ProcessingStatus == FileProcessingStatus.Pending
                 );
+
+                if (
+                    original is { ProcessingStatus: FileProcessingStatus.Pending }
+                    && storedFile.UploadedByUserId == userId
+                )
+                {
+                    uploadTarget = original;
+                }
+                else if (
+                    original is
+                    {
+                        ProcessingStatus: FileProcessingStatus.Completed
+                            or FileProcessingStatus.Failed
+                    }
+                )
+                {
+                    original.ProcessingStatus = FileProcessingStatus.Uploaded;
+                    _imagesToReprocess.Add(original);
+                }
             }
         }
 

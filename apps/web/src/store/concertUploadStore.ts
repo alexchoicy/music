@@ -3,6 +3,7 @@ import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
 import { createConcert } from "#/lib/api/concerts";
+import { completeUpload } from "#/lib/api/uploads";
 import {
 	getDimensions,
 	getExtensionFromFileName,
@@ -166,6 +167,8 @@ async function uploadConcertImage(
 	if (!response.ok) {
 		throw new Error(`Concert image upload failed: ${response.status}`);
 	}
+
+	await completeUpload({ fileObjectId: imageUpload.fileObjectId });
 }
 
 export const useConcertUploadStore = create<ConcertUploadStore>()(

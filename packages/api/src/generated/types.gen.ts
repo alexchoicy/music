@@ -410,6 +410,7 @@ export type CreateConcertRequest = {
 };
 
 export type CreateConcertUploadImageResult = {
+    fileObjectId: string;
     blake3Hash: string;
     uploadUrl: string;
 };

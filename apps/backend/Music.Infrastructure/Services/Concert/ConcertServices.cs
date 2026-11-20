@@ -16,6 +16,7 @@ using Music.Core.Services.Files.Enums;
 using Music.Core.Services.Files.Requests;
 using Music.Core.Services.Subtitles;
 using Music.Core.Storage;
+using Music.Core.Workers;
 using Music.Infrastructure.Data;
 using Music.Infrastructure.Mappers;
 using Music.Infrastructure.Services.Sharing;
@@ -104,17 +105,20 @@ public class ConcertService(
 
             List<ConcertFile> concertFiles = [];
 
-            CreateConcertUploadResult uploadResult = new()
-            {
-                ConcertTitle = concert.Title,
-                ConcertImage = concert.Image is null
-                    ? null
-                    : CreateConcertUploadImage(
+            (CreateConcertUploadImageResult? imageUpload, FileObject? imageToReprocess) =
+                concert.Image is null
+                    ? (null, null)
+                    : await CreateConcertImageAsync(
                         concert.Image,
                         newConcert,
                         userId,
                         cancellationToken
-                    ),
+                    );
+
+            CreateConcertUploadResult uploadResult = new()
+            {
+                ConcertTitle = concert.Title,
+                ConcertImage = imageUpload,
             };
 
             foreach (var file in concert.Files)
@@ -185,6 +189,12 @@ public class ConcertService(
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
+            if (imageToReprocess is not null)
+                await assetsService.RunBackgroundProcessUploadFileAsync(
+                    new ImageUploadProcessWorker { FileObjectId = imageToReprocess.Id },
+                    cancellationToken
+                );
+
             return uploadResult;
         }
         catch (Exception ex)
@@ -196,31 +206,69 @@ public class ConcertService(
         }
     }
 
-    private CreateConcertUploadImageResult CreateConcertUploadImage(
+    private async Task<(
+        CreateConcertUploadImageResult? Upload,
+        FileObject? Reprocess
+    )> CreateConcertImageAsync(
         ConcertImageRequest concertImageModel,
         Core.Entities.Concert concert,
         string userId,
         CancellationToken cancellationToken
     )
     {
-        string imagePath = assetsService.GetStoragePath(
-            MediaFolderOptions.AssetsCover,
-            concertImageModel.File.Blake3Hash,
-            concertImageModel.File.MimeType,
-            concertImageModel.File.OriginalFileName
-        );
+        StoredFile? storedFile = await dbContext
+            .StoredFiles.Include(file => file.FileObjects)
+            .FirstOrDefaultAsync(
+                file => file.OriginalBlake3Hash == concertImageModel.File.Blake3Hash,
+                cancellationToken
+            );
 
-        (StoredFile storedFile, FileObject fileObject) = assetsService.CreateStoredFileWithObject(
-            concertImageModel.File,
-            FileType.Image,
-            imagePath,
-            StorageArea.Assets,
-            FileObjectVariant.Original,
-            userId
-        );
+        FileObject? uploadTarget = null;
+        FileObject? reprocess = null;
 
-        dbContext.StoredFiles.Add(storedFile);
-        dbContext.FileObjects.Add(fileObject);
+        if (storedFile is null)
+        {
+            string imagePath = assetsService.GetStoragePath(
+                MediaFolderOptions.AssetsCover,
+                concertImageModel.File.Blake3Hash,
+                concertImageModel.File.MimeType,
+                concertImageModel.File.OriginalFileName
+            );
+
+            (storedFile, uploadTarget) = assetsService.CreateStoredFileWithObject(
+                concertImageModel.File,
+                FileType.Image,
+                imagePath,
+                StorageArea.Assets,
+                FileObjectVariant.Original,
+                userId
+            );
+
+            dbContext.StoredFiles.Add(storedFile);
+            dbContext.FileObjects.Add(uploadTarget);
+        }
+        else
+        {
+            FileObject? original = storedFile.FileObjects.FirstOrDefault(fileObject =>
+                fileObject.FileObjectVariant == FileObjectVariant.Original
+            );
+
+            if (
+                original is { ProcessingStatus: FileProcessingStatus.Pending }
+                && storedFile.UploadedByUserId == userId
+            )
+            {
+                uploadTarget = original;
+            }
+            else if (
+                original is
+                { ProcessingStatus: FileProcessingStatus.Completed or FileProcessingStatus.Failed }
+            )
+            {
+                original.ProcessingStatus = FileProcessingStatus.Uploaded;
+                reprocess = original;
+            }
+        }
 
         ConcertImage concertImage = new()
         {
@@ -235,15 +283,20 @@ public class ConcertService(
 
         dbContext.ConcertImages.Add(concertImage);
 
-        return new CreateConcertUploadImageResult
-        {
-            Blake3Hash = concertImageModel.File.Blake3Hash,
-            UploadUrl = assetsService.CreateUploadUrlAsync(
-                imagePath,
-                fileObject.MimeType,
-                cancellationToken
-            ),
-        };
+        CreateConcertUploadImageResult? upload = uploadTarget is null
+            ? null
+            : new CreateConcertUploadImageResult
+            {
+                FileObjectId = uploadTarget.Id,
+                Blake3Hash = concertImageModel.File.Blake3Hash,
+                UploadUrl = assetsService.CreateUploadUrlAsync(
+                    uploadTarget.StoragePath,
+                    uploadTarget.MimeType,
+                    cancellationToken
+                ),
+            };
+
+        return (upload, reprocess);
     }
 
     public Task<CreateConcertWithoutUploadResult> CreateConcertWithoutUploadAsync(
